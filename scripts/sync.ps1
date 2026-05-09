@@ -1,33 +1,119 @@
 param (
     [string]$Message,
-    [switch]$SkipRelease
+    [switch]$SkipRelease,
+    [switch]$Release,
+    [switch]$Help
 )
-
-<#
-.SYNOPSIS
-    Nexora Desktop Sync - Automatiza a sincronizacao, versionamento (SemVer) e releases no GitHub.
-    Adapta o padrao nexora-sync.ps1 do servidor para o workspace Tauri/React.
-
-.USAGE
-    # Commit + versao + push (modo normal)
-    powershell -ExecutionPolicy Bypass -File scripts\sync.ps1
-
-    # Passar mensagem de commit directamente
-    powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -Message "feat: adicionar painel de jobs"
-
-    # Apenas push, sem bump de versao
-    powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -SkipRelease
-#>
 
 # Configuracoes de codificacao para o terminal
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# Funcoes de Log (definidas cedo para usar no bloco Help)
+function Write-Step($msg)    { Write-Host "[STEP]  $msg" -ForegroundColor Cyan }
+function Write-Success($msg) { Write-Host "[OK]    $msg" -ForegroundColor Green }
+function Write-Warn($msg)    { Write-Host "[WARN]  $msg" -ForegroundColor Yellow }
+function Write-Err($msg)     { Write-Host "[ERROR] $msg" -ForegroundColor Red }
+function Write-Info($msg)    { Write-Host "        $msg" -ForegroundColor Gray }
+
+# ---------------------------------------------------------
+# AJUDA (-Help)
+# ---------------------------------------------------------
+if ($Help) {
+    Clear-Host
+    Write-Host ""
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host "  NEXORA DESKTOP SYNC  —  Ajuda" -ForegroundColor Cyan
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  UTILIZACAO" -ForegroundColor White
+    Write-Host "  ----------" -ForegroundColor Gray
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 [opcoes]" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  OPCOES" -ForegroundColor White
+    Write-Host "  ------" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  (sem opcoes)" -ForegroundColor Cyan
+    Write-Host "    Abre menu interactivo com 5 opcoes." -ForegroundColor Gray
+    Write-Host "    Ideal para uso diario — nao precisas de decorar flags." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  -Message  <texto>" -ForegroundColor Cyan
+    Write-Host "    Define a mensagem de commit directamente." -ForegroundColor Gray
+    Write-Host "    Salta as perguntas de tipo e descricao." -ForegroundColor Gray
+    Write-Host "    Usa convencoes SemVer: feat:, fix:, docs:, refactor:, BREAKING CHANGE:" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  -SkipRelease" -ForegroundColor Cyan
+    Write-Host "    Faz commit e push para dev SEM perguntar versao." -ForegroundColor Gray
+    Write-Host "    Util para guardar trabalho rapido sem bump de versao." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  -Release" -ForegroundColor Cyan
+    Write-Host "    Modo lancamento completo:" -ForegroundColor Gray
+    Write-Host "    commit + bump versao + push dev + merge main + push main + GitHub Release" -ForegroundColor Gray
+    Write-Host "    Dispara automaticamente o GitHub Actions (build .exe/.dmg/.deb)." -ForegroundColor Gray
+    Write-Host "    Usar quando um Prompt Desktop (1/2/3/4) estiver completo." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  -Help" -ForegroundColor Cyan
+    Write-Host "    Mostra esta ajuda." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  CONVENCOES DE COMMIT (SemVer)" -ForegroundColor White
+    Write-Host "  -----------------------------" -ForegroundColor Gray
+    Write-Host "  feat:            Nova funcionalidade     -> bump MINOR (0.1.0 -> 0.2.0)" -ForegroundColor Gray
+    Write-Host "  fix:             Correcao de bug         -> bump PATCH (0.1.0 -> 0.1.1)" -ForegroundColor Gray
+    Write-Host "  docs:            Documentacao            -> bump PATCH" -ForegroundColor Gray
+    Write-Host "  style:           Estetica/formatacao     -> bump PATCH" -ForegroundColor Gray
+    Write-Host "  refactor:        Refatorizacao           -> bump PATCH" -ForegroundColor Gray
+    Write-Host "  chore:           Manutencao/scripts      -> bump PATCH" -ForegroundColor Gray
+    Write-Host "  BREAKING CHANGE: Alteracao disruptiva    -> bump MAJOR (0.1.0 -> 1.0.0)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  EXEMPLOS" -ForegroundColor White
+    Write-Host "  --------" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  # Menu interactivo (recomendado para uso diario)" -ForegroundColor Green
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  # Guardar trabalho do dia com mensagem directa" -ForegroundColor Green
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -Message ""feat: adicionar painel de jobs""" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  # Guardar rapido sem bump de versao" -ForegroundColor Green
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -SkipRelease" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  # Guardar rapido com mensagem e sem bump" -ForegroundColor Green
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -SkipRelease -Message ""docs: actualizar SYNC-STATE""" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  # Versao pronta — Prompt Desktop 2 completo (merge main + GitHub Release)" -ForegroundColor Green
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -Release -Message ""feat: sidecar + queue + workers""" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  # Versao pronta — com menu de versao interactivo" -ForegroundColor Green
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -Release" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  # Ver estado do repositorio sem fazer nada" -ForegroundColor Green
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1  -> escolhe opcao 4" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  FLUXO DE TRABALHO TIPICO" -ForegroundColor White
+    Write-Host "  ------------------------" -ForegroundColor Gray
+    Write-Host "  Dia de trabalho normal:" -ForegroundColor Gray
+    Write-Host "    sync.ps1              -> opcao 1 (guardar + bump patch)" -ForegroundColor Gray
+    Write-Host "    sync.ps1 -SkipRelease -> guardar sem alterar versao" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  Quando um Prompt Desktop fica completo:" -ForegroundColor Gray
+    Write-Host "    sync.ps1 -Release     -> opcao 3 (merge main + build instaladores)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  ATALHO (adiciona ao perfil PowerShell)" -ForegroundColor White
+    Write-Host "  ----------------------------------------" -ForegroundColor Gray
+    Write-Host "  function nsync { powershell -ExecutionPolicy Bypass -File ""C:\Dev\nexora-desktop\scripts\sync.ps1"" @args }" -ForegroundColor Cyan
+    Write-Host "  # Depois podes usar apenas: nsync / nsync -Release / nsync -Help" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host ""
+    exit 0
+}
 
 # Funcoes de Log
 function Write-Step($msg)    { Write-Host "[STEP]  $msg" -ForegroundColor Cyan }
 function Write-Success($msg) { Write-Host "[OK]    $msg" -ForegroundColor Green }
 function Write-Warn($msg)    { Write-Host "[WARN]  $msg" -ForegroundColor Yellow }
 function Write-Err($msg)     { Write-Host "[ERROR] $msg" -ForegroundColor Red }
+function Write-Info($msg)    { Write-Host "        $msg" -ForegroundColor Gray }
 
 $WORKSPACE  = "C:\Dev\nexora-desktop"
 $REPO_OWNER = "ideiasestrondosas-ctrl"
@@ -38,6 +124,69 @@ if (-not (Test-Path $WORKSPACE)) {
     exit 1
 }
 Push-Location $WORKSPACE
+
+# ---------------------------------------------------------
+# MENU INTERACTIVO (quando nao ha flags passadas)
+# ---------------------------------------------------------
+if (-not $SkipRelease -and -not $Release -and -not $Message) {
+    $branch = git branch --show-current 2>$null
+    $dirty  = git status --short 2>$null
+    $currentVersion = "0.1.0"
+    if (Test-Path "package.json") {
+        try { $currentVersion = (Get-Content "package.json" -Raw | ConvertFrom-Json).version } catch {}
+    }
+
+    Clear-Host
+    Write-Host ""
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host "  NEXORA DESKTOP SYNC" -ForegroundColor Cyan
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Branch:  $branch" -ForegroundColor White
+    Write-Host "  Versao:  $currentVersion" -ForegroundColor White
+    if ($dirty) {
+        Write-Host "  Estado:  $(@($dirty).Count) ficheiro(s) modificado(s)" -ForegroundColor Yellow
+    } else {
+        Write-Host "  Estado:  Workspace limpo" -ForegroundColor Green
+    }
+    Write-Host ""
+    Write-Host "  O que queres fazer?" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  1) Guardar trabalho do dia                     (commit + bump versao + push dev)" -ForegroundColor Cyan
+    Write-Host "  2) Guardar sem alterar versao                  (commit + push dev, sem bump)" -ForegroundColor Cyan
+    Write-Host "  3) Versao pronta para lancamento               (commit + bump + push dev + merge main + GitHub Release)" -ForegroundColor Green
+    Write-Host "  4) Ver estado actual                           (git status + ultimos commits)" -ForegroundColor Gray
+    Write-Host "  5) Sair" -ForegroundColor Gray
+    Write-Host ""
+
+    $choice = Read-Host "  Opcao [1-5]"
+
+    switch ($choice) {
+        "1" { <# modo normal — continua o script #> }
+        "2" { $SkipRelease = $true }
+        "3" { $Release = $true }
+        "4" {
+            Write-Host ""
+            Write-Host "  -- Ficheiros modificados --" -ForegroundColor White
+            git status --short | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+            Write-Host ""
+            Write-Host "  -- Ultimos 5 commits --" -ForegroundColor White
+            git log --oneline -5 | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+            Write-Host ""
+            Write-Host "  -- Branches --" -ForegroundColor White
+            git branch -a | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+            Write-Host ""
+            Pop-Location; exit 0
+        }
+        "5" {
+            Write-Host "  Saindo." -ForegroundColor Gray
+            Pop-Location; exit 0
+        }
+        default {
+            Write-Warn "Opcao invalida. A usar modo 1 (guardar trabalho do dia)."
+        }
+    }
+}
 
 # ---------------------------------------------------------
 # VERIFICACAO DE AMBIENTE
@@ -317,7 +466,44 @@ if ($script:GITHUB_TOKEN) {
 }
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Success "Sincronizacao concluida!"
+    Write-Success "Push dev concluido!"
+
+    # ---------------------------------------------------------
+    # MERGE PARA MAIN (apenas com -Release)
+    # ---------------------------------------------------------
+    if ($Release) {
+        Write-Step "Modo Release: a fazer merge dev -> main..."
+
+        $devBranch = $branch
+
+        git checkout main 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Err "Nao foi possivel mudar para main"
+            Pop-Location; exit 1
+        }
+
+        git merge $devBranch --ff-only 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warn "Fast-forward falhou — a tentar merge normal..."
+            git merge $devBranch -m "chore(release): merge $devBranch -> main v$newVersion" 2>&1
+        }
+
+        if ($script:GITHUB_TOKEN) {
+            git push -u "$authenticatedUrl" main --tags 2>&1
+        } else {
+            git push -u origin main --tags 2>&1
+        }
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "main actualizado com v$newVersion!"
+        } else {
+            Write-Err "Push para main falhou — faz manualmente: git checkout main && git merge $devBranch && git push origin main"
+        }
+
+        # Voltar para dev
+        git checkout $devBranch 2>&1 | Out-Null
+        Write-Success "De volta ao branch $devBranch"
+    }
 
     # Criar GitHub Release se houver nova versao e token
     if ($isNewRelease -and $script:GITHUB_TOKEN) {
