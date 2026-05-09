@@ -10,37 +10,74 @@ Agente: Claude Sonnet 4.6
 
 ## O que foi feito
 
-- Todos os ficheiros de ambiente criados em `nexora-desktop\`
-- Scripts de migração e setup prontos em `nexora-desktop\scripts\`
-- Aguarda: utilizador executar scripts na ordem correcta
+### Dependências npm instaladas
+- zustand, better-sqlite3, esbuild, concurrently
+- tailwindcss, @tailwindcss/vite, @types/better-sqlite3
 
-## Próximo passo
+### Configuração base
+- vite.config.ts: plugin Tailwind + alias @/ → src/
+- tsconfig.json: paths @/* → src/*
+- tsc --noEmit: OK
+- tauri build --debug: OK (gerou .exe, .msi, .nsis)
 
-O utilizador precisa de executar os scripts (ver PROGRESS-DESKTOP.md).
-Após migração para `C:\Dev\nexora-desktop`, o próximo passo de desenvolvimento é:
-1. `npm create tauri-app@latest . -- --template react-ts`
-2. Executar Prompt Desktop 1 (Tauri + SQLite + IPC)
+### Prompt Desktop 1 — Concluído
+Todos os módulos Rust implementados e cargo check OK:
 
-## Ficheiros criados nesta sessão
-
-```
-nexora-desktop\CLAUDE.md
-nexora-desktop\BOUNDARIES.md
-nexora-desktop\SYNC-STATE.md
-nexora-desktop\.antigravity\rules.md
-nexora-desktop\.antigravity\settings.json
-nexora-desktop\.agents\rules\graphify.md
-nexora-desktop\.agents\rules\karpathy_guidelines.md
-nexora-desktop\.vscode\extensions.json
-nexora-desktop\.vscode\settings.json
-nexora-desktop\nexora-desktop.code-workspace
-nexora-desktop\scripts\01-migrate-workspace.ps1
-nexora-desktop\scripts\02-setup-claude-env.ps1
-nexora-desktop\scripts\03-setup-antigravity-env.ps1
-nexora-desktop\scripts\04-setup-github.ps1
-nexora-desktop\scripts\05-validate-environment.ps1
-```
+- src-tauri/Cargo.toml → rusqlite, uuid, chrono, anyhow, log, env_logger, tauri-plugin-notification, tray-icon feature
+- src-tauri/tauri.conf.json → janela 1280×800, productName Nexora Desktop
+- src-tauri/capabilities/default.json → + notification:default
+- src-tauri/src/db/schema.sql → tabelas assets, jobs, settings, audit_log + índices
+- src-tauri/src/db/mod.rs → open() com WAL + foreign_keys
+- src-tauri/src/db/migrations.rs → run() via include_str!
+- src-tauri/src/state.rs → AppState { db: Mutex<Connection>, sidecar_pid }
+- src-tauri/src/commands/assets.rs → ingest_asset, list_assets, get_asset
+- src-tauri/src/commands/jobs.rs → submit_job, cancel_job, get_job_status, list_jobs
+- src-tauri/src/commands/settings.rs → get_settings, update_settings
+- src-tauri/src/commands/system.rs → detect_gpu (NVENC/AMF/QSV/CPU), get_disk_space, get_app_version
+- src-tauri/src/tray.rs → tray com Mostrar/Sair + clique no ícone
+- src-tauri/src/sidecar.rs → spawn (graceful skip se binário não existir) + leitura JSON stdout
+- src-tauri/src/lib.rs → setup completo com db, tray, sidecar, todos os commands registados
 
 ## Estado de compilação
 
-N/A — scaffold ainda não criado (pré-migração)
+- cargo check: OK
+- tsc --noEmit: OK
+- tauri build --debug: OK (validado antes do Prompt Desktop 1)
+
+## Próximo passo
+
+**Prompt Desktop 2 — Sidecar + Queue + Orchestrator + Workers**
+
+Implementar em sidecar/:
+1. NexoraSimpleQueue (memória + SQLite, prioridades, retry)
+2. NexoraDesktopOrchestrator (step-by-step, idempotente)
+3. Workers: ingest, qc-pre, transcode (GPU auto-detect), audio (R128), proxy, thumbnail, qc-post (VMAF), delivery
+4. 6 perfis de transcode JSON
+5. Comunicação sidecar ↔ Tauri via stdout/JSON
+
+Referência de workers: C:\Dev\Nexora Media Processing\src\workers\ (somente leitura)
+
+## Ficheiros criados/modificados nesta sessão
+
+```
+package.json (deps adicionadas)
+vite.config.ts (tailwind + alias)
+tsconfig.json (paths)
+src-tauri/Cargo.toml
+src-tauri/tauri.conf.json
+src-tauri/capabilities/default.json
+src-tauri/src/db/schema.sql (novo)
+src-tauri/src/db/mod.rs (novo)
+src-tauri/src/db/migrations.rs (novo)
+src-tauri/src/state.rs (novo)
+src-tauri/src/commands/mod.rs (novo)
+src-tauri/src/commands/assets.rs (novo)
+src-tauri/src/commands/jobs.rs (novo)
+src-tauri/src/commands/settings.rs (novo)
+src-tauri/src/commands/system.rs (novo)
+src-tauri/src/tray.rs (novo)
+src-tauri/src/sidecar.rs (novo)
+src-tauri/src/lib.rs (reescrito)
+PROGRESS-DESKTOP.md (actualizado)
+SYNC-STATE.md (este ficheiro)
+```
