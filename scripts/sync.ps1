@@ -108,13 +108,6 @@ if ($Help) {
     exit 0
 }
 
-# Funcoes de Log
-function Write-Step($msg)    { Write-Host "[STEP]  $msg" -ForegroundColor Cyan }
-function Write-Success($msg) { Write-Host "[OK]    $msg" -ForegroundColor Green }
-function Write-Warn($msg)    { Write-Host "[WARN]  $msg" -ForegroundColor Yellow }
-function Write-Err($msg)     { Write-Host "[ERROR] $msg" -ForegroundColor Red }
-function Write-Info($msg)    { Write-Host "        $msg" -ForegroundColor Gray }
-
 $WORKSPACE  = "C:\Dev\nexora-desktop"
 $REPO_OWNER = "ideiasestrondosas-ctrl"
 $REPO_NAME  = "nexora-desktop"
