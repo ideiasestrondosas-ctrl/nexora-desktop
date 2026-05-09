@@ -149,44 +149,110 @@ async function main() {
 
   if (platform === 'darwin') {
     const tools = ['ffmpeg', 'ffprobe'];
-    const archs  = ['arm64', 'x64'];
-    const archTriples = { 'arm64': 'aarch64-apple-darwin', 'x64': 'x86_64-apple-darwin' };
+    const archTriples = { arm64: 'aarch64-apple-darwin', x64: 'x86_64-apple-darwin' };
+
+    // Tenta encontrar o binário do sistema e determinar a sua arquitectura
+    async function findSystemBinary(tool) {
+      try {
+        const { stdout } = await execAsync(`which ${tool}`);
+        const p = stdout.trim();
+        if (!p) return null;
+        const { stdout: fileInfo } = await execAsync(`file "${p}"`);
+        const hasArm64 = fileInfo.includes('arm64');
+        const hasX64   = fileInfo.includes('x86_64');
+        if (hasArm64 && hasX64) return { path: p, arch: 'universal' };
+        if (hasArm64)           return { path: p, arch: 'arm64' };
+        if (hasX64)             return { path: p, arch: 'x64' };
+      } catch {}
+      return null;
+    }
 
     for (const tool of tools) {
-      const slices = [];
-      for (const a of archs) {
-        const url     = EVERMEET[a][tool];
-        const tmpDir  = `${tmpBase}-${tool}-${a}`;
+      const sysBin = await findSystemBinary(tool);
+
+      // Caso especial: binário do sistema já é universal
+      if (sysBin?.arch === 'universal') {
+        const universalDest = join(outDir, `${tool}-universal-apple-darwin`);
+        await copyFile(sysBin.path, universalDest);
+        chmodSync(universalDest, 0o755);
+        for (const [a, triple] of Object.entries(archTriples)) {
+          await copyFile(sysBin.path, join(outDir, `${tool}-${triple}`));
+          chmodSync(join(outDir, `${tool}-${triple}`), 0o755);
+        }
+        console.log(`  ✓ ${tool}-universal-apple-darwin (universal do sistema)`);
+        continue;
+      }
+
+      const slicePaths = {};
+
+      // Usar binário do sistema para a sua arquitectura nativa (ex: arm64 no runner GitHub)
+      if (sysBin) {
+        slicePaths[sysBin.arch] = sysBin.path;
+        const indivDest = join(outDir, `${tool}-${archTriples[sysBin.arch]}`);
+        await copyFile(sysBin.path, indivDest);
+        chmodSync(indivDest, 0o755);
+        console.log(`  → ${tool} nativo do sistema (${sysBin.arch})`);
+      }
+
+      // Descarregar x86_64 do evermeet.cx (única arquitectura disponível)
+      // Usado para o slot x64 e como fallback para arm64 se não houver binário do sistema
+      let evermeetPath = null;
+      {
+        const url     = EVERMEET.x64[tool];
+        const tmpDir  = `${tmpBase}-${tool}-evermeet`;
         const { found, extractDir } = await downloadBinary(url, tool, 'zip', tmpDir);
         if (found) {
-          const slicePath = `${tmpBase}-${tool}-${a}-bin`;
-          await copyFile(found, slicePath);
-          chmodSync(slicePath, 0o755);
-          slices.push(slicePath);
-          // Guardar também o slice individual para o target triple específico
-          const indivDest = join(outDir, `${tool}-${archTriples[a]}`);
-          await copyFile(slicePath, indivDest);
-          chmodSync(indivDest, 0o755);
+          evermeetPath = `${tmpBase}-${tool}-evermeet-bin`;
+          await copyFile(found, evermeetPath);
+          chmodSync(evermeetPath, 0o755);
         }
         await rm(extractDir, { recursive: true, force: true }).catch(() => {});
       }
 
-      if (slices.length === 2) {
-        // Criar binário universal com lipo
-        const universalDest = join(outDir, `${tool}-universal-apple-darwin`);
-        await execAsync(`lipo -create -output "${universalDest}" ${slices.map(s => `"${s}"`).join(' ')}`);
-        chmodSync(universalDest, 0o755);
-        console.log(`  ✓ ${tool}-universal-apple-darwin (universal fat binary)`);
-      } else if (slices.length === 1) {
-        // Fallback: usar o único slice disponível como universal
-        const universalDest = join(outDir, `${tool}-universal-apple-darwin`);
-        await copyFile(slices[0], universalDest);
+      if (evermeetPath) {
+        if (!slicePaths.x64) {
+          slicePaths.x64 = evermeetPath;
+          const indivDest = join(outDir, `${tool}-${archTriples.x64}`);
+          await copyFile(evermeetPath, indivDest);
+          chmodSync(indivDest, 0o755);
+        }
+        if (!slicePaths.arm64) {
+          // evermeet só tem x86_64 — usado como fallback; lipo detectará e usaremos cópia directa
+          slicePaths.arm64 = evermeetPath;
+          const indivDest = join(outDir, `${tool}-${archTriples.arm64}`);
+          await copyFile(evermeetPath, indivDest);
+          chmodSync(indivDest, 0o755);
+        }
+      }
+
+      // Criar binário universal com lipo
+      const universalDest = join(outDir, `${tool}-universal-apple-darwin`);
+      const sliceList = ['arm64', 'x64'].map(a => slicePaths[a]).filter(Boolean);
+
+      if (sliceList.length === 2) {
+        try {
+          await execAsync(`lipo -create -output "${universalDest}" ${sliceList.map(s => `"${s}"`).join(' ')}`);
+          chmodSync(universalDest, 0o755);
+          console.log(`  ✓ ${tool}-universal-apple-darwin (fat binary arm64+x86_64)`);
+        } catch (e) {
+          const msg = (e.stderr ?? e.message ?? '').toString();
+          if (msg.includes('same architectures')) {
+            // Ambos os slices têm a mesma arquitectura (x86_64); usar directamente
+            await copyFile(sliceList[0], universalDest);
+            chmodSync(universalDest, 0o755);
+            console.log(`  ✓ ${tool}-universal-apple-darwin (x86_64 — arm64 indisponível)`);
+          } else {
+            throw e;
+          }
+        }
+      } else if (sliceList.length === 1) {
+        await copyFile(sliceList[0], universalDest);
         chmodSync(universalDest, 0o755);
         console.log(`  ✓ ${tool}-universal-apple-darwin (single arch fallback)`);
       }
 
-      // Limpar slices temporários
-      for (const s of slices) await unlink(s).catch(() => {});
+      // Limpar ficheiro temporário do evermeet
+      if (evermeetPath) await unlink(evermeetPath).catch(() => {});
     }
 
     console.log('\nConcluído.\n');
