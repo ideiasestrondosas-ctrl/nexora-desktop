@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\(\"C:\\\\Dev\\\\nexora-desktop\\\\src-tauri\\\\tauri.conf.json\"\\); \"First 6 bytes: $\\($bytes[0..5] -join ','\\)\"; \"Length: $\\($bytes.Length\\)\")",
-      "PowerShell($content = [System.IO.File]::ReadAllText\\(\"C:\\\\Dev\\\\nexora-desktop\\\\src-tauri\\\\tauri.conf.json\", [System.Text.Encoding]::UTF8\\); [System.IO.File]::WriteAllText\\(\"C:\\\\Dev\\\\nexora-desktop\\\\src-tauri\\\\tauri.conf.json\", $content, \\(New-Object System.Text.UTF8Encoding $false\\)\\); \"Done — no BOM\")"
+      "PowerShell($content = [System.IO.File]::ReadAllText\\(\"C:\\\\Dev\\\\nexora-desktop\\\\src-tauri\\\\tauri.conf.json\", [System.Text.Encoding]::UTF8\\); [System.IO.File]::WriteAllText\\(\"C:\\\\Dev\\\\nexora-desktop\\\\src-tauri\\\\tauri.conf.json\", $content, \\(New-Object System.Text.UTF8Encoding $false\\)\\); \"Done — no BOM\")",
+      "Bash(gh run *)",
+      "Bash(node scripts/download-media-binaries.js)",
+      "Bash(gh api *)",
+      "Bash(python -c \"import sys,json; jobs=json.load\\(sys.stdin\\)['jobs']; [print\\(j['name'],j['conclusion'], [\\(s['name'],s['conclusion']\\) for s in j['steps'] if s['conclusion']=='failure']\\) for j in jobs]\")",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(node scripts/download-media-binaries.js --platform win32 --arch x64)",
+      "Bash(Start-Sleep -Seconds 300)"
     ]
   }
 }
