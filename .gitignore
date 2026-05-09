@@ -1,0 +1,46 @@
+﻿# Dependencias
+node_modules/
+.pnp
+
+# Build
+dist/
+build/
+out/
+
+# Rust (GRANDE - nunca commitar)
+target/
+src-tauri/target/
+
+# Sidecar compilado
+sidecar/dist/
+
+# Binarios de media (incluidos no instalador - nao commitar)
+src-tauri/binaries/
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Ambiente
+.env
+.env.local
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# SO
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.idea/
+
+# Testes
+coverage/
+.tmp/
+temp/
+WixTools/
