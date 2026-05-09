@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\(\"C:\\\\Dev\\\\nexora-desktop\\\\src-tauri\\\\tauri.conf.json\"\\); \"First 6 bytes: $\\($bytes[0..5] -join ','\\)\"; \"Length: $\\($bytes.Length\\)\")",
+      "PowerShell($content = [System.IO.File]::ReadAllText\\(\"C:\\\\Dev\\\\nexora-desktop\\\\src-tauri\\\\tauri.conf.json\", [System.Text.Encoding]::UTF8\\); [System.IO.File]::WriteAllText\\(\"C:\\\\Dev\\\\nexora-desktop\\\\src-tauri\\\\tauri.conf.json\", $content, \\(New-Object System.Text.UTF8Encoding $false\\)\\); \"Done — no BOM\")"
+    ]
+  }
+}

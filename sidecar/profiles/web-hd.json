@@ -1,0 +1,23 @@
+{
+  "name": "web-hd",
+  "description": "Web / OTT HD 1080p — streaming",
+  "videoCodec": "libx264",
+  "videoBitrateK": 5000,
+  "maxrateK": 7500,
+  "bufsizeK": 10000,
+  "resolution": "1920x1080",
+  "fps": 25,
+  "gopSize": 50,
+  "pixFmt": "yuv420p",
+  "h264Profile": "high",
+  "h264Level": "4.0",
+  "bFrames": 0,
+  "cpuPreset": "medium",
+  "nvencPreset": "p4",
+  "audioCodec": "aac",
+  "audioBitrateK": 192,
+  "audioSampleRate": 48000,
+  "targetLufs": -14,
+  "truePeakLimitDbtp": -1,
+  "vmafThreshold": 90
+}

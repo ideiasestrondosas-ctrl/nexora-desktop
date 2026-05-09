@@ -1,0 +1,23 @@
+{
+  "name": "broadcast-sd",
+  "description": "Broadcast SD 576p/25 — legado PAL",
+  "videoCodec": "libx264",
+  "videoBitrateK": 3000,
+  "maxrateK": 4500,
+  "bufsizeK": 6000,
+  "resolution": "720x576",
+  "fps": 25,
+  "gopSize": 50,
+  "pixFmt": "yuv420p",
+  "h264Profile": "main",
+  "h264Level": "3.1",
+  "bFrames": 0,
+  "cpuPreset": "medium",
+  "nvencPreset": "p4",
+  "audioCodec": "aac",
+  "audioBitrateK": 192,
+  "audioSampleRate": 48000,
+  "targetLufs": -23,
+  "truePeakLimitDbtp": -1,
+  "vmafThreshold": 90
+}

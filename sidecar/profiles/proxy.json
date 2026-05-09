@@ -1,0 +1,23 @@
+{
+  "name": "proxy",
+  "description": "Proxy offline — edição / revisão rápida",
+  "videoCodec": "libx264",
+  "videoBitrateK": 800,
+  "maxrateK": 1200,
+  "bufsizeK": 1600,
+  "resolution": "1280x720",
+  "fps": 25,
+  "gopSize": 50,
+  "pixFmt": "yuv420p",
+  "h264Profile": "baseline",
+  "h264Level": "3.1",
+  "bFrames": 0,
+  "cpuPreset": "veryfast",
+  "nvencPreset": "p1",
+  "audioCodec": "aac",
+  "audioBitrateK": 128,
+  "audioSampleRate": 48000,
+  "targetLufs": -23,
+  "truePeakLimitDbtp": -1,
+  "vmafThreshold": 85
+}

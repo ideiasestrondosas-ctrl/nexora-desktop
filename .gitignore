@@ -14,8 +14,20 @@ src-tauri/target/
 # Sidecar compilado
 sidecar/dist/
 
-# Binarios de media (incluidos no instalador - nao commitar)
-src-tauri/binaries/
+# Binarios de media reais (grandes - descarregar com npm run download:binaries)
+# Os ficheiros placeholder vazios SAO commitados para cargo check passar
+src-tauri/binaries/*.exe
+src-tauri/binaries/ffmpeg-*
+src-tauri/binaries/ffprobe-*
+# Manter os placeholders rastreados mesmo com os padroes acima
+!src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe
+!src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe
+!src-tauri/binaries/ffmpeg-aarch64-apple-darwin
+!src-tauri/binaries/ffprobe-aarch64-apple-darwin
+!src-tauri/binaries/ffmpeg-x86_64-apple-darwin
+!src-tauri/binaries/ffprobe-x86_64-apple-darwin
+!src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
+!src-tauri/binaries/ffprobe-x86_64-unknown-linux-gnu
 
 # SQLite
 *.db
