@@ -10,74 +10,79 @@ Agente: Claude Sonnet 4.6
 
 ## O que foi feito
 
-### Dependências npm instaladas
-- zustand, better-sqlite3, esbuild, concurrently
-- tailwindcss, @tailwindcss/vite, @types/better-sqlite3
+### Prompt Desktop 2 — Concluído
+Sidecar Node.js completo com fila, orchestrator e todos os workers:
 
-### Configuração base
-- vite.config.ts: plugin Tailwind + alias @/ → src/
-- tsconfig.json: paths @/* → src/*
-- tsc --noEmit: OK
-- tauri build --debug: OK (gerou .exe, .msi, .nsis)
+- sidecar/tsconfig.json → CommonJS, strict, resolveJsonModule
+- sidecar/events.ts → protocolo JSON linha-a-linha stdout (SidecarEvent)
+- sidecar/db.ts → wrapper better-sqlite3 (WAL + busy_timeout) + todos os helpers
+- sidecar/profiles/types.ts → TranscodeProfile + loadProfile()
+- sidecar/profiles/*.json → 6 perfis (broadcast-hd/sd, web-4k/hd, proxy, social)
+- sidecar/workers/types.ts → ProgressCallback
+- sidecar/workers/ingest-worker.ts → SHA-256 streaming + ffprobe metadata
+- sidecar/workers/qc-pre-worker.ts → validação tamanho + codec + duração
+- sidecar/workers/transcode-worker.ts → GPU auto-detect (NVENC→AMF→QSV→CPU), ADR-D010
+- sidecar/workers/audio-worker.ts → EBU R128 dois passos + BS1770GAIN opcional
+- sidecar/workers/proxy-worker.ts → proxy 960×540 libx264 veryfast
+- sidecar/workers/thumbnail-worker.ts → frame JPEG a 5s (ou metade da duração)
+- sidecar/workers/qc-post-worker.ts → VMAF (libvmaf opcional) + SHA-256 ficheiro final
+- sidecar/workers/delivery-worker.ts → cópia para output_dir + audit log
+- sidecar/orchestrator/NexoraDesktopOrchestrator.ts → pipeline 8 passos com pesos de progresso
+- sidecar/queue/NexoraSimpleQueue.ts → poll SQLite 2s, MAX_CONCURRENT=2
+- sidecar/index.ts → entry point (NEXORA_DB_PATH env var obrigatório)
 
-### Prompt Desktop 1 — Concluído
-Todos os módulos Rust implementados e cargo check OK:
-
-- src-tauri/Cargo.toml → rusqlite, uuid, chrono, anyhow, log, env_logger, tauri-plugin-notification, tray-icon feature
-- src-tauri/tauri.conf.json → janela 1280×800, productName Nexora Desktop
-- src-tauri/capabilities/default.json → + notification:default
-- src-tauri/src/db/schema.sql → tabelas assets, jobs, settings, audit_log + índices
-- src-tauri/src/db/mod.rs → open() com WAL + foreign_keys
-- src-tauri/src/db/migrations.rs → run() via include_str!
-- src-tauri/src/state.rs → AppState { db: Mutex<Connection>, sidecar_pid }
-- src-tauri/src/commands/assets.rs → ingest_asset, list_assets, get_asset
-- src-tauri/src/commands/jobs.rs → submit_job, cancel_job, get_job_status, list_jobs
-- src-tauri/src/commands/settings.rs → get_settings, update_settings
-- src-tauri/src/commands/system.rs → detect_gpu (NVENC/AMF/QSV/CPU), get_disk_space, get_app_version
-- src-tauri/src/tray.rs → tray com Mostrar/Sair + clique no ícone
-- src-tauri/src/sidecar.rs → spawn (graceful skip se binário não existir) + leitura JSON stdout
-- src-tauri/src/lib.rs → setup completo com db, tray, sidecar, todos os commands registados
+### Ajustes adicionais
+- src-tauri/src/sidecar.rs → passa NEXORA_DB_PATH env var ao sidecar no spawn
+- src-tauri/src/lib.rs → db_path extraído para variável (passado ao sidecar)
+- package.json → scripts sidecar:check, sidecar:build, sidecar:dev + tsx devDependency
+- src-tauri/tauri.conf.json → removido BOM UTF-8 (causava "expected value at line 1 col 1")
 
 ## Estado de compilação
 
 - cargo check: OK
-- tsc --noEmit: OK
-- tauri build --debug: OK (validado antes do Prompt Desktop 1)
+- tsc --noEmit (sidecar): OK
+- tsc --noEmit (frontend): OK (não alterado)
 
 ## Próximo passo
 
-**Prompt Desktop 2 — Sidecar + Queue + Orchestrator + Workers**
+**Prompt Desktop 3 — Frontend React**
 
-Implementar em sidecar/:
-1. NexoraSimpleQueue (memória + SQLite, prioridades, retry)
-2. NexoraDesktopOrchestrator (step-by-step, idempotente)
-3. Workers: ingest, qc-pre, transcode (GPU auto-detect), audio (R128), proxy, thumbnail, qc-post (VMAF), delivery
-4. 6 perfis de transcode JSON
-5. Comunicação sidecar ↔ Tauri via stdout/JSON
-
-Referência de workers: C:\Dev\Nexora Media Processing\src\workers\ (somente leitura)
+Implementar em src/:
+1. Stores Zustand (jobs, assets, settings)
+2. Hooks (useTauriCommand, useJobStatus, useNotification, useGPU)
+3. Componentes (DropZone, JobCard, ProgressBar, NexoraStatusBadge, VMAFGauge)
+4. Páginas (ProcessPage, HistoryPage, SettingsPage)
+5. App.tsx com navegação por tabs
+6. Tema claro/escuro com paleta Nexora (#1A6FD4, #4FB8A0)
 
 ## Ficheiros criados/modificados nesta sessão
 
 ```
-package.json (deps adicionadas)
-vite.config.ts (tailwind + alias)
-tsconfig.json (paths)
-src-tauri/Cargo.toml
-src-tauri/tauri.conf.json
-src-tauri/capabilities/default.json
-src-tauri/src/db/schema.sql (novo)
-src-tauri/src/db/mod.rs (novo)
-src-tauri/src/db/migrations.rs (novo)
-src-tauri/src/state.rs (novo)
-src-tauri/src/commands/mod.rs (novo)
-src-tauri/src/commands/assets.rs (novo)
-src-tauri/src/commands/jobs.rs (novo)
-src-tauri/src/commands/settings.rs (novo)
-src-tauri/src/commands/system.rs (novo)
-src-tauri/src/tray.rs (novo)
-src-tauri/src/sidecar.rs (novo)
-src-tauri/src/lib.rs (reescrito)
-PROGRESS-DESKTOP.md (actualizado)
+package.json (scripts sidecar:* + tsx)
+src-tauri/src/lib.rs (db_path extraído)
+src-tauri/src/sidecar.rs (NEXORA_DB_PATH env var)
+src-tauri/tauri.conf.json (BOM removido)
+sidecar/tsconfig.json (novo)
+sidecar/events.ts (novo)
+sidecar/db.ts (novo)
+sidecar/profiles/types.ts (novo)
+sidecar/profiles/broadcast-hd.json (novo)
+sidecar/profiles/broadcast-sd.json (novo)
+sidecar/profiles/web-4k.json (novo)
+sidecar/profiles/web-hd.json (novo)
+sidecar/profiles/proxy.json (novo)
+sidecar/profiles/social.json (novo)
+sidecar/workers/types.ts (novo)
+sidecar/workers/ingest-worker.ts (novo)
+sidecar/workers/qc-pre-worker.ts (novo)
+sidecar/workers/transcode-worker.ts (novo)
+sidecar/workers/audio-worker.ts (novo)
+sidecar/workers/proxy-worker.ts (novo)
+sidecar/workers/thumbnail-worker.ts (novo)
+sidecar/workers/qc-post-worker.ts (novo)
+sidecar/workers/delivery-worker.ts (novo)
+sidecar/orchestrator/NexoraDesktopOrchestrator.ts (novo)
+sidecar/queue/NexoraSimpleQueue.ts (novo)
+sidecar/index.ts (novo)
 SYNC-STATE.md (este ficheiro)
 ```

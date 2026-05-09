@@ -70,18 +70,18 @@
 - [x] cargo check: OK Â· tsc --noEmit: OK
 
 ### Fase 4 â€” Prompt Desktop 2 (Sidecar + Queue + Orchestrator + Workers)
-- [ ] NexoraSimpleQueue implementado (memÃ³ria + SQLite, prioridades, retry)
-- [ ] NexoraDesktopOrchestrator implementado (idempotente, step-by-step)
-- [ ] ingest-worker.ts
-- [ ] qc-pre-worker.ts
-- [ ] transcode-worker.ts (GPU auto-detect, todos os perfis)
-- [ ] audio-worker.ts (two-pass R128 + BS1770GAIN verificaÃ§Ã£o)
-- [ ] proxy-worker.ts
-- [ ] thumbnail-worker.ts
-- [ ] qc-post-worker.ts (VMAF, SHA-256, MediaConch)
-- [ ] delivery-worker.ts (mover + notificaÃ§Ã£o + audit log)
-- [ ] 6 perfis de transcode JSON criados
-- [ ] ComunicaÃ§Ã£o sidecar â†” Tauri via stdout/JSON funcional
+- [x] NexoraSimpleQueue implementado (memÃ³ria + SQLite, prioridades, retry)
+- [x] NexoraDesktopOrchestrator implementado (idempotente, step-by-step)
+- [x] ingest-worker.ts
+- [x] qc-pre-worker.ts
+- [x] transcode-worker.ts (GPU auto-detect, todos os perfis)
+- [x] audio-worker.ts (two-pass R128 + BS1770GAIN verificaÃ§Ã£o)
+- [x] proxy-worker.ts
+- [x] thumbnail-worker.ts
+- [x] qc-post-worker.ts (VMAF, SHA-256, MediaConch)
+- [x] delivery-worker.ts (mover + notificaÃ§Ã£o + audit log)
+- [x] 6 perfis de transcode JSON criados
+- [x] ComunicaÃ§Ã£o sidecar â†” Tauri via stdout/JSON funcional
 
 ### Fase 5 â€” Prompt Desktop 3 (Frontend React)
 - [ ] App.tsx com navegaÃ§Ã£o por tabs (Processar, HistÃ³rico, DefiniÃ§Ãµes)
@@ -203,6 +203,7 @@ nexora-desktop/
 |---|---|---|---|
 | 2026-05-02 | DocumentaÃ§Ã£o Desktop criada, PROGRESS-DESKTOP.md criado, ADRs definidos, Prompts 1-4 redigidos | Claude Opus | nexora-desktop-documento.md, PROGRESS-DESKTOP.md |
 | 2026-05-09 | Deps npm instaladas, Tailwind + aliases configurados, Prompt Desktop 1 completo (SQLite + IPC + Tray + Sidecar) | Claude Sonnet 4.6 | Cargo.toml, tauri.conf.json, schema.sql, lib.rs, state.rs, tray.rs, sidecar.rs, commands/* |
+| 2026-05-09 | Prompt Desktop 2 completo: sidecar Node.js com fila, orchestrator e 8 workers (ingest, qc-pre, transcode GPU, audio R128, proxy, thumbnail, qc-post VMAF, delivery) + 6 perfis JSON + tsx + BOM fix | Claude Sonnet 4.6 | sidecar/* (17 ficheiros novos), package.json, src-tauri/src/lib.rs, src-tauri/src/sidecar.rs, tauri.conf.json |
 
 ---
 

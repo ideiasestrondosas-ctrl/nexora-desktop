@@ -1,0 +1,23 @@
+{
+  "name": "broadcast-hd",
+  "description": "Broadcast HD 1080p/25 — EBU R 103, Tier A",
+  "videoCodec": "libx264",
+  "videoBitrateK": 8000,
+  "maxrateK": 12000,
+  "bufsizeK": 16000,
+  "resolution": "1920x1080",
+  "fps": 25,
+  "gopSize": 50,
+  "pixFmt": "yuv420p",
+  "h264Profile": "high",
+  "h264Level": "4.1",
+  "bFrames": 0,
+  "cpuPreset": "medium",
+  "nvencPreset": "p4",
+  "audioCodec": "aac",
+  "audioBitrateK": 256,
+  "audioSampleRate": 48000,
+  "targetLufs": -23,
+  "truePeakLimitDbtp": -1,
+  "vmafThreshold": 93
+}

@@ -18,12 +18,13 @@ pub fn run() {
             let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
 
-            let conn = db::open(&data_dir.join("nexora.db"))?;
+            let db_path = data_dir.join("nexora.db");
+            let conn = db::open(&db_path)?;
             app.manage(AppState::new(conn));
 
             tray::setup(app)?;
 
-            if let Err(e) = sidecar::spawn(app.handle().clone()) {
+            if let Err(e) = sidecar::spawn(app.handle().clone(), &db_path) {
                 log::warn!("Sidecar não arrancou: {}", e);
             }
 

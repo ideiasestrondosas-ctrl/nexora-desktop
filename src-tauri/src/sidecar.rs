@@ -3,7 +3,7 @@ use log::{error, info, warn};
 use std::process::{Command, Stdio};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
-pub fn spawn<R: Runtime>(app: AppHandle<R>) -> anyhow::Result<()> {
+pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow::Result<()> {
     // Localiza o sidecar relativo ao executável corrente
     let exe_dir = std::env::current_exe()
         .unwrap_or_default()
@@ -21,6 +21,7 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>) -> anyhow::Result<()> {
     }
 
     let mut child = Command::new(&sidecar_path)
+        .env("NEXORA_DB_PATH", db_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()
