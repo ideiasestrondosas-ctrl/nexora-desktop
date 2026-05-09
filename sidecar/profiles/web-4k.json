@@ -1,0 +1,23 @@
+{
+  "name": "web-4k",
+  "description": "Web / OTT 4K UHD 2160p",
+  "videoCodec": "libx264",
+  "videoBitrateK": 20000,
+  "maxrateK": 30000,
+  "bufsizeK": 40000,
+  "resolution": "3840x2160",
+  "fps": 25,
+  "gopSize": 50,
+  "pixFmt": "yuv420p",
+  "h264Profile": "high",
+  "h264Level": "5.1",
+  "bFrames": 0,
+  "cpuPreset": "slow",
+  "nvencPreset": "p5",
+  "audioCodec": "aac",
+  "audioBitrateK": 320,
+  "audioSampleRate": 48000,
+  "targetLufs": -14,
+  "truePeakLimitDbtp": -1,
+  "vmafThreshold": 90
+}

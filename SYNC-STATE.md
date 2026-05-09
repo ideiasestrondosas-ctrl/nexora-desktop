@@ -6,78 +6,60 @@
 ---
 
 Actualizado: 2026-05-09
-Agente: Claude Sonnet 4.6
+Agente: Google Antigravity (Gemini 3.1 Pro)
 
 ## O que foi feito
 
-### Dependências npm instaladas
-- zustand, better-sqlite3, esbuild, concurrently
-- tailwindcss, @tailwindcss/vite, @types/better-sqlite3
+### Prompt Desktop 3 — Concluído
+Implementação completa do Frontend React em `src/`:
 
-### Configuração base
-- vite.config.ts: plugin Tailwind + alias @/ → src/
-- tsconfig.json: paths @/* → src/*
-- tsc --noEmit: OK
-- tauri build --debug: OK (gerou .exe, .msi, .nsis)
-
-### Prompt Desktop 1 — Concluído
-Todos os módulos Rust implementados e cargo check OK:
-
-- src-tauri/Cargo.toml → rusqlite, uuid, chrono, anyhow, log, env_logger, tauri-plugin-notification, tray-icon feature
-- src-tauri/tauri.conf.json → janela 1280×800, productName Nexora Desktop
-- src-tauri/capabilities/default.json → + notification:default
-- src-tauri/src/db/schema.sql → tabelas assets, jobs, settings, audit_log + índices
-- src-tauri/src/db/mod.rs → open() com WAL + foreign_keys
-- src-tauri/src/db/migrations.rs → run() via include_str!
-- src-tauri/src/state.rs → AppState { db: Mutex<Connection>, sidecar_pid }
-- src-tauri/src/commands/assets.rs → ingest_asset, list_assets, get_asset
-- src-tauri/src/commands/jobs.rs → submit_job, cancel_job, get_job_status, list_jobs
-- src-tauri/src/commands/settings.rs → get_settings, update_settings
-- src-tauri/src/commands/system.rs → detect_gpu (NVENC/AMF/QSV/CPU), get_disk_space, get_app_version
-- src-tauri/src/tray.rs → tray com Mostrar/Sair + clique no ícone
-- src-tauri/src/sidecar.rs → spawn (graceful skip se binário não existir) + leitura JSON stdout
-- src-tauri/src/lib.rs → setup completo com db, tray, sidecar, todos os commands registados
+- **Stores (Zustand):** `jobs.ts`, `settings.ts`, `assets.ts`.
+- **Hooks:** `useTauriCommand`, `useJobStatus` (1s polling), `useNotification`, `useGPU`.
+- **Componentes:** `DropZone`, `JobCard`, `ProgressBar`, `NexoraStatusBadge`, `VMAFGauge`.
+- **Páginas:** `ProcessPage`, `HistoryPage`, `SettingsPage`.
+- **Layout:** `App.tsx` com navegação por 3 tabs (Processar, Histórico, Definições).
+- **Estilos:** Tailwind CSS v4 configurado com paleta Nexora (#1A6FD4, #4FB8A0).
+- **Plugins:** Adicionado `tauri-plugin-dialog` e configurado no Rust e Frontend.
 
 ## Estado de compilação
 
 - cargo check: OK
-- tsc --noEmit: OK
-- tauri build --debug: OK (validado antes do Prompt Desktop 1)
+- tsc --noEmit: OK (Pode necessitar de `npm install` para resolver novas dependências no ambiente local do utilizador)
 
 ## Próximo passo
 
-**Prompt Desktop 2 — Sidecar + Queue + Orchestrator + Workers**
+**Prompt Desktop 4 — Build + Testes + Distribuição**
 
-Implementar em sidecar/:
-1. NexoraSimpleQueue (memória + SQLite, prioridades, retry)
-2. NexoraDesktopOrchestrator (step-by-step, idempotente)
-3. Workers: ingest, qc-pre, transcode (GPU auto-detect), audio (R128), proxy, thumbnail, qc-post (VMAF), delivery
-4. 6 perfis de transcode JSON
-5. Comunicação sidecar ↔ Tauri via stdout/JSON
-
-Referência de workers: C:\Dev\Nexora Media Processing\src\workers\ (somente leitura)
+1. Configurar GitHub Actions (`build-desktop.yml`).
+2. Script `download-media-binaries.js`.
+3. Testes unitários para fila e orchestrator.
+4. Auto-updater.
 
 ## Ficheiros criados/modificados nesta sessão
 
 ```
-package.json (deps adicionadas)
-vite.config.ts (tailwind + alias)
-tsconfig.json (paths)
-src-tauri/Cargo.toml
-src-tauri/tauri.conf.json
-src-tauri/capabilities/default.json
-src-tauri/src/db/schema.sql (novo)
-src-tauri/src/db/mod.rs (novo)
-src-tauri/src/db/migrations.rs (novo)
-src-tauri/src/state.rs (novo)
-src-tauri/src/commands/mod.rs (novo)
-src-tauri/src/commands/assets.rs (novo)
-src-tauri/src/commands/jobs.rs (novo)
-src-tauri/src/commands/settings.rs (novo)
-src-tauri/src/commands/system.rs (novo)
-src-tauri/src/tray.rs (novo)
-src-tauri/src/sidecar.rs (novo)
-src-tauri/src/lib.rs (reescrito)
-PROGRESS-DESKTOP.md (actualizado)
-SYNC-STATE.md (este ficheiro)
+package.json (novas dependências: lucide-react, clsx, tailwind-merge, etc.)
+src-tauri/Cargo.toml (tauri-plugin-dialog)
+src-tauri/src/lib.rs (plugin init)
+src/index.css (Tailwind v4 directives)
+src/main.tsx (import index.css)
+src/lib/utils.ts (cn helper)
+src/store/jobs.ts
+src/store/settings.ts
+src/store/assets.ts
+src/hooks/useTauriCommand.ts
+src/hooks/useJobStatus.ts
+src/hooks/useNotification.ts
+src/hooks/useGPU.ts
+src/components/ProgressBar.tsx
+src/components/NexoraStatusBadge.tsx
+src/components/VMAFGauge.tsx
+src/components/DropZone.tsx
+src/components/JobCard.tsx
+src/pages/ProcessPage.tsx
+src/pages/HistoryPage.tsx
+src/pages/SettingsPage.tsx
+src/App.tsx
+PROGRESS-DESKTOP.md
+SYNC-STATE.md
 ```

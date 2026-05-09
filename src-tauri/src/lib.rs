@@ -14,16 +14,19 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
 
-            let conn = db::open(&data_dir.join("nexora.db"))?;
+            let db_path = data_dir.join("nexora.db");
+            let conn = db::open(&db_path)?;
             app.manage(AppState::new(conn));
 
             tray::setup(app)?;
 
-            if let Err(e) = sidecar::spawn(app.handle().clone()) {
+            if let Err(e) = sidecar::spawn(app.handle().clone(), &db_path) {
                 log::warn!("Sidecar não arrancou: {}", e);
             }
 
