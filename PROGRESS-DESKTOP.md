@@ -1,4 +1,4 @@
-﻿# Nexora Media Processing â€” Desktop Nativo â€” Estado do Projecto
+# Nexora Media Processing â€” Desktop Nativo â€” Estado do Projecto
 
 > **âš ï¸ LEITURA OBRIGATÃ“RIA PARA TODOS OS AGENTES IA**
 >
@@ -84,20 +84,20 @@
 - [x] ComunicaÃ§Ã£o sidecar â†” Tauri via stdout/JSON funcional
 
 ### Fase 5 â€” Prompt Desktop 3 (Frontend React)
-- [ ] App.tsx com navegaÃ§Ã£o por tabs (Processar, HistÃ³rico, DefiniÃ§Ãµes)
-- [ ] DropZone.tsx (drag-and-drop + file dialog)
-- [ ] JobCard.tsx + ProgressBar.tsx
-- [ ] NexoraStatusBadge.tsx + VMAFGauge.tsx
-- [ ] ProcessPage.tsx (drop zone + jobs activos)
-- [ ] HistoryPage.tsx (assets processados + filtros)
-- [ ] SettingsPage.tsx (todas as definiÃ§Ãµes)
-- [ ] useTauriCommand.ts hook
-- [ ] useJobStatus.ts hook (polling 1s)
-- [ ] useNotification.ts hook
-- [ ] useGPU.ts hook
-- [ ] Stores Zustand (jobs, settings, assets)
-- [ ] Tema claro/escuro funcional
-- [ ] Paleta Nexora aplicada (#1A6FD4, #4FB8A0)
+- [x] App.tsx com navegaÃ§Ã£o por tabs (Processar, HistÃ³rico, DefiniÃ§Ãµes)
+- [x] DropZone.tsx (drag-and-drop + file dialog)
+- [x] JobCard.tsx + ProgressBar.tsx
+- [x] NexoraStatusBadge.tsx + VMAFGauge.tsx
+- [x] ProcessPage.tsx (drop zone + jobs activos)
+- [x] HistoryPage.tsx (assets processados + filtros)
+- [x] SettingsPage.tsx (todas as definiÃ§Ãµes)
+- [x] useTauriCommand.ts hook
+- [x] useJobStatus.ts hook (polling 1s)
+- [x] useNotification.ts hook
+- [x] useGPU.ts hook
+- [x] Stores Zustand (jobs, settings, assets)
+- [x] Tema claro/escuro funcional
+- [x] Paleta Nexora aplicada (#1A6FD4, #4FB8A0)
 
 ### Fase 6 â€” Prompt Desktop 4 (Build + Testes + DistribuiÃ§Ã£o)
 - [ ] build-desktop.yml (GitHub Actions 3 plataformas)
@@ -204,6 +204,7 @@ nexora-desktop/
 | 2026-05-02 | DocumentaÃ§Ã£o Desktop criada, PROGRESS-DESKTOP.md criado, ADRs definidos, Prompts 1-4 redigidos | Claude Opus | nexora-desktop-documento.md, PROGRESS-DESKTOP.md |
 | 2026-05-09 | Deps npm instaladas, Tailwind + aliases configurados, Prompt Desktop 1 completo (SQLite + IPC + Tray + Sidecar) | Claude Sonnet 4.6 | Cargo.toml, tauri.conf.json, schema.sql, lib.rs, state.rs, tray.rs, sidecar.rs, commands/* |
 | 2026-05-09 | Prompt Desktop 2 completo: sidecar Node.js com fila, orchestrator e 8 workers (ingest, qc-pre, transcode GPU, audio R128, proxy, thumbnail, qc-post VMAF, delivery) + 6 perfis JSON + tsx + BOM fix | Claude Sonnet 4.6 | sidecar/* (17 ficheiros novos), package.json, src-tauri/src/lib.rs, src-tauri/src/sidecar.rs, tauri.conf.json |
+| 2026-05-09 | Prompt Desktop 3 completo: Frontend React 19 com Zustand, Tailwind v4, 3 tabs de navegaÃ§Ã£o, hooks de polling e GPU, DropZone e JobCards. | Google Antigravity (Gemini 3.1 Pro) | src/**/*, package.json, src-tauri/Cargo.toml, src-tauri/src/lib.rs |
 
 ---
 

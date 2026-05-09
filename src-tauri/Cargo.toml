@@ -1,4 +1,4 @@
-﻿[package]
+[package]
 name = "nexora-desktop"
 version = "0.2.0"
 description = "Nexora Media Processing â€” Desktop Nativo"
@@ -16,6 +16,7 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-opener = "2"
 tauri-plugin-notification = "2"
+tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 rusqlite = { version = "0.32", features = ["bundled"] }
