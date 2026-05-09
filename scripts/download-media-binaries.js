@@ -1,33 +1,30 @@
 #!/usr/bin/env node
 /**
  * Descarrega FFmpeg e FFprobe pré-compilados para src-tauri/binaries/.
- * Os ficheiros são renomeados para o formato Tauri externalBin:
- *   {name}-{rust-target-triple}[.exe]
- *
- * Fontes:
- *   Windows / Linux: https://github.com/BtbN/FFmpeg-Builds
- *   macOS: https://evermeet.cx/ffmpeg/
+ * Usa apenas módulos nativos do Node.js + ferramentas do sistema (tar, unzip, PowerShell).
  *
  * Uso:
  *   node scripts/download-media-binaries.js
  *   node scripts/download-media-binaries.js --platform win32 --arch x64
  */
 
-import { createWriteStream, existsSync, mkdirSync, chmodSync } from 'fs';
+import { createWriteStream, existsSync, mkdirSync, chmodSync, readdirSync, statSync } from 'fs';
 import { pipeline } from 'stream/promises';
 import { get } from 'https';
 import { tmpdir } from 'os';
 import { join, basename } from 'path';
-import { createGunzip } from 'zlib';
-import { extract } from 'tar';
-import { createReadStream } from 'fs';
-import { unlink, rename, copyFile } from 'fs/promises';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { rename, copyFile, unlink, rm } from 'fs/promises';
+
+const execAsync = promisify(exec);
 
 // ── Argumentos opcionais ─────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
-const argPlatform = args[args.indexOf('--platform') + 1] ?? process.platform;
-const argArch     = args[args.indexOf('--arch')     + 1] ?? process.arch;
+const idx = (flag) => args.indexOf(flag);
+const argPlatform = idx('--platform') >= 0 ? args[idx('--platform') + 1] : process.platform;
+const argArch     = idx('--arch')     >= 0 ? args[idx('--arch')     + 1] : process.arch;
 
 // ── Mapeamento plataforma → Rust target triple ───────────────────────────────
 
@@ -39,54 +36,52 @@ function resolveTarget(platform, arch) {
     'linux-x64':    'x86_64-unknown-linux-gnu',
     'linux-arm64':  'aarch64-unknown-linux-gnu',
   };
-  const key = `${platform}-${arch}`;
-  const triple = map[key];
-  if (!triple) throw new Error(`Plataforma não suportada: ${key}`);
+  const triple = map[`${platform}-${arch}`];
+  if (!triple) throw new Error(`Plataforma não suportada: ${platform}-${arch}`);
   return triple;
 }
 
 // ── URLs de download por plataforma ──────────────────────────────────────────
 
-function resolveUrls(platform, arch) {
+function resolveDownload(platform, arch) {
+  const btbn = 'https://github.com/BtbN/FFmpeg-Builds/releases/latest/download';
+
   if (platform === 'win32') {
-    const base = 'https://github.com/BtbN/FFmpeg-Builds/releases/latest/download';
-    const bundle = arch === 'x64'
-      ? 'ffmpeg-master-latest-win64-gpl.zip'
-      : 'ffmpeg-master-latest-win32-gpl.zip';
-    return { type: 'zip', bundle: `${base}/${bundle}`, binaries: ['ffmpeg.exe', 'ffprobe.exe'] };
+    const file = arch === 'arm64'
+      ? 'ffmpeg-master-latest-win32-gpl.zip'
+      : 'ffmpeg-master-latest-win64-gpl.zip';
+    return { type: 'zip', url: `${btbn}/${file}`, bins: ['ffmpeg.exe', 'ffprobe.exe'] };
   }
   if (platform === 'linux') {
-    const base = 'https://github.com/BtbN/FFmpeg-Builds/releases/latest/download';
-    const bundle = arch === 'arm64'
+    const file = arch === 'arm64'
       ? 'ffmpeg-master-latest-linuxarm64-gpl.tar.xz'
       : 'ffmpeg-master-latest-linux64-gpl.tar.xz';
-    return { type: 'tar.xz', bundle: `${base}/${bundle}`, binaries: ['ffmpeg', 'ffprobe'] };
+    return { type: 'tar', url: `${btbn}/${file}`, bins: ['ffmpeg', 'ffprobe'] };
   }
   if (platform === 'darwin') {
-    // evermeet.cx — binários estáticos para macOS
+    // evermeet.cx — binários estáticos para macOS (individual por ferramenta)
     return {
-      type: 'individual',
-      urls: {
-        ffmpeg:  'https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip',
-        ffprobe: 'https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip',
-      },
-      binaries: ['ffmpeg', 'ffprobe'],
+      type: 'individual-zip',
+      entries: [
+        { name: 'ffmpeg',  url: 'https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip'  },
+        { name: 'ffprobe', url: 'https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip' },
+      ],
     };
   }
   throw new Error(`Plataforma não suportada: ${platform}`);
 }
 
-// ── Utilitários HTTP ──────────────────────────────────────────────────────────
+// ── Utilitário HTTP com seguimento de redirects ───────────────────────────────
 
 function httpGet(url) {
   return new Promise((resolve, reject) => {
     get(url, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
-        httpGet(res.headers.location).then(resolve, reject);
+        httpGet(res.headers.location).then(resolve).catch(reject);
         return;
       }
       if (res.statusCode !== 200) {
-        reject(new Error(`HTTP ${res.statusCode} ao descarregar ${url}`));
+        reject(new Error(`HTTP ${res.statusCode} para ${url}`));
         return;
       }
       resolve(res);
@@ -94,61 +89,45 @@ function httpGet(url) {
   });
 }
 
-async function downloadFile(url, destPath) {
-  console.log(`  Descarregando ${basename(url)} ...`);
+async function downloadTo(url, dest) {
+  console.log(`  ↓ ${basename(url)}`);
   const res = await httpGet(url);
-  await pipeline(res, createWriteStream(destPath));
+  await pipeline(res, createWriteStream(dest));
 }
 
-// ── Extracção ─────────────────────────────────────────────────────────────────
+// ── Extracção de arquivos usando ferramentas do sistema ───────────────────────
 
-async function extractZip(zipPath, binaries, outDir) {
-  // Usa unzip nativo no macOS/Linux; PowerShell no Windows
-  const { exec } = await import('child_process');
-  const { promisify } = await import('util');
-  const execAsync = promisify(exec);
-
+async function extractZip(zipPath, outDir) {
+  mkdirSync(outDir, { recursive: true });
   if (process.platform === 'win32') {
-    const tmpOut = join(tmpdir(), 'nexora-ffmpeg-extract');
-    await execAsync(`powershell -Command "Expand-Archive -Force '${zipPath}' '${tmpOut}'"`);
-    for (const bin of binaries) {
-      const found = findInDir(tmpOut, bin);
-      if (found) await copyFile(found, join(outDir, bin));
-    }
+    await execAsync(
+      `powershell -NoProfile -Command "Expand-Archive -Force '${zipPath}' '${outDir}'"`,
+      { timeout: 120_000 }
+    );
   } else {
-    const tmpOut = join(tmpdir(), 'nexora-ffmpeg-extract');
-    mkdirSync(tmpOut, { recursive: true });
-    await execAsync(`unzip -o "${zipPath}" -d "${tmpOut}"`);
-    for (const bin of binaries) {
-      const found = findInDir(tmpOut, bin);
-      if (found) await copyFile(found, join(outDir, bin));
-    }
+    await execAsync(`unzip -q -o "${zipPath}" -d "${outDir}"`, { timeout: 120_000 });
   }
 }
 
-function findInDir(dir, name) {
-  const { readdirSync, statSync } = require('fs');
-  const entries = readdirSync(dir);
-  for (const entry of entries) {
+async function extractTar(tarPath, outDir) {
+  mkdirSync(outDir, { recursive: true });
+  // tar está disponível em Linux, macOS e Windows 10+ (embutido)
+  await execAsync(`tar -xf "${tarPath}" -C "${outDir}"`, { timeout: 120_000 });
+}
+
+// ── Pesquisa recursiva de ficheiro por nome ───────────────────────────────────
+
+function findFile(dir, name) {
+  for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) {
-      const result = findInDir(full, name);
-      if (result) return result;
+      const found = findFile(full, name);
+      if (found) return found;
     } else if (entry === name) {
       return full;
     }
   }
   return null;
-}
-
-async function extractTarXz(tarPath, binaries, outDir) {
-  const tmpOut = join(tmpdir(), 'nexora-ffmpeg-extract');
-  mkdirSync(tmpOut, { recursive: true });
-  await extract({ file: tarPath, cwd: tmpOut });
-  for (const bin of binaries) {
-    const found = findInDir(tmpOut, bin);
-    if (found) await copyFile(found, join(outDir, bin));
-  }
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -158,8 +137,8 @@ async function main() {
   const arch     = argArch;
   const triple   = resolveTarget(platform, arch);
   const ext      = platform === 'win32' ? '.exe' : '';
+  const outDir   = join(process.cwd(), 'src-tauri', 'binaries');
 
-  const outDir = join(process.cwd(), 'src-tauri', 'binaries');
   mkdirSync(outDir, { recursive: true });
 
   console.log(`\nNexora — Download de Binários Media`);
@@ -167,57 +146,57 @@ async function main() {
   console.log(`Target     : ${triple}`);
   console.log(`Destino    : ${outDir}\n`);
 
-  const info = resolveUrls(platform, arch);
-  const tmp  = join(tmpdir(), `nexora-ffmpeg-bundle-${Date.now()}`);
+  const info  = resolveDownload(platform, arch);
+  const tmpBase = join(tmpdir(), `nexora-ffmpeg-${Date.now()}`);
 
   try {
-    if (info.type === 'zip') {
-      const zipPath = `${tmp}.zip`;
-      await downloadFile(info.bundle, zipPath);
-      await extractZip(zipPath, info.binaries, tmp + '-out');
-      mkdirSync(tmp + '-out', { recursive: true });
-      // Re-extrai para tmp-out e copia
-      await extractZip(zipPath, info.binaries, tmp + '-out');
-      for (const bin of info.binaries) {
-        const src  = join(tmp + '-out', bin);
-        const dest = join(outDir, bin.replace('.exe', '') + `-${triple}${ext}`);
-        if (existsSync(src)) {
-          await rename(src, dest);
+    if (info.type === 'zip' || info.type === 'tar') {
+      const archivePath = `${tmpBase}.${info.type === 'zip' ? 'zip' : 'tar.xz'}`;
+      const extractDir  = `${tmpBase}-out`;
+
+      await downloadTo(info.url, archivePath);
+
+      if (info.type === 'zip') {
+        await extractZip(archivePath, extractDir);
+      } else {
+        await extractTar(archivePath, extractDir);
+      }
+
+      for (const bin of info.bins) {
+        const src  = findFile(extractDir, bin);
+        const dest = join(outDir, bin.replace(/\.exe$/, '') + `-${triple}${ext}`);
+        if (src) {
+          await copyFile(src, dest);
+          if (platform !== 'win32') chmodSync(dest, 0o755);
           console.log(`  ✓ ${basename(dest)}`);
+        } else {
+          console.warn(`  ⚠ ${bin} não encontrado no arquivo`);
         }
       }
-      await unlink(zipPath).catch(() => {});
 
-    } else if (info.type === 'tar.xz') {
-      const tarPath = `${tmp}.tar.xz`;
-      await downloadFile(info.bundle, tarPath);
-      mkdirSync(`${tmp}-out`, { recursive: true });
-      await extractTarXz(tarPath, info.binaries, `${tmp}-out`);
-      for (const bin of info.binaries) {
-        const src  = join(`${tmp}-out`, bin);
-        const dest = join(outDir, `${bin}-${triple}${ext}`);
-        if (existsSync(src)) {
-          await rename(src, dest);
-          chmodSync(dest, 0o755);
-          console.log(`  ✓ ${basename(dest)}`);
-        }
-      }
-      await unlink(tarPath).catch(() => {});
+      await unlink(archivePath).catch(() => {});
+      await rm(extractDir, { recursive: true, force: true }).catch(() => {});
 
-    } else if (info.type === 'individual') {
-      for (const [name, url] of Object.entries(info.urls)) {
-        const zipPath = `${tmp}-${name}.zip`;
-        await downloadFile(url, zipPath);
-        mkdirSync(`${tmp}-${name}-out`, { recursive: true });
-        await extractZip(zipPath, [name], `${tmp}-${name}-out`);
-        const src  = join(`${tmp}-${name}-out`, name);
+    } else if (info.type === 'individual-zip') {
+      for (const { name, url } of info.entries) {
+        const zipPath    = `${tmpBase}-${name}.zip`;
+        const extractDir = `${tmpBase}-${name}-out`;
+
+        await downloadTo(url, zipPath);
+        await extractZip(zipPath, extractDir);
+
+        const src  = findFile(extractDir, name);
         const dest = join(outDir, `${name}-${triple}${ext}`);
-        if (existsSync(src)) {
-          await rename(src, dest);
-          chmodSync(dest, 0o755);
+        if (src) {
+          await copyFile(src, dest);
+          if (platform !== 'win32') chmodSync(dest, 0o755);
           console.log(`  ✓ ${basename(dest)}`);
+        } else {
+          console.warn(`  ⚠ ${name} não encontrado no arquivo`);
         }
+
         await unlink(zipPath).catch(() => {});
+        await rm(extractDir, { recursive: true, force: true }).catch(() => {});
       }
     }
   } catch (err) {
@@ -225,7 +204,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log('\nConcluído. Adiciona os binários ao externalBin no tauri.conf.json se ainda não estiverem listados.\n');
+  console.log('\nConcluído.\n');
 }
 
 main();
