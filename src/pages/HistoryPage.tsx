@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAssetsStore } from '@/store/assets';
 import { useTauriCommand } from '@/hooks/useTauriCommand';
-import { NexoraStatusBadge } from '@/components/NexoraStatusBadge';
 import { Archive, Search, Filter, Download, ExternalLink } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export const HistoryPage: React.FC = () => {
   const { assets, setAssets } = useAssetsStore();

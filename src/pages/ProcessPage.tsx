@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { DropZone } from '@/components/DropZone';
 import { JobCard } from '@/components/JobCard';
 import { useJobsStore } from '@/store/jobs';

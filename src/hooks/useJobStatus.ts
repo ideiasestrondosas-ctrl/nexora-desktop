@@ -3,10 +3,9 @@ import { invoke } from '@tauri-apps/api/core';
 import { useJobsStore, Job } from '@/store/jobs';
 
 export function useJobStatus(intervalMs: number = 1000) {
-  const { setJobs, jobs } = useJobsStore();
+  const { setJobs } = useJobsStore();
 
   useEffect(() => {
-    const hasActiveJobs = jobs.some(j => j.status === 'processing' || j.status === 'queued');
     
     // We poll even if there are no active jobs to keep the list updated, 
     // but we could optimize this if needed.
