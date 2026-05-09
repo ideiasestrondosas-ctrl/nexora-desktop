@@ -28,6 +28,8 @@ src-tauri/binaries/ffprobe-*
 !src-tauri/binaries/ffprobe-x86_64-apple-darwin
 !src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
 !src-tauri/binaries/ffprobe-x86_64-unknown-linux-gnu
+!src-tauri/binaries/ffmpeg-universal-apple-darwin
+!src-tauri/binaries/ffprobe-universal-apple-darwin
 
 # SQLite
 *.db
