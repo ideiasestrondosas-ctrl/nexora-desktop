@@ -1,0 +1,22 @@
+﻿{
+  "project_name": "Nexora Desktop",
+  "workspace": "C:\\Dev\\nexora-desktop",
+  "base_project": "C:\\Dev\\Nexora Media Processing",
+  "base_project_access": "read-only",
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(cargo:*)",
+      "Bash(npx:*)",
+      "Read(C:\\Dev\\nexora-desktop\\**)",
+      "Read(C:\\Dev\\Nexora Media Processing\\src\\workers\\**)",
+      "Read(C:\\Dev\\Nexora Media Processing\\src\\pipeline\\**)",
+      "Read(C:\\Dev\\Nexora Media Processing\\arquitetura\\**)",
+      "Write(C:\\Dev\\nexora-desktop\\**)"
+    ],
+    "deny": [
+      "Write(C:\\Dev\\Nexora Media Processing\\**)"
+    ]
+  }
+}

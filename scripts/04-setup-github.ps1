@@ -53,8 +53,8 @@ try {
     Pop-Location; exit 1
 }
 
-$auth = gh auth status 2>&1
-if ($auth -notmatch "Logged in") {
+gh auth status 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
     ERR "GitHub CLI nao autenticado"
     FIX "gh auth login"
     Pop-Location; exit 1

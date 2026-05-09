@@ -32,12 +32,16 @@ Hdr "1. FERRAMENTAS DO SISTEMA"
 
 try {
     $v = node --version 2>&1
-    if ($v -match "v20\.") { OK "Node.js $v" }
-    else { WARN "Node.js $v instalado mas recomendado v20.x"; FIX "choco install nodejs-lts -y" }
+    if ($v -match "v2[02468]\.") { OK "Node.js $v" }
+    elseif ($v -match "v1[68]\.") { WARN "Node.js $v - minimo v20.x recomendado"; FIX "choco install nodejs-lts -y" }
+    else { OK "Node.js $v (versao recente - compativel)" }
 } catch { ERR "Node.js nao encontrado"; FIX "choco install nodejs-lts -y" }
 
 try { $v = cargo --version 2>&1; OK "Rust: $v" }
-catch { ERR "Rust nao encontrado"; FIX "choco install rustup.install -y" }
+catch {
+    WARN "Rust nao encontrado - necessario antes de 'npm run tauri dev'"
+    FIX "winget install Rustlang.Rustup   (depois: rustup default stable)"
+}
 
 try {
     $v = git --version 2>&1; OK "Git: $v"
@@ -49,17 +53,34 @@ try {
 try { OK "FFmpeg: $((ffmpeg -version 2>&1 | Select-Object -First 1))" }
 catch { WARN "FFmpeg nao encontrado"; FIX "choco install ffmpeg -y" }
 
-try { OK "Claude Code: $(claude --version 2>&1)" }
-catch { ERR "Claude Code nao encontrado"; FIX "npm install -g @anthropic-ai/claude-code && claude login" }
+try {
+    $v = claude --version 2>&1; OK "Claude Code: $v"
+    $credFile = Join-Path $env:USERPROFILE ".claude\.credentials.json"
+    if (Test-Path $credFile) {
+        OK "Claude Code autenticado (claude login - conta Pro)"
+    } elseif ($env:ANTHROPIC_API_KEY) {
+        OK "Claude Code autenticado (ANTHROPIC_API_KEY)"
+    } else {
+        WARN "Claude Code instalado mas sem credenciais encontradas"
+        FIX "claude login   (conta Pro, sem API key necessaria)"
+        INFO "Credencial esperada em: $credFile"
+    }
+} catch {
+    ERR "Claude Code nao encontrado"
+    FIX "npm install -g @anthropic-ai/claude-code"
+    FIX "claude login   (autentica com conta Pro - sem API key)"
+}
 
 try {
     $v = gh --version 2>&1 | Select-Object -First 1; OK "GitHub CLI: $v"
-    if ((gh auth status 2>&1) -match "Logged in") { OK "GitHub CLI autenticado" }
+    gh auth status 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) { OK "GitHub CLI autenticado" }
     else { WARN "GitHub CLI nao autenticado"; FIX "gh auth login" }
-} catch { WARN "GitHub CLI nao encontrado"; FIX "choco install gh -y" }
+} catch { WARN "GitHub CLI nao encontrado"; FIX "winget install GitHub.cli   ou   choco install gh -y" }
 
-if ($env:ANTHROPIC_API_KEY) { OK "ANTHROPIC_API_KEY definida" }
-else { WARN "ANTHROPIC_API_KEY nao definida (pode usar claude login)"; FIX "`$env:ANTHROPIC_API_KEY = 'sk-ant-...'" }
+# API key e opcional - claude login e suficiente para conta Pro
+if ($env:ANTHROPIC_API_KEY) { OK "ANTHROPIC_API_KEY definida (autenticacao por API key)" }
+else { INFO "ANTHROPIC_API_KEY nao definida - normal se autenticado via 'claude login'" }
 
 # ---- 2. WORKSPACE NEXORA DESKTOP ----------------------------
 Hdr "2. WORKSPACE ($WORKSPACE)"
