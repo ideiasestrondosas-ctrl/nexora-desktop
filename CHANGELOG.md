@@ -1,10 +1,16 @@
-# Changelog
+﻿# Changelog
 
 Todas as alteracoes relevantes do Nexora Desktop sao documentadas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.2.0] - 2026-05-09
+
+### Added
+- feat: PROMPT 2 — Sidecar + Queue + Workers
+
 
 ## [0.1.0] - 2026-05-09
 
