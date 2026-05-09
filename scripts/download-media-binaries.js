@@ -11,8 +11,7 @@
  *   node scripts/download-media-binaries.js --platform win32 --arch x64
  */
 
-import { createWriteFile, existsSync, mkdirSync, chmodSync, readdirSync, statSync } from 'fs';
-import { createWriteStream } from 'fs';
+import { existsSync, mkdirSync, chmodSync, readdirSync, statSync, createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { get } from 'https';
 import { tmpdir } from 'os';
