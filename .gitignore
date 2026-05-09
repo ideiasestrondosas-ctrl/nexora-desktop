@@ -52,9 +52,23 @@ desktop.ini
 
 # IDEs
 .idea/
+.vscode/settings.json
+.vscode/launch.json
+.vscode/*.code-workspace
+
+# Claude Code — ficheiros de sessao locais (nao commitar)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/*.lock
+
+# Antigravity IDE — configuracoes locais (manter rules.md)
+.antigravity/settings.json
 
 # Testes
 coverage/
 .tmp/
 temp/
 WixTools/
+
+# Rust gerado (pode ser regenerado por cargo build)
+src-tauri/gen/

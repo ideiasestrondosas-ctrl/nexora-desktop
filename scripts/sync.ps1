@@ -112,6 +112,24 @@ $WORKSPACE  = "C:\Dev\nexora-desktop"
 $REPO_OWNER = "ideiasestrondosas-ctrl"
 $REPO_NAME  = "nexora-desktop"
 
+# Limite de tamanho para ficheiros (GitHub rejeita >100 MB; aviso a 50 MB)
+$LARGE_FILE_LIMIT_MB = 50
+
+# Placeholders de binarios FFmpeg/FFprobe (devem ter sempre <=10 bytes no git)
+# Os binarios reais sao descarregados pelo CI via download-media-binaries.js
+$BINARY_PLACEHOLDERS = @(
+    "src-tauri\binaries\ffmpeg-x86_64-pc-windows-msvc.exe",
+    "src-tauri\binaries\ffprobe-x86_64-pc-windows-msvc.exe",
+    "src-tauri\binaries\ffmpeg-aarch64-apple-darwin",
+    "src-tauri\binaries\ffprobe-aarch64-apple-darwin",
+    "src-tauri\binaries\ffmpeg-x86_64-apple-darwin",
+    "src-tauri\binaries\ffprobe-x86_64-apple-darwin",
+    "src-tauri\binaries\ffmpeg-x86_64-unknown-linux-gnu",
+    "src-tauri\binaries\ffprobe-x86_64-unknown-linux-gnu",
+    "src-tauri\binaries\ffmpeg-universal-apple-darwin",
+    "src-tauri\binaries\ffprobe-universal-apple-darwin"
+)
+
 if (-not (Test-Path $WORKSPACE)) {
     Write-Err "Workspace nao encontrado: $WORKSPACE"
     exit 1
@@ -248,6 +266,56 @@ if (-not $status -and -not $unpushed) {
 }
 
 # ---------------------------------------------------------
+# GUARDIA: placeholders + ficheiros grandes
+# ---------------------------------------------------------
+Write-Step "Verificando placeholders e ficheiros grandes..."
+
+# 1. Restaurar placeholders de binarios FFmpeg/FFprobe substituidos por binarios reais
+$restoredCount = 0
+foreach ($binRelPath in $BINARY_PLACEHOLDERS) {
+    $fullPath = Join-Path $WORKSPACE $binRelPath
+    if (Test-Path $fullPath) {
+        $fileSize = (Get-Item $fullPath).Length
+        if ($fileSize -gt 100) {
+            $sizeMB = [math]::Round($fileSize / 1MB, 1)
+            Write-Warn "Binario real em placeholder: $binRelPath ($sizeMB MB) -> a restaurar para 1 byte"
+            [System.IO.File]::WriteAllBytes($fullPath, [byte[]](0))
+            $restoredCount++
+        }
+    }
+}
+if ($restoredCount -gt 0) {
+    Write-Success "$restoredCount placeholder(s) restaurado(s). Binarios sao descarregados pelo CI."
+} else {
+    Write-Success "Placeholders OK"
+}
+
+# 2. Detectar ficheiros grandes no workspace (excluindo dirs de build conhecidos)
+$largeFiles = @()
+try {
+    $largeFiles = Get-ChildItem -Path $WORKSPACE -Recurse -File -ErrorAction SilentlyContinue |
+        Where-Object {
+            $p = $_.FullName
+            $p -notmatch [regex]::Escape("\\.git\\") -and
+            $p -notmatch [regex]::Escape("\\node_modules\\") -and
+            $p -notmatch [regex]::Escape("\\src-tauri\\target\\") -and
+            $p -notmatch [regex]::Escape("\\dist\\") -and
+            ($_.Length / 1MB) -gt $LARGE_FILE_LIMIT_MB
+        }
+} catch {}
+
+if ($largeFiles.Count -gt 0) {
+    Write-Warn "$($largeFiles.Count) ficheiro(s) acima de $($LARGE_FILE_LIMIT_MB) MB -- serao excluidos do commit:"
+    $largeFiles | ForEach-Object {
+        $rel  = $_.FullName.Substring($WORKSPACE.Length + 1)
+        $sizeMB = [math]::Round($_.Length / 1MB, 1)
+        Write-Info "  $rel ($sizeMB MB)"
+    }
+} else {
+    Write-Success "Nenhum ficheiro grande detectado"
+}
+
+# ---------------------------------------------------------
 # COMMIT DE CODIGO
 # ---------------------------------------------------------
 $commitMsg  = ""
@@ -275,7 +343,32 @@ if ($status) {
     }
 
     Write-Step "Realizando commit: '$commitMsg'..."
-    git add .
+
+    # Staging seguro: adiciona tudo e depois remove ficheiros grandes e runtime
+    git add --all
+
+    # Unstage ficheiros grandes detectados
+    if ($largeFiles.Count -gt 0) {
+        $largeFiles | ForEach-Object {
+            $relPath = $_.FullName.Substring($WORKSPACE.Length + 1)
+            git restore --staged $relPath 2>$null | Out-Null
+            Write-Info "Excluido do staging: $relPath"
+        }
+    }
+
+    # Unstage ficheiros de runtime/IDE que nunca devem ser commitados
+    $runtimeFiles = @(
+        ".claude\settings.local.json",
+        ".claude\scheduled_tasks.lock",
+        ".antigravity\settings.json"
+    )
+    foreach ($rf in $runtimeFiles) {
+        $rfFull = Join-Path $WORKSPACE $rf
+        if (Test-Path $rfFull) {
+            git restore --staged $rf 2>$null | Out-Null
+        }
+    }
+
     git commit -m $commitMsg
 
     if ($LASTEXITCODE -ne 0) {
@@ -286,7 +379,14 @@ if ($status) {
     # Graphify auto-commit (se existir grafo gerado automaticamente)
     Start-Sleep -Seconds 1
     if (git status --porcelain) {
-        git add .
+        git add --all
+        # Garantir que ficheiros grandes nao entram neste commit tambem
+        if ($largeFiles.Count -gt 0) {
+            $largeFiles | ForEach-Object {
+                $relPath = $_.FullName.Substring($WORKSPACE.Length + 1)
+                git restore --staged $relPath 2>$null | Out-Null
+            }
+        }
         git commit -m "docs: atualizar grafo e relatorios (auto)" --no-verify
     }
 }
