@@ -23,7 +23,7 @@ if ($Help) {
     Clear-Host
     Write-Host ""
     Write-Host "  ============================================" -ForegroundColor Cyan
-    Write-Host "  NEXORA DESKTOP SYNC  —  Ajuda" -ForegroundColor Cyan
+    Write-Host "  NEXORA DESKTOP SYNC  --  Ajuda" -ForegroundColor Cyan
     Write-Host "  ============================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "  UTILIZACAO" -ForegroundColor White
@@ -35,7 +35,7 @@ if ($Help) {
     Write-Host ""
     Write-Host "  (sem opcoes)" -ForegroundColor Cyan
     Write-Host "    Abre menu interactivo com 5 opcoes." -ForegroundColor Gray
-    Write-Host "    Ideal para uso diario — nao precisas de decorar flags." -ForegroundColor Gray
+    Write-Host "    Ideal para uso diario -- nao precisas de decorar flags." -ForegroundColor Gray
     Write-Host ""
     Write-Host "  -Message  <texto>" -ForegroundColor Cyan
     Write-Host "    Define a mensagem de commit directamente." -ForegroundColor Gray
@@ -80,10 +80,10 @@ if ($Help) {
     Write-Host "  # Guardar rapido com mensagem e sem bump" -ForegroundColor Green
     Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -SkipRelease -Message ""docs: actualizar SYNC-STATE""" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  # Versao pronta — Prompt Desktop 2 completo (merge main + GitHub Release)" -ForegroundColor Green
+    Write-Host "  # Versao pronta -- Prompt Desktop 2 completo (merge main + GitHub Release)" -ForegroundColor Green
     Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -Release -Message ""feat: sidecar + queue + workers""" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  # Versao pronta — com menu de versao interactivo" -ForegroundColor Green
+    Write-Host "  # Versao pronta -- com menu de versao interactivo" -ForegroundColor Green
     Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -Release" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "  # Ver estado do repositorio sem fazer nada" -ForegroundColor Green
@@ -155,7 +155,7 @@ if (-not $SkipRelease -and -not $Release -and -not $Message) {
     $choice = Read-Host "  Opcao [1-5]"
 
     switch ($choice) {
-        "1" { <# modo normal — continua o script #> }
+        "1" { <# modo normal -- continua o script #> }
         "2" { $SkipRelease = $true }
         "3" { $Release = $true }
         "4" {
@@ -380,7 +380,7 @@ if (-not $SkipRelease) {
             }
         }
 
-        # CHANGELOG.md — criar se nao existir
+        # CHANGELOG.md -- criar se nao existir
         $date     = Get-Date -Format "yyyy-MM-dd"
         $newEntry = "## [$newVersion] - $date`n`n### Added`n- $commitMsg`n"
         if (Test-Path "CHANGELOG.md") {
@@ -477,7 +477,7 @@ if ($LASTEXITCODE -eq 0) {
 
         git merge $devBranch --ff-only 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Warn "Fast-forward falhou — a tentar merge normal..."
+            Write-Warn "Fast-forward falhou -- a tentar merge normal..."
             git merge $devBranch -m "chore(release): merge $devBranch -> main v$newVersion" 2>&1
         }
 
@@ -490,7 +490,7 @@ if ($LASTEXITCODE -eq 0) {
         if ($LASTEXITCODE -eq 0) {
             Write-Success "main actualizado com v$newVersion!"
         } else {
-            Write-Err "Push para main falhou — faz manualmente: git checkout main && git merge $devBranch && git push origin main"
+            Write-Err "Push para main falhou -- faz manualmente: git checkout main && git merge $devBranch && git push origin main"
         }
 
         # Voltar para dev
