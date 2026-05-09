@@ -3,7 +3,7 @@ import { Job } from '@/store/jobs';
 import { ProgressBar } from './ProgressBar';
 import { NexoraStatusBadge } from './NexoraStatusBadge';
 import { VMAFGauge } from './VMAFGauge';
-import { FileVideo, XCircle, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { FileVideo, XCircle, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface JobCardProps {

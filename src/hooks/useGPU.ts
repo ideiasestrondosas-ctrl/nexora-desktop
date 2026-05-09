@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 export interface GPUInfo {
   vendor: string;
   encoder: string;
-  available: bool;
+  available: boolean;
 }
 
 export function useGPU() {

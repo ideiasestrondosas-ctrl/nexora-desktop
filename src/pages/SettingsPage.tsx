@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { useTauriCommand } from '@/hooks/useTauriCommand';
-import { Settings, Folder, Cpu, Bell, Monitor, Save, RefreshCw } from 'lucide-react';
+import { Settings, Folder, Cpu, Monitor, Save, RefreshCw } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { cn } from '@/lib/utils';
 

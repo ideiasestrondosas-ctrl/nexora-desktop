@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
-import { Upload, FileVideo, Plus } from 'lucide-react';
+import { Upload, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DropZoneProps {

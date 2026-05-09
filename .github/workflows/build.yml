@@ -72,11 +72,22 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+      # Descarregar FFmpeg e FFprobe para a plataforma alvo
+      - name: Download media binaries
+        run: node scripts/download-media-binaries.js
+
+      # Build do sidecar Node.js
+      - name: Build sidecar
+        run: npm run sidecar:build
+
       # Build + empacotamento por plataforma
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Assinatura de actualizações (tauri-plugin-updater)
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           # Assinar no macOS (opcional - configura nos secrets do repo)
           # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
