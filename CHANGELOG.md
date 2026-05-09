@@ -6,6 +6,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-09
+
+### Added
+- feat: PROMPT 3 — Frontend React
+
+
 ## [0.2.0] - 2026-05-09
 
 ### Added
