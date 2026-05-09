@@ -4,37 +4,44 @@ use std::process::{Command, Stdio};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
 pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow::Result<()> {
-    // Localiza o sidecar relativo ao executável corrente
-    let exe_dir = std::env::current_exe()
-        .unwrap_or_default()
-        .parent()
-        .map(|p| p.to_path_buf())
-        .unwrap_or_default();
-    let sidecar_path = exe_dir.join("binaries").join(bin_name());
+    let script_path = resolve_script_path(&app);
 
-    if !sidecar_path.exists() {
+    if !script_path.exists() {
         warn!(
-            "Sidecar não encontrado em {:?} — ignorado (instalar na Fase 2)",
-            sidecar_path
+            "nexora-sidecar.js nao encontrado em {:?} — executa 'npm run sidecar:build' primeiro",
+            script_path
         );
         return Ok(());
     }
 
-    let mut child = Command::new(&sidecar_path)
+    // Verificar se node esta disponivel no PATH antes de tentar o spawn
+    Command::new("node")
+        .arg("--version")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map_err(|_| {
+            anyhow::anyhow!(
+                "Node.js nao encontrado no PATH — instala Node.js 20+ para o sidecar funcionar"
+            )
+        })?;
+
+    let mut child = Command::new("node")
+        .arg(&script_path)
         .env("NEXORA_DB_PATH", db_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()
-        .map_err(|e| anyhow::anyhow!("Falha ao arrancar sidecar: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Falha ao arrancar sidecar Node.js: {}", e))?;
 
     let pid = child.id();
     {
         let state = app.state::<AppState>();
         *state.sidecar_pid.lock().unwrap() = Some(pid);
     }
-    info!("Sidecar PID={}", pid);
+    info!("Sidecar Node.js PID={} script={:?}", pid, script_path);
 
-    // Lê eventos JSON do stdout numa thread dedicada
+    // Le eventos JSON do stdout numa thread dedicada e emite para o frontend
     if let Some(stdout) = child.stdout.take() {
         let app_handle = app.clone();
         std::thread::spawn(move || {
@@ -46,7 +53,7 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
                             Ok(json) => {
                                 let _ = app_handle.emit("sidecar:event", &json);
                             }
-                            Err(_) => info!("sidecar: {}", l),
+                            Err(_) => info!("sidecar stdout: {}", l),
                         }
                     }
                     Err(e) => error!("sidecar stdout: {}", e),
@@ -65,10 +72,42 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
     Ok(())
 }
 
-fn bin_name() -> String {
-    format!(
-        "nexora-sidecar-{}-{}",
-        std::env::consts::OS,
-        std::env::consts::ARCH
-    )
+/// Localiza nexora-sidecar.js por ordem de prioridade:
+/// 1. resource_dir do Tauri (producao: ficheiro bundled no instalador)
+/// 2. Relativo ao executavel (desenvolvimento: exe em target/debug/ ou target/release/)
+/// 3. Working directory corrente (tauri dev define cwd como workspace)
+fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
+    // 1. Producao: recurso incluido no bundle pelo Tauri
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        // Tauri pode flattened o caminho ou manter a estrutura relativa
+        for candidate in [
+            resource_dir.join("nexora-sidecar.js"),
+            resource_dir.join("sidecar").join("dist").join("nexora-sidecar.js"),
+        ] {
+            if candidate.exists() {
+                return candidate;
+            }
+        }
+    }
+
+    // 2. Desenvolvimento: exe em workspace/src-tauri/target/(debug|release)/
+    //    Sobe 4 niveis para chegar ao workspace root
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(workspace) = exe.ancestors().nth(4) {
+            let candidate = workspace
+                .join("sidecar")
+                .join("dist")
+                .join("nexora-sidecar.js");
+            if candidate.exists() {
+                return candidate;
+            }
+        }
+    }
+
+    // 3. Fallback: diretorio de trabalho corrente (tauri dev)
+    std::env::current_dir()
+        .unwrap_or_default()
+        .join("sidecar")
+        .join("dist")
+        .join("nexora-sidecar.js")
 }

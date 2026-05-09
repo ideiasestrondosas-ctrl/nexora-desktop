@@ -475,7 +475,14 @@ if (-not $SkipRelease) {
             $tauriConf = Get-Content "src-tauri\tauri.conf.json" -Raw | ConvertFrom-Json
             if ($tauriConf.PSObject.Properties["version"]) {
                 $tauriConf.version = $newVersion
-                $tauriConf | ConvertTo-Json -Depth 20 | Out-File "src-tauri\tauri.conf.json" -Encoding UTF8
+                # Escrever sem BOM — Tauri nao suporta UTF-8 BOM no parser JSON
+                $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+                $tauriJson = $tauriConf | ConvertTo-Json -Depth 20
+                [System.IO.File]::WriteAllText(
+                    (Join-Path $WORKSPACE "src-tauri\tauri.conf.json"),
+                    $tauriJson,
+                    $utf8NoBom
+                )
                 Write-Success "src-tauri\tauri.conf.json -> $newVersion"
             }
         }
