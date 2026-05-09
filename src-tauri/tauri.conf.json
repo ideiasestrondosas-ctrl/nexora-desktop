@@ -48,7 +48,7 @@
       ],
       "dialog": true,
       "windows": {
-        "installMode": "passiveWithDialog"
+        "installMode": "passive"
       }
     }
   }
