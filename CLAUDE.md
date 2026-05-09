@@ -39,7 +39,7 @@ C:\Dev\nexora-desktop\              ← Workspace final após migração (escrit
 | Camada | Tecnologia |
 |---|---|
 | Shell nativa | Tauri 2.x (Rust stable) |
-| Frontend | React 18 + TypeScript + Tailwind CSS + Zustand |
+| Frontend | React 19 + TypeScript + Tailwind CSS + Zustand |
 | Sidecar | Node.js 20 + TypeScript + esbuild |
 | Base de dados | SQLite via better-sqlite3 |
 | Build CI/CD | GitHub Actions + Tauri Action |
