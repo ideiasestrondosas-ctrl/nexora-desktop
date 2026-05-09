@@ -1,6 +1,6 @@
-﻿[package]
+[package]
 name = "nexora-desktop"
-version = "0.3.0"
+version = "0.3.1"
 description = "Nexora Media Processing Ã¢â‚¬â€ Desktop Nativo"
 authors = ["Nexora"]
 edition = "2021"
