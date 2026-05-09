@@ -238,22 +238,25 @@ if (-not $SkipRelease) {
             }
         }
 
-        # CHANGELOG.md
+        # CHANGELOG.md — criar se nao existir
+        $date     = Get-Date -Format "yyyy-MM-dd"
+        $newEntry = "## [$newVersion] - $date`n`n### Added`n- $commitMsg`n"
         if (Test-Path "CHANGELOG.md") {
             $changelog = Get-Content "CHANGELOG.md" -Raw
-            $date      = Get-Date -Format "yyyy-MM-dd"
-            $newEntry  = "## [$newVersion] - $date`n`n### Added`n- $commitMsg`n"
             if ($changelog -match "## \[Unreleased\]") {
                 $changelog = $changelog -replace "## \[Unreleased\]", "## [Unreleased]`n`n$newEntry"
             } else {
-                $changelog = "# Changelog`n`n$newEntry`n" + ($changelog -replace "# Changelog", "")
+                $changelog = $changelog -replace "# Changelog", "# Changelog`n`n$newEntry"
             }
-            [System.IO.File]::WriteAllText(
-                (Join-Path $WORKSPACE "CHANGELOG.md"),
-                $changelog,
-                [System.Text.Encoding]::UTF8
-            )
+        } else {
+            $changelog = "# Changelog`n`n## [Unreleased]`n`n$newEntry"
+            Write-Warn "CHANGELOG.md nao existia - criado automaticamente"
         }
+        [System.IO.File]::WriteAllText(
+            (Join-Path $WORKSPACE "CHANGELOG.md"),
+            $changelog,
+            [System.Text.Encoding]::UTF8
+        )
 
         # PROGRESS-DESKTOP.md (campo Versao na tabela de estado)
         if (Test-Path "PROGRESS-DESKTOP.md") {
@@ -266,9 +269,14 @@ if (-not $SkipRelease) {
             )
         }
 
-        # Commit de release + tag
+        # Commit de release + tag (verificar se tag ja existe)
         git add package.json src-tauri\Cargo.toml src-tauri\tauri.conf.json CHANGELOG.md PROGRESS-DESKTOP.md
         git commit -m "chore(release): v$newVersion" --no-verify
+        $tagExists = git tag -l "v$newVersion" 2>$null
+        if ($tagExists) {
+            Write-Warn "Tag v$newVersion ja existe - a recriar..."
+            git tag -d "v$newVersion" 2>$null | Out-Null
+        }
         git tag -a "v$newVersion" -m "Nexora Desktop v$newVersion"
         Write-Success "Versao v$newVersion preparada com sucesso!"
         $isNewRelease = $true
@@ -278,8 +286,11 @@ if (-not $SkipRelease) {
 # ---------------------------------------------------------
 # HANDOFF: verificar SYNC-STATE.md antes do push
 # ---------------------------------------------------------
-$syncChanged = git status --porcelain "SYNC-STATE.md" 2>$null
-if (-not $syncChanged) {
+# Verificar se SYNC-STATE.md foi modificado nesta sessao (staged ou unstaged)
+# ou se foi commitado num dos commits ainda nao publicados
+$syncUncommitted = git status --porcelain "SYNC-STATE.md" 2>$null
+$syncInUnpushed  = git log "origin/$branch..HEAD" --name-only --format="" 2>$null | Select-String "SYNC-STATE.md"
+if (-not $syncUncommitted -and -not $syncInUnpushed) {
     Write-Warn "SYNC-STATE.md nao foi actualizado nesta sessao."
     Write-Host "  Recomendado: actualiza SYNC-STATE.md para o proximo agente saber onde paraste." -ForegroundColor Gray
     $ans = Read-Host "  Continuar o push sem actualizar SYNC-STATE.md? [S/N]"
@@ -287,6 +298,8 @@ if (-not $syncChanged) {
         Write-Host "  Push cancelado. Actualiza SYNC-STATE.md e corre o script de novo." -ForegroundColor Yellow
         Pop-Location; exit 0
     }
+} else {
+    Write-Success "SYNC-STATE.md actualizado"
 }
 
 # ---------------------------------------------------------
