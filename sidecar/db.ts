@@ -66,7 +66,7 @@ export function getQueuedJobs(limit: number): JobRow[] {
 
 export function getRunningJobCount(): number {
   const row = getDb()
-    .prepare(`SELECT COUNT(*) AS n FROM jobs WHERE status = 'running'`)
+    .prepare(`SELECT COUNT(*) AS n FROM jobs WHERE status = 'processing'`)
     .get() as { n: number };
   return row.n;
 }
@@ -75,7 +75,7 @@ export function markJobRunning(jobId: string): void {
   const now = new Date().toISOString();
   getDb()
     .prepare(
-      `UPDATE jobs SET status = 'running', started_at = ?, updated_at = ? WHERE id = ?`
+      `UPDATE jobs SET status = 'processing', started_at = ?, updated_at = ? WHERE id = ?`
     )
     .run(now, now, jobId);
 }
@@ -106,7 +106,7 @@ export function markJobFailed(jobId: string, error: string): void {
   const now = new Date().toISOString();
   getDb()
     .prepare(
-      `UPDATE jobs SET status = 'failed', finished_at = ?, updated_at = ?, error = ? WHERE id = ?`
+      `UPDATE jobs SET status = 'error', finished_at = ?, updated_at = ?, error = ? WHERE id = ?`
     )
     .run(now, now, error.slice(0, 2000), jobId);
 }

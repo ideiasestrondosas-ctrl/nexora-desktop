@@ -64,12 +64,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job, filename, onCancel }) => 
             {job.step || (isProcessing ? 'A processar...' : '')}
           </span>
           <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-            {Math.round(job.progress)}%
+            {Math.round(job.progress * 100)}%
           </span>
         </div>
-        <ProgressBar 
-          progress={job.progress} 
-          color={isError ? 'bg-red-500' : isDone ? 'bg-green-500' : 'bg-nexora-blue'} 
+        <ProgressBar
+          progress={job.progress * 100}
+          color={isError ? 'bg-red-500' : isDone ? 'bg-green-500' : 'bg-nexora-blue'}
         />
       </div>
 

@@ -108,7 +108,7 @@ pub fn cancel_job(id: String, state: State<AppState>) -> Result<bool, String> {
     let rows = db
         .execute(
             "UPDATE jobs SET status = 'cancelled', updated_at = ?1
-             WHERE id = ?2 AND status IN ('queued', 'running')",
+             WHERE id = ?2 AND status IN ('queued', 'processing')",
             rusqlite::params![now, id],
         )
         .map_err(|e| e.to_string())?;
