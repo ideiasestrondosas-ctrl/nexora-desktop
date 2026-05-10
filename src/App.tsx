@@ -5,10 +5,12 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { ProcessPage } from '@/pages/ProcessPage';
 import { HistoryPage } from '@/pages/HistoryPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { SystemMetricsBar } from '@/components/SystemMetricsBar';
+import { HelpModal } from '@/components/HelpModal';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { useTauriCommand } from '@/hooks/useTauriCommand';
-import { Rocket, History, Settings, ShieldCheck, LayoutDashboard, Cpu, HardDrive, AlertTriangle } from 'lucide-react';
+import { Rocket, History, Settings, ShieldCheck, LayoutDashboard, Cpu, HardDrive, AlertTriangle, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Tab = 'dashboard' | 'process' | 'history' | 'settings';
@@ -17,6 +19,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [appVersion, setAppVersion] = useState('...');
   const [diskSpace, setDiskSpace] = useState<{ free_bytes: number, total_bytes: number } | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   
   const theme = useSettingsStore(state => state.theme);
   const outputDir = useSettingsStore(state => state.outputDir);
@@ -72,10 +75,11 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 flex flex-col transition-colors duration-300">
       <Toaster position="top-right" />
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
       {/* Sidebar / Navbar */}
       <nav className="fixed bottom-0 left-0 right-0 md:top-0 md:bottom-auto bg-white dark:bg-gray-900 border-t md:border-t-0 md:border-b border-gray-200 dark:border-gray-800 z-50 px-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between h-16">
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className="bg-nexora-blue p-1.5 rounded-lg">
                 <ShieldCheck className="w-5 h-5 text-white" />
@@ -98,9 +102,12 @@ function App() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">CPU</span>
               </div>
             )}
+
+            {/* Métricas em tempo real */}
+            <SystemMetricsBar />
           </div>
 
-          <div className="flex flex-1 md:flex-none justify-around md:justify-end gap-1 md:gap-4">
+          <div className="flex flex-1 md:flex-none justify-around md:justify-end gap-1 md:gap-2 items-center">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -110,8 +117,8 @@ function App() {
                   onClick={() => setActiveTab(tab.id as Tab)}
                   className={cn(
                     "flex flex-col md:flex-row items-center gap-1 md:gap-2 px-4 py-2 rounded-xl transition-all duration-200 relative group",
-                    isActive 
-                      ? "text-nexora-blue md:bg-nexora-blue/10" 
+                    isActive
+                      ? "text-nexora-blue md:bg-nexora-blue/10"
                       : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
@@ -123,6 +130,16 @@ function App() {
                 </button>
               );
             })}
+
+            {/* Botão de manual */}
+            <button
+              onClick={() => setShowHelp(true)}
+              title="Manual / Ajuda"
+              className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl text-gray-500 hover:text-nexora-blue hover:bg-nexora-blue/10 transition-all"
+            >
+              <BookOpen className="w-5 h-5" />
+              <span className="text-sm font-semibold">Manual</span>
+            </button>
           </div>
         </div>
       </nav>

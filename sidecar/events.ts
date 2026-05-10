@@ -5,7 +5,8 @@ export type SidecarEventType =
   | 'job:completed'
   | 'job:failed'
   | 'asset:updated'
-  | 'notification';
+  | 'notification'
+  | 'log';
 
 export interface SidecarEvent {
   type: SidecarEventType;
@@ -17,6 +18,10 @@ export interface SidecarEvent {
   title?: string;
   body?: string;
   data?: unknown;
+  // Para eventos 'log'
+  level?: string;
+  source?: string;
+  message?: string;
   timestamp: string;
 }
 

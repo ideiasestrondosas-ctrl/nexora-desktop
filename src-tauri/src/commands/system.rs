@@ -3,6 +3,48 @@ use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tauri::{Manager, State};
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstalledInfo {
+    pub app_version: String,
+    pub ffmpeg_version: Option<String>,
+    pub node_version: Option<String>,
+    pub gpu: GpuInfo,
+    pub db_path: String,
+}
+
+#[tauri::command]
+pub fn get_installed_info(app: tauri::AppHandle) -> InstalledInfo {
+    let ffmpeg_version = Command::new("ffmpeg")
+        .arg("-version")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .and_then(|s| s.lines().next().map(|l| l.trim().to_string()));
+
+    let node_version = Command::new("node")
+        .arg("--version")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string());
+
+    let db_path = app
+        .path()
+        .app_data_dir()
+        .ok()
+        .map(|p| p.join("nexora.db").to_string_lossy().into_owned())
+        .unwrap_or_default();
+
+    InstalledInfo {
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        ffmpeg_version,
+        node_version,
+        gpu: detect_gpu(),
+        db_path,
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GpuInfo {
     pub vendor: String,

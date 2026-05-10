@@ -24,6 +24,6 @@ rusqlite = { version = "0.32", features = ["bundled"] }
 uuid = { version = "1", features = ["v4"] }
 anyhow = "1"
 log = "0.4"
-env_logger = "0.11"
 chrono = { version = "0.4", features = ["serde"] }
+sysinfo = { version = "0.32", default-features = false, features = ["system", "network"] }
 

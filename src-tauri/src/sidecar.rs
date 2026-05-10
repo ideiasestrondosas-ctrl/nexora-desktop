@@ -51,6 +51,31 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
                     Ok(l) if !l.trim().is_empty() => {
                         match serde_json::from_str::<serde_json::Value>(&l) {
                             Ok(json) => {
+                                // Eventos de log e de job vão para o sistema de registos
+                                if let Some(t) = json.get("type").and_then(|v| v.as_str()) {
+                                    match t {
+                                        "log" => {
+                                            let level = json.get("level").and_then(|v| v.as_str()).unwrap_or("INFO");
+                                            let source = json.get("source").and_then(|v| v.as_str()).unwrap_or("sidecar");
+                                            let msg = json.get("message").and_then(|v| v.as_str()).unwrap_or("");
+                                            crate::logger::write(level, &format!("sidecar:{source}"), msg);
+                                        }
+                                        "job:started" => {
+                                            let job_id = json.get("jobId").and_then(|v| v.as_str()).unwrap_or("?");
+                                            crate::logger::write("INFO", "sidecar:orchestrator", &format!("Job iniciado: {job_id}"));
+                                        }
+                                        "job:completed" => {
+                                            let job_id = json.get("jobId").and_then(|v| v.as_str()).unwrap_or("?");
+                                            crate::logger::write("INFO", "sidecar:orchestrator", &format!("Job concluído: {job_id}"));
+                                        }
+                                        "job:failed" => {
+                                            let job_id = json.get("jobId").and_then(|v| v.as_str()).unwrap_or("?");
+                                            let err = json.get("error").and_then(|v| v.as_str()).unwrap_or("erro desconhecido");
+                                            crate::logger::write("ERROR", "sidecar:orchestrator", &format!("Job falhou: {job_id} — {err}"));
+                                        }
+                                        _ => {}
+                                    }
+                                }
                                 let _ = app_handle.emit("sidecar:event", &json);
                             }
                             Err(_) => info!("sidecar stdout: {}", l),

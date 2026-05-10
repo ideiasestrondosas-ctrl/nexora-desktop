@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { useTauriCommand } from '@/hooks/useTauriCommand';
-import { Settings, Folder, Cpu, Monitor, Save, RefreshCw, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, Folder, Cpu, Monitor, Save, RefreshCw, FileText, ChevronDown, ChevronUp, Terminal } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-dialog';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
+import { LogViewer } from '@/components/LogViewer';
 
 export const SettingsPage: React.FC = () => {
   const settings = useSettingsStore();
@@ -258,8 +259,17 @@ export const SettingsPage: React.FC = () => {
           )}
         </section>
 
+        {/* Registos do Sistema */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Terminal className="w-5 h-5 text-nexora-blue" />
+            Registos do Sistema
+          </h2>
+          <LogViewer />
+        </section>
+
         <div className="flex justify-end pt-4">
-          <button 
+          <button
             onClick={handleSave}
             disabled={isSaving}
             className="flex items-center gap-2 bg-nexora-blue text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-600 transition-all disabled:opacity-50 shadow-lg shadow-nexora-blue/20"
