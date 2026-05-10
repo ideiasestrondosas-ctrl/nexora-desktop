@@ -1,5 +1,7 @@
+use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+use tauri::{Manager, State};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GpuInfo {
@@ -130,4 +132,69 @@ fn disk_space_impl(path: String) -> Result<DiskSpace, String> {
 #[tauri::command]
 pub fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppStats {
+    pub total_assets: i64,
+    pub jobs_today: i64,
+    pub avg_vmaf: Option<f64>,
+    pub active_jobs: i64,
+    pub disk_free_bytes: Option<u64>,
+    pub disk_total_bytes: Option<u64>,
+}
+
+#[tauri::command]
+pub fn get_stats(
+    state: State<'_, AppState>,
+    app: tauri::AppHandle,
+) -> Result<AppStats, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+
+    let total_assets: i64 = db
+        .query_row("SELECT COUNT(*) FROM assets", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
+
+    let jobs_today: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE date(created_at) = date('now')",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    let avg_vmaf: Option<f64> = db
+        .query_row(
+            "SELECT AVG(vmaf_score) FROM jobs WHERE vmaf_score IS NOT NULL",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    let active_jobs: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE status IN ('queued', 'running')",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    let (disk_free_bytes, disk_total_bytes) = app
+        .path()
+        .app_data_dir()
+        .ok()
+        .and_then(|p| p.to_str().map(str::to_string))
+        .and_then(|path| disk_space_impl(path).ok())
+        .map(|d| (Some(d.free_bytes), Some(d.total_bytes)))
+        .unwrap_or((None, None));
+
+    Ok(AppStats {
+        total_assets,
+        jobs_today,
+        avg_vmaf,
+        active_jobs,
+        disk_free_bytes,
+        disk_total_bytes,
+    })
 }

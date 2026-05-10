@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DropZone } from '@/components/DropZone';
 import { JobCard } from '@/components/JobCard';
 import { useJobsStore } from '@/store/jobs';
@@ -6,6 +6,7 @@ import { useAssetsStore } from '@/store/assets';
 import { useTauriCommand } from '@/hooks/useTauriCommand';
 import { useJobStatus } from '@/hooks/useJobStatus';
 import { useNotification } from '@/hooks/useNotification';
+import toast from 'react-hot-toast';
 import { Rocket, History } from 'lucide-react';
 
 export const ProcessPage: React.FC = () => {
@@ -14,7 +15,41 @@ export const ProcessPage: React.FC = () => {
   const { execute: ingestAsset } = useTauriCommand('ingest_asset');
   const { execute: submitJob } = useTauriCommand('submit_job');
   const { execute: cancelJob } = useTauriCommand('cancel_job');
+  const { execute: listProfiles } = useTauriCommand('list_profiles');
   const { notify } = useNotification();
+
+  const [profiles, setProfiles] = useState<{ id: string, name: string, description: string }[]>([]);
+  const [selectedProfile, setSelectedProfile] = useState('broadcast-hd');
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
+
+  // Fetch profiles on mount
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const data = await listProfiles();
+        if (data && Array.isArray(data) && data.length > 0) {
+          setProfiles(data);
+          setSelectedProfile(data[0].id);
+        } else {
+          throw new Error('Lista vazia');
+        }
+      } catch (err) {
+        // Fallback
+        const fallback = [
+          { id: 'broadcast-hd', name: 'Broadcast HD', description: 'XDCAM HD422 50Mbps 1080i50' },
+          { id: 'broadcast-sd', name: 'Broadcast SD', description: 'IMX 50Mbps 576i50' },
+          { id: 'web-4k', name: 'Web 4K', description: 'H.264 25Mbps 2160p25' },
+          { id: 'web-hd', name: 'Web HD', description: 'H.264 8Mbps 1080p25' },
+          { id: 'proxy', name: 'Proxy', description: 'H.264 2Mbps 540p' },
+          { id: 'social', name: 'Social', description: 'H.264 5Mbps 1080x1920 (Vertical)' }
+        ];
+        setProfiles(fallback);
+      } finally {
+        setLoadingProfiles(false);
+      }
+    };
+    fetchProfiles();
+  }, []);
 
   // Start polling
   useJobStatus();
@@ -25,15 +60,17 @@ export const ProcessPage: React.FC = () => {
         // 1. Ingest asset
         const asset = await ingestAsset({ path });
         
-        // 2. Submit job (using default broadcast-hd for now, or we could add a selector)
+        // 2. Submit job using selected profile
         await submitJob({ 
           assetId: (asset as any).id, 
-          profile: 'broadcast-hd', 
+          profile: selectedProfile, 
           priority: 0 
         });
 
+        toast.success('Ficheiro aceite — a processar');
         notify('Processamento Iniciado', `O ficheiro ${path.split(/[\\/]/).pop()} foi adicionado à fila.`);
-      } catch (err) {
+      } catch (err: any) {
+        toast.error(`Erro: ${err?.message || err || 'Desconhecido'}`);
         console.error('Failed to process file:', path, err);
       }
     }
@@ -42,7 +79,9 @@ export const ProcessPage: React.FC = () => {
   const handleCancelJob = async (id: string) => {
     try {
       await cancelJob({ jobId: id });
-    } catch (err) {
+      toast.success('Job cancelado');
+    } catch (err: any) {
+      toast.error(`Erro ao cancelar: ${err?.message || err || 'Desconhecido'}`);
       console.error('Failed to cancel job:', id, err);
     }
   };
@@ -67,7 +106,31 @@ export const ProcessPage: React.FC = () => {
         </p>
       </header>
 
-      <DropZone onFilesSelected={handleFilesSelected} />
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm mb-6">
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Perfil de Encoding
+          </label>
+          <select 
+            value={selectedProfile}
+            onChange={(e) => setSelectedProfile(e.target.value)}
+            disabled={loadingProfiles}
+            className="w-full md:w-1/2 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-nexora-blue transition-all disabled:opacity-50"
+          >
+            {loadingProfiles ? (
+              <option>A carregar perfis...</option>
+            ) : (
+              profiles.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.name} — {p.description}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
+
+        <DropZone onFilesSelected={handleFilesSelected} />
+      </div>
 
       {activeJobs.length > 0 && (
         <section className="space-y-4">

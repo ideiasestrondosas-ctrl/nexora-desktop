@@ -111,10 +111,28 @@ pub fn list_assets(status: Option<String>, state: State<AppState>) -> Result<Vec
         ),
         None => collect_assets(
             &db,
-            &format!("SELECT {COLS} FROM assets ORDER BY created_at DESC"),
+            &format!(
+                "SELECT {COLS} FROM assets WHERE status != 'deleted' ORDER BY created_at DESC"
+            ),
             None,
         ),
     }
+}
+
+#[tauri::command]
+pub fn delete_asset(id: String, state: State<AppState>) -> Result<(), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let now = Utc::now().to_rfc3339();
+    let affected = db
+        .execute(
+            "UPDATE assets SET status = 'deleted', updated_at = ?1 WHERE id = ?2",
+            rusqlite::params![now, id],
+        )
+        .map_err(|e| e.to_string())?;
+    if affected == 0 {
+        return Err(format!("Asset '{}' não encontrado", id));
+    }
+    Ok(())
 }
 
 #[tauri::command]

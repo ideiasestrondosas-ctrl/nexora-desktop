@@ -1,16 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { useTauriCommand } from '@/hooks/useTauriCommand';
-import { Settings, Folder, Cpu, Monitor, Save, RefreshCw } from 'lucide-react';
+import { Settings, Folder, Cpu, Monitor, Save, RefreshCw, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-dialog';
+import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 
 export const SettingsPage: React.FC = () => {
   const settings = useSettingsStore();
   const { gpu, loading: gpuLoading } = useGPU();
   const { execute: updateSettings } = useTauriCommand('update_settings');
+  const { execute: getChangelog } = useTauriCommand('get_changelog');
   const [isSaving, setIsSaving] = useState(false);
+  const [changelogContent, setChangelogContent] = useState('');
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+
+  useEffect(() => {
+    getChangelog().then(content => {
+      if (content) setChangelogContent(content as string);
+    }).catch(() => {
+      // Fallback
+      setChangelogContent(`## [0.2.0] - 2026-05-09
+### Adicionado
+- Nova interface gráfica em React 19 + Tailwind CSS v4.
+- Integração completa de Zustand para state management.
+- Polling optimizado do sidecar (1s).
+
+## [0.1.0] - 2026-05-01
+### Adicionado
+- Tauri Backend e SQLite estruturados.
+- Sidecar base implementado.`);
+    });
+  }, [getChangelog]);
 
   // Defensive check for settings
   if (!settings) return <div className="p-8 text-center text-red-500">Erro: Settings Store não carregada.</div>;
@@ -43,8 +65,9 @@ export const SettingsPage: React.FC = () => {
           gpu_acceleration: settings.gpuAcceleration ? 'true' : 'false',
         }
       });
-      console.log('Settings saved to backend');
+      toast.success('Definições guardadas');
     } catch (err) {
+      toast.error('Erro ao guardar definições');
       console.error('Failed to save settings:', err);
     } finally {
       setIsSaving(false);
@@ -205,6 +228,34 @@ export const SettingsPage: React.FC = () => {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Changelog */}
+        <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden transition-all duration-300">
+          <button 
+            onClick={() => setIsChangelogOpen(!isChangelogOpen)}
+            className="w-full flex items-center justify-between p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors focus:outline-none"
+          >
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <FileText className="w-5 h-5 text-nexora-blue" />
+              Novidades / Changelog
+            </h2>
+            {isChangelogOpen ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+          
+          {isChangelogOpen && (
+            <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-200">
+              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800 max-h-[200px] overflow-y-auto">
+                <pre className="text-xs text-gray-600 dark:text-gray-300 font-mono whitespace-pre-wrap leading-relaxed">
+                  {changelogContent}
+                </pre>
+              </div>
+            </div>
+          )}
         </section>
 
         <div className="flex justify-end pt-4">

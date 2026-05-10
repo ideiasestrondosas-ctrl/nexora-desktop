@@ -10,90 +10,107 @@ Agente: Claude Sonnet 4.6
 
 ## O que foi feito
 
-### Prompt Desktop 4 — Concluído
+### Prompt Desktop 5 — Bug fixes + Gap Analysis — Concluído
 
-Build, testes e distribuição completos:
+Todos os 7 passos do plano Claude Code executados e validados (`cargo check` + `sidecar:check` limpos):
 
-- **GitHub Actions** (`build.yml`): pipeline para Windows, macOS Universal, Linux; matrix com rust targets correctos; `fail-fast: false`; `permissions: contents: write` para criação de releases
-- **Script de binários** (`scripts/download-media-binaries.js`): descarrega FFmpeg/FFprobe pré-compilados para as 3 plataformas; Windows/Linux via BtbN; macOS: arm64 nativo do sistema (Homebrew no runner GitHub arm64) + x86_64 do evermeet.cx + `lipo -create` para fat binary universal; fallback gracioso se lipo receber duas fatias x86_64
-- **Testes unitários** (`vitest`): `tests/queue.test.ts`, `tests/orchestrator.test.ts`, `tests/workers.test.ts`; mock correcto de `sidecar/db` e `sidecar/events`; `vi.advanceTimersByTimeAsync` para timers recursivos
-- **Auto-updater**: `tauri-plugin-updater` com `installMode: "passive"`; `updater:default` nas capabilities
-- **Placeholders de binários** (`src-tauri/binaries/`): ficheiros vazios para `cargo check` passar sem binários reais; `.gitignore` actualizado com negações explícitas para preservar placeholders
-- **Fix de BOM**: `tauri.conf.json` reescrito sem UTF-8 BOM (causava panic no parser Tauri)
-- **Correcções TypeScript no código do Antigravity**: 11 erros de compilação corrigidos (imports não usados, `bool` → `boolean`)
-- **GitHub Release v0.3.5**: build bem-sucedido nas 3 plataformas após 5 iterações de CI
+**Passo 1 — A2 · sidecar.rs corrigido**
+- Substituído: tentativa de executável nativo `binaries/nexora-sidecar-{OS}-{ARCH}` (não existia)
+- Novo: `Command::new("node").arg(&script_path)` com env `NEXORA_DB_PATH`
+- `resolve_script_path()`: fallback em 3 níveis (resource_dir → exe/../../../sidecar/dist → cwd)
+- Pré-verifica `node --version` antes do spawn; warn gracioso se sidecar.js não encontrado
 
-### Build local concluído (Windows)
+**Passo 2 — A1-A · drag-drop activado**
+- `tauri.conf.json`: `"dragDropEnabled": false` na janela main
+  (Tauri 2.x: desactivar intercepção nativa é obrigatório para HTML5/React onDrop no Windows)
+- Capabilities: sem alteração — `drag-drop:default` não existe no ACL do Tauri 2
 
-```
-src-tauri\target\release\bundle\msi\Nexora Desktop_0.3.1_x64_en-US.msi
-src-tauri\target\release\bundle\nsis\Nexora Desktop_0.3.1_x64-setup.exe
-```
+**Passo 3 — B1-A · comando list_profiles**
+- Criado `src-tauri/src/commands/profiles.rs`
+- 6 perfis embutidos em compile-time via `include_str!`
+- Retorna `Vec<Profile>` com: `id`, `name`, `description`, `container` ("mp4"), `videoCodec`, `resolution`, `fps`, `vmafThreshold`
+- Registado em `mod.rs` e `invoke_handler` em `lib.rs`
+
+**Passo 4 — B3-A · react-hot-toast instalado**
+- `react-hot-toast@2.6.0` — peer dep `react: ">=16"`, compatível com React 19.1
+- Tipos bundled; 0 vulnerabilidades
+- Uso: `import { Toaster, toast } from 'react-hot-toast'`
+
+**Passo 5 — B5-A · comando get_stats**
+- Adicionado a `system.rs`; retorna `AppStats` com `camelCase` serialization
+- 4 queries SQLite: `totalAssets`, `jobsToday` (date atual UTC), `avgVmaf` (apenas scores preenchidos), `activeJobs` (queued + running)
+- Disco: lê `app_data_dir()` como caminho de referência, reutiliza `disk_space_impl`; retorna `null` se falhar
+
+**Passo 6 — B7-A · delete_asset + filtro list_assets**
+- `delete_asset(id)`: soft delete via `UPDATE assets SET status = 'deleted', updated_at = now`; erro se ID não existir
+- `list_assets` sem `status`: exclui automaticamente `status = 'deleted'`; chamada explícita com `status: "deleted"` mostra lixeira
+- Registado no `invoke_handler`
+
+**Passo 7 — B8 · delivery-worker.ts — output_dir por perfil**
+- Cadeia de prioridade: `output_dir_{profile}` → `output_dir` global → `ctx.outputDir`
+- `|| null` em ambas as lookups: strings vazias (default das settings) activam o fallback correctamente
+- Exemplo: `update_settings("output_dir_broadcast-hd", "/exports/broadcast")` — sem schema extra
+
+### Sessão anterior — Prompt Desktop 4 — também concluído
+
+CI GitHub Actions v0.3.5: ✓ Windows · ✓ macOS Universal · ✓ Linux
+(ver SYNC-STATE sessão anterior para detalhes)
+
+---
 
 ## Estado de compilação
 
 - `cargo check`: OK
-- `tsc --noEmit`: OK
+- `npm run sidecar:check` (tsc): OK
 - `npm test` (vitest): OK — 24 testes passam (queue: 6, orchestrator: 9, workers: 9)
 - CI GitHub Actions v0.3.5: ✓ Windows · ✓ macOS Universal · ✓ Linux
 
-## Próximos passos
+---
 
-Bugs críticos e gap analysis identificados em `Plano — Bugs + Gap Analysis Nexora Desktop.md`.
+## Próximos passos — Para Google Antigravity
 
-### Para Claude Code (por esta ordem):
+Todos os pré-requisitos Claude Code estão prontos. Antigravity pode implementar:
 
-1. **A2** — `sidecar.rs`: substituir tentativa de executável nativo por `node sidecar/dist/nexora-sidecar.js` via `resource_dir()`
-2. **A1-A** — `tauri.conf.json` + `capabilities/default.json`: activar drag-drop (`dragDropEnabled: true`, permissão `drag-drop:default`)
-3. **B1-A** — Command Rust `list_profiles` (lê `sidecar/profiles/*.json`)
-4. **B3-A** — `npm install react-hot-toast`
-5. **B5-A** — Command Rust `get_stats` (métricas: assets, jobs hoje, VMAF médio, disco)
-6. **B7-A** — Command Rust `delete_asset` (soft delete + filtro em `list_assets`)
-7. **B8** — `delivery-worker.ts`: suporte a `output_dir_{profile}` por perfil
+| Tarefa | Depende de | Prioridade |
+|---|---|---|
+| **A1-B** — `DropZone.tsx`: `onDrop` handler com `invoke('ingest_asset')` | A1-A ✓ | Alta |
+| **A3** — `App.tsx`: versão dinâmica no footer via `invoke('get_app_version')` | — | Baixa |
+| **B1-B** — Dropdown de perfil em `ProcessPage.tsx` via `invoke('list_profiles')` | B1-A ✓ | Alta |
+| **B2** — Search + filtros + acções em `HistoryPage.tsx` | — | Média |
+| **B3-B** — Integrar toasts (`<Toaster />` no `App.tsx`, `toast.success/error` nos handlers) | B3-A ✓ | Alta |
+| **B4** — `AssetDetailModal.tsx` | — | Média |
+| **B5-B** — `DashboardPage.tsx` com métricas via `invoke('get_stats')` | B5-A ✓ | Alta |
+| **B6** — GPU badge + disco no header/footer | — | Baixa |
+| **B7-B** — Botão "remover" em `HistoryPage.tsx` via `invoke('delete_asset')` | B7-A ✓ | Alta |
+| **B9** — Secção Changelog nas Settings | — | Baixa |
 
-### Para Google Antigravity (em paralelo ou após os Claude Code correspondentes):
-
-- A1-B: `DropZone.tsx` — implementar `onDrop` handler (depende de A1-A)
-- A3: `App.tsx` — versão dinâmica no footer via `invoke('get_app_version')`
-- B1-B: dropdown de perfil no `ProcessPage.tsx` (depende de B1-A)
-- B2: search + filtros + acções no `HistoryPage.tsx`
-- B3-B: integrar toasts (depende de B3-A)
-- B4: `AssetDetailModal.tsx`
-- B5-B: `DashboardPage.tsx` (depende de B5-A)
-- B6: GPU badge + disco no header/footer
-- B7-B: botão remover no `HistoryPage.tsx` (depende de B7-A)
-- B9: secção Changelog nas Settings
+---
 
 ## Ficheiros criados/modificados nesta sessão
 
 ```
-.github/workflows/build.yml
-scripts/download-media-binaries.js
-tests/queue.test.ts
-tests/orchestrator.test.ts
-tests/workers.test.ts
-vitest.config.ts
-src-tauri/tauri.conf.json          (BOM removido, updater, externalBin, resources)
-src-tauri/Cargo.toml               (tauri-plugin-updater)
-src-tauri/capabilities/default.json (updater:default)
-src-tauri/src/lib.rs               (plugin updater, db_path para sidecar)
-src-tauri/src/sidecar.rs           (NEXORA_DB_PATH env var)
-src-tauri/binaries/                (10 placeholders — 5 ffmpeg + 5 ffprobe)
-src/App.tsx                        (fix: import React removido)
-src/hooks/useGPU.ts                (fix: bool → boolean)
-src/components/DropZone.tsx        (fix: imports não usados)
-src/components/JobCard.tsx         (fix: imports não usados)
-src/hooks/useJobStatus.ts          (fix: destructure não usado)
-src/pages/HistoryPage.tsx          (fix: imports não usados)
-src/pages/ProcessPage.tsx          (fix: imports não usados)
-src/pages/SettingsPage.tsx         (fix: imports não usados)
+src-tauri/src/commands/profiles.rs      (novo — list_profiles, 6 perfis embed)
+src-tauri/src/commands/assets.rs        (delete_asset + filtro list_assets)
+src-tauri/src/commands/system.rs        (get_stats + AppStats)
+src-tauri/src/commands/mod.rs           (pub mod profiles)
+src-tauri/src/lib.rs                    (list_profiles, get_stats, delete_asset)
+src-tauri/src/sidecar.rs               (reescrito — node sidecar.js, 3-level path)
+src-tauri/tauri.conf.json              (dragDropEnabled: false)
+sidecar/workers/delivery-worker.ts     (output_dir_{profile} priority)
+scripts/sync.ps1                       (large file guard + BOM fix)
+.gitignore                             (IDE/runtime files adicionados)
+package.json                           (react-hot-toast adicionado)
 SYNC-STATE.md
 ```
 
+---
+
 ## Notas técnicas para o próximo agente
 
-- **Node.js no sidecar**: o sidecar é um script JS (`sidecar/dist/nexora-sidecar.js`), não um executável nativo. O `sidecar.rs` actual tenta um binário nativo que não existe — **este é o bug A2, o primeiro a corrigir**
-- **drag-drop**: o Tauri 2 intercepta eventos de ficheiros por defeito. Sem `dragDropEnabled: true` no `tauri.conf.json`, os eventos nunca chegam ao React — **este é o bug A1**
-- **Versão no tauri.conf.json**: está em `0.3.1` (valor no ficheiro); o `get_app_version` command lê este valor dinamicamente
-- **Perfis de transcode**: `sidecar/profiles/*.json` — 6 ficheiros (broadcast-hd, broadcast-sd, proxy, social, web-4k, web-hd)
-- **CI/CD**: a tag `v0.3.5` foi a primeira a compilar nas 3 plataformas sem erros
+- **dragDropEnabled**: `false` é correcto (não `true`). Desactivar a intercepção nativa do Tauri é o que permite os eventos HTML5 chegarem ao React no Windows
+- **list_profiles**: os perfis estão embutidos em compile-time — alterações nos JSONs em `sidecar/profiles/` requerem recompilação Rust
+- **delete_asset**: é soft delete — o asset permanece na DB com `status = 'deleted'`. Não há hard delete implementado
+- **output_dir_{profile}**: a chave da setting é `output_dir_` + nome do perfil (ex: `output_dir_broadcast-hd`). Não há defaults — se a chave não existir, usa `output_dir` global
+- **react-hot-toast**: `<Toaster />` ainda não foi colocado em nenhum componente — Antigravity tem de o adicionar ao `App.tsx`
+- **Versão**: `0.4.0` em `tauri.conf.json` e `package.json`
+- **CI**: próxima release será v0.4.x quando Antigravity completar o frontend

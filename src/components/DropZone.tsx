@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Upload, Plus } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 
 interface DropZoneProps {
@@ -44,10 +45,31 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
     e.preventDefault();
     setIsDragging(false);
     
-    // In Tauri, standard drag and drop for files might require specific handling
-    // or the 'tauri-plugin-drag-drop'. 
-    // For now, we rely on the Click-to-Upload which is safer.
-    // If we have tauri events for file drop, we would use them here.
+    if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
+      return;
+    }
+
+    const validExtensions = ['.mp4', '.mkv', '.mov', '.mxf', '.avi', '.webm'];
+    const validPaths: string[] = [];
+
+    Array.from(e.dataTransfer.files).forEach((file) => {
+      const path = (file as unknown as { path?: string }).path;
+      if (!path) {
+        toast.error('Não foi possível obter o caminho do ficheiro.');
+        return;
+      }
+
+      const ext = path.slice(path.lastIndexOf('.')).toLowerCase();
+      if (validExtensions.includes(ext)) {
+        validPaths.push(path);
+      } else {
+        toast.error(`Formato não suportado: ${ext}`);
+      }
+    });
+
+    if (validPaths.length > 0) {
+      onFilesSelected(validPaths);
+    }
   };
 
   return (

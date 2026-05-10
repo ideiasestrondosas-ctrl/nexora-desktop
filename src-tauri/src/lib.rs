@@ -36,6 +36,7 @@ pub fn run() {
             commands::assets::ingest_asset,
             commands::assets::list_assets,
             commands::assets::get_asset,
+            commands::assets::delete_asset,
             commands::jobs::submit_job,
             commands::jobs::cancel_job,
             commands::jobs::get_job_status,
@@ -45,6 +46,8 @@ pub fn run() {
             commands::system::detect_gpu,
             commands::system::get_disk_space,
             commands::system::get_app_version,
+            commands::system::get_stats,
+            commands::profiles::list_profiles,
         ])
         .run(tauri::generate_context!())
         .expect("Erro ao iniciar a aplicação Nexora");
