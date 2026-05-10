@@ -41,7 +41,7 @@
             "binaries/ffprobe"
         ],
         "resources": [
-            "../sidecar/dist/nexora-sidecar.js"
+            "../sidecar/dist/nexora-sidecar.cjs"
         ]
     },
     "plugins": {

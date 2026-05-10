@@ -81,8 +81,8 @@ fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
     if let Ok(resource_dir) = app.path().resource_dir() {
         // Tauri pode flattened o caminho ou manter a estrutura relativa
         for candidate in [
-            resource_dir.join("nexora-sidecar.js"),
-            resource_dir.join("sidecar").join("dist").join("nexora-sidecar.js"),
+            resource_dir.join("nexora-sidecar.cjs"),
+            resource_dir.join("sidecar").join("dist").join("nexora-sidecar.cjs"),
         ] {
             if candidate.exists() {
                 return candidate;
@@ -97,7 +97,7 @@ fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
             let candidate = workspace
                 .join("sidecar")
                 .join("dist")
-                .join("nexora-sidecar.js");
+                .join("nexora-sidecar.cjs");
             if candidate.exists() {
                 return candidate;
             }
@@ -109,5 +109,5 @@ fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
         .unwrap_or_default()
         .join("sidecar")
         .join("dist")
-        .join("nexora-sidecar.js")
+        .join("nexora-sidecar.cjs")
 }
