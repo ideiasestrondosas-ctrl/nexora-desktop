@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Upload, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
@@ -9,19 +10,49 @@ interface DropZoneProps {
   className?: string;
 }
 
+const VALID_EXTENSIONS = ['.mp4', '.mkv', '.mov', '.mxf', '.avi', '.webm'];
+
 export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }) => {
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    let unlistenFn: (() => void) | null = null;
+
+    getCurrentWebviewWindow()
+      .onDragDropEvent((event) => {
+        const { type } = event.payload;
+        if (type === 'enter' || type === 'over') {
+          setIsDragging(true);
+        } else if (type === 'leave') {
+          setIsDragging(false);
+        } else if (type === 'drop') {
+          setIsDragging(false);
+          const paths: string[] = (event.payload as { paths?: string[] }).paths ?? [];
+          const validPaths = paths.filter((p) => {
+            const ext = p.slice(p.lastIndexOf('.')).toLowerCase();
+            if (!VALID_EXTENSIONS.includes(ext)) {
+              toast.error(`Formato não suportado: ${ext}`);
+              return false;
+            }
+            return true;
+          });
+          if (validPaths.length > 0) {
+            onFilesSelected(validPaths);
+          }
+        }
+      })
+      .then((fn) => { unlistenFn = fn; })
+      .catch(() => {});
+
+    return () => { unlistenFn?.(); };
+  }, [onFilesSelected]);
 
   const handleOpenDialog = async () => {
     try {
       const selected = await open({
         multiple: true,
-        filters: [{
-          name: 'Video',
-          extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm']
-        }]
+        filters: [{ name: 'Video', extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm'] }],
       });
-      
       if (Array.isArray(selected)) {
         onFilesSelected(selected);
       } else if (selected) {
@@ -32,64 +63,22 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
     }
   };
 
-  const onDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const onDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const onDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
-      return;
-    }
-
-    const validExtensions = ['.mp4', '.mkv', '.mov', '.mxf', '.avi', '.webm'];
-    const validPaths: string[] = [];
-
-    Array.from(e.dataTransfer.files).forEach((file) => {
-      const path = (file as unknown as { path?: string }).path;
-      if (!path) {
-        toast.error('Não foi possível obter o caminho do ficheiro.');
-        return;
-      }
-
-      const ext = path.slice(path.lastIndexOf('.')).toLowerCase();
-      if (validExtensions.includes(ext)) {
-        validPaths.push(path);
-      } else {
-        toast.error(`Formato não suportado: ${ext}`);
-      }
-    });
-
-    if (validPaths.length > 0) {
-      onFilesSelected(validPaths);
-    }
-  };
-
   return (
-    <div 
+    <div
       className={cn(
-        "relative group cursor-pointer border-2 border-dashed rounded-xl p-12 transition-all duration-200 flex flex-col items-center justify-center gap-4",
-        isDragging 
-          ? "border-nexora-green bg-nexora-green/5" 
-          : "border-gray-300 dark:border-gray-700 hover:border-nexora-blue hover:bg-nexora-blue/5",
+        'relative group cursor-pointer border-2 border-dashed rounded-xl p-12 transition-all duration-200 flex flex-col items-center justify-center gap-4',
+        isDragging
+          ? 'border-nexora-green bg-nexora-green/5'
+          : 'border-gray-300 dark:border-gray-700 hover:border-nexora-blue hover:bg-nexora-blue/5',
         className
       )}
       onClick={handleOpenDialog}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
+      onDragOver={(e) => e.preventDefault()}
     >
       <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
         <Upload className="w-8 h-8 text-gray-500 group-hover:text-nexora-blue" />
       </div>
-      
+
       <div className="text-center">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Arraste vídeos para aqui
