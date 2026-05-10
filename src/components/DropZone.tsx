@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Upload, Plus } from 'lucide-react';
@@ -15,8 +15,16 @@ const VALID_EXTENSIONS = ['.mp4', '.mkv', '.mov', '.mxf', '.avi', '.webm'];
 export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }) => {
   const [isDragging, setIsDragging] = useState(false);
 
+  // Ref actualizado em cada render sem re-registar o listener
+  const onFilesSelectedRef = useRef(onFilesSelected);
+  useEffect(() => {
+    onFilesSelectedRef.current = onFilesSelected;
+  });
+
+  // Listener registado UMA VEZ — evita acumulação de handlers com polling
   useEffect(() => {
     let unlistenFn: (() => void) | null = null;
+    let cancelled = false;
 
     getCurrentWebviewWindow()
       .onDragDropEvent((event) => {
@@ -37,15 +45,24 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
             return true;
           });
           if (validPaths.length > 0) {
-            onFilesSelected(validPaths);
+            onFilesSelectedRef.current(validPaths);
           }
         }
       })
-      .then((fn) => { unlistenFn = fn; })
+      .then((fn) => {
+        if (cancelled) {
+          fn();
+        } else {
+          unlistenFn = fn;
+        }
+      })
       .catch(() => {});
 
-    return () => { unlistenFn?.(); };
-  }, [onFilesSelected]);
+    return () => {
+      cancelled = true;
+      unlistenFn?.();
+    };
+  }, []); // deps vazias — regista exactamente uma vez
 
   const handleOpenDialog = async () => {
     try {
@@ -54,9 +71,9 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
         filters: [{ name: 'Video', extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm'] }],
       });
       if (Array.isArray(selected)) {
-        onFilesSelected(selected);
+        onFilesSelectedRef.current(selected);
       } else if (selected) {
-        onFilesSelected([selected]);
+        onFilesSelectedRef.current([selected]);
       }
     } catch (err) {
       console.error('Failed to open file dialog:', err);
