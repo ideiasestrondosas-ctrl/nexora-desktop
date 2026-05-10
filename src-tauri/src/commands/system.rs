@@ -176,6 +176,11 @@ pub fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
+#[tauri::command]
+pub fn get_changelog() -> String {
+    include_str!("../../../CHANGELOG.md").to_string()
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppStats {

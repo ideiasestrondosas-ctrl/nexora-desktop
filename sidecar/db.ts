@@ -55,15 +55,6 @@ export interface AssetRow {
 
 // ── Helpers: Jobs ──────────────────────────────────────────────────
 
-export function getQueuedJobs(limit: number): JobRow[] {
-  return getDb()
-    .prepare(
-      `SELECT * FROM jobs WHERE status = 'queued'
-       ORDER BY priority DESC, created_at ASC LIMIT ?`
-    )
-    .all(limit) as JobRow[];
-}
-
 export function getRunningJobCount(): number {
   const row = getDb()
     .prepare(`SELECT COUNT(*) AS n FROM jobs WHERE status = 'processing'`)
@@ -71,13 +62,29 @@ export function getRunningJobCount(): number {
   return row.n;
 }
 
-export function markJobRunning(jobId: string): void {
-  const now = new Date().toISOString();
-  getDb()
-    .prepare(
-      `UPDATE jobs SET status = 'processing', started_at = ?, updated_at = ? WHERE id = ?`
-    )
-    .run(now, now, jobId);
+// Selecciona e marca atomicamente o próximo job como 'processing'.
+// Garante que múltiplas instâncias do sidecar não reclamam o mesmo job.
+export function claimNextJob(): JobRow | null {
+  const db = getDb();
+  const claim = db.transaction((): JobRow | null => {
+    const job = db
+      .prepare(
+        `SELECT * FROM jobs WHERE status = 'queued'
+         ORDER BY priority DESC, created_at ASC LIMIT 1`
+      )
+      .get() as JobRow | null;
+    if (!job) return null;
+    const now = new Date().toISOString();
+    const changed = db
+      .prepare(
+        `UPDATE jobs SET status = 'processing', started_at = ?, updated_at = ?
+         WHERE id = ? AND status = 'queued'`
+      )
+      .run(now, now, job.id).changes;
+    // Se outro processo já reclamou este job, ignorar
+    return changed > 0 ? job : null;
+  });
+  return claim();
 }
 
 export function updateJobProgress(jobId: string, progress: number, step: string): void {

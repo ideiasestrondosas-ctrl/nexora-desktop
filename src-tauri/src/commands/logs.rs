@@ -147,3 +147,31 @@ pub fn get_log_stats(state: State<'_, AppState>) -> Result<LogStats, String> {
 pub fn write_log(level: String, source: String, message: String) {
     crate::logger::write(&level.to_uppercase(), &source, &message);
 }
+
+#[tauri::command]
+pub fn export_logs(path: String, state: State<'_, AppState>) -> Result<(), String> {
+    use std::io::Write as IoWrite;
+
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let mut stmt = db
+        .prepare("SELECT ts,level,source,message FROM logs ORDER BY ts ASC")
+        .map_err(|e| e.to_string())?;
+
+    let lines: Vec<String> = stmt
+        .query_map([], |row| {
+            let ts: String = row.get(0)?;
+            let level: String = row.get(1)?;
+            let source: String = row.get(2)?;
+            let message: String = row.get(3)?;
+            Ok(format!("[{}] [{:<5}] {} — {}", ts, level, source, message))
+        })
+        .map_err(|e| e.to_string())?
+        .filter_map(|r| r.ok())
+        .collect();
+
+    let mut file = std::fs::File::create(&path).map_err(|e| e.to_string())?;
+    for line in &lines {
+        writeln!(file, "{}", line).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}

@@ -1,4 +1,4 @@
-import { getQueuedJobs, getRunningJobCount, getAsset } from '../db';
+import { claimNextJob, getRunningJobCount, getAsset } from '../db';
 import { NexoraDesktopOrchestrator } from '../orchestrator/NexoraDesktopOrchestrator';
 import { emit } from '../events';
 
@@ -42,9 +42,11 @@ export class NexoraSimpleQueue {
       if (runningCount >= MAX_CONCURRENT) return;
 
       const slots = MAX_CONCURRENT - runningCount;
-      const jobs = getQueuedJobs(slots);
+      for (let i = 0; i < slots; i++) {
+        // Reclama atomicamente o próximo job; null = fila vazia
+        const job = claimNextJob();
+        if (!job) break;
 
-      for (const job of jobs) {
         const asset = getAsset(job.asset_id);
         if (!asset) {
           emit({ type: 'job:failed', jobId: job.id, error: `Asset ${job.asset_id} não encontrado` });

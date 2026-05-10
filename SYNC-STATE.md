@@ -5,10 +5,46 @@
 
 ---
 
-Actualizado: 2026-05-10
+Actualizado: 2026-05-11
 Agente: Claude Sonnet 4.6
 
 ## O que foi feito
+
+### Backend Phase A — Correcções + Novos Comandos — Concluído
+
+**1. Fix race condition na fila (sidecar)**
+- `sidecar/db.ts`: `getQueuedJobs()` substituído por `claimNextJob()` — transacção SQLite atómica que faz SELECT + UPDATE num único lock. Dois sidecars simultâneos nunca reclamam o mesmo job.
+- `sidecar/queue/NexoraSimpleQueue.ts`: usa `claimNextJob()` em loop; já não chama `getQueuedJobs` separadamente.
+- `sidecar/orchestrator/NexoraDesktopOrchestrator.ts`: `markJobRunning()` removido — o job já está `processing` quando chega ao orchestrator.
+
+**2. Tabela `profiles` no schema**
+- `src-tauri/src/db/schema.sql`: nova tabela `profiles` (id, name, description, container, video_codec, resolution, fps, bitrate_kbps, vmaf_threshold, is_system, created_at, updated_at). Criada automaticamente no próximo startup.
+
+**3. Novos Tauri commands — jobs**
+- `get_queue_stats` → `{ queued, processing, done_today, error_today }` (para Dashboard + Queue)
+- `retry_job(id)` → re-enfileira jobs `error`/`cancelled` (para Queue)
+
+**4. Profiles com CRUD completo**
+- `src-tauri/src/commands/profiles.rs` reescrito: perfis de sistema (JSON estáticos) + perfis personalizados (DB)
+- `list_profiles(state)` → devolve sistema + DB
+- `create_profile(input, state)` → insere na tabela `profiles`
+- `update_profile(id, input, state)` → bloqueia perfis `is_system=1`
+- `delete_profile(id, state)` → bloqueia perfis `is_system=1`
+
+**5. Novos Tauri commands — logs e sistema**
+- `export_logs(path, state)` → escreve todos os logs em `.txt`
+- `get_changelog()` → devolve `CHANGELOG.md` compilado no binário
+
+**6. Registo em `lib.rs`**
+- Todos os novos commands registados no `invoke_handler`
+
+**7. Validação**
+- `sidecar:check`: OK (0 erros TypeScript)
+- `sidecar:build`: OK (32.1 kb)
+- `cargo check`: OK
+
+**8. ANTIGRAVITY-GUIA.md**
+- Criado na sessão anterior: guia completo em português para utilizador não-técnico gerar os 7 ecrãs no Antigravity, com prompts completos por ecrã e ordem recomendada.
 
 ### Prompt Desktop 7 — Logging + Métricas + Manual — Concluído
 
@@ -82,9 +118,13 @@ Três funcionalidades novas implementadas, validadas (`cargo check` + `tsc` limp
 
 | Tarefa | Prioridade |
 |---|---|
-| Implementar `get_changelog` em `system.rs` (SettingsPage consome-o) | Média |
-| Verificar `list_jobs` aceita filtro `asset_id` (AssetDetailModal passa-o) | Média |
-| Teste end-to-end: ingest → processamento → histórico → detalhe | Alta |
+| Utilizador: gerar ecrãs com ANTIGRAVITY-GUIA.md (7 ecrãs, ordem: Settings→Logs→Profiles→Queue→Library→AssetDetail→Dashboard→App.tsx) | Alta |
+| Teste end-to-end limpo: apagar DB, 1 sidecar, big_buck_bunny_1080p_h264.mov | Alta |
+| Frontend: ligar `get_queue_stats` ao Dashboard e Queue screen | Média |
+| Frontend: ligar `create/update/delete_profile` ao Profiles screen | Média |
+| Frontend: ligar `export_logs` ao Logs screen (botão exportar) | Média |
+| Frontend: ligar `get_changelog` ao Settings screen | Média |
+| Frontend: ligar `retry_job` ao Queue screen | Média |
 | Auto-updater Tauri (ADR D009) | Baixa |
 
 ---
