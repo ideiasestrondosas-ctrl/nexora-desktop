@@ -7,13 +7,12 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Job } from '@/store/jobs';
 
 interface AppStats {
-  total_assets: number;
-  completed_today: number;
-  failed_today: number;
-  avg_vmaf: number | null;
-  active_jobs: number;
-  disk_free_gb: number;
-  disk_total_gb: number;
+  totalAssets: number;
+  jobsToday: number;
+  avgVmaf: number | null;
+  activeJobs: number;
+  diskFreeBytes: number | null;
+  diskTotalBytes: number | null;
 }
 
 export const DashboardPage: React.FC = () => {
@@ -39,15 +38,13 @@ export const DashboardPage: React.FC = () => {
         if (statsData) {
           setStats(statsData as AppStats);
         } else {
-          // Fallback during development if get_stats is not yet implemented
           setStats({
-            total_assets: 0,
-            completed_today: 0,
-            failed_today: 0,
-            avg_vmaf: 0,
-            active_jobs: 0,
-            disk_free_gb: 100,
-            disk_total_gb: 500
+            totalAssets: 0,
+            jobsToday: 0,
+            avgVmaf: null,
+            activeJobs: 0,
+            diskFreeBytes: 100 * 1024 ** 3,
+            diskTotalBytes: 500 * 1024 ** 3,
           });
         }
 
@@ -102,11 +99,10 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
-  const diskPercentage = stats && stats.disk_total_gb > 0 
-    ? ((stats.disk_total_gb - stats.disk_free_gb) / stats.disk_total_gb) * 100 
-    : 0;
-
-  const lowDiskSpace = stats && stats.disk_free_gb < 5;
+  const diskFreeGb = (stats?.diskFreeBytes ?? 0) / 1024 ** 3;
+  const diskTotalGb = (stats?.diskTotalBytes ?? 0) / 1024 ** 3;
+  const diskPercentage = diskTotalGb > 0 ? ((diskTotalGb - diskFreeGb) / diskTotalGb) * 100 : 0;
+  const lowDiskSpace = diskFreeGb < 5;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -134,13 +130,8 @@ export const DashboardPage: React.FC = () => {
             </h3>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-            {stats?.completed_today || 0}
+            {stats?.jobsToday || 0}
           </p>
-          {stats && stats.failed_today > 0 && (
-            <p className="text-xs text-red-500 font-medium mt-1">
-              + {stats.failed_today} com falha
-            </p>
-          )}
         </div>
 
         {/* Card: Em Processamento */}
@@ -154,7 +145,7 @@ export const DashboardPage: React.FC = () => {
             </h3>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-            {stats?.active_jobs || 0}
+            {stats?.activeJobs || 0}
           </p>
           <p className="text-xs text-gray-500 font-medium mt-1">
             Jobs ativos no momento
@@ -167,7 +158,7 @@ export const DashboardPage: React.FC = () => {
             VMAF Médio
           </h3>
           <div className="scale-75 origin-center mt-6">
-            <VMAFGauge score={stats?.avg_vmaf || 0} />
+            <VMAFGauge score={stats?.avgVmaf ?? 0} />
           </div>
         </div>
 
@@ -187,10 +178,10 @@ export const DashboardPage: React.FC = () => {
               </h3>
             </div>
             <p className={`text-2xl font-bold mt-2 ${lowDiskSpace ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
-              {stats?.disk_free_gb.toFixed(1)} GB
+              {diskFreeGb.toFixed(1)} GB
             </p>
             <p className="text-xs text-gray-500 font-medium mt-1">
-              de {stats?.disk_total_gb.toFixed(1)} GB total
+              de {diskTotalGb.toFixed(1)} GB total
             </p>
           </div>
           
@@ -239,7 +230,7 @@ export const DashboardPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-3">
                       <div className="w-32">
-                        <ProgressBar progress={job.progress} showPercentage />
+                        <ProgressBar progress={job.progress * 100} />
                       </div>
                     </td>
                     <td className="px-6 py-3">

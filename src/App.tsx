@@ -52,15 +52,8 @@ function App() {
   useEffect(() => {
     const fetchDiskSpace = async () => {
       if (outputDir) {
-        try {
-          const data = await getDiskSpace(outputDir); // Ensure command accepts the string directly or wrapped
-          // The command expects { path: string } based on usual Tauri conventions.
-          // Let's pass { path: outputDir }
-          const res = await getDiskSpace({ path: outputDir });
-          if (res) setDiskSpace(res as any);
-        } catch (e) {
-          // ignore
-        }
+        const res = await getDiskSpace({ path: outputDir });
+        if (res) setDiskSpace(res as any);
       }
     };
     

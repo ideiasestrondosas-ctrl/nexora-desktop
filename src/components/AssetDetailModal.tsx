@@ -158,7 +158,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
                           </span>
                         </td>
                         <td className="px-4 py-3">{job.vmaf_score ? job.vmaf_score.toFixed(1) : '-'}</td>
-                        <td className="px-4 py-3">{job.audio_lufs ? job.audio_lufs.toFixed(1) : '-'}</td>
+                        <td className="px-4 py-3">{job.lufs ? job.lufs.toFixed(1) : '-'}</td>
                         <td className="px-4 py-3 text-right text-xs text-gray-500">
                           {new Date(job.created_at).toLocaleDateString()}
                         </td>

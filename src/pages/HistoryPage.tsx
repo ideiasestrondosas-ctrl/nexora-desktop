@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAssetsStore } from '@/store/assets';
 import { useTauriCommand } from '@/hooks/useTauriCommand';
-import { Archive, Search, Filter, Download, ExternalLink, RefreshCw, Info, Trash2 } from 'lucide-react';
+import { Archive, Search, Filter, ExternalLink, RefreshCw, Info, Trash2 } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import toast from 'react-hot-toast';
 import { AssetDetailModal } from '@/components/AssetDetailModal';

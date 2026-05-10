@@ -58,35 +58,61 @@ CI GitHub Actions v0.3.5: ✓ Windows · ✓ macOS Universal · ✓ Linux
 
 ---
 
-## Estado de compilação
+---
+
+### Sessão actual — Prompt Desktop 6 — Bug fixes críticos + Dev tooling
+
+**Bug fixes que impediam a aplicação de arrancar:**
+
+**Fix 1 — Sidecar ESM/CJS conflict**
+- Sintoma: `ReferenceError: require is not defined in ES module scope` ao arrancar sidecar
+- Causa: `package.json` tem `"type": "module"` → Node.js trata `.js` como ESM; esbuild gera CommonJS
+- Fix: extensão mudada para `.cjs` em 3 locais: `package.json` (outfile), `sidecar.rs` (3 path candidates), `tauri.conf.json` (bundle resource)
+- Verificação: `node sidecar/dist/nexora-sidecar.cjs` → `FATAL: NEXORA_DB_PATH não definido` ✅
+
+**Fix 2 — Ecrã branco/preto (CSS boilerplate Vite)**
+- Sintoma: app arranca mas mostra ecrã totalmente branco/preto, sem UI
+- Causa 1: `src/index.css` tinha boilerplate Vite: `body { display: flex; place-items: center; }` + `background-color: #242424` que impediam o layout de funcionar
+- Fix: reescrito `index.css` — apenas `@import "tailwindcss"`, vars de tema e `html,body,#root { height: 100%; margin: 0; }`
+- Causa 2: `DashboardPage.tsx` — interface `AppStats` usava snake_case (`disk_free_gb`) mas Rust envia camelCase (`diskFreeBytes`) devido a `#[serde(rename_all = "camelCase")]` → `undefined.toFixed(1)` → TypeError → React crash
+- Fix: interface corrigida; valores derivados computados como `diskFreeGb = (stats?.diskFreeBytes ?? 0) / 1024 ** 3`
+
+**Fix 3 — Erros TypeScript**
+- `AssetDetailModal.tsx`: `job.audio_lufs` → `job.lufs` (campo correcto na interface Job)
+- `HistoryPage.tsx`: `Download` removido de import lucide-react (não usado)
+- `App.tsx`: chamada duplicada `getDiskSpace(outputDir)` (sem objecto) removida; mantida apenas `getDiskSpace({ path: outputDir })`
+- `DashboardPage.tsx`: `job.progress * 100` para ProgressBar (DB armazena 0.0–1.0, componente espera 0–100)
+
+**Dev tooling — scripts/06-run-dev.ps1 reescrito**
+- Menu interactivo (opções 1-8 + 0 Sair) quando executado sem parâmetros
+- Parâmetros: `-Dev`, `-Clean`, `-Full`, `-Nuclear`, `-Sidecar`, `-TypeCheck`, `-Test`, `-Info`
+- Aliases curtos: `-h`/`--help` → `-Info`, `-d`, `-c`, `-f`, `-n`, `-s`, `-tc`, `-t`
+- Combinações: `-Clean -Dev`, `-Sidecar -Dev`, `-Nuclear -Dev`, `-TypeCheck -Test`
+- `-Nuclear`: remove node_modules + target + dist + gen + sidecar/dist, reinstala npm, reconstrói sidecar
+- Funções prefixadas `nx` para evitar conflitos com PowerShell built-ins
+- Testado: `-Info`, `-h`, `-Clean` ✅
+
+## Estado de compilação (actualizado)
 
 - `cargo check`: OK
-- `npm run sidecar:check` (tsc): OK
-- `npm test` (vitest): OK — 24 testes passam (queue: 6, orchestrator: 9, workers: 9)
-- CI GitHub Actions v0.3.5: ✓ Windows · ✓ macOS Universal · ✓ Linux
+- `npm run typecheck`: OK — 0 erros
+- `npm run sidecar:check`: OK
+- `npm test` (vitest): OK — 24 testes passam
+- `node sidecar/dist/nexora-sidecar.cjs`: OK (sem erro ESM)
+- CI GitHub Actions: v0.3.5 ✓ Windows · ✓ macOS · ✓ Linux
+
+## Próximos passos
+
+| Tarefa | Prioridade |
+|---|---|
+| Implementar **`get_changelog`** em `system.rs` (SettingsPage consome-o) | Média |
+| Verificar `list_jobs` aceita filtro `asset_id` (AssetDetailModal passa-o) | Média |
+| Teste end-to-end: ingest → processamento → histórico → detalhe | Alta |
+| Auto-updater Tauri (ADR D009) | Baixa |
 
 ---
 
-## Próximos passos — Para Google Antigravity
-
-Todos os pré-requisitos Claude Code estão prontos. Antigravity pode implementar:
-
-| Tarefa | Depende de | Prioridade |
-|---|---|---|
-| **A1-B** — `DropZone.tsx`: `onDrop` handler com `invoke('ingest_asset')` | A1-A ✓ | Alta |
-| **A3** — `App.tsx`: versão dinâmica no footer via `invoke('get_app_version')` | — | Baixa |
-| **B1-B** — Dropdown de perfil em `ProcessPage.tsx` via `invoke('list_profiles')` | B1-A ✓ | Alta |
-| **B2** — Search + filtros + acções em `HistoryPage.tsx` | — | Média |
-| **B3-B** — Integrar toasts (`<Toaster />` no `App.tsx`, `toast.success/error` nos handlers) | B3-A ✓ | Alta |
-| **B4** — `AssetDetailModal.tsx` | — | Média |
-| **B5-B** — `DashboardPage.tsx` com métricas via `invoke('get_stats')` | B5-A ✓ | Alta |
-| **B6** — GPU badge + disco no header/footer | — | Baixa |
-| **B7-B** — Botão "remover" em `HistoryPage.tsx` via `invoke('delete_asset')` | B7-A ✓ | Alta |
-| **B9** — Secção Changelog nas Settings | — | Baixa |
-
----
-
-## Ficheiros criados/modificados nesta sessão
+## Ficheiros criados/modificados (sessões anteriores)
 
 ```
 src-tauri/src/commands/profiles.rs      (novo — list_profiles, 6 perfis embed)
@@ -94,23 +120,28 @@ src-tauri/src/commands/assets.rs        (delete_asset + filtro list_assets)
 src-tauri/src/commands/system.rs        (get_stats + AppStats)
 src-tauri/src/commands/mod.rs           (pub mod profiles)
 src-tauri/src/lib.rs                    (list_profiles, get_stats, delete_asset)
-src-tauri/src/sidecar.rs               (reescrito — node sidecar.js, 3-level path)
-src-tauri/tauri.conf.json              (dragDropEnabled: false)
+src-tauri/src/sidecar.rs               (reescrito — node sidecar.cjs, 3-level path)
+src-tauri/tauri.conf.json              (dragDropEnabled: false, bundle .cjs)
 sidecar/workers/delivery-worker.ts     (output_dir_{profile} priority)
-scripts/sync.ps1                       (large file guard + BOM fix)
-.gitignore                             (IDE/runtime files adicionados)
-package.json                           (react-hot-toast adicionado)
-SYNC-STATE.md
+package.json                           (react-hot-toast; sidecar:build → .cjs)
 ```
 
----
+## Ficheiros modificados (sessão actual — Prompt Desktop 6)
+
+```
+src/index.css                          (reescrito — removido boilerplate Vite)
+src/pages/DashboardPage.tsx            (AppStats interface + derived GB values)
+src/components/AssetDetailModal.tsx    (job.audio_lufs → job.lufs)
+src/pages/HistoryPage.tsx              (removido import Download não usado)
+src/App.tsx                            (removida chamada getDiskSpace duplicada)
+scripts/06-run-dev.ps1                 (reescrito — menu interactivo + parâmetros)
+```
 
 ## Notas técnicas para o próximo agente
 
-- **dragDropEnabled**: `false` é correcto (não `true`). Desactivar a intercepção nativa do Tauri é o que permite os eventos HTML5 chegarem ao React no Windows
-- **list_profiles**: os perfis estão embutidos em compile-time — alterações nos JSONs em `sidecar/profiles/` requerem recompilação Rust
-- **delete_asset**: é soft delete — o asset permanece na DB com `status = 'deleted'`. Não há hard delete implementado
-- **output_dir_{profile}**: a chave da setting é `output_dir_` + nome do perfil (ex: `output_dir_broadcast-hd`). Não há defaults — se a chave não existir, usa `output_dir` global
-- **react-hot-toast**: `<Toaster />` ainda não foi colocado em nenhum componente — Antigravity tem de o adicionar ao `App.tsx`
+- **sidecar .cjs**: extensão `.cjs` é obrigatória — `.js` com `"type":"module"` na raiz causa erro ESM
+- **delete_asset**: soft delete — asset fica na DB com `status = 'deleted'`
+- **AppStats**: serializada com `#[serde(rename_all = "camelCase")]` → frontend usa camelCase
+- **ProgressBar**: espera valor 0–100; `job.progress` na DB é 0.0–1.0 → multiplicar por 100
+- **list_profiles**: perfis embutidos compile-time — alterações em `sidecar/profiles/*.json` requerem `cargo build`
 - **Versão**: `0.4.0` em `tauri.conf.json` e `package.json`
-- **CI**: próxima release será v0.4.x quando Antigravity completar o frontend
