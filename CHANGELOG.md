@@ -9,6 +9,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.7.0] - 2026-05-11
 
 ### Added
+- feat: Reestruturacao do projecto
+
+
+## [0.7.0] - 2026-05-11
+
+### Added
 - fix: Race condition na fila — claimNextJob() atómico (SELECT+UPDATE numa transacção SQLite)
 - feat: Tabela `profiles` no schema para perfis personalizados
 - feat: Tauri command `get_queue_stats` — estatísticas da fila (queued/processing/done/error hoje)
