@@ -3,8 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Toaster } from 'react-hot-toast';
 import { 
   LayoutDashboard, Library as LibraryIcon, ListVideo, 
-  Settings, Terminal, Shield, UserCircle, LogOut,
-  ChevronRight, Info, ShieldCheck
+  Settings, Terminal, UserCircle, ShieldCheck
 } from 'lucide-react';
 
 import DashboardPage from '@/pages/DashboardPage';

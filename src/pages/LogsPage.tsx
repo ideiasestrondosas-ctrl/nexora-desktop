@@ -1,16 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Download, Trash2, Search, ScrollText } from 'lucide-react';
 import { useLogs } from '@/hooks/useLogs';
 import { save } from '@tauri-apps/plugin-dialog';
 
-interface LogEntry {
-  id: number;
-  ts: string;
-  level: 'debug' | 'info' | 'warn' | 'error';
-  source: string;
-  message: string;
-}
+
 
 export default function LogsPage() {
   const { logs, clearLogs } = useLogs();
@@ -19,7 +13,7 @@ export default function LogsPage() {
   const [sourceFilter, setSourceFilter] = useState<string>('Todas');
   const [timeFilter, setTimeFilter] = useState<string>('Tudo');
   const [autoScroll, setAutoScroll] = useState(true);
-  const [expandedErrors, setExpandedErrors] = useState<Record<number, boolean>>({});
+  const [expandedErrors, setExpandedErrors] = useState<Record<string, boolean>>({});
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -75,7 +69,7 @@ export default function LogsPage() {
     return 'pl-2 border-l-2 border-transparent';
   };
 
-  const toggleErrorExpand = (id: number) => {
+  const toggleErrorExpand = (id: string) => {
     setExpandedErrors(prev => ({ ...prev, [id]: !prev[id] }));
   };
 

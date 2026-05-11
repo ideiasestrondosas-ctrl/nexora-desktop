@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { 
-  ChevronLeft, Film, FileText, Shield, Clock, ExternalLink, 
-  Trash2, Play, Copy, CheckCircle2, AlertCircle, Info, FolderOpen,
+  ChevronLeft, Film, Shield, Clock, ExternalLink, 
+  Trash2, Play, CheckCircle2, FolderOpen,
   Loader2, MoreVertical
 } from 'lucide-react';
 
@@ -163,7 +163,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
           <div className="grid grid-cols-2 gap-y-4 gap-x-8 mb-8">
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tamanho</span>
-              <span className="text-lg font-bold text-white">{formatBytes(asset.size_bytes)}</span>
+              <span className="text-lg font-bold text-white">{formatBytes(asset.size_bytes || 0)}</span>
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Duração</span>

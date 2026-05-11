@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { 
   Archive, Activity, HardDrive, Cpu, 
-  MemoryStick, Gauge, TrendingUp, Clock, CheckCircle2, 
+  MemoryStick, Gauge, TrendingUp, Clock, 
   Loader2, Film, ChevronRight
 } from 'lucide-react';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';

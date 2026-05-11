@@ -2,9 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { 
-  Library, Upload, Search, Filter, Grid2X2, List, Film, Clock, 
-  CheckCircle2, AlertCircle, Loader2, FolderOpen, Play, 
-  ExternalLink, Trash2, MoreVertical
+  Library, Upload, Search, Filter, Grid2X2, List, Film, 
+  ExternalLink, Trash2, Play
 } from 'lucide-react';
 
 interface Asset {

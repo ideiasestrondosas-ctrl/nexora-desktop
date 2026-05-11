@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { 
-  ListVideo, Play, Pause, X, CheckCircle2, AlertCircle, 
-  Loader2, Clock, ExternalLink, Repeat, Film, Info, Cpu
+  ListVideo, X, CheckCircle2, AlertCircle, 
+  Clock, ExternalLink, Repeat, Film, Cpu
 } from 'lucide-react';
 
 interface Job {

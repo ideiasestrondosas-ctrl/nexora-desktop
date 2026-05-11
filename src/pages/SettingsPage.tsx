@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
-import { LogViewer } from '@/components/LogViewer';
 import { 
-  FolderOpen, Cpu, Monitor, Palette, Bell, FileText, Download, 
-  Trash2, Upload, RotateCcw, Shield, Image, Globe, ChevronDown, ChevronRight
+  FolderOpen, Cpu, Monitor, Palette, Bell, 
+  Trash2, Upload, Image, ChevronDown, ChevronRight,
+  Shield, Globe, Download, RotateCcw
 } from 'lucide-react';
 
 interface Settings {
