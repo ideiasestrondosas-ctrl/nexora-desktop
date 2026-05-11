@@ -11,7 +11,7 @@ interface Asset {
   path: string;
   filename: string;
   status: string;
-  size_bytes: number;
+  size_bytes: number | null;
   duration_secs: number | null;
   video_codec: string | null;
   audio_codec: string | null;
@@ -19,8 +19,9 @@ interface Asset {
   height: number | null;
   fps: number | null;
   created_at: string;
-  thumbnail_path: string | null;
-  metadata: Record<string, any> | null;
+  updated_at: string;
+  // thumbnail_path não existe no backend — removido (P7)
+  metadata: Record<string, unknown> | null;
 }
 
 interface Job {
@@ -64,34 +65,17 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   const fetchData = useCallback(async () => {
     try {
       const [assetData, jobsData] = await Promise.all([
-        invoke<Asset>('get_asset', { assetId }),
-        invoke<Job[]>('list_jobs', { assetId })
+        invoke<Asset | null>('get_asset', { id: assetId }), // P6: backend retorna Option<Asset>; P11: param name é 'id'
+        invoke<Job[]>('list_jobs', { asset_id: assetId })   // P11: backend espera asset_id não assetId
       ]);
-      setAsset(assetData);
+      if (assetData) setAsset(assetData); // P6: verificar null
       setJobs(jobsData);
     } catch (error) {
       console.error('Failed to fetch asset detail:', error);
-      // Mock data for development
-      if (loading) {
-        setAsset({
-          id: assetId, path: '/Dev/Media/video_001.mp4', filename: 'video_producao_01.mp4',
-          status: 'done', size_bytes: 1024 * 1024 * 450, duration_secs: 124,
-          video_codec: 'H.264', audio_codec: 'AAC', width: 1920, height: 1080,
-          fps: 25, created_at: new Date().toISOString(), thumbnail_path: null, metadata: {}
-        });
-        setJobs([
-          {
-            id: 'job-123', asset_id: assetId, profile: 'broadcast-hd', status: 'done',
-            progress: 1.0, step: 'delivery', error: null, created_at: new Date().toISOString(),
-            started_at: new Date().toISOString(), finished_at: new Date().toISOString(),
-            vmaf_score: 91.4, lufs: -23.1, output_path: '/Dev/Output/video_001_broadcast.mxf'
-          }
-        ]);
-      }
     } finally {
       setLoading(false);
     }
-  }, [assetId, loading]);
+  }, [assetId]);
 
   useEffect(() => {
     fetchData();
@@ -100,11 +84,20 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   const handleDelete = async () => {
     if (confirm('Tens a certeza que desejas apagar este asset? Esta acção não pode ser desfeita.')) {
       try {
-        await invoke('delete_asset', { assetId });
+        await invoke('delete_asset', { id: assetId }); // P12: backend espera 'id'
         onBack();
       } catch (error) {
         console.error('Failed to delete asset:', error);
       }
+    }
+  };
+
+  // P14: Processar Novamente via submit_job
+  const handleReprocess = async (profile: string) => {
+    try {
+      await invoke('submit_job', { assetId, profile, priority: 0 });
+    } catch (error) {
+      console.error('Failed to submit job:', error);
     }
   };
 
@@ -147,8 +140,8 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
         {/* LEFT: THUMBNAIL */}
         <div className="lg:col-span-5">
           <div className="aspect-video bg-[#0a0d14] rounded-2xl border border-[#1e2433] flex items-center justify-center overflow-hidden group relative">
-            {asset.thumbnail_path ? (
-              <img src={asset.thumbnail_path} alt={asset.filename} className="w-full h-full object-cover" />
+            {(asset.metadata?.thumbnail_path) ? (
+              <img src={asset.metadata.thumbnail_path as string} alt={asset.filename} className="w-full h-full object-cover" />
             ) : (
               <Film size={64} className="text-gray-800" />
             )}
@@ -350,7 +343,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
       {/* STICKY ACTION BAR */}
       <div className="fixed bottom-6 left-[252px] right-8 bg-[#141824]/80 backdrop-blur-xl border border-[#1e2433] p-4 rounded-2xl shadow-2xl flex items-center justify-between z-40">
         <div className="flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-2 bg-[#1A6FD4] hover:bg-blue-600 text-white rounded-xl font-bold transition-all">
+          <button
+            onClick={() => handleReprocess(jobs[0]?.profile || 'broadcast-hd')}
+            className="flex items-center gap-2 px-6 py-2 bg-[#1A6FD4] hover:bg-blue-600 text-white rounded-xl font-bold transition-all"
+          >
             <Play size={18} /> Processar Novamente
           </button>
           <button className="flex items-center gap-2 px-6 py-2 bg-[#1e2433] hover:bg-[#2a3143] text-gray-300 rounded-xl font-bold transition-all">

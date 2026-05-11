@@ -25,8 +25,8 @@ interface Job {
 interface QueueStats {
   queued: number;
   processing: number;
-  done_today: number;
-  error_today: number;
+  doneToday: number;
+  errorToday: number;
 }
 
 const PIPELINE_STEPS = [
@@ -42,7 +42,7 @@ const PIPELINE_STEPS = [
 
 export default function QueuePage() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [stats, setStats] = useState<QueueStats>({ queued: 0, processing: 0, done_today: 0, error_today: 0 });
+  const [stats, setStats] = useState<QueueStats>({ queued: 0, processing: 0, doneToday: 0, errorToday: 0 });
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
@@ -85,7 +85,7 @@ export default function QueuePage() {
 
   const handleCancel = async (jobId: string) => {
     try {
-      await invoke('cancel_job', { jobId });
+      await invoke('cancel_job', { id: jobId });
       fetchData();
     } catch (error) {
       console.error('Failed to cancel job:', error);
@@ -94,7 +94,7 @@ export default function QueuePage() {
 
   const handleRetry = async (jobId: string) => {
     try {
-      await invoke('retry_job', { jobId });
+      await invoke('retry_job', { id: jobId });
       fetchData();
     } catch (error) {
       console.error('Failed to retry job:', error);
@@ -140,11 +140,11 @@ export default function QueuePage() {
             A processar: {stats.processing}
           </div>
           <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-xs font-bold text-green-500 flex items-center gap-2">
-            Concluídos hoje: {stats.done_today}
+            Concluídos hoje: {stats.doneToday}
           </div>
-          {stats.error_today > 0 && (
+          {stats.errorToday > 0 && (
             <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-xs font-bold text-red-500 flex items-center gap-2">
-              Erros hoje: {stats.error_today}
+              Erros hoje: {stats.errorToday}
             </div>
           )}
         </div>

@@ -80,7 +80,7 @@ export default function LibraryPage() {
       
       if (selected && Array.isArray(selected)) {
         for (const path of selected) {
-          await invoke('ingest_asset', { path, profile: 'broadcast-hd' });
+          await invoke('ingest_asset', { path });
         }
         fetchAssets();
       }
@@ -92,7 +92,7 @@ export default function LibraryPage() {
   const handleDelete = async (id: string) => {
     if (confirm('Tens a certeza que desejas remover este asset da biblioteca?')) {
       try {
-        await invoke('delete_asset', { assetId: id });
+        await invoke('delete_asset', { id });
         fetchAssets();
       } catch (error) {
         console.error('Failed to delete asset:', error);

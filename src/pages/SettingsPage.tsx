@@ -21,10 +21,17 @@ interface Settings {
   target_lufs: number;
 }
 
+// P9: InstalledInfo.gpu é um objecto GpuInfo no backend, não uma string
+interface GpuInfo {
+  vendor: string;
+  encoder: string;
+  available: boolean;
+}
+
 interface InstalledInfo {
   ffmpeg_version: string | null;
   nodejs_version: string | null;
-  gpu_name: string | null;
+  gpu: GpuInfo;          // objecto, não string
   db_path: string;
   app_version: string;
 }
@@ -48,6 +55,25 @@ export default function SettingsPage() {
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
 
   useEffect(() => {
+    // P15: carrega settings do backend SQLite no arranque
+    invoke<Record<string, string>>('get_settings')
+      .then(backendSettings => {
+        if (backendSettings.output_dir) settingsStore.setOutputDir(backendSettings.output_dir);
+        if (backendSettings.max_concurrent_jobs) settingsStore.setMaxConcurrentJobs(Number(backendSettings.max_concurrent_jobs));
+        if (backendSettings.gpu_acceleration !== undefined) settingsStore.setGpuAcceleration(backendSettings.gpu_acceleration === 'true');
+        if (backendSettings.notifications_enabled !== undefined) settingsStore.setNotificationsEnabled(backendSettings.notifications_enabled === 'true');
+        if (backendSettings.theme) settingsStore.setTheme(backendSettings.theme as 'system' | 'light' | 'dark');
+        // Campos extra não cobertos pelo store Zustand
+        setLocalSettings(prev => ({
+          ...prev,
+          language: (backendSettings.language as 'pt' | 'en') || 'pt',
+          default_profile: backendSettings.default_profile || 'broadcast-hd',
+          vmaf_threshold: Number(backendSettings.vmaf_threshold) || 85,
+          target_lufs: Number(backendSettings.target_lufs) || -23,
+        }));
+      })
+      .catch(() => { /* usa defaults do store se backend não tiver settings */ });
+
     invoke<InstalledInfo>('get_installed_info')
       .then(setInstalledInfo)
       .catch(console.error);
@@ -351,7 +377,7 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-between border-b border-[#1e2433] pb-2">
             <span className="text-gray-500">GPU Detectada</span>
-            <span className="text-gray-300">{installedInfo?.gpu_name || gpu?.vendor || 'CPU only'}</span>
+            <span className="text-gray-300">{installedInfo?.gpu?.vendor || gpu?.vendor || 'CPU only'}</span>
           </div>
           <div className="flex justify-between pb-2">
             <span className="text-gray-500">Base de Dados</span>
