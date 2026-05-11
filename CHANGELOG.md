@@ -6,6 +6,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-05-11
+
+### Added
+- feat: Controlling Automated Development Execution
+
+
 ## [0.11.0] - 2026-05-11
 
 ### Added
