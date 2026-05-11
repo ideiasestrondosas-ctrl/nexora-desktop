@@ -1,4 +1,4 @@
-﻿# Dependencias
+# Dependencias
 node_modules/
 .pnp
 
@@ -32,6 +32,7 @@ src-tauri/binaries/ffprobe-*
 # Logs
 *.log
 logs/
+.logs/
 
 # SO
 .DS_Store

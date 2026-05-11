@@ -17,6 +17,12 @@ $ErrorActionPreference = 'Stop'
 $ProjectRoot = Resolve-Path "$PSScriptRoot\.."
 Set-Location $ProjectRoot
 
+# Setup Logs
+$LogsDir = Join-Path $ProjectRoot ".logs"
+if (-not (Test-Path $LogsDir)) { New-Item -ItemType Directory -Force $LogsDir | Out-Null }
+$LogFile = Join-Path $LogsDir "dev-session-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
+try { Start-Transcript -Path $LogFile -Append -Force | Out-Null } catch {}
+
 # ── Output helpers ─────────────────────────────────────────────────────────────
 
 function nxStep  { param([string]$m) Write-Host "`n  > $m" -ForegroundColor Cyan }
@@ -33,6 +39,36 @@ function nxBanner {
 }
 
 # ── Accoes ─────────────────────────────────────────────────────────────────────
+
+function nxVerifyEnvironment {
+    nxStep "Verificar Dependencias e Ambiente"
+
+    # Verificar node_modules
+    if (-not (Test-Path (Join-Path $ProjectRoot "node_modules"))) {
+        nxWarn "Pasta node_modules nao encontrada. A instalar dependencias..."
+        npm install
+    } else {
+        nxOk "node_modules presente"
+    }
+
+    # Verificar FFmpeg
+    $ffmpegBin = Join-Path $ProjectRoot "src-tauri\binaries\ffmpeg-x86_64-pc-windows-msvc.exe"
+    if (-not (Test-Path $ffmpegBin) -or (Get-Item $ffmpegBin).Length -lt 100KB) {
+        nxWarn "Binario FFmpeg para Windows ausente ou corrompido. A descarregar..."
+        npm run download:binaries
+    } else {
+        nxOk "Binarios de media (FFmpeg) presentes"
+    }
+
+    # Verificar Sidecar
+    $sidecarBin = Join-Path $ProjectRoot "sidecar\dist\nexora-sidecar.cjs"
+    if (-not (Test-Path $sidecarBin)) {
+        nxWarn "Sidecar Node.js nao compilado. A compilar..."
+        npm run sidecar:build
+    } else {
+        nxOk "Sidecar Node.js presente"
+    }
+}
 
 function nxClean {
     nxStep "Limpeza de artefactos de build"
@@ -94,10 +130,7 @@ function nxTest {
 }
 
 function nxDev {
-    nxStep "A instalar / actualizar dependencias npm"
-    npm install
-    nxStep "A construir sidecar Node.js"
-    npm run sidecar:build
+    nxVerifyEnvironment
     nxStep "A arrancar Tauri Dev Server  [Ctrl+C para parar]"
     Write-Host "     Frontend: http://localhost:1420" -ForegroundColor DarkGray
     npm run tauri dev
@@ -106,9 +139,7 @@ function nxDev {
 function nxFull {
     nxStep "BUILD COMPLETO DE PRODUCAO"
     nxClean
-    nxStep "A instalar / actualizar dependencias npm"
-    npm install
-    nxSidecar
+    nxVerifyEnvironment
     nxTypeCheck
     nxTest
     nxStep "A compilar Rust (cargo build --release)"
@@ -223,6 +254,19 @@ try {
     if ($Full)      { nxFull }
     if ($Dev)       { nxDev }
 } catch {
+    try { Stop-Transcript | Out-Null } catch {}
+    Write-Host ""
+    Write-Host "============================================================" -ForegroundColor Red
+    Write-Host " ERRO FATAL - " -ForegroundColor Red -NoNewline
+    Write-Host "Ocorreu um problema ao correr o Nexora Desktop." -ForegroundColor White
+    Write-Host "============================================================" -ForegroundColor Red
+    Write-Host ""
+    Write-Host " O registo detalhado do erro foi guardado em:" -ForegroundColor Yellow
+    Write-Host " > $LogFile" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host " Precisa de ajuda para resolver? Copie o ficheiro de log e peca a Inteligencia Artificial:" -ForegroundColor White
+    Write-Host " `"Este erro ocorreu a correr o Nexora. O ficheiro de log e este: [colar ou arrastar log aqui]`"" -ForegroundColor DarkGray
+    Write-Host ""
     nxFail $_
     exit 1
 }

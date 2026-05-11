@@ -55,6 +55,24 @@ export interface AssetRow {
 
 // ── Helpers: Jobs ──────────────────────────────────────────────────
 
+export function getQueuedJobs(limit: number): JobRow[] {
+  return getDb()
+    .prepare(
+      `SELECT * FROM jobs WHERE status = 'queued'
+       ORDER BY priority DESC, created_at ASC LIMIT ?`
+    )
+    .all(limit) as JobRow[];
+}
+
+export function markJobRunning(jobId: string): void {
+  const now = new Date().toISOString();
+  getDb()
+    .prepare(
+      `UPDATE jobs SET status = 'processing', started_at = ?, updated_at = ? WHERE id = ?`
+    )
+    .run(now, now, jobId);
+}
+
 export function getRunningJobCount(): number {
   const row = getDb()
     .prepare(`SELECT COUNT(*) AS n FROM jobs WHERE status = 'processing'`)

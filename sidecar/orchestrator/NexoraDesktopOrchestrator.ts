@@ -1,4 +1,4 @@
-import { updateJobProgress, markJobDone, markJobFailed, writeAuditLog } from '../db';
+import { markJobRunning, updateJobProgress, markJobDone, markJobFailed, writeAuditLog } from '../db';
 import { emit } from '../events';
 import { IngestWorker } from '../workers/ingest-worker';
 import { QCPreWorker } from '../workers/qc-pre-worker';
@@ -52,6 +52,7 @@ export class NexoraDesktopOrchestrator {
       outputDir: job.output_path ?? outputDir,
     };
 
+    markJobRunning(job.id);
     emit({ type: 'job:started', jobId: job.id, assetId: job.asset_id });
 
     let globalProgress = 0;
