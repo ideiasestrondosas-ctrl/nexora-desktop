@@ -16,8 +16,8 @@ sidecar/dist/
 
 # Binarios de media reais (NUNCA commitar - descarregar com npm run download:binaries)
 # Todos os binarios sao ignorados; placeholders sao ficheiros vazios criados manualmente
-src-tauri/binaries/ffmpeg-*
-src-tauri/binaries/ffprobe-*
+src-tauri/binaries/*
+!src-tauri/binaries/.gitkeep
 
 # SQLite
 *.db
