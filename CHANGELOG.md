@@ -6,6 +6,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-05-11
+
+### Added
+- feat: Refactoring Nexora Desktop Interface & Fixing Failing Nexora Tests
+
+
 ## [0.8.0] - 2026-05-11
 
 ### Added
