@@ -6,45 +6,46 @@
 ---
 
 Actualizado: 2026-05-11
-Agente: Antigravity (Gemini)
+Agente: Antigravity (Gemini 3.1 Pro)
 
 ## O que foi feito
 
-### Sessão Actual — Fixes Críticos + Automação de Ambiente — Concluído
+### Sessão Actual — Alinhamento Total Frontend ↔ Backend — CONCLUÍDO
 
-**1. Fix Erro de Compilação (JSX)**
-- `src/pages/AssetDetailPage.tsx`: Corrigido erro de sintaxe no `.map()` de jobs (falta de parêntesis de fecho). O erro impedia o Babel de compilar o ficheiro.
+**1. Auditoria e Alinhamento de Tipos (Phase A & B)**
+- Realizada auditoria completa dos 28 comandos Tauri contra as chamadas `invoke` nos 7 ecrãs.
+- **DashboardPage.tsx**: 
+    - Corrigida interface `AppStats` para `camelCase` e conversão de `bytes` para `GB`.
+    - Implementada resolução de `filename` nos jobs através de um join local com `list_assets`.
+    - Ligas métricas reais de CPU, RAM e detecção de GPU (`useGPU`).
+    - Implementada distribuição VMAF real baseada nos jobs recentes.
+- **AssetDetailPage.tsx**:
+    - Corrigido `get_asset` para tratar retorno `Option<Asset>` (null handling).
+    - Corrigidos parâmetros `id` e `asset_id` em múltiplas chamadas.
+    - **Novo**: Ligado o botão "Processar Novamente" ao comando `submit_job`.
+- **QueuePage.tsx**:
+    - Corrigido `QueueStats` para `camelCase` (`doneToday`, `errorToday`).
+    - Corrigidos comandos `cancel_job` e `retry_job` para usar a chave `{ id }` conforme esperado pelo Rust.
+- **LibraryPage.tsx**:
+    - Corrigido `ingest_asset` (removido parâmetro `profile` incompatível).
+    - Corrigido `delete_asset` para usar `{ id }`.
+- **SettingsPage.tsx**:
+    - Corrigida interface `InstalledInfo` (campo `gpu` agora é um objecto `GpuInfo`).
+    - **Sincronização**: Implementado o carregamento das definições do backend SQLite (`get_settings`) no arranque da aplicação.
 
 **2. Fix Erro de Configuração Vite (PostCSS/JSON)**
-- `package.json`: Reescrito para remover o caractere invisível BOM (Byte Order Mark). O Vite tentava ler este ficheiro para procurar configs PostCSS e crashava com `SyntaxError: Unexpected token`.
-- `postcss.config.cjs`: Identificado como obsoleto/inválido para Tailwind 4; recomendada a remoção.
+- Re-verificado e corrigido o `package.json` para garantir a ausência de BOM (Byte Order Mark) que causava crash no loader de PostCSS do Vite.
 
-**3. Fix Ecrã Preto (Runtime Crash)**
-- `src/pages/DashboardPage.tsx`:
-    - Corrigido crash de destruturação (`null`) no hook `useSystemMetrics`.
-    - Corrigido uso de propriedades: `cpu` -> `cpuPercent` e `memory` -> `memUsedBytes` para alinhar com o modelo Rust/Tauri.
-    - Implementada renderização segura com optional chaining (`metrics?.`).
-
-**4. Automação do Ambiente de Desenvolvimento**
-- `scripts/06-run-dev.ps1`: 
-    - Implementada função `nxVerifyEnvironment` para verificar automaticamente `node_modules`, binários FFmpeg e builds do sidecar.
-    - Adicionado logging persistente via `Start-Transcript` na pasta oculta `.logs/` (adicionada ao `.gitignore`).
-    - Implementado handler de erro global que sugere prompts para a AI resolver problemas de compilação/execução.
-
-**5. Refactoring de Testes e Orchestrator**
-- `sidecar/queue/NexoraSimpleQueue.ts`: Alinhado com o padrão `getQueuedJobs(slots)` para satisfazer os mocks dos testes.
-- `sidecar/db.ts`: Adicionados métodos `getQueuedJobs` e `markJobRunning`.
-- `sidecar/orchestrator/NexoraDesktopOrchestrator.ts`: Adicionada chamada a `markJobRunning` no início do processamento para rastreio de estado nos testes.
+**3. Limpeza e Refactoring (Phase C)**
+- Removidos ficheiros obsoletos `HistoryPage.tsx` e `ProcessPage.tsx` que não eram utilizados no `App.tsx`.
 
 ---
 
 ## Estado de compilação
 
 - `cargo check`: OK
-- `npm run typecheck`: OK
-- `npm test`: OK (Testes de Queue e Orchestrator corrigidos)
-- `npm run tauri dev`: OK (Sem ecrã preto, dashboard funcional)
-- `FFmpeg Sidecar`: Verificado e presente via script.
+- `npm run typecheck`: OK (Tipos alinhados entre TS e Rust)
+- `npm run tauri dev`: OK (Dashboard funcional, comunicação total com backend)
 
 ---
 
@@ -52,28 +53,28 @@ Agente: Antigravity (Gemini)
 
 | Tarefa | Prioridade |
 |---|---|
-| Finalizar integração visual dos 7 ecrãs (ver ANTIGRAVITY-GUIA.md) | Alta |
 | Testar fluxo de importação real de vídeo (Drag & Drop no Library/Dashboard) | Alta |
 | Validar comunicação em tempo real dos logs no `LogViewer` | Média |
+| Iniciar Fase 4 do Plano: Build + Testes + Distribuição | Baixa |
 
 ---
 
-## Ficheiros criados/modificados (sessão actual)
+## Ficheiros modificados (sessão actual)
 
 ```
-scripts/06-run-dev.ps1                  (Automação, verification, logging)
-src/pages/AssetDetailPage.tsx           (Fix syntax error)
-src/pages/DashboardPage.tsx             (Fix black screen crash)
-package.json                            (Fix BOM corruption)
-.gitignore                              (Ignora .logs/)
-sidecar/queue/NexoraSimpleQueue.ts      (Refactor para testes)
-sidecar/db.ts                           (Novos helpers DB)
-sidecar/orchestrator/NexoraDesktopOrchestrator.ts (Fix state tracking)
+src/pages/DashboardPage.tsx      (Alinhamento total + métricas reais)
+src/pages/AssetDetailPage.tsx    (Fix API calls + Submit Job)
+src/pages/QueuePage.tsx          (Fix params + stats types)
+src/pages/LibraryPage.tsx        (Fix API calls)
+src/pages/SettingsPage.tsx       (Fix hardware info + load settings)
+package.json                     (BOM removal)
+src/pages/HistoryPage.tsx        (DELETED)
+src/pages/ProcessPage.tsx        (DELETED)
 ```
 
 ## Notas técnicas para o próximo agente
 
-- **Métricas**: O hook `useSystemMetrics` pode retornar `null` inicialmente. Use sempre `metrics?.` e forneça valores por defeito (`|| 0`).
-- **Logs**: Todas as sessões de dev são gravadas em `.logs/`. Se houver um erro novo, peça ao utilizador para colar o conteúdo do último ficheiro de log.
-- **FFmpeg**: O script de dev agora garante a presença do binário. Não é necessário descarregar manualmente se usar o `06-run-dev.ps1`.
-- **BOM**: Evite usar editores que adicionem Byte Order Mark ao `package.json`, pois quebra o parser do Vite para CSS.
+- **API Contracts**: O backend Rust usa `serde(rename_all = "camelCase")`. Todos os novos DTOs no frontend devem seguir este padrão.
+- **Job Identifiers**: Sempre que chamar `cancel_job` ou `retry_job`, a chave do parâmetro deve ser `id` (e não `jobId`).
+- **Asset Detail**: O ecrã de detalhe agora está robusto contra assets apagados no backend.
+- **Settings**: As definições no store Zustand são persistentes localmente, mas são sincronizadas com o SQLite no `SettingsPage`.
