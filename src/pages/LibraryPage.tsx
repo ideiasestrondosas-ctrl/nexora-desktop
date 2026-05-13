@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { open } from '@tauri-apps/plugin-dialog';
+import toast from 'react-hot-toast';
 import { 
   Library, Upload, Search, Filter, Grid2X2, List, Film, 
   ExternalLink, Trash2, Play
@@ -31,6 +33,60 @@ export default function LibraryPage() {
   const [sortOrder, setSortOrder] = useState('newest');
   const [loading, setLoading] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Listener de drag-and-drop do Tauri (regista uma unica vez)
+  useEffect(() => {
+    let unlistenFn: (() => void) | null = null;
+    let cancelled = false;
+
+    getCurrentWebviewWindow()
+      .onDragDropEvent((event) => {
+        const { type } = event.payload;
+        if (type === 'enter' || type === 'over') {
+          setIsDragging(true);
+        } else if (type === 'leave') {
+          setIsDragging(false);
+        } else if (type === 'drop') {
+          setIsDragging(false);
+          const paths: string[] = (event.payload as { paths?: string[] }).paths ?? [];
+          const VALID_EXTENSIONS = ['.mp4', '.mkv', '.mov', '.mxf', '.avi', '.webm', '.ts', '.m2ts'];
+          const validPaths = paths.filter((p) => {
+            const ext = p.slice(p.lastIndexOf('.')).toLowerCase();
+            if (!VALID_EXTENSIONS.includes(ext)) {
+              toast.error(`Formato nao suportado: ${ext}`);
+              return false;
+            }
+            return true;
+          });
+
+          if (validPaths.length > 0) {
+            // Ingest cada ficheiro e refresca a lista
+            Promise.all(validPaths.map((path) => invoke('ingest_asset', { path })))
+              .then(() => {
+                toast.success(`${validPaths.length} ficheiro(s) adicionado(s) a biblioteca`);
+                fetchAssets();
+              })
+              .catch((err: unknown) => {
+                const message = err instanceof Error ? err.message : String(err);
+                toast.error(`Erro ao adicionar ficheiros: ${message}`);
+              });
+          }
+        }
+      })
+      .then((fn) => {
+        if (cancelled) {
+          fn();
+        } else {
+          unlistenFn = fn;
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+      unlistenFn?.();
+    };
+  }, []);
 
   const fetchAssets = useCallback(async () => {
     try {
@@ -102,8 +158,7 @@ export default function LibraryPage() {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    // In Tauri, webview drag and drop is usually handled by the OS/Plugin, 
-    // but we can implement visual feedback here.
+    // O ingest e tratado pelo listener onDragDropEvent do Tauri (registado no useEffect acima)
   };
 
   const formatBytes = (bytes: number) => {

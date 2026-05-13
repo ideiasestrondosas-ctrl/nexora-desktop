@@ -6,6 +6,7 @@ import { join, basename, extname } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { writeAuditLog, getAsset } from '../db';
 import type { ProgressCallback } from './types';
+import { getFfmpegPath } from '../binaries';
 import { loadProfile } from '../profiles/types';
 
 const execFileAsync = promisify(execFile);
@@ -25,7 +26,7 @@ export class AudioWorker {
 
     try {
       const normalized = join(tmpDir, 'normalized.wav');
-      const ffmpegPath = process.env['FFMPEG_PATH'] ?? 'ffmpeg';
+      const ffmpegPath = getFfmpegPath();
 
       // Pass 1 — análise EBU R128 (ADR-D010)
       onProgress(0.1);

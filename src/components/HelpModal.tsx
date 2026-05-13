@@ -15,7 +15,7 @@ interface HelpModalProps {
   onClose: () => void;
 }
 
-type TabId = 'intro' | 'howto' | 'profiles' | 'metrics' | 'components' | 'about';
+type TabId = 'intro' | 'howto' | 'profiles' | 'metrics' | 'components' | 'troubleshoot' | 'about';
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'intro',      label: 'Introdução',  icon: <BookOpen className="w-4 h-4" /> },

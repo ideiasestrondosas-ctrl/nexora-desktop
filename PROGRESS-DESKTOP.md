@@ -1,257 +1,311 @@
-# Nexora Media Processing Ã¢â‚¬â€ Desktop Nativo Ã¢â‚¬â€ Estado do Projecto
+# Nexora Media Processing - Desktop Nativo - Estado do Projecto
 
-> **Ã¢Å¡Â Ã¯Â¸Â LEITURA OBRIGATÃƒâ€œRIA PARA TODOS OS AGENTES IA**
+> **LEITURA OBRIGATORIA PARA TODOS OS AGENTES IA**
 >
-> Este ficheiro DEVE ser lido ANTES de qualquer trabalho no mÃƒÂ³dulo Desktop.
-> DEVE ser actualizado no FIM de cada sessÃƒÂ£o de desenvolvimento.
-> Existe para reduzir tokens, evitar retrabalho, e manter consistÃƒÂªncia.
+> Este ficheiro DEVE ser lido ANTES de qualquer trabalho no modulo Desktop.
+> DEVE ser actualizado no FIM de cada sessao de desenvolvimento.
+> Existe para reduzir tokens, evitar retrabalho, e manter consistencia.
 >
-> **Documento de referÃƒÂªncia:** `nexora-desktop-documento.md`
+> **Documento de referencia:** `nexora-desktop-documento.md`
 
 ---
 
-## Ã°Å¸â€œâ€¹ Identidade
+## Identidade
 
 | Campo | Valor |
 |---|---|
-| **Nome** | Nexora Media Processing Ã¢â‚¬â€ Desktop Nativo |
-| **VersÃƒÂ£o** | 0.1.0 |
+| **Nome** | Nexora Media Processing - Desktop Nativo |
+| **Versao** | 0.13.0 |
 | **IDE** | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT) |
 | **Stack Shell** | Tauri 2.x (Rust) |
 | **Stack Frontend** | React 19 + TypeScript + Tailwind CSS + Zustand |
 | **Stack Sidecar** | Node.js 20 + TypeScript + esbuild |
 | **Base de dados** | SQLite via better-sqlite3 |
-| **Media tools** | FFmpeg Ã‚Â· FFprobe Ã‚Â· MediaInfo Ã‚Â· BS1770GAIN Ã‚Â· MediaConch Ã‚Â· HandBrakeCLI |
+| **Media tools** | FFmpeg / FFprobe / BS1770GAIN |
 | **Build** | GitHub Actions (Tauri Action) |
-| **Plataformas alvo** | Windows x64 Ã‚Â· macOS Universal (Intel+ARM) Ã‚Â· Linux x64 |
-| **RelaÃƒÂ§ÃƒÂ£o com Server** | MÃƒÂ³dulo separado, mesma base de qualidade e standards |
+| **Plataformas alvo** | Windows x64 / macOS Universal (Intel+ARM) / Linux x64 |
+| **Relacao com Server** | Modulo separado, mesma base de qualidade e standards |
 
 ---
 
-## Ã¢Å“â€¦ O que estÃƒÂ¡ concluÃƒÂ­do
+## O que esta concluido
 
-### Fase 0 Ã¢â‚¬â€ DocumentaÃƒÂ§ÃƒÂ£o e Arquitectura
-- [x] Documento de especificaÃƒÂ§ÃƒÂ£o Desktop criado (nexora-desktop-documento.md)
+### Fase 0 - Documentacao e Arquitectura
+- [x] Documento de especificacao Desktop criado
 - [x] PROGRESS-DESKTOP.md criado
 - [x] ADRs Desktop definidos (ADR-D001 a ADR-D012)
-- [x] Estrutura de directÃƒÂ³rios definida
-- [x] Prompts Desktop 1-4 redigidos
-- [x] Checklist de aceitaÃƒÂ§ÃƒÂ£o definida
-- [x] Mapeamento funcional Cloud Ã¢â€ â€™ Desktop documentado
+- [x] Estrutura de directorios definida
 
-### Fase 1 Ã¢â‚¬â€ Setup do Ambiente
-- [ ] Script nexora-desktop-setup.sh/ps1 executado formalmente
+### Fase 1 - Setup do Ambiente
 - [x] Node.js 20 instalado e verificado
 - [x] Rust (stable) instalado e verificado
 - [x] Git instalado e verificado
-- [ ] FFmpeg instalado e verificado (para testes)
-- [x] DependÃƒÂªncias Tauri instaladas (VS Build Tools no Windows)
+- [x] Dependencias Tauri instaladas
 
-### Fase 2 Ã¢â‚¬â€ Estrutura do Projecto
-- [x] Projecto Tauri criado (npm create tauri-app)
-- [x] DependÃƒÂªncias npm instaladas (zustand, better-sqlite3, esbuild, concurrently, tailwindcss)
-- [ ] Pastas criadas (sidecar/, src-tauri/binaries/, tests/) Ã¢â‚¬â€ faltam sidecar/ e tests/
-- [x] tauri.conf.json configurado (janela 1280Ãƒâ€”800, bundle, productName)
-- [x] Path aliases @/ configurados (vite.config.ts + tsconfig.json)
-- [x] tsc --noEmit: OK Ã‚Â· cargo check: OK Ã‚Â· tauri build --debug: OK
+### Fase 2 - Estrutura do Projecto
+- [x] Projecto Tauri criado
+- [x] Dependencias npm instaladas
+- [x] Pastas criadas (sidecar/, src-tauri/binaries/, tests/)
+- [x] tauri.conf.json configurado
+- [x] Path aliases @/ configurados
+- [x] tsc --noEmit: OK / cargo check: OK / tauri build: OK
 
-### Fase 3 Ã¢â‚¬â€ Prompt Desktop 1 (Tauri + SQLite + IPC) Ã¢Å“â€¦ COMPLETO
-- [x] tauri.conf.json completo com bundle, icons, productName, janela min/max
-- [x] schema.sql criado com todas as tabelas (assets, jobs, settings, audit_log + ÃƒÂ­ndices)
-- [x] migrations.rs implementado (auto-migration no startup via include_str!)
-- [x] commands/assets.rs (ingest_asset, list_assets, get_asset)
-- [x] commands/jobs.rs (submit_job, cancel_job, get_job_status, list_jobs)
-- [x] commands/settings.rs (get_settings, update_settings + defaults)
-- [x] commands/system.rs (detect_gpu NVENC/AMF/QSV/CPU, get_disk_space, get_app_version)
-- [x] tray.rs (system tray: Mostrar Nexora / Sair + clique no ÃƒÂ­cone)
-- [x] sidecar.rs (spawn graceful + leitura JSON stdout + emit Tauri events)
-- [x] state.rs (AppState com Mutex<Connection> + sidecar_pid)
-- [x] lib.rs completo (setup: db + tray + sidecar; invoke_handler com todos os commands)
-- [x] cargo check: OK Ã‚Â· tsc --noEmit: OK
+### Fase 3 - Tauri + SQLite + IPC
+- [x] Schema SQL completo (assets, jobs, settings, audit_log, logs, profiles)
+- [x] Auto-migration no startup
+- [x] Commands: assets, jobs, settings, system, profiles, logs, metrics
+- [x] System tray (Mostrar / Sair + clique no icone)
+- [x] Sidecar spawn via node com variaveis de ambiente
+- [x] Thread de metricas do sistema (CPU/RAM/Rede a cada 2s)
+- [x] GPU auto-detect (NVENC/AMF/QSV/CPU)
+- [x] Disk space nativo (Windows API + Unix df)
+- [x] Factory reset (mata sidecar, apaga ficheiros, limpa BD, reinicia app)
+- [x] Exit app command
 
-### Fase 4 Ã¢â‚¬â€ Prompt Desktop 2 (Sidecar + Queue + Orchestrator + Workers)
-- [x] NexoraSimpleQueue implementado (memÃƒÂ³ria + SQLite, prioridades, retry)
-- [x] NexoraDesktopOrchestrator implementado (idempotente, step-by-step)
-- [x] ingest-worker.ts
-- [x] qc-pre-worker.ts
-- [x] transcode-worker.ts (GPU auto-detect, todos os perfis)
-- [x] audio-worker.ts (two-pass R128 + BS1770GAIN verificaÃƒÂ§ÃƒÂ£o)
-- [x] proxy-worker.ts
-- [x] thumbnail-worker.ts
-- [x] qc-post-worker.ts (VMAF, SHA-256, MediaConch)
-- [x] delivery-worker.ts (mover + notificaÃƒÂ§ÃƒÂ£o + audit log)
-- [x] 6 perfis de transcode JSON criados
-- [x] ComunicaÃƒÂ§ÃƒÂ£o sidecar Ã¢â€ â€ Tauri via stdout/JSON funcional
+### Fase 4 - Sidecar + Queue + Workers
+- [x] NexoraSimpleQueue (memoria + SQLite, prioridades, retry, claim atomico)
+- [x] NexoraDesktopOrchestrator (8 passos, pesos de progresso)
+- [x] 8 workers: ingest, qc-pre, transcode, audio, proxy, thumbnail, qc-post, delivery
+- [x] 6 perfis JSON: broadcast-hd/sd, web-4k/hd, social, proxy
+- [x] Comunicacao sidecar <-> Tauri via stdout/JSON
+- [x] Resolucao de binarios FFmpeg bundled (sidecar/binaries.ts)
 
-### Fase 5 Ã¢â‚¬â€ Prompt Desktop 3 (Frontend React)
-- [x] App.tsx com navegaÃƒÂ§ÃƒÂ£o por tabs (Processar, HistÃƒÂ³rico, DefiniÃƒÂ§ÃƒÂµes)
-- [x] DropZone.tsx (drag-and-drop + file dialog)
-- [x] JobCard.tsx + ProgressBar.tsx
-- [x] NexoraStatusBadge.tsx + VMAFGauge.tsx
-- [x] ProcessPage.tsx (drop zone + jobs activos)
-- [x] HistoryPage.tsx (assets processados + filtros)
-- [x] SettingsPage.tsx (todas as definiÃƒÂ§ÃƒÂµes)
-- [x] useTauriCommand.ts hook
-- [x] useJobStatus.ts hook (polling 1s)
-- [x] useNotification.ts hook
-- [x] useGPU.ts hook
-- [x] Stores Zustand (jobs, settings, assets)
+### Fase 5 - Frontend React
+- [x] App com navegacao por tabs (Dashboard, Biblioteca, Fila, Perfis, Definicoes, Registos, Detalhe)
+- [x] Dashboard funcional (stats reais, jobs recentes, metricas sistema, distribuicao VMAF)
+- [x] Biblioteca com grid/list, search, filtros, sort, drag-and-drop, delete
+- [x] Fila com visualizador de pipeline (8 steps), progress bars, cancel/retry
+- [x] DropZone com Tauri drag-drop events + file dialog
 - [x] Tema claro/escuro funcional
-- [x] Paleta Nexora aplicada (#1A6FD4, #4FB8A0)
+- [x] Versao dinamica do Tauri
+- [x] react-hot-toast integrado
+- [x] HelpModal com manual integrado
+- [x] SettingsPage com reset DB, factory reset, changelog, sistema
 
-### Fase 6 Ã¢â‚¬â€ Prompt Desktop 4 (Build + Testes + DistribuiÃƒÂ§ÃƒÂ£o)
-- [ ] build-desktop.yml (GitHub Actions 3 plataformas)
-- [ ] download-media-binaries.js funcional
-- [ ] generate-fixtures.sh (ficheiros de teste)
-- [ ] queue.test.ts
-- [ ] orchestrator.test.ts
-- [ ] workers.test.ts
-- [ ] package.json com todos os scripts
-- [ ] README-DESKTOP.md
-- [ ] Auto-updater configurado
+### Fase 6 - Build + Testes + CI/CD
+- [x] GitHub Actions CI (3 plataformas)
+- [x] GitHub Actions Build (release multi-plataforma)
+- [x] download-media-binaries.js funcional com fallback
+- [x] queue.test.ts (6 tests)
+- [x] orchestrator.test.ts (9 tests)
+- [x] workers.test.ts (9 tests)
+- [x] package.json com todos os scripts
+- [x] README-DESKTOP.md
+- [x] Auto-updater configurado
 
-### Fase 7 Ã¢â‚¬â€ IntegraÃƒÂ§ÃƒÂ£o e ValidaÃƒÂ§ÃƒÂ£o Final
-- [ ] Testar localmente (tauri dev) Ã¢â‚¬â€ funcional em 3 plataformas
-- [ ] Testes unitÃƒÂ¡rios passam (>80% cobertura)
-- [ ] Build funciona para Windows (.exe)
+### Fase 7 - Integracao e Validacao
+- [ ] Testar localmente (tauri dev) em 3 plataformas
+- [ ] Testes unitarios passam (>80% cobertura)
+- [ ] Build funciona para Windows (.exe/.msi)
 - [ ] Build funciona para macOS (.dmg universal)
 - [ ] Build funciona para Linux (.AppImage + .deb)
-- [ ] Checklist de aceitaÃƒÂ§ÃƒÂ£o completa (PARTE 11 do documento)
 - [ ] GitHub Release criado com artefactos das 3 plataformas
 
 ---
 
-## Ã°Å¸â€â€ž Em progresso agora
+## Em progresso agora
 
 ```
-Data:          2026-05-09
-Agente:        Claude Sonnet 4.6
-A trabalhar em: Ã¢â‚¬â€
+Data:          2026-05-13
+Agente:        Claude Code (Kimi K2.6)
+A trabalhar em: Resolucao de binarios FFmpeg bundled + correcoes de consistencia
 Bloqueios:     Nenhum
 ```
 
 ---
 
-## Ã°Å¸â€œÂ Estrutura de ficheiros actual
+## Estrutura de ficheiros actual
 
 ```
 nexora-desktop/
-Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ src/                        Ã¢â€ Â React boilerplate (ainda por implementar)
-Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ App.tsx, App.css, main.tsx
-Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ vite-env.d.ts
-Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ src-tauri/
-Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ src/
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ lib.rs              Ã¢â€ Â Setup completo (db + tray + sidecar + commands)
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ main.rs
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ state.rs            Ã¢â€ Â AppState
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ tray.rs             Ã¢â€ Â System tray
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ sidecar.rs          Ã¢â€ Â GestÃƒÂ£o do processo sidecar
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ db/
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ mod.rs          Ã¢â€ Â open() com WAL
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ migrations.rs   Ã¢â€ Â Auto-migration
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ schema.sql      Ã¢â€ Â Tabelas completas
-Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ commands/
-Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ mod.rs
-Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ assets.rs       Ã¢â€ Â ingest, list, get
-Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ jobs.rs         Ã¢â€ Â submit, cancel, status, list
-Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ settings.rs     Ã¢â€ Â get, update
-Ã¢â€â€š   Ã¢â€â€š       Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ system.rs       Ã¢â€ Â gpu, disk, version
-Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ Cargo.toml              Ã¢â€ Â + rusqlite, uuid, chrono, anyhow, notification
-Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ tauri.conf.json         Ã¢â€ Â Configurado
-Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ capabilities/
-Ã¢â€â€š       Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ default.json        Ã¢â€ Â + notification:default
-Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ package.json                Ã¢â€ Â React 19 + todas as deps
-Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ vite.config.ts              Ã¢â€ Â Tailwind + alias @/
-Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ tsconfig.json               Ã¢â€ Â paths @/* Ã¢â€ â€™ src/*
-Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ scripts/                   Ã¢â€ Â Scripts de setup/sync
+├── src/                        <- React 19 + TypeScript + Tailwind v4
+│   ├── App.tsx
+│   ├── components/
+│   │   ├── DropZone.tsx
+│   │   ├── HelpModal.tsx
+│   │   ├── JobCard.tsx
+│   │   ├── LogViewer.tsx
+│   │   ├── NexoraStatusBadge.tsx
+│   │   ├── ProgressBar.tsx
+│   │   ├── SystemMetricsBar.tsx
+│   │   └── VMAFGauge.tsx
+│   ├── hooks/
+│   │   ├── useGPU.ts
+│   │   ├── useJobStatus.ts
+│   │   ├── useLogs.ts
+│   │   ├── useNotification.ts
+│   │   ├── useSystemMetrics.ts
+│   │   └── useTauriCommand.ts
+│   ├── pages/
+│   │   ├── AssetDetailPage.tsx
+│   │   ├── DashboardPage.tsx
+│   │   ├── LibraryPage.tsx
+│   │   ├── LogsPage.tsx
+│   │   ├── ProfilesPage.tsx
+│   │   ├── QueuePage.tsx
+│   │   └── SettingsPage.tsx
+│   └── store/
+│       ├── assets.ts
+│       ├── jobs.ts
+│       └── settings.ts
+├── src-tauri/
+│   ├── src/
+│   │   ├── lib.rs              <- Setup (db + tray + sidecar + commands)
+│   │   ├── main.rs
+│   │   ├── state.rs            <- AppState
+│   │   ├── tray.rs             <- System tray
+│   │   ├── sidecar.rs          <- Spawn sidecar + resolucao binarios media
+│   │   ├── logger.rs           <- Logger DB + eventos Tauri
+│   │   ├── db/
+│   │   │   ├── mod.rs
+│   │   │   ├── migrations.rs
+│   │   │   └── schema.sql
+│   │   └── commands/
+│   │       ├── mod.rs
+│   │       ├── assets.rs
+│   │       ├── jobs.rs
+│   │       ├── logs.rs
+│   │       ├── metrics.rs
+│   │       ├── profiles.rs
+│   │       ├── settings.rs
+│   │       └── system.rs
+│   ├── Cargo.toml              <- v0.13.0 + tokio
+│   ├── tauri.conf.json         <- v0.13.0 + externalBin + resources
+│   └── capabilities/
+│       └── default.json
+├── sidecar/
+│   ├── index.ts                <- Entry point do sidecar Node.js
+│   ├── binaries.ts             <- Helper de resolucao FFmpeg/FFprobe
+│   ├── db.ts                   <- Helpers SQLite (better-sqlite3)
+│   ├── events.ts               <- Eventos JSON stdout
+│   ├── logger.ts               <- Logger estruturado
+│   ├── queue/
+│   │   └── NexoraSimpleQueue.ts
+│   ├── orchestrator/
+│   │   └── NexoraDesktopOrchestrator.ts
+│   ├── workers/
+│   │   ├── ingest-worker.ts    <- Usa getFfprobePath()
+│   │   ├── qc-pre-worker.ts
+│   │   ├── transcode-worker.ts <- Usa getFfmpegPath()
+│   │   ├── audio-worker.ts     <- Usa getFfmpegPath()
+│   │   ├── proxy-worker.ts     <- Usa getFfmpegPath()
+│   │   ├── thumbnail-worker.ts <- Usa getFfmpegPath()
+│   │   ├── qc-post-worker.ts
+│   │   └── delivery-worker.ts
+│   └── profiles/
+│       ├── types.ts
+│       ├── broadcast-hd.json
+│       ├── broadcast-sd.json
+│       ├── proxy.json
+│       ├── social.json
+│       ├── web-4k.json
+│       └── web-hd.json
+├── tests/
+│   ├── queue.test.ts
+│   ├── orchestrator.test.ts
+│   └── workers.test.ts
+├── scripts/
+│   ├── download-media-binaries.js
+│   └── sync.ps1
+└── .github/workflows/
+    ├── ci.yml
+    └── build.yml
 ```
 
 ---
 
-## Ã¢Å¡Â Ã¯Â¸Â Problemas conhecidos
+## Problemas conhecidos
 
 | Data | Problema | Estado |
 |---|---|---|
-| Ã¢â‚¬â€ | Nenhum registado | Ã¢â‚¬â€ |
+| 2026-05-13 | Workers usavam FFmpeg do PATH em vez dos binarios bundled | RESOLVIDO (sidecar/binaries.ts + env vars) |
+| 2026-05-13 | get_stats usava 'running' em vez de 'processing' | RESOLVIDO |
+| 2026-05-13 | LibraryPage.handleDrop vazio | RESOLVIDO (onDragDropEvent do Tauri) |
+| 2026-05-13 | HelpModal.tsx TabId nao incluia 'troubleshoot' | RESOLVIDO |
+| 2026-05-13 | SettingsPage.tsx campo nodejs_version vs node_version | RESOLVIDO |
+| 2026-05-13 | Cargo.toml description com mojibake | RESOLVIDO |
 
 ---
 
-## Ã°Å¸Ââ€”Ã¯Â¸Â ADRs Desktop (ImutÃƒÂ¡veis)
+## ADRs Desktop (Imutaveis)
 
-| ADR | DecisÃƒÂ£o | JustificaÃƒÂ§ÃƒÂ£o |
+| ADR | Decisao | Justificacao |
 |---|---|---|
 | ADR-D001 | Tauri 2.x como shell nativa | Instalador 10x menor, RAM 6x menor que Electron |
-| ADR-D002 | Node.js sidecar para lÃƒÂ³gica media | Reutiliza workers do Server sem duplicaÃƒÂ§ÃƒÂ£o |
-| ADR-D003 | SQLite como ÃƒÂºnica base de dados | Zero configuraÃƒÂ§ÃƒÂ£o, ficheiro local, backup trivial |
-| ADR-D004 | Fila em memÃƒÂ³ria + SQLite | SubstituiÃƒÂ§ÃƒÂ£o simples do BullMQ+Redis |
-| ADR-D005 | Orchestrator local step-by-step | SubstituiÃƒÂ§ÃƒÂ£o simples do Temporal.io |
-| ADR-D006 | BinÃƒÂ¡rios media incluÃƒÂ­dos no instalador | Zero dependÃƒÂªncias para o utilizador |
+| ADR-D002 | Node.js sidecar para logica media | Reutiliza workers do Server sem duplicacao |
+| ADR-D003 | SQLite como unica base de dados | Zero configuracao, ficheiro local, backup trivial |
+| ADR-D004 | Fila em memoria + SQLite | Substituicao simples do BullMQ+Redis |
+| ADR-D005 | Orchestrator local step-by-step | Substituicao simples do Temporal.io |
+| ADR-D006 | Binarios media incluidos no instalador | Zero dependencias para o utilizador |
 | ADR-D007 | GPU auto-detectada no startup | NVENC/AMF/QSV sem config manual |
-| ADR-D008 | NotificaÃƒÂ§ÃƒÂµes nativas do SO | SubstituiÃƒÂ§ÃƒÂ£o de webhooks HTTP |
-| ADR-D009 | Auto-updater via Tauri built-in | Updates automÃƒÂ¡ticos |
-| ADR-D010 | Mesmos parÃƒÂ¢metros FFmpeg que Server | Compatibilidade de outputs |
+| ADR-D008 | Notificacoes nativas do SO | Substituicao de webhooks HTTP |
+| ADR-D009 | Auto-updater via Tauri built-in | Updates automaticos |
+| ADR-D010 | Mesmos parametros FFmpeg que Server | Compatibilidade de outputs |
 | ADR-D011 | IPC via Tauri Commands | Sem servidor HTTP local |
-| ADR-D012 | Deep links nexora:// | IntegraÃƒÂ§ÃƒÂ£o nativa com SO |
+| ADR-D012 | Deep links nexora:// | Integracao nativa com SO |
 
 ---
 
-## Ã°Å¸â€œâ€¦ HistÃƒÂ³rico de sessÃƒÂµes
-
-> Nunca apagar linhas antigas. Adicionar sempre no final.
+## Historico de sessoes
 
 | Data | O que foi feito | Agente usado | Ficheiros criados/modificados |
 |---|---|---|---|
-| 2026-05-02 | DocumentaÃƒÂ§ÃƒÂ£o Desktop criada, PROGRESS-DESKTOP.md criado, ADRs definidos, Prompts 1-4 redigidos | Claude Opus | nexora-desktop-documento.md, PROGRESS-DESKTOP.md |
+| 2026-05-02 | Documentacao Desktop criada, PROGRESS-DESKTOP.md criado, ADRs definidos, Prompts 1-4 redigidos | Claude Opus | nexora-desktop-documento.md, PROGRESS-DESKTOP.md |
 | 2026-05-09 | Deps npm instaladas, Tailwind + aliases configurados, Prompt Desktop 1 completo (SQLite + IPC + Tray + Sidecar) | Claude Sonnet 4.6 | Cargo.toml, tauri.conf.json, schema.sql, lib.rs, state.rs, tray.rs, sidecar.rs, commands/* |
-| 2026-05-09 | Prompt Desktop 2 completo: sidecar Node.js com fila, orchestrator e 8 workers (ingest, qc-pre, transcode GPU, audio R128, proxy, thumbnail, qc-post VMAF, delivery) + 6 perfis JSON + tsx + BOM fix | Claude Sonnet 4.6 | sidecar/* (17 ficheiros novos), package.json, src-tauri/src/lib.rs, src-tauri/src/sidecar.rs, tauri.conf.json |
-| 2026-05-09 | Prompt Desktop 3 completo: Frontend React 19 com Zustand, Tailwind v4, 3 tabs de navegaÃƒÂ§ÃƒÂ£o, hooks de polling e GPU, DropZone e JobCards. | Google Antigravity (Gemini 3.1 Pro) | src/**/*, package.json, src-tauri/Cargo.toml, src-tauri/src/lib.rs |
+| 2026-05-09 | Prompt Desktop 2 completo: sidecar Node.js com fila, orchestrator e 8 workers + 6 perfis JSON | Claude Sonnet 4.6 | sidecar/* (17 ficheiros novos), package.json, src-tauri/src/lib.rs, src-tauri/src/sidecar.rs, tauri.conf.json |
+| 2026-05-09 | Prompt Desktop 3 completo: Frontend React 19 com Zustand, Tailwind v4, 3 tabs de navegacao, hooks de polling e GPU, DropZone e JobCards. | Google Antigravity (Gemini 3.1 Pro) | src/**/*, package.json, src-tauri/Cargo.toml, src-tauri/src/lib.rs |
+| 2026-05-09 a 2026-05-13 | Iteracoes de bug fixes, gap analysis, novo UI (Dashboard, Biblioteca, Fila, Perfis, Logs, Asset Detail), sistema de logs, manual integrado, factory reset, exit app, controlo de execucao automatizado | Claude Sonnet 4.6 + Google Antigravity | Dezenas de ficheiros em src/, src-tauri/, sidecar/ |
+| 2026-05-13 | Resolucao de binarios FFmpeg bundled, correcoes de consistencia (get_stats, node_version, LibraryPage drop, HelpModal TabId, Cargo.toml description) | Claude Code (Kimi K2.6) | sidecar/binaries.ts, src-tauri/src/sidecar.rs, src-tauri/src/commands/system.rs, sidecar/workers/*.ts, src/pages/LibraryPage.tsx, src/pages/SettingsPage.tsx, src/components/HelpModal.tsx, src-tauri/Cargo.toml |
 
 ---
 
-## Ã°Å¸Å½Â¯ PrÃƒÂ³ximos passos (ordenados por prioridade)
+## Proximos passos (ordenados por prioridade)
 
-1. [x] ~~Instalar dependÃƒÂªncias~~ Ã¢â‚¬â€ feito
-2. [x] ~~Prompt Desktop 1~~ Ã¢â‚¬â€ completo
-3. [ ] Criar pasta `sidecar/` e `tests/`
-4. [ ] Executar **Prompt Desktop 2** Ã¢â‚¬â€ Sidecar + Workers Node.js
-5. [ ] Executar **Prompt Desktop 3** Ã¢â‚¬â€ Frontend React
-6. [ ] Executar **Prompt Desktop 4** Ã¢â‚¬â€ Build + Testes
-7. [ ] Descarregar binÃƒÂ¡rios: `npm run download:binaries`
-8. [ ] Testar: `npm run tauri dev`
-9. [ ] Build final + tag + GitHub Release
+1. [x] ~~Sincronizar versao 0.13.0 em todos os ficheiros~~
+2. [x] ~~Corrigir resolucao de binarios FFmpeg (bundled -> sidecar)~~
+3. [x] ~~Corrigir get_stats estado 'running' -> 'processing'~~
+4. [x] ~~Corrigir tipagem InstalledInfo (node_version)~~
+5. [x] ~~Implementar LibraryPage.handleDrop~~
+6. [x] ~~Limpar Cargo.toml description~~
+7. [ ] Validar build em Windows (tauri build --debug) com binarios
+8. [ ] Testar fluxo real: ingest -> job -> transcode -> done
+9. [ ] Adicionar bs1770gain ao download de binarios (ou tornar opcional)
+10. [ ] Adicionar testes de integracao Tauri (e2e)
+11. [ ] VMAF real no QC-Post (requer libvmaf no FFmpeg bundled)
+12. [ ] Deep links nexora:// (ADR-D012)
 
 ---
 
-## Ã°Å¸â€œÂ Contexto tÃƒÂ©cnico rÃƒÂ¡pido (para agentes IA)
+## Contexto tecnico rapido (para agentes IA)
 
 **Portas em uso (desenvolvimento):**
-- 1420 Ã¢â€ â€™ Vite dev server (frontend React)
-- Sem servidor HTTP em produÃƒÂ§ÃƒÂ£o (IPC directo Tauri)
+- 1420 -> Vite dev server (frontend React)
+- Sem servidor HTTP em producao (IPC directo Tauri)
 
-**ConvenÃƒÂ§ÃƒÂµes de cÃƒÂ³digo:**
-- TypeScript strict mode Ã¢â‚¬â€ sem `any` implÃƒÂ­cito
-- Nomes em inglÃƒÂªs no cÃƒÂ³digo, comentÃƒÂ¡rios em portuguÃƒÂªs de Portugal
+**Convencoes de codigo:**
+- TypeScript strict mode - sem `any` implicito
+- Nomes em ingles no codigo, comentarios em portugues de Portugal
 - Imports absolutos via paths aliases (`@/components/`, `@/hooks/`, etc.)
-- Todos os erros sÃƒÂ£o typed (nunca `catch(e: any)`)
-- Todos os IDs sÃƒÂ£o UUID v4
+- Todos os erros sao typed (nunca `catch(e: any)`)
+- Todos os IDs sao UUID v4
 - FFmpeg SEMPRE via execFile (NUNCA exec com string concatenada)
-- ParÃƒÂ¢metros FFmpeg: sempre arrays, nunca strings
+- Parametros FFmpeg: sempre arrays, nunca strings
 
 **Limites de recursos:**
-- Max jobs simultÃƒÂ¢neos: configurÃƒÂ¡vel (default 2, max 4)
+- Max jobs simultaneos: configuravel (default 2, max 4)
 - FFmpeg timeout: 4h (14400000ms)
-- SQLite max size: sem limite prÃƒÂ¡tico
-- Sidecar: 1 processo Node.js, multi-threaded via worker_threads se necessÃƒÂ¡rio
+- SQLite max size: sem limite pratico
+- Sidecar: 1 processo Node.js, multi-threaded via worker_threads se necessario
 
-**RelaÃƒÂ§ÃƒÂ£o com o Server:**
+**Relacao com o Server:**
 - Mesmos perfis de transcode (JSON iguais)
-- Mesmos parÃƒÂ¢metros FFmpeg
+- Mesmos parametros FFmpeg
 - Mesmos thresholds VMAF (85/90/93)
 - Mesmos targets LUFS (-23/-14) e True Peak (-1 dBTP)
-- CÃƒÂ³digo dos workers reutilizÃƒÂ¡vel (adaptaÃƒÂ§ÃƒÂ£o mÃƒÂ­nima para SQLite/sidecar)
+- Codigo dos workers reutilizavel (adaptacao minima para SQLite/sidecar)
 
 ---
 
-*Este ficheiro ÃƒÂ© a fonte de verdade do projecto Desktop.*
-*Em caso de dÃƒÂºvida, consulta aqui.*
-*ÃƒÅ¡ltima actualizaÃƒÂ§ÃƒÂ£o: 2026-05-09 por Claude Sonnet 4.6*
+*Este ficheiro e a fonte de verdade do projecto Desktop.*
+*Em caso de duvida, consulta aqui.*
+*Ultima actualizacao: 2026-05-13 por Claude Code (Kimi K2.6)*

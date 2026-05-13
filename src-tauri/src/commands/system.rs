@@ -221,7 +221,7 @@ pub fn get_stats(
 
     let active_jobs: i64 = db
         .query_row(
-            "SELECT COUNT(*) FROM jobs WHERE status IN ('queued', 'running')",
+            "SELECT COUNT(*) FROM jobs WHERE status IN ('queued', 'processing')",
             [],
             |row| row.get(0),
         )

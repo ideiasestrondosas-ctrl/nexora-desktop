@@ -1,5 +1,6 @@
 use crate::state::AppState;
 use log::{error, info, warn};
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
@@ -26,9 +27,31 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
             )
         })?;
 
+    // Resolver caminhos dos binarios media (FFmpeg / FFprobe)
+    let ffmpeg_path = resolve_media_binary_path(&app, "ffmpeg");
+    let ffprobe_path = resolve_media_binary_path(&app, "ffprobe");
+
+    if ffmpeg_path.exists() {
+        info!("FFmpeg bundled encontrado: {:?}", ffmpeg_path);
+    } else {
+        warn!(
+            "FFmpeg bundled nao encontrado — a usar 'ffmpeg' do PATH (o utilizador pode precisar de instalar FFmpeg)"
+        );
+    }
+
+    if ffprobe_path.exists() {
+        info!("FFprobe bundled encontrado: {:?}", ffprobe_path);
+    } else {
+        warn!(
+            "FFprobe bundled nao encontrado — a usar 'ffprobe' do PATH (o utilizador pode precisar de instalar FFmpeg)"
+        );
+    }
+
     let mut child = Command::new("node")
         .arg(&script_path)
         .env("NEXORA_DB_PATH", db_path)
+        .env("NEXORA_FFMPEG_PATH", &ffmpeg_path)
+        .env("NEXORA_FFPROBE_PATH", &ffprobe_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()
@@ -51,7 +74,7 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
                     Ok(l) if !l.trim().is_empty() => {
                         match serde_json::from_str::<serde_json::Value>(&l) {
                             Ok(json) => {
-                                // Eventos de log e de job vão para o sistema de registos
+                                // Eventos de log e de job vao para o sistema de registos
                                 if let Some(t) = json.get("type").and_then(|v| v.as_str()) {
                                     match t {
                                         "log" => {
@@ -66,7 +89,7 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
                                         }
                                         "job:completed" => {
                                             let job_id = json.get("jobId").and_then(|v| v.as_str()).unwrap_or("?");
-                                            crate::logger::write("INFO", "sidecar:orchestrator", &format!("Job concluído: {job_id}"));
+                                            crate::logger::write("INFO", "sidecar:orchestrator", &format!("Job concluido: {job_id}"));
                                         }
                                         "job:failed" => {
                                             let job_id = json.get("jobId").and_then(|v| v.as_str()).unwrap_or("?");
@@ -135,4 +158,34 @@ fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
         .join("sidecar")
         .join("dist")
         .join("nexora-sidecar.cjs")
+}
+
+/// Resolve o caminho absoluto de um binario media (ffmpeg ou ffprobe).
+/// Ordem de prioridade:
+/// 1. Ao lado do executavel do Tauri (target/debug/ ou target/release/) — dev
+/// 2. resource_dir() do Tauri — producao (bundle do instalador)
+/// 3. Nome do comando no PATH (fallback)
+fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> PathBuf {
+    let ext = if cfg!(target_os = "windows") { ".exe" } else { "" };
+
+    // 1. Desenvolvimento: ao lado do executavel (Tauri copia os externalBin para target/debug/)
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            let candidate = exe_dir.join(format!("{}{}", name, ext));
+            if candidate.exists() {
+                return candidate;
+            }
+        }
+    }
+
+    // 2. Producao: resource_dir do Tauri
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        let candidate = resource_dir.join(format!("{}{}", name, ext));
+        if candidate.exists() {
+            return candidate;
+        }
+    }
+
+    // 3. Fallback: comando no PATH
+    PathBuf::from(name)
 }

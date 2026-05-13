@@ -31,7 +31,7 @@ interface GpuInfo {
 
 interface InstalledInfo {
   ffmpeg_version: string | null;
-  nodejs_version: string | null;
+  node_version: string | null;
   gpu: GpuInfo;          // objecto, não string
   db_path: string;
   app_version: string;
@@ -398,7 +398,7 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-between border-b border-[#1e2433] pb-2">
             <span className="text-gray-500">Node.js</span>
-            <span className="text-gray-300">{installedInfo?.nodejs_version || 'N/A'}</span>
+            <span className="text-gray-300">{installedInfo?.node_version || 'N/A'}</span>
           </div>
           <div className="flex justify-between border-b border-[#1e2433] pb-2">
             <span className="text-gray-500">GPU Detectada</span>

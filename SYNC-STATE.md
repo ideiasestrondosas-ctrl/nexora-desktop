@@ -1,72 +1,94 @@
-# Estado de Sincronização — Nexora Desktop
+# Estado de Sincronizacao - Nexora Desktop
 
 > Handoff entre Claude Code e Google Antigravity.
-> Actualizar no FIM de cada sessão. Lido no INÍCIO de cada sessão.
+> Actualizar no FIM de cada sessao. Lido no INICIO de cada sessao.
 
 ---
 
-Actualizado: 2026-05-13 (Sessão Actual)
-Agente: Antigravity (Gemini 3.1 Pro / Gemini 3 Flash)
+Actualizado: 2026-05-13 19:35
+Agente: Claude Code (Kimi K2.6)
 
 ## O que foi feito
 
-### Sessão Actual — Novas Funcionalidades e Manutenção — CONCLUÍDO
+### Sessao Actual - Resolucao de Binarios + Correcoes de Consistencia - CONCLUIDO
 
-**1. Funcionalidade de Sair e Gestão de Janela**
-- **Rust Backend**: Adicionado comando `exit_app` em `system.rs` para encerramento seguro da aplicação.
-- **Frontend**: Adicionado botão "Sair do Programa" na Sidebar (`App.tsx`) com ícone intuitivo e feedback visual.
+**1. Resolucao de Binarios FFmpeg Bundled (CRITICO)**
+- **sidecar/binaries.ts (NOVO)**: Helper central que resolve o path absoluto do FFmpeg/FFprobe:
+  - Prioridade 1: `process.env['NEXORA_FFMPEG_PATH']` / `NEXORA_FFPROBE_PATH` (passado pelo Rust)
+  - Prioridade 2: Ao lado do executavel em dev (`target/debug/ffmpeg.exe`)
+  - Prioridade 3: Nome do comando no PATH (`ffmpeg` / `ffprobe`)
+- **src-tauri/src/sidecar.rs**: Modificado para:
+  - Nova funcao `resolve_media_binary_path()` que procura binarios em cascata
+  - Passa `NEXORA_FFMPEG_PATH` e `NEXORA_FFPROBE_PATH` como variaveis de ambiente ao sidecar
+  - Logging informativo quando binarios bundled sao encontrados (ou nao)
+- **Workers actualizados**: Todos os 5 workers que usam FFmpeg/FFprobe agora importam de `../binaries`:
+  - `transcode-worker.ts`, `audio-worker.ts`, `proxy-worker.ts`, `thumbnail-worker.ts` -> `getFfmpegPath()`
+  - `ingest-worker.ts` -> `getFfprobePath()`
 
-**2. Reset Total (Factory Reset) — NUCLEAR & ROBUSTO**
-- **Rust Backend**: Comando `factory_reset` aprimorado para realizar uma limpeza profunda em 3 níveis:
-    1. **Dados Internos**: Executa `DELETE` em todas as tabelas (assets, jobs, logs, audit, settings) e `VACUUM`.
-    2. **Ficheiros Gerados**: Localiza e apaga automaticamente transcodes, proxies e thumbnails referenciados na BD, **preservando sempre os originais**.
-    3. **Ambiente**: Tenta apagar a directoria `AppData` e reinicia a app.
-- **Frontend**: Botão em **Definições > Avançado** com aviso crítico. Novo separador de **Suporte** no manual para diagnóstico.
-- **Scripts**: Opção 2 do `06-run-dev.ps1` corrigida para:
-    - Encerrar processos bloqueantes (App e Sidecar Node.js).
-    - Apagar a pasta correcta (`com.nexora.desktop`).
+**2. Correcoes de Consistencia**
+- **src-tauri/src/commands/system.rs**: `get_stats` usava `status IN ('queued', 'running')` -> corrigido para `'processing'` (nome correto no schema)
+- **src/pages/SettingsPage.tsx**: Campo `nodejs_version` alinhado com `node_version` (camelCase do backend serde)
+- **src/pages/LibraryPage.tsx**: `handleDrop` implementado via `getCurrentWebviewWindow().onDragDropEvent()` - ingest real de ficheiros arrastados para a Biblioteca
+- **src/components/HelpModal.tsx**: Adicionado `'troubleshoot'` ao union type `TabId` (TypeScript strict)
+- **src-tauri/Cargo.toml**: Campo `description` limpo de mojibake -> `"Nexora Media Processing - Desktop Native"`
 
-**3. Correcções de Build e Dependências**
-- **Rust**: Adicionada dependência `tokio` (features: `time`, `sync`) para suportar operações assíncronas no backend.
-- **Diagnostics**: Script `06-run-dev.ps1` agora abre automaticamente logs em caso de erro fatal.
-
-**4. Correções de Ambiente (Sessão Anterior)**
-- **package.json**: Fix de encoding UTF-8 sem BOM para evitar erros no Vite/PostCSS.
-- **download-media-binaries.js**: Implementada lógica de fallback para downloads do FFmpeg via GitHub (BtbN).
+**3. Validacao de Build**
+- `cargo check`: OK (0.63s)
+- `npm run sidecar:build`: OK (33kb bundle)
+- `npx tsc --noEmit`: OK (0 erros)
+- `npx vitest run`: 24/24 tests passaram
+- `npm run tauri build`: OK (gerou .exe e .msi)
 
 ---
 
-## Estado de compilação
+## Estado de compilacao
 
 - `cargo check`: **OK**
-- `npm run dev`: **OK** (Botões de Sair e Reset DB verificados na estrutura)
-- `npm run download:binaries`: **OK**
+- `npm run sidecar:build`: **OK** (33kb)
+- `tsc --noEmit`: **OK** (0 erros)
+- `vitest run`: **OK** (24/24)
+- `tauri build`: **OK** (.exe + .msi gerados)
 
 ---
 
-## Próximos passos
+## Proximos passos
 
 | Tarefa | Prioridade |
 |---|---|
-| Executar `.\scripts\06-run-dev.ps1 -Dev` para validar as novas interações | Crítica |
-| Validar o fluxo de "Reset de Base de Dados" com dados reais | Alta |
-| Continuar com os testes de fluxo de importação real | Média |
+| Testar fluxo real completo: ingest -> job -> transcode -> done | Critica |
+| Validar que FFmpeg bundled e usado (verificar logs do sidecar) | Critica |
+| Adicionar bs1770gain ao download de binarios (ou tornar opcional) | Alta |
+| Adicionar testes de integracao Tauri (e2e) | Media |
+| VMAF real no QC-Post (requer libvmaf no FFmpeg bundled) | Baixa |
+| Deep links nexora:// (ADR-D012) | Baixa |
+| Merge dev -> main para release v0.13.0 | Alta (quando autorizado) |
 
 ---
 
-## Ficheiros modificados (sessão actual)
+## Ficheiros modificados (sessao actual)
 
 ```
-src-tauri/src/commands/system.rs (Add exit_app)
-src-tauri/src/commands/logs.rs   (Add reset_database)
-src-tauri/src/lib.rs            (Register new commands)
-scripts/06-run-dev.ps1          (DB cleanup in Option 2 + Auto-open log)
-src/App.tsx                     (Add Exit button to sidebar)
-src/pages/SettingsPage.tsx       (Add Reset Database button + confirm)
+sidecar/binaries.ts               (NOVO - helper resolucao FFmpeg/FFprobe)
+sidecar/workers/transcode-worker.ts   (import getFfmpegPath)
+sidecar/workers/audio-worker.ts       (import getFfmpegPath)
+sidecar/workers/proxy-worker.ts       (import getFfmpegPath)
+sidecar/workers/thumbnail-worker.ts   (import getFfmpegPath)
+sidecar/workers/ingest-worker.ts      (import getFfprobePath)
+src-tauri/src/sidecar.rs              (resolve_media_binary_path + env vars)
+src-tauri/src/commands/system.rs      (get_stats: 'running' -> 'processing')
+src-tauri/Cargo.toml                  (description limpa)
+src/pages/LibraryPage.tsx             (onDragDropEvent + ingest)
+src/pages/SettingsPage.tsx            (node_version tipagem)
+src/components/HelpModal.tsx          (TabId + 'troubleshoot')
+PROGRESS-DESKTOP.md                   (actualizado)
+SYNC-STATE.md                         (actualizado)
 ```
 
-## Notas técnicas para o próximo agente
+---
 
-- **Tauri 2**: Os novos comandos `exit_app` e `reset_database` requerem permissões se estiveres a usar o sistema de capabilities do Tauri 2. Verificar `src-tauri/capabilities/` se houver erros de acesso negado.
-- **Base de Dados**: O reset manual via script apaga o ficheiro físico, enquanto o reset via UI apaga apenas os dados das tabelas via SQL.
-- **Logs**: O ficheiro de log aberto pelo script está em `.logs/dev-session-TIMESTAMP.log`.
+## Notas tecnicas para o proximo agente
+
+- **Binarios FFmpeg**: O Tauri 2 copia os `externalBin` para `target/debug/` (dev) e `resource_dir()` (producao). O `sidecar.rs` procura nestes locais e passa os paths absolutos ao sidecar via env vars. O `sidecar/binaries.ts` consome estas env vars. Se nao encontrar, faz fallback para `ffmpeg`/`ffprobe` no PATH.
+- **Branch git**: Estamos em `dev`. `origin/main` existe mas esta atrasado (v0.3.1). Nao fazer merge para main sem autorizacao explicita do utilizador.
+- **Tauri IPC**: Novos comandos `exit_app` e `factory_reset` foram adicionados pelo Antigravity. Verificar `src-tauri/src/lib.rs` se houver erros de invoke.
+- **Logs**: O logger do Rust escreve na BD SQLite e emite eventos Tauri (`log-entry`). O sidecar emite eventos JSON no stdout que o Rust consome e re-emite como `sidecar:event`.
