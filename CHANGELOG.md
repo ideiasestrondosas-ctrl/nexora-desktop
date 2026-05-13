@@ -1,10 +1,16 @@
-﻿# Changelog
+# Changelog
 
 Todas as alteracoes relevantes do Nexora Desktop sao documentadas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.13.0] - 2026-05-13
+
+### Added
+- feat: Resolving Nexora Desktop Issues
+
 
 ## [0.12.0] - 2026-05-11
 

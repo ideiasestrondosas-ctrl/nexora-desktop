@@ -1,4 +1,4 @@
-﻿# Nexora Media Processing Ã¢â‚¬â€ Desktop Nativo Ã¢â‚¬â€ Estado do Projecto
+# Nexora Media Processing Ã¢â‚¬â€ Desktop Nativo Ã¢â‚¬â€ Estado do Projecto
 
 > **Ã¢Å¡Â Ã¯Â¸Â LEITURA OBRIGATÃƒâ€œRIA PARA TODOS OS AGENTES IA**
 >
