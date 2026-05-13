@@ -5,61 +5,46 @@
 
 ---
 
-Actualizado: 2026-05-13 20:00
+Actualizado: 2026-05-13 21:30
 Agente: Claude Code (Kimi K2.6)
 
 ## O que foi feito
 
-### Sessao Actual - Resolucao de Binarios + Correcoes de Consistencia + Teste Pipeline - CONCLUIDO
+### Sessao Actual - Correcao do Script de Sync + Release v0.16.0 - CONCLUIDO
 
-**1. Resolucao de Binarios FFmpeg Bundled (CRITICO)**
-- **sidecar/binaries.ts (NOVO)**: Helper central que resolve o path absoluto do FFmpeg/FFprobe:
-  - Prioridade 1: `process.env['NEXORA_FFMPEG_PATH']` / `NEXORA_FFPROBE_PATH` (passado pelo Rust)
-  - Prioridade 2: Ao lado do executavel em dev (`target/debug/ffmpeg.exe`)
-  - Prioridade 3: Nome do comando no PATH (`ffmpeg` / `ffprobe`)
-- **src-tauri/src/sidecar.rs**: Modificado para:
-  - Nova funcao `resolve_media_binary_path()` que procura binarios em cascata
-  - Passa `NEXORA_FFMPEG_PATH` e `NEXORA_FFPROBE_PATH` como variaveis de ambiente ao sidecar
-  - Logging informativo quando binarios bundled sao encontrados (ou nao)
-- **Workers actualizados**: Todos os 5 workers que usam FFmpeg/FFprobe agora importam de `../binaries`:
-  - `transcode-worker.ts`, `audio-worker.ts`, `proxy-worker.ts`, `thumbnail-worker.ts` -> `getFfmpegPath()`
-  - `ingest-worker.ts` -> `getFfprobePath()`
+**1. Correcao do Script `scripts/sync.ps1` (CRITICO)**
+- **Problema**: O script fazia `git merge dev --ff-only` e depois fallback para merge normal. Quando a `main` remota foi reescrita (cleanup de binarios), o merge criava history divergente e o push falhava com `non-fast-forward`.
+- **Solucao**: Implementado squash merge para preservar o history limpo da `main`:
+  1. `git fetch origin main` - sincroniza com a main remota
+  2. `git reset --hard origin/main` - parte do estado limpo (descarta merges locais falhados)
+  3. `git merge --squash dev` - aplica todas as mudancas da dev como patch unico
+  4. `git commit -m "chore(release): v$newVersion"` - commit de release
+  5. `git push origin main` - push (sempre fast-forward agora)
+- **Resultado**: O script agora funciona correctamente mesmo quando a `main` tem history reescrito.
 
-**2. Correcoes de Consistencia**
-- **src-tauri/src/commands/system.rs**: `get_stats` usava `status IN ('queued', 'running')` -> corrigido para `'processing'` (nome correto no schema)
-- **src/pages/SettingsPage.tsx**: Campo `nodejs_version` alinhado com `node_version` (camelCase do backend serde)
-- **src/pages/LibraryPage.tsx**: `handleDrop` implementado via `getCurrentWebviewWindow().onDragDropEvent()` - ingest real de ficheiros arrastados para a Biblioteca
-- **src/components/HelpModal.tsx**: Adicionado `'troubleshoot'` ao union type `TabId` (TypeScript strict)
-- **src-tauri/Cargo.toml**: Campo `description` limpo de mojibake -> `"Nexora Media Processing - Desktop Native"`
+**2. Release v0.16.0 - Merge dev -> main**
+- Commit na `dev`: `fix(sync): testar squash merge dev -> main`
+- Squash merge para `main`: `chore(release): v0.16.0`
+- **Conflitos resolvidos manualmente** durante o squash merge:
+  - `.gitignore`, `package.json`, `package-lock.json` - versao da dev (mais recente)
+  - `src-tauri/Cargo.lock`, `Cargo.toml`, `tauri.conf.json` - versao da dev
+  - `src/App.tsx`, `src/components/DropZone.tsx`, `src/pages/SettingsPage.tsx` - versao da dev
+  - `src/pages/HistoryPage.tsx`, `src/pages/ProcessPage.tsx` - removidos (renomeados na dev)
+- Push para `origin/main`: **SUCESSO** (`6581dde..4a2aca4 main -> main`)
+- Push para `origin/dev`: **SUCESSO** (`9e9a44e..360098c dev -> dev`)
 
-**3. Teste de Pipeline Completo**
-- Criado video dummy (5s, 720p) com FFmpeg bundled para teste
-- Executado pipeline end-to-end via `scripts/test-pipeline-dummy.mjs`:
-  - Asset: `3ac0f63e-...` inserido na BD
-  - Job: `e250edb1-...` perfil `broadcast-hd`
-  - **Resultado: `done` em ~6 segundos**
-  - Progresso: 0% -> 100% (sem erros)
-  - LUFS: -21.99 (proximo do target -23)
-- **Ficheiros gerados**:
-  - `test-720p-5s_broadcast-hd.mp4` (1.05 MB - transcode)
-  - `test-720p-5s_broadcast-hd_normalized.wav` (483 KB - audio R128)
-  - `test-720p-5s_broadcast-hd_proxy.mp4` (388 KB - proxy)
-  - `test-720p-5s_broadcast-hd_thumb.jpg` (14.5 KB - thumbnail)
+**3. Estado Actual dos Branches**
+| Branch | Commit | Descricao |
+|---|---|---|
+| `dev` | `360098c` | `fix(sync): testar squash merge dev -> main` |
+| `main` | `4a2aca4` | `chore(release): v0.16.0` (squash merge da dev) |
+| `origin/dev` | `360098c` | Sincronizado |
+| `origin/main` | `4a2aca4` | Sincronizado |
 
-**4. Validacao de Build**
-- `cargo check`: OK (0.63s)
-- `npm run sidecar:build`: OK (33kb bundle)
-- `npx tsc --noEmit`: OK (0 erros)
-- `npx vitest run`: 24/24 tests passaram
-- `npm run tauri build`: OK (gerou .exe e .msi)
-- `npm run tauri dev`: OK (logs confirmam FFmpeg bundled encontrado)
-
-**5. Estado Git - Divergencia main vs dev**
-- `dev` esta **44 commits ahead** de `main` (desenvolvimento v0.3.1 -> v0.13.0)
-- `dev` esta **23 commits behind** de `main` (commits de cleanup de binarios + .gitignore)
-- **Causa**: `main` foi reescrita para limpar ficheiros grandes do history (11x cleanup binaries)
-- **Commit comum**: `77e6853` (base de v0.3.1)
-- **Recomendacao**: Sincronizar `main` -> `dev` primeiro (merge dos 23 commits de cleanup), depois fazer release `dev` -> `main`
+**4. Pipeline Testado (sessao anterior)**
+- Fluxo completo ingest -> transcode -> audio -> proxy -> thumbnail -> qc-post -> delivery funciona com FFmpeg bundled
+- LUFS: -21.99 (proximo do target -23)
+- Sem erros, todos os ficheiros gerados correctamente
 
 ---
 
@@ -70,7 +55,6 @@ Agente: Claude Code (Kimi K2.6)
 - `tsc --noEmit`: **OK** (0 erros)
 - `vitest run`: **OK** (24/24)
 - `tauri build`: **OK** (.exe + .msi gerados)
-- `tauri dev`: **OK** (FFmpeg bundled detectado no startup)
 
 ---
 
@@ -78,8 +62,7 @@ Agente: Claude Code (Kimi K2.6)
 
 | Tarefa | Prioridade |
 |---|---|
-| Sincronizar `main` -> `dev` (merge dos 23 commits de cleanup) | Alta |
-| Merge `dev` -> `main` para release v0.13.0 | Alta (quando autorizado) |
+| Testar script sync.ps1 numa nova sessao para confirmar robustez | Alta |
 | Adicionar bs1770gain ao download de binarios (ou tornar opcional) | Alta |
 | Adicionar testes de integracao Tauri (e2e) | Media |
 | VMAF real no QC-Post (requer libvmaf no FFmpeg bundled) | Baixa |
@@ -90,30 +73,16 @@ Agente: Claude Code (Kimi K2.6)
 ## Ficheiros modificados (sessao actual)
 
 ```
-sidecar/binaries.ts               (NOVO - helper resolucao FFmpeg/FFprobe)
-sidecar/workers/transcode-worker.ts   (import getFfmpegPath)
-sidecar/workers/audio-worker.ts       (import getFfmpegPath)
-sidecar/workers/proxy-worker.ts       (import getFfmpegPath)
-sidecar/workers/thumbnail-worker.ts   (import getFfmpegPath)
-sidecar/workers/ingest-worker.ts      (import getFfprobePath)
-src-tauri/src/sidecar.rs              (resolve_media_binary_path + env vars)
-src-tauri/src/commands/system.rs      (get_stats: 'running' -> 'processing')
-src-tauri/Cargo.toml                  (description limpa)
-src/pages/LibraryPage.tsx             (onDragDropEvent + ingest)
-src/pages/SettingsPage.tsx            (node_version tipagem)
-src/components/HelpModal.tsx          (TabId + 'troubleshoot')
-tests/fixtures/test-720p-5s.mp4       (dummy video para teste)
-scripts/test-pipeline-dummy.mjs       (script de teste end-to-end)
-PROGRESS-DESKTOP.md                   (actualizado)
-SYNC-STATE.md                         (actualizado)
+scripts/sync.ps1                        (CORRIGIDO - squash merge dev -> main)
+SYNC-STATE.md                           (actualizado)
 ```
 
 ---
 
 ## Notas tecnicas para o proximo agente
 
-- **Binarios FFmpeg**: O Tauri 2 copia os `externalBin` para `target/debug/` (dev) e `resource_dir()` (producao). O `sidecar.rs` procura nestes locais e passa os paths absolutos ao sidecar via env vars. O `sidecar/binaries.ts` consome estas env vars. Se nao encontrar, faz fallback para `ffmpeg`/`ffprobe` no PATH.
-- **Branch git**: Estamos em `dev`. `origin/main` existe mas esta atrasado (v0.3.1) e com history reescrita (cleanup de binarios). Nao fazer merge para main sem autorizacao explicita do utilizador.
+- **Script de Sync**: O `scripts/sync.ps1` agora usa squash merge para `dev` -> `main`. Isto preserva o history limpo da `main` (sem binarios grandes) e evita conflitos quando a `main` tem history reescrito. O script funciona em 3 passos: fetch + reset --hard origin/main -> merge --squash dev -> commit -> push.
+- **Binarios FFmpeg**: O Tauri 2 copia os `externalBin` para `target/debug/` (dev) e `resource_dir()` (producao). O `sidecar.rs` procura nestes locais e passa os paths absolutos ao sidecar via env vars. O `sidecar/binaries.ts` consome estas env vars.
+- **Branch git**: Ambos os branches (`dev` e `main`) estao sincronizados com o GitHub. A `main` tem history limpo (v0.16.0). A `dev` tem o desenvolvimento completo.
 - **Tauri IPC**: Novos comandos `exit_app` e `factory_reset` foram adicionados pelo Antigravity. Verificar `src-tauri/src/lib.rs` se houver erros de invoke.
-- **Logs**: O logger do Rust escreve na BD SQLite e emite eventos Tauri (`log-entry`). O sidecar emite eventos JSON no stdout que o Rust consome e re-emite como `sidecar:event`.
-- **Pipeline testado**: Fluxo completo ingest -> transcode -> audio -> proxy -> thumbnail -> qc-post -> delivery funciona com FFmpeg bundled.
+- **Pipeline testado**: Fluxo completo funciona com FFmpeg bundled.
