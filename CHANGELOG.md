@@ -6,6 +6,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-05-13
+
+### Added
+- feat: Análise workspace aplicação e regras
+
+
 ## [0.14.0] - 2026-05-13
 
 ### Added
@@ -57,14 +63,14 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.7.0] - 2026-05-11
 
 ### Added
-- fix: Race condition na fila â€” claimNextJob() atÃ³mico (SELECT+UPDATE numa transacÃ§Ã£o SQLite)
+- fix: Race condition na fila Ã¢â‚¬â€ claimNextJob() atÃƒÂ³mico (SELECT+UPDATE numa transacÃƒÂ§ÃƒÂ£o SQLite)
 - feat: Tabela `profiles` no schema para perfis personalizados
-- feat: Tauri command `get_queue_stats` â€” estatÃ­sticas da fila (queued/processing/done/error hoje)
-- feat: Tauri command `retry_job` â€” re-enfileira jobs com erro ou cancelados
-- feat: Tauri commands `create_profile`, `update_profile`, `delete_profile` â€” CRUD de perfis custom
-- feat: Tauri command `export_logs` â€” exporta logs para ficheiro .txt
-- feat: Tauri command `get_changelog` â€” devolve CHANGELOG.md compilado no binÃ¡rio
-- docs: ANTIGRAVITY-GUIA.md â€” guia passo a passo para utilizador nÃ£o-tÃ©cnico gerar ecrÃ£s
+- feat: Tauri command `get_queue_stats` Ã¢â‚¬â€ estatÃƒÂ­sticas da fila (queued/processing/done/error hoje)
+- feat: Tauri command `retry_job` Ã¢â‚¬â€ re-enfileira jobs com erro ou cancelados
+- feat: Tauri commands `create_profile`, `update_profile`, `delete_profile` Ã¢â‚¬â€ CRUD de perfis custom
+- feat: Tauri command `export_logs` Ã¢â‚¬â€ exporta logs para ficheiro .txt
+- feat: Tauri command `get_changelog` Ã¢â‚¬â€ devolve CHANGELOG.md compilado no binÃƒÂ¡rio
+- docs: ANTIGRAVITY-GUIA.md Ã¢â‚¬â€ guia passo a passo para utilizador nÃƒÂ£o-tÃƒÂ©cnico gerar ecrÃƒÂ£s
 
 ## [0.6.0] - 2026-05-10
 
@@ -75,7 +81,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.5.0] - 2026-05-10
 
 ### Added
-- feat: Prompt Desktop Bug fixes + Gap Analysis ConcluÃ£o
+- feat: Prompt Desktop Bug fixes + Gap Analysis ConcluÃƒÂ£o
 
 
 ## [0.4.1] - 2026-05-10
@@ -87,19 +93,19 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.4.0] - 2026-05-10
 
 ### Added
-- feat: CorrecÃ§Ãµes para releases
+- feat: CorrecÃƒÂ§ÃƒÂµes para releases
 
 
 ## [0.3.0] - 2026-05-09
 
 ### Added
-- feat: PROMPT 3 â€” Frontend React
+- feat: PROMPT 3 Ã¢â‚¬â€ Frontend React
 
 
 ## [0.2.0] - 2026-05-09
 
 ### Added
-- feat: PROMPT 2 â€” Sidecar + Queue + Workers
+- feat: PROMPT 2 Ã¢â‚¬â€ Sidecar + Queue + Workers
 
 
 ## [0.1.0] - 2026-05-09

@@ -15,7 +15,7 @@
 | Campo | Valor |
 |---|---|
 | **Nome** | Nexora Media Processing - Desktop Nativo |
-| **Versao** | 0.14.0 |
+| **Versao** | 0.15.0 |
 | **IDE** | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT) |
 | **Stack Shell** | Tauri 2.x (Rust) |
 | **Stack Frontend** | React 19 + TypeScript + Tailwind CSS + Zustand |
@@ -118,98 +118,98 @@ Bloqueios:     Nenhum
 
 ```
 nexora-desktop/
-â”œâ”€â”€ src/                        <- React 19 + TypeScript + Tailwind v4
-â”‚   â”œâ”€â”€ App.tsx
-â”‚   â”œâ”€â”€ components/
-â”‚   â”‚   â”œâ”€â”€ DropZone.tsx
-â”‚   â”‚   â”œâ”€â”€ HelpModal.tsx
-â”‚   â”‚   â”œâ”€â”€ JobCard.tsx
-â”‚   â”‚   â”œâ”€â”€ LogViewer.tsx
-â”‚   â”‚   â”œâ”€â”€ NexoraStatusBadge.tsx
-â”‚   â”‚   â”œâ”€â”€ ProgressBar.tsx
-â”‚   â”‚   â”œâ”€â”€ SystemMetricsBar.tsx
-â”‚   â”‚   â””â”€â”€ VMAFGauge.tsx
-â”‚   â”œâ”€â”€ hooks/
-â”‚   â”‚   â”œâ”€â”€ useGPU.ts
-â”‚   â”‚   â”œâ”€â”€ useJobStatus.ts
-â”‚   â”‚   â”œâ”€â”€ useLogs.ts
-â”‚   â”‚   â”œâ”€â”€ useNotification.ts
-â”‚   â”‚   â”œâ”€â”€ useSystemMetrics.ts
-â”‚   â”‚   â””â”€â”€ useTauriCommand.ts
-â”‚   â”œâ”€â”€ pages/
-â”‚   â”‚   â”œâ”€â”€ AssetDetailPage.tsx
-â”‚   â”‚   â”œâ”€â”€ DashboardPage.tsx
-â”‚   â”‚   â”œâ”€â”€ LibraryPage.tsx
-â”‚   â”‚   â”œâ”€â”€ LogsPage.tsx
-â”‚   â”‚   â”œâ”€â”€ ProfilesPage.tsx
-â”‚   â”‚   â”œâ”€â”€ QueuePage.tsx
-â”‚   â”‚   â””â”€â”€ SettingsPage.tsx
-â”‚   â””â”€â”€ store/
-â”‚       â”œâ”€â”€ assets.ts
-â”‚       â”œâ”€â”€ jobs.ts
-â”‚       â””â”€â”€ settings.ts
-â”œâ”€â”€ src-tauri/
-â”‚   â”œâ”€â”€ src/
-â”‚   â”‚   â”œâ”€â”€ lib.rs              <- Setup (db + tray + sidecar + commands)
-â”‚   â”‚   â”œâ”€â”€ main.rs
-â”‚   â”‚   â”œâ”€â”€ state.rs            <- AppState
-â”‚   â”‚   â”œâ”€â”€ tray.rs             <- System tray
-â”‚   â”‚   â”œâ”€â”€ sidecar.rs          <- Spawn sidecar + resolucao binarios media
-â”‚   â”‚   â”œâ”€â”€ logger.rs           <- Logger DB + eventos Tauri
-â”‚   â”‚   â”œâ”€â”€ db/
-â”‚   â”‚   â”‚   â”œâ”€â”€ mod.rs
-â”‚   â”‚   â”‚   â”œâ”€â”€ migrations.rs
-â”‚   â”‚   â”‚   â””â”€â”€ schema.sql
-â”‚   â”‚   â””â”€â”€ commands/
-â”‚   â”‚       â”œâ”€â”€ mod.rs
-â”‚   â”‚       â”œâ”€â”€ assets.rs
-â”‚   â”‚       â”œâ”€â”€ jobs.rs
-â”‚   â”‚       â”œâ”€â”€ logs.rs
-â”‚   â”‚       â”œâ”€â”€ metrics.rs
-â”‚   â”‚       â”œâ”€â”€ profiles.rs
-â”‚   â”‚       â”œâ”€â”€ settings.rs
-â”‚   â”‚       â””â”€â”€ system.rs
-â”‚   â”œâ”€â”€ Cargo.toml              <- v0.13.0 + tokio
-â”‚   â”œâ”€â”€ tauri.conf.json         <- v0.13.0 + externalBin + resources
-â”‚   â””â”€â”€ capabilities/
-â”‚       â””â”€â”€ default.json
-â”œâ”€â”€ sidecar/
-â”‚   â”œâ”€â”€ index.ts                <- Entry point do sidecar Node.js
-â”‚   â”œâ”€â”€ binaries.ts             <- Helper de resolucao FFmpeg/FFprobe
-â”‚   â”œâ”€â”€ db.ts                   <- Helpers SQLite (better-sqlite3)
-â”‚   â”œâ”€â”€ events.ts               <- Eventos JSON stdout
-â”‚   â”œâ”€â”€ logger.ts               <- Logger estruturado
-â”‚   â”œâ”€â”€ queue/
-â”‚   â”‚   â””â”€â”€ NexoraSimpleQueue.ts
-â”‚   â”œâ”€â”€ orchestrator/
-â”‚   â”‚   â””â”€â”€ NexoraDesktopOrchestrator.ts
-â”‚   â”œâ”€â”€ workers/
-â”‚   â”‚   â”œâ”€â”€ ingest-worker.ts    <- Usa getFfprobePath()
-â”‚   â”‚   â”œâ”€â”€ qc-pre-worker.ts
-â”‚   â”‚   â”œâ”€â”€ transcode-worker.ts <- Usa getFfmpegPath()
-â”‚   â”‚   â”œâ”€â”€ audio-worker.ts     <- Usa getFfmpegPath()
-â”‚   â”‚   â”œâ”€â”€ proxy-worker.ts     <- Usa getFfmpegPath()
-â”‚   â”‚   â”œâ”€â”€ thumbnail-worker.ts <- Usa getFfmpegPath()
-â”‚   â”‚   â”œâ”€â”€ qc-post-worker.ts
-â”‚   â”‚   â””â”€â”€ delivery-worker.ts
-â”‚   â””â”€â”€ profiles/
-â”‚       â”œâ”€â”€ types.ts
-â”‚       â”œâ”€â”€ broadcast-hd.json
-â”‚       â”œâ”€â”€ broadcast-sd.json
-â”‚       â”œâ”€â”€ proxy.json
-â”‚       â”œâ”€â”€ social.json
-â”‚       â”œâ”€â”€ web-4k.json
-â”‚       â””â”€â”€ web-hd.json
-â”œâ”€â”€ tests/
-â”‚   â”œâ”€â”€ queue.test.ts
-â”‚   â”œâ”€â”€ orchestrator.test.ts
-â”‚   â””â”€â”€ workers.test.ts
-â”œâ”€â”€ scripts/
-â”‚   â”œâ”€â”€ download-media-binaries.js
-â”‚   â””â”€â”€ sync.ps1
-â””â”€â”€ .github/workflows/
-    â”œâ”€â”€ ci.yml
-    â””â”€â”€ build.yml
+Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ src/                        <- React 19 + TypeScript + Tailwind v4
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ App.tsx
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ components/
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ DropZone.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ HelpModal.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ JobCard.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ LogViewer.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ NexoraStatusBadge.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ ProgressBar.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ SystemMetricsBar.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ VMAFGauge.tsx
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ hooks/
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ useGPU.ts
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ useJobStatus.ts
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ useLogs.ts
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ useNotification.ts
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ useSystemMetrics.ts
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ useTauriCommand.ts
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ pages/
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ AssetDetailPage.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ DashboardPage.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ LibraryPage.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ LogsPage.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ ProfilesPage.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ QueuePage.tsx
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ SettingsPage.tsx
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ store/
+Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ assets.ts
+Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ jobs.ts
+Ã¢â€â€š       Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ settings.ts
+Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ src-tauri/
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ src/
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ lib.rs              <- Setup (db + tray + sidecar + commands)
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ main.rs
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ state.rs            <- AppState
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ tray.rs             <- System tray
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ sidecar.rs          <- Spawn sidecar + resolucao binarios media
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ logger.rs           <- Logger DB + eventos Tauri
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ db/
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ mod.rs
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ migrations.rs
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ schema.sql
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ commands/
+Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ mod.rs
+Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ assets.rs
+Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ jobs.rs
+Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ logs.rs
+Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ metrics.rs
+Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ profiles.rs
+Ã¢â€â€š   Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ settings.rs
+Ã¢â€â€š   Ã¢â€â€š       Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ system.rs
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ Cargo.toml              <- v0.13.0 + tokio
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ tauri.conf.json         <- v0.13.0 + externalBin + resources
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ capabilities/
+Ã¢â€â€š       Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ default.json
+Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ sidecar/
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ index.ts                <- Entry point do sidecar Node.js
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ binaries.ts             <- Helper de resolucao FFmpeg/FFprobe
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ db.ts                   <- Helpers SQLite (better-sqlite3)
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ events.ts               <- Eventos JSON stdout
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ logger.ts               <- Logger estruturado
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ queue/
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ NexoraSimpleQueue.ts
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ orchestrator/
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ NexoraDesktopOrchestrator.ts
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ workers/
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ ingest-worker.ts    <- Usa getFfprobePath()
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ qc-pre-worker.ts
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ transcode-worker.ts <- Usa getFfmpegPath()
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ audio-worker.ts     <- Usa getFfmpegPath()
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ proxy-worker.ts     <- Usa getFfmpegPath()
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ thumbnail-worker.ts <- Usa getFfmpegPath()
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ qc-post-worker.ts
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ delivery-worker.ts
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ profiles/
+Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ types.ts
+Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ broadcast-hd.json
+Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ broadcast-sd.json
+Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ proxy.json
+Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ social.json
+Ã¢â€â€š       Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ web-4k.json
+Ã¢â€â€š       Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ web-hd.json
+Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ tests/
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ queue.test.ts
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ orchestrator.test.ts
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ workers.test.ts
+Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ scripts/
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ download-media-binaries.js
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ sync.ps1
+Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ .github/workflows/
+    Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ ci.yml
+    Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ build.yml
 ```
 
 ---
