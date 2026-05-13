@@ -245,3 +245,109 @@ pub fn get_stats(
         disk_total_bytes,
     })
 }
+
+#[tauri::command]
+pub fn exit_app(app: tauri::AppHandle) {
+    app.exit(0);
+}
+
+#[tauri::command]
+pub async fn factory_reset(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    // 1. Matar sidecar se estiver a correr
+    let pid = {
+        let pid_lock = state.sidecar_pid.lock().unwrap();
+        *pid_lock
+    };
+
+    if let Some(p) = pid {
+        #[cfg(target_os = "windows")]
+        let _ = Command::new("taskkill")
+            .args(["/F", "/PID", &p.to_string()])
+            .status();
+        
+        #[cfg(not(target_os = "windows"))]
+        let _ = Command::new("kill")
+            .arg("-9")
+            .arg(p.to_string())
+            .status();
+    }
+
+    // 2. Limpar ficheiros gerados pela aplicação (transcodes, proxies, thumbnails)
+    {
+        if let Ok(db) = state.db.lock() {
+            // Obter todos os caminhos de ficheiros de saída registados nos jobs
+            if let Ok(mut stmt) = db.prepare("SELECT output_path FROM jobs WHERE output_path IS NOT NULL") {
+                if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+                    for path in paths.flatten() {
+                        let _ = std::fs::remove_file(path);
+                    }
+                }
+            }
+            // Obter caminhos do audit_log (thumbnails e proxies que não estão na tabela jobs)
+            if let Ok(mut stmt) = db.prepare("SELECT data FROM audit_log WHERE event IN ('delivery:completed', 'thumbnail:completed', 'proxy:completed')") {
+                if let Ok(rows) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+                    for json_str in rows.flatten() {
+                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
+                            // Tentar apagar campos comuns de caminhos
+                            for key in ["destination", "thumbnailPath", "proxyPath", "thumbPath", "finalPath"] {
+                                if let Some(p) = json.get(key).and_then(|v| v.as_str()) {
+                                    let _ = std::fs::remove_file(p);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3. Limpar a BD por dentro (DELETE)
+            let _ = db.execute("PRAGMA foreign_keys = OFF", []);
+            let _ = db.execute("DELETE FROM jobs", []);
+            let _ = db.execute("DELETE FROM assets", []);
+            let _ = db.execute("DELETE FROM logs", []);
+            let _ = db.execute("DELETE FROM audit_log", []);
+            let _ = db.execute("DELETE FROM settings", []);
+            let _ = db.execute("DELETE FROM profiles WHERE is_system = 0", []);
+            let _ = db.execute("PRAGMA foreign_keys = ON", []);
+            let _ = db.execute("VACUUM", []);
+        }
+    }
+
+    // 4. Libertar estado (fechar Mutex/Conexão)
+    drop(state); 
+
+    // 5. Tentar apagar ficheiros físicos do sistema (AppData)
+    if let Ok(data_dir) = app.path().app_data_dir() {
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+        if data_dir.exists() {
+            if let Ok(entries) = std::fs::read_dir(&data_dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_file() {
+                        let name = path.file_name().unwrap_or_default().to_string_lossy();
+                        if !name.starts_with("nexora.db") {
+                            let _ = std::fs::remove_file(&path);
+                        }
+                    } else if path.is_dir() {
+                        let _ = std::fs::remove_dir_all(&path);
+                    }
+                }
+            }
+        }
+    }
+
+    // 6. Limpar pasta temporária do sidecar se existir
+    let temp_dir = std::env::temp_dir().join("nexora-output");
+    if temp_dir.exists() {
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+
+    // 7. Reiniciar a aplicação
+    app.restart();
+    
+    #[allow(unreachable_code)]
+    Ok(())
+}

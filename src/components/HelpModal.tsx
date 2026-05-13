@@ -23,6 +23,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'profiles',   label: 'Perfis',      icon: <Film className="w-4 h-4" /> },
   { id: 'metrics',    label: 'Métricas',    icon: <Zap className="w-4 h-4" /> },
   { id: 'components', label: 'Sistema',     icon: <Layers className="w-4 h-4" /> },
+  { id: 'troubleshoot', label: 'Suporte',    icon: <AlertTriangle className="w-4 h-4" /> },
   { id: 'about',      label: 'Sobre',       icon: <Info className="w-4 h-4" /> },
 ];
 
@@ -281,6 +282,42 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                   <li>• <strong>DB:</strong> SQLite (rusqlite bundled)</li>
                   <li>• <strong>Codec:</strong> FFmpeg com GPU auto-detectada</li>
                 </ul>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'troubleshoot' && (
+            <div className="space-y-5">
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">Resolução de Problemas</h3>
+              
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl space-y-3">
+                <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-bold">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Factory Reset (Limpeza Total)</span>
+                </div>
+                <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed">
+                  Se a aplicação apresentar comportamentos inconsistentes, dados que não desaparecem ou erros de base de dados, podes realizar um <strong>Reset Total</strong> em <em>Definições → Avançado</em>.
+                </p>
+                <ul className="text-[10px] text-red-600 dark:text-red-400 space-y-1 list-disc list-inside">
+                  <li>Apaga todos os assets e histórico</li>
+                  <li>Remove perfis personalizados e definições</li>
+                  <li>Limpa ficheiros temporários do sidecar</li>
+                  <li>Reinicia a aplicação do zero</li>
+                </ul>
+              </div>
+
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Problemas Comuns</h4>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs font-bold text-gray-700 dark:text-gray-300">O processamento não inicia?</p>
+                    <p className="text-[11px] text-gray-500">Verifica se o FFmpeg está correctamente detectado no separador "Sistema".</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-700 dark:text-gray-300">Erro de permissões na pasta de saída?</p>
+                    <p className="text-[11px] text-gray-500">Certifica-te que o Nexora tem permissões de escrita na pasta configurada.</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

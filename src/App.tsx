@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Toaster } from 'react-hot-toast';
 import { 
   LayoutDashboard, Library as LibraryIcon, ListVideo, 
-  Settings, Terminal, UserCircle, ShieldCheck
+  Settings, Terminal, UserCircle, ShieldCheck, LogOut
 } from 'lucide-react';
 
 import DashboardPage from '@/pages/DashboardPage';
@@ -139,6 +139,14 @@ function App() {
             <span className="text-[9px] font-black text-gray-700 uppercase tracking-[0.3em]">Ambiente</span>
             <span className="text-[10px] font-bold text-[#1A6FD4] uppercase">Produção v{appVersion}</span>
           </div>
+
+          <button
+            onClick={() => invoke('exit_app')}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 mt-4 border border-red-500/10"
+          >
+            <LogOut size={18} />
+            <span className="text-xs font-bold uppercase tracking-widest">Sair do Programa</span>
+          </button>
         </div>
       </aside>
 

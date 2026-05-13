@@ -78,7 +78,40 @@ function nxClean {
     }
     $null = New-Item -ItemType Directory -Force (Join-Path $ProjectRoot "sidecar\dist")
     $null = New-Item -ItemType File      -Force (Join-Path $ProjectRoot "sidecar\dist\.gitkeep")
-    nxOk "Limpeza concluida (node_modules e target/ intactos)"
+    
+    # Nova funcionalidade: Limpeza Profunda (Factory Reset)
+    Write-Host ""
+    $clearData = Read-Host "  Desejas realizar uma limpeza profunda (Apagar definições e BD)? [s/N]"
+    if ($clearData -match '^[sS]$') {
+        # Garantir que a app e o sidecar nao estao a correr para nao bloquear ficheiros
+        Write-Host "     A fechar processos Nexora e Sidecar..." -ForegroundColor DarkGray
+        Get-Process "Nexora Desktop", "nexora-desktop" -ErrorAction SilentlyContinue | Stop-Process -Force
+        
+        # Tentar matar o sidecar Node.js se estiver solto
+        Get-CimInstance Win32_Process -Filter "name = 'node.exe' AND CommandLine LIKE '%nexora-sidecar%'" -ErrorAction SilentlyContinue | Invoke-CimMethod -MethodName Terminate | Out-Null
+        
+        Start-Sleep -Seconds 1
+
+        $AppData = [System.Environment]::GetFolderPath('ApplicationData')
+        # O Tauri usa o identificador definido em tauri.conf.json (com.nexora.desktop)
+        $DataDir = Join-Path $AppData "com.nexora.desktop"
+        
+        if (Test-Path $DataDir) {
+            Write-Host "     A remover pasta de dados: $DataDir ..." -ForegroundColor DarkGray
+            Remove-Item $DataDir -Recurse -Force
+            nxOk "Dados de utilizador removidos."
+        } else {
+            nxWarn "Pasta de dados nao encontrada: $DataDir"
+        }
+        
+        $TempDir = Join-Path $env:TEMP "nexora-output"
+        if (Test-Path $TempDir) {
+            Remove-Item $TempDir -Recurse -Force
+            nxOk "Ficheiros temporários de saída removidos."
+        }
+    }
+
+    nxOk "Limpeza concluida."
 }
 
 function nxNuclear {
@@ -268,5 +301,12 @@ try {
     Write-Host " `"Este erro ocorreu a correr o Nexora. O ficheiro de log e este: [colar ou arrastar log aqui]`"" -ForegroundColor DarkGray
     Write-Host ""
     nxFail $_
+    
+    # Abrir log automaticamente para facilitar suporte
+    if (Test-Path $LogFile) {
+        Write-Host "  A abrir o ficheiro de log para análise..." -ForegroundColor Gray
+        Start-Sleep -Seconds 1
+        Start-Process $LogFile
+    }
     exit 1
 }

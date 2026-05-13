@@ -451,7 +451,13 @@ if (-not $SkipRelease) {
         # package.json
         if (Test-Path "package.json") {
             $packageJson.version = $newVersion
-            $packageJson | ConvertTo-Json -Depth 20 | Out-File "package.json" -Encoding UTF8
+            $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+            $packageJsonContent = $packageJson | ConvertTo-Json -Depth 20
+            [System.IO.File]::WriteAllText(
+                (Join-Path $WORKSPACE "package.json"),
+                $packageJsonContent,
+                $utf8NoBom
+            )
             Write-Success "package.json -> $newVersion"
         }
 
@@ -460,10 +466,11 @@ if (-not $SkipRelease) {
             $cargoRaw  = Get-Content "src-tauri\Cargo.toml" -Raw
             # Substitui versao na primeira seccao [package] antes de qualquer [dependencies]
             $cargoNew  = $cargoRaw -replace '(?m)(^\[package\][^\[]*?version\s*=\s*")[^"]+(")', "`${1}$newVersion`${2}"
+            $utf8NoBom = New-Object System.Text.UTF8Encoding $false
             [System.IO.File]::WriteAllText(
                 (Join-Path $WORKSPACE "src-tauri\Cargo.toml"),
                 $cargoNew,
-                [System.Text.Encoding]::UTF8
+                $utf8NoBom
             )
             Write-Success "src-tauri\Cargo.toml -> $newVersion"
         } else {
@@ -504,7 +511,7 @@ if (-not $SkipRelease) {
         [System.IO.File]::WriteAllText(
             (Join-Path $WORKSPACE "CHANGELOG.md"),
             $changelog,
-            [System.Text.Encoding]::UTF8
+            $utf8NoBom
         )
 
         # PROGRESS-DESKTOP.md (campo Versao na tabela de estado)
@@ -514,7 +521,7 @@ if (-not $SkipRelease) {
             [System.IO.File]::WriteAllText(
                 (Join-Path $WORKSPACE "PROGRESS-DESKTOP.md"),
                 $progressContent,
-                [System.Text.Encoding]::UTF8
+                $utf8NoBom
             )
         }
 

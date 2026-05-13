@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { open } from '@tauri-apps/plugin-dialog';
+import { open, confirm } from '@tauri-apps/plugin-dialog';
+import { toast } from 'react-hot-toast';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { 
@@ -110,6 +111,30 @@ export default function SettingsPage() {
       }
     } catch (err) {
       console.error('Failed to open dialog', err);
+    }
+  };
+
+  const handleFactoryReset = async () => {
+    const confirmed = await confirm(
+      'Tens a certeza que desejas realizar um RESET TOTAL?\n\n' +
+      'Isto irá apagar ABSOLUTAMENTE TUDO:\n' +
+      '• Toda a biblioteca de assets\n' +
+      '• Histórico de jobs e logs\n' +
+      '• Todos os perfis personalizados\n' +
+      '• Todas as tuas definições (Pasta de Saída, Tema, etc.)\n\n' +
+      'A aplicação será reiniciada automaticamente. Esta ação é irreversível.',
+      { title: 'Nexora Desktop - Factory Reset', kind: 'error' }
+    );
+
+    if (confirmed) {
+      try {
+        toast.loading('A preparar reset total...');
+        await invoke('factory_reset');
+        // A app reinicia, o código abaixo pode nem correr
+      } catch (err) {
+        toast.error('Erro ao realizar reset total');
+        console.error(err);
+      }
     }
   };
 
@@ -396,8 +421,11 @@ export default function SettingsPage() {
         dark
       >
         <div className="grid gap-3">
-          <button className="flex items-center gap-3 w-full p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors text-left text-sm font-medium">
-            <Trash2 className="w-4 h-4" /> Limpar base de dados (Atenção)
+          <button 
+            onClick={handleFactoryReset}
+            className="flex items-center gap-3 w-full p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors text-left text-sm font-medium"
+          >
+            <Trash2 className="w-4 h-4" /> Reset Total (Factory Reset)
           </button>
           <div className="grid grid-cols-2 gap-3">
             <button className="flex items-center justify-center gap-2 p-3 bg-[#1e2433] hover:bg-[#2a3143] text-white rounded-lg transition-colors text-sm font-medium">

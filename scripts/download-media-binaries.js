@@ -279,13 +279,31 @@ async function main() {
     process.exit(1);
   }
 
-  const url  = `${BTBN}/${bundle.file}`;
   const bins = platform === 'win32' ? ['ffmpeg.exe', 'ffprobe.exe'] : ['ffmpeg', 'ffprobe'];
-
   const archivePath = `${tmpBase}.${bundle.type === 'zip' ? 'zip' : 'tar.xz'}`;
   const extractDir  = `${tmpBase}-out`;
 
-  await downloadTo(url, archivePath);
+  const urls = [
+    `${BTBN}/${bundle.file}`,
+    `https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/${bundle.file}`
+  ];
+
+  let lastError;
+  let success = false;
+  for (const url of urls) {
+    try {
+      await downloadTo(url, archivePath);
+      success = true;
+      break;
+    } catch (err) {
+      lastError = err;
+      console.warn(`  ⚠ Falha ao descarregar de ${url}: ${err.message}`);
+    }
+  }
+
+  if (!success) {
+    throw lastError;
+  }
   if (bundle.type === 'zip') {
     await extractZip(archivePath, extractDir);
   } else {
