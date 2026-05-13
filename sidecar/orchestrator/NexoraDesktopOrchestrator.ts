@@ -83,14 +83,32 @@ export class NexoraDesktopOrchestrator {
       // Passo 3 — Audio
       await new AudioWorker().run(ctx, (p) => stepProgress(3, p));
 
-      // Passo 4 — Proxy
-      await new ProxyWorker().run(ctx, (p) => stepProgress(4, p));
+      // Passo 4 — Proxy (não-crítico)
+      try {
+        await new ProxyWorker().run(ctx, (p) => stepProgress(4, p));
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn(`Proxy falhou (não-crítico): ${msg}`);
+        stepProgress(4, 1);
+      }
 
-      // Passo 5 — Thumbnail
-      await new ThumbnailWorker().run(ctx, (p) => stepProgress(5, p));
+      // Passo 5 — Thumbnail (não-crítico)
+      try {
+        await new ThumbnailWorker().run(ctx, (p) => stepProgress(5, p));
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn(`Thumbnail falhou (não-crítico): ${msg}`);
+        stepProgress(5, 1);
+      }
 
-      // Passo 6 — QC Post
-      await new QCPostWorker().run(ctx, (p) => stepProgress(6, p));
+      // Passo 6 — QC Post (não-crítico: VMAF pode não estar disponível)
+      try {
+        await new QCPostWorker().run(ctx, (p) => stepProgress(6, p));
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn(`QC Post falhou (não-crítico): ${msg}`);
+        stepProgress(6, 1);
+      }
 
       // Passo 7 — Delivery
       await new DeliveryWorker().run(ctx, (p) => stepProgress(7, p));

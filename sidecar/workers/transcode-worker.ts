@@ -6,6 +6,7 @@ import { join, extname, basename } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { getAsset, writeAuditLog } from '../db';
 import type { ProgressCallback } from './types';
+import { getFfmpegPath } from '../binaries';
 import { loadProfile } from '../profiles/types';
 import type { TranscodeProfile } from '../profiles/types';
 
@@ -28,7 +29,7 @@ export class TranscodeWorker {
     try {
       const tmpOutput = join(tmpDir, `output${ext}`);
       const args = buildArgs(assetPath, tmpOutput, profile, encoder, asset.fps);
-      const ffmpegPath = process.env['FFMPEG_PATH'] ?? 'ffmpeg';
+      const ffmpegPath = getFfmpegPath();
 
       // Tentar GPU; em caso de falha usar CPU fallback
       try {

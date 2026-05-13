@@ -1,22 +1,35 @@
 import { useState, useEffect } from 'react';
-import { ProcessPage } from '@/pages/ProcessPage';
-import { HistoryPage } from '@/pages/HistoryPage';
-import { SettingsPage } from '@/pages/SettingsPage';
+import { invoke } from '@tauri-apps/api/core';
+import { Toaster } from 'react-hot-toast';
+import { 
+  LayoutDashboard, Library as LibraryIcon, ListVideo, 
+  Settings, Terminal, UserCircle, ShieldCheck, LogOut
+} from 'lucide-react';
+
+import DashboardPage from '@/pages/DashboardPage';
+import LibraryPage from '@/pages/LibraryPage';
+import QueuePage from '@/pages/QueuePage';
+import ProfilesPage from '@/pages/ProfilesPage';
+import SettingsPage from '@/pages/SettingsPage';
+import LogsPage from '@/pages/LogsPage';
+import AssetDetailPage from '@/pages/AssetDetailPage';
+
 import { useSettingsStore } from '@/store/settings';
-import { Rocket, History, Settings, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Tab = 'process' | 'history' | 'settings';
+type Tab = 'dashboard' | 'library' | 'queue' | 'profiles' | 'settings' | 'logs' | 'detail';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('process');
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [appVersion, setAppVersion] = useState('2.0.0');
+  
   const theme = useSettingsStore(state => state.theme);
 
   // Handle theme changes
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
-
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       root.classList.add(systemTheme);
@@ -25,64 +38,143 @@ function App() {
     }
   }, [theme]);
 
-  const tabs = [
-    { id: 'process', label: 'Processar', icon: Rocket },
-    { id: 'history', label: 'Histórico', icon: History },
+  // Load app version
+  useEffect(() => {
+    if (typeof invoke === 'function') {
+      invoke<string>('get_app_version')
+        .then(setAppVersion)
+        .catch(() => setAppVersion('2.0.0'));
+    }
+  }, []);
+
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'library', label: 'Biblioteca', icon: LibraryIcon },
+    { id: 'queue', label: 'Fila', icon: ListVideo },
+    { id: 'profiles', label: 'Perfis', icon: UserCircle },
     { id: 'settings', label: 'Definições', icon: Settings },
   ];
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 flex flex-col transition-colors duration-300">
-      {/* Sidebar / Navbar */}
-      <nav className="fixed bottom-0 left-0 right-0 md:top-0 md:bottom-auto bg-white dark:bg-gray-900 border-t md:border-t-0 md:border-b border-gray-200 dark:border-gray-800 z-50 px-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between h-16">
-          <div className="hidden md:flex items-center gap-2">
-            <div className="bg-nexora-blue p-1.5 rounded-lg">
-              <ShieldCheck className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-lg tracking-tight text-nexora-blue">NEXORA <span className="text-gray-400 dark:text-gray-600 font-light">DESKTOP</span></span>
-          </div>
+  const handleNavigate = (tab: string) => {
+    setActiveTab(tab as Tab);
+    setSelectedAssetId(null);
+  };
 
-          <div className="flex flex-1 md:flex-none justify-around md:justify-end gap-1 md:gap-4">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as Tab)}
-                  className={cn(
-                    "flex flex-col md:flex-row items-center gap-1 md:gap-2 px-4 py-2 rounded-xl transition-all duration-200 relative group",
-                    isActive 
-                      ? "text-nexora-blue md:bg-nexora-blue/10" 
-                      : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                  )}
-                >
-                  <Icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", isActive && "animate-pulse")} />
-                  <span className="text-[10px] md:text-sm font-semibold">{tab.label}</span>
-                  {isActive && (
-                    <span className="absolute -bottom-1 left-4 right-4 h-0.5 bg-nexora-blue rounded-full md:hidden" />
-                  )}
-                </button>
-              );
-            })}
+  const handleSelectAsset = (id: string) => {
+    setSelectedAssetId(id);
+    setActiveTab('detail');
+  };
+
+  return (
+    <div className="flex h-screen bg-[#0a0d14] text-gray-100 overflow-hidden font-sans selection:bg-[#1A6FD4]/30">
+      <Toaster 
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: '#141824',
+            color: '#fff',
+            border: '1px border #1e2433',
+            fontSize: '12px',
+            fontWeight: 'bold'
+          }
+        }}
+      />
+
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-[#0a0d14] border-r border-[#1e2433] flex flex-col shrink-0 z-50">
+        {/* DRAG AREA (Tauri) */}
+        <div data-tauri-drag-region className="h-8 w-full shrink-0"></div>
+
+        {/* LOGO */}
+        <div className="px-6 py-4 flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 bg-[#1A6FD4] rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/40">
+            <ShieldCheck className="text-white" size={24} />
+          </div>
+          <div>
+            <h1 className="text-lg font-black tracking-tighter text-white leading-none">NEXORA</h1>
+            <span className="text-[10px] font-black tracking-[0.2em] text-[#1A6FD4] uppercase">Desktop</span>
           </div>
         </div>
-      </nav>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-8 pt-6 md:pt-24 mb-20 md:mb-0">
-        {activeTab === 'process' && <ProcessPage />}
-        {activeTab === 'history' && <HistoryPage />}
-        {activeTab === 'settings' && <SettingsPage />}
+        {/* MAIN NAV */}
+        <nav className="flex-1 px-4 space-y-2">
+          {navItems.map(item => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id || (item.id === 'library' && activeTab === 'detail');
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNavigate(item.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative",
+                  isActive 
+                    ? "bg-[#1A6FD4]/10 text-white font-bold" 
+                    : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                )}
+              >
+                <Icon size={20} className={cn("transition-transform", isActive ? "text-[#1A6FD4]" : "group-hover:scale-110")} />
+                <span className="text-sm">{item.label}</span>
+                {isActive && (
+                  <div className="absolute left-0 w-1 h-6 bg-[#1A6FD4] rounded-r-full"></div>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* BOTTOM NAV */}
+        <div className="p-4 space-y-2 border-t border-[#1e2433]">
+          <button
+            onClick={() => setActiveTab('logs')}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200",
+              activeTab === 'logs' ? "bg-white/10 text-white" : "text-gray-500 hover:text-gray-300"
+            )}
+          >
+            <Terminal size={18} />
+            <span className="text-xs font-bold uppercase tracking-widest">Registos</span>
+          </button>
+          
+          <div className="px-4 py-2 flex flex-col">
+            <span className="text-[9px] font-black text-gray-700 uppercase tracking-[0.3em]">Ambiente</span>
+            <span className="text-[10px] font-bold text-[#1A6FD4] uppercase">Produção v{appVersion}</span>
+          </div>
+
+          <button
+            onClick={() => invoke('exit_app')}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 mt-4 border border-red-500/10"
+          >
+            <LogOut size={18} />
+            <span className="text-xs font-bold uppercase tracking-widest">Sair do Programa</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 flex flex-col min-w-0 bg-[#0a0d14] relative">
+        {/* DRAG AREA (Tauri) */}
+        <div data-tauri-drag-region className="h-8 w-full shrink-0 absolute top-0 left-0 z-40"></div>
+
+        <div className="flex-1 overflow-y-auto p-8 pt-12 custom-scrollbar">
+          {activeTab === 'dashboard' && (
+            <DashboardPage 
+              onNavigate={handleNavigate} 
+              onSelectAsset={handleSelectAsset} 
+            />
+          )}
+          {activeTab === 'library' && <LibraryPage />}
+          {activeTab === 'queue' && <QueuePage />}
+          {activeTab === 'profiles' && <ProfilesPage />}
+          {activeTab === 'settings' && <SettingsPage />}
+          {activeTab === 'logs' && <LogsPage />}
+          {activeTab === 'detail' && selectedAssetId && (
+            <AssetDetailPage 
+              assetId={selectedAssetId} 
+              onBack={() => setActiveTab('library')} 
+            />
+          )}
+        </div>
       </main>
-
-      {/* Footer (Desktop) */}
-      <footer className="hidden md:block py-4 border-t border-gray-200 dark:border-gray-800 text-center">
-         <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
-           Nexora Media Processing • Versão Desktop 0.2.0 • 2026
-         </p>
-      </footer>
     </div>
   );
 }

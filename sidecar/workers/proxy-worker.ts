@@ -6,6 +6,7 @@ import { join, basename, extname } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { getAsset, writeAuditLog } from '../db';
 import type { ProgressCallback } from './types';
+import { getFfmpegPath } from '../binaries';
 
 const execFileAsync = promisify(execFile);
 
@@ -21,7 +22,7 @@ export class ProxyWorker {
 
     try {
       const tmpOutput = join(tmpDir, `proxy${ext}`);
-      const ffmpegPath = process.env['FFMPEG_PATH'] ?? 'ffmpeg';
+      const ffmpegPath = getFfmpegPath();
 
       const fps = asset.fps ?? 25;
       const gop = Math.round(fps * 2);

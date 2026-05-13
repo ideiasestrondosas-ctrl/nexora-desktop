@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { createReadStream } from 'fs';
 import { createHash } from 'crypto';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
+import { getFfprobePath } from '../binaries';
 import { updateAssetFields, writeAuditLog } from '../db';
 
 const execFileAsync = promisify(execFile);
@@ -52,7 +53,7 @@ async function computeSHA256(filePath: string): Promise<string> {
 }
 
 async function extractMetadata(filePath: string): Promise<StreamMetadata> {
-  const ffprobePath = process.env['FFPROBE_PATH'] ?? 'ffprobe';
+    const ffprobePath = getFfprobePath();
   try {
     const { stdout } = await execFileAsync(
       ffprobePath,

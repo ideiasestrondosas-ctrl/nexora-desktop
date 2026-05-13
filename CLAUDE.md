@@ -68,6 +68,7 @@ claude
 ```
 1. Lê `PROGRESS-DESKTOP.md`
 2. Lê `SYNC-STATE.md`
+3. **Aprovação de Plano**: Após gerar um plano, **PARA** e aguarda aprovação explícita ("Pode prosseguir").
 
 ### Fim
 1. Actualiza `PROGRESS-DESKTOP.md`

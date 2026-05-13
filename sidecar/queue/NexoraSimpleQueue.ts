@@ -43,7 +43,6 @@ export class NexoraSimpleQueue {
 
       const slots = MAX_CONCURRENT - runningCount;
       const jobs = getQueuedJobs(slots);
-
       for (const job of jobs) {
         const asset = getAsset(job.asset_id);
         if (!asset) {

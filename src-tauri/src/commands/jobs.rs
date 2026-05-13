@@ -108,7 +108,7 @@ pub fn cancel_job(id: String, state: State<AppState>) -> Result<bool, String> {
     let rows = db
         .execute(
             "UPDATE jobs SET status = 'cancelled', updated_at = ?1
-             WHERE id = ?2 AND status IN ('queued', 'running')",
+             WHERE id = ?2 AND status IN ('queued', 'processing')",
             rusqlite::params![now, id],
         )
         .map_err(|e| e.to_string())?;
@@ -124,6 +124,56 @@ pub fn get_job_status(id: String, state: State<AppState>) -> Result<Option<Job>,
         Some(&id),
     )?;
     Ok(jobs.pop())
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueueStats {
+    pub queued: i64,
+    pub processing: i64,
+    pub done_today: i64,
+    pub error_today: i64,
+}
+
+#[tauri::command]
+pub fn get_queue_stats(state: State<AppState>) -> Result<QueueStats, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let queued: i64 = db
+        .query_row("SELECT COUNT(*) FROM jobs WHERE status='queued'", [], |r| r.get(0))
+        .unwrap_or(0);
+    let processing: i64 = db
+        .query_row("SELECT COUNT(*) FROM jobs WHERE status='processing'", [], |r| r.get(0))
+        .unwrap_or(0);
+    let done_today: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE status='done' AND date(finished_at)=date('now')",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap_or(0);
+    let error_today: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE status='error' AND date(updated_at)=date('now')",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap_or(0);
+    Ok(QueueStats { queued, processing, done_today, error_today })
+}
+
+#[tauri::command]
+pub fn retry_job(id: String, state: State<AppState>) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let now = Utc::now().to_rfc3339();
+    let rows = db
+        .execute(
+            "UPDATE jobs SET status='queued', progress=0.0, step=NULL, error=NULL,
+             started_at=NULL, finished_at=NULL, updated_at=?1
+             WHERE id=?2 AND status IN ('error','cancelled')",
+            rusqlite::params![now, id],
+        )
+        .map_err(|e| e.to_string())?;
+    Ok(rows > 0)
 }
 
 #[tauri::command]

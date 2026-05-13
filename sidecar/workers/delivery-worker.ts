@@ -15,9 +15,11 @@ export class DeliveryWorker {
 
     onProgress(0.1);
 
-    // Destino configurado nas settings (output_dir); fallback para outputDir do job
-    const configuredDir = getSetting('output_dir');
-    const deliveryDir = configuredDir ?? ctx.outputDir;
+    // Prioridade: output_dir_{profile} > output_dir global > outputDir do job
+    // || null converte string vazia (default das settings) para null, activando o fallback
+    const profileDir = getSetting(`output_dir_${ctx.profile}`) || null;
+    const globalDir = getSetting('output_dir') || null;
+    const deliveryDir = profileDir ?? globalDir ?? ctx.outputDir;
 
     await mkdir(deliveryDir, { recursive: true });
 

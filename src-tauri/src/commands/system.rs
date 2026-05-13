@@ -1,5 +1,49 @@
+use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+use tauri::{Manager, State};
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstalledInfo {
+    pub app_version: String,
+    pub ffmpeg_version: Option<String>,
+    pub node_version: Option<String>,
+    pub gpu: GpuInfo,
+    pub db_path: String,
+}
+
+#[tauri::command]
+pub fn get_installed_info(app: tauri::AppHandle) -> InstalledInfo {
+    let ffmpeg_version = Command::new("ffmpeg")
+        .arg("-version")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .and_then(|s| s.lines().next().map(|l| l.trim().to_string()));
+
+    let node_version = Command::new("node")
+        .arg("--version")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string());
+
+    let db_path = app
+        .path()
+        .app_data_dir()
+        .ok()
+        .map(|p| p.join("nexora.db").to_string_lossy().into_owned())
+        .unwrap_or_default();
+
+    InstalledInfo {
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        ffmpeg_version,
+        node_version,
+        gpu: detect_gpu(),
+        db_path,
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GpuInfo {
@@ -130,4 +174,180 @@ fn disk_space_impl(path: String) -> Result<DiskSpace, String> {
 #[tauri::command]
 pub fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+#[tauri::command]
+pub fn get_changelog() -> String {
+    include_str!("../../../CHANGELOG.md").to_string()
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppStats {
+    pub total_assets: i64,
+    pub jobs_today: i64,
+    pub avg_vmaf: Option<f64>,
+    pub active_jobs: i64,
+    pub disk_free_bytes: Option<u64>,
+    pub disk_total_bytes: Option<u64>,
+}
+
+#[tauri::command]
+pub fn get_stats(
+    state: State<'_, AppState>,
+    app: tauri::AppHandle,
+) -> Result<AppStats, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+
+    let total_assets: i64 = db
+        .query_row("SELECT COUNT(*) FROM assets", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
+
+    let jobs_today: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE date(created_at) = date('now')",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    let avg_vmaf: Option<f64> = db
+        .query_row(
+            "SELECT AVG(vmaf_score) FROM jobs WHERE vmaf_score IS NOT NULL",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    let active_jobs: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE status IN ('queued', 'processing')",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    let (disk_free_bytes, disk_total_bytes) = app
+        .path()
+        .app_data_dir()
+        .ok()
+        .and_then(|p| p.to_str().map(str::to_string))
+        .and_then(|path| disk_space_impl(path).ok())
+        .map(|d| (Some(d.free_bytes), Some(d.total_bytes)))
+        .unwrap_or((None, None));
+
+    Ok(AppStats {
+        total_assets,
+        jobs_today,
+        avg_vmaf,
+        active_jobs,
+        disk_free_bytes,
+        disk_total_bytes,
+    })
+}
+
+#[tauri::command]
+pub fn exit_app(app: tauri::AppHandle) {
+    app.exit(0);
+}
+
+#[tauri::command]
+pub async fn factory_reset(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    // 1. Matar sidecar se estiver a correr
+    let pid = {
+        let pid_lock = state.sidecar_pid.lock().unwrap();
+        *pid_lock
+    };
+
+    if let Some(p) = pid {
+        #[cfg(target_os = "windows")]
+        let _ = Command::new("taskkill")
+            .args(["/F", "/PID", &p.to_string()])
+            .status();
+        
+        #[cfg(not(target_os = "windows"))]
+        let _ = Command::new("kill")
+            .arg("-9")
+            .arg(p.to_string())
+            .status();
+    }
+
+    // 2. Limpar ficheiros gerados pela aplicação (transcodes, proxies, thumbnails)
+    {
+        if let Ok(db) = state.db.lock() {
+            // Obter todos os caminhos de ficheiros de saída registados nos jobs
+            if let Ok(mut stmt) = db.prepare("SELECT output_path FROM jobs WHERE output_path IS NOT NULL") {
+                if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+                    for path in paths.flatten() {
+                        let _ = std::fs::remove_file(path);
+                    }
+                }
+            }
+            // Obter caminhos do audit_log (thumbnails e proxies que não estão na tabela jobs)
+            if let Ok(mut stmt) = db.prepare("SELECT data FROM audit_log WHERE event IN ('delivery:completed', 'thumbnail:completed', 'proxy:completed')") {
+                if let Ok(rows) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+                    for json_str in rows.flatten() {
+                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
+                            // Tentar apagar campos comuns de caminhos
+                            for key in ["destination", "thumbnailPath", "proxyPath", "thumbPath", "finalPath"] {
+                                if let Some(p) = json.get(key).and_then(|v| v.as_str()) {
+                                    let _ = std::fs::remove_file(p);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3. Limpar a BD por dentro (DELETE)
+            let _ = db.execute("PRAGMA foreign_keys = OFF", []);
+            let _ = db.execute("DELETE FROM jobs", []);
+            let _ = db.execute("DELETE FROM assets", []);
+            let _ = db.execute("DELETE FROM logs", []);
+            let _ = db.execute("DELETE FROM audit_log", []);
+            let _ = db.execute("DELETE FROM settings", []);
+            let _ = db.execute("DELETE FROM profiles WHERE is_system = 0", []);
+            let _ = db.execute("PRAGMA foreign_keys = ON", []);
+            let _ = db.execute("VACUUM", []);
+        }
+    }
+
+    // 4. Libertar estado (fechar Mutex/Conexão)
+    drop(state); 
+
+    // 5. Tentar apagar ficheiros físicos do sistema (AppData)
+    if let Ok(data_dir) = app.path().app_data_dir() {
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+        if data_dir.exists() {
+            if let Ok(entries) = std::fs::read_dir(&data_dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_file() {
+                        let name = path.file_name().unwrap_or_default().to_string_lossy();
+                        if !name.starts_with("nexora.db") {
+                            let _ = std::fs::remove_file(&path);
+                        }
+                    } else if path.is_dir() {
+                        let _ = std::fs::remove_dir_all(&path);
+                    }
+                }
+            }
+        }
+    }
+
+    // 6. Limpar pasta temporária do sidecar se existir
+    let temp_dir = std::env::temp_dir().join("nexora-output");
+    if temp_dir.exists() {
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+
+    // 7. Reiniciar a aplicação
+    app.restart();
+    
+    #[allow(unreachable_code)]
+    Ok(())
 }

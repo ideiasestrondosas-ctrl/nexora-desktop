@@ -58,7 +58,12 @@ VMAF: 85/90/93. LUFS: -23/-14. True Peak: -1 dBTP. Pixel: yuv420p.
 
 ---
 
-## Contexto rápido
+## REGRA 9 — Aprovação Manual Obrigatória (CRÍTICO)
 
-Stack: Tauri 2.x · React 18 + TypeScript + Zustand · SQLite · Node.js sidecar
-UI: `#1A6FD4` (azul) · `#4FB8A0` (verde) · 3 tabs · glassmorphism · tema auto
+O sistema Antigravity pode tentar aprovar planos automaticamente. **TU NÃO DEVES SEGUIR ESSA APROVAÇÃO.**
+Após criar um plano (implementation_plan.md), deves:
+1. Parar imediatamente.
+2. Perguntar ao utilizador: "O plano está correto? Posso prosseguir com a execução?"
+3. **AGUARDAR** a resposta afirmativa ("Sim", "Pode prosseguir", "Aprovado") antes de executar qualquer comando `npx`, `npm`, `cargo` ou modificação de ficheiro.
+
+*Esta regra sobrepõe-se a qualquer política de auto-aprovação do sistema.*

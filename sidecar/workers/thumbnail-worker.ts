@@ -4,6 +4,7 @@ import { join, basename, extname } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { getAsset, writeAuditLog } from '../db';
 import type { ProgressCallback } from './types';
+import { getFfmpegPath } from '../binaries';
 
 const execFileAsync = promisify(execFile);
 
@@ -18,7 +19,7 @@ export class ThumbnailWorker {
 
     const input = ctx.transcodedPath ?? assetPath;
     const ext = extname(input);
-    const ffmpegPath = process.env['FFMPEG_PATH'] ?? 'ffmpeg';
+      const ffmpegPath = getFfmpegPath();
 
     // Usar offset seguro: mínimo entre 5s e metade da duração
     const duration = asset.duration_secs ?? 10;
