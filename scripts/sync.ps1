@@ -589,11 +589,27 @@ if ($LASTEXITCODE -eq 0) {
             Pop-Location; exit 1
         }
 
-        git merge $devBranch --ff-only 2>&1
+        # Sincronizar com origin/main (que pode ter history reescrito)
+        git fetch origin main 2>&1 | Out-Null
+        git reset --hard origin/main 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) {
-            Write-Warn "Fast-forward falhou -- a tentar merge normal..."
-            git merge $devBranch -m "chore(release): merge $devBranch -> main v$newVersion" 2>&1
+            Write-Err "Nao foi possivel sincronizar com origin/main"
+            git checkout $devBranch 2>&1 | Out-Null
+            Pop-Location; exit 1
         }
+
+        # Squash merge: aplica todas as mudancas da dev como um patch unico
+        # Isto preserva o history limpo da main e evita conflitos de history reescrito
+        git merge --squash $devBranch 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Err "Merge squash falhou. Possiveis conflitos de ficheiros."
+            Write-Info "Resolva manualmente: git checkout main && git merge --squash dev"
+            git checkout $devBranch 2>&1 | Out-Null
+            Pop-Location; exit 1
+        }
+
+        # Commit de release
+        git commit -m "chore(release): v$newVersion" --no-verify 2>&1 | Out-Null
 
         if ($script:GITHUB_TOKEN) {
             git push -u "$authenticatedUrl" main --tags 2>&1
@@ -604,7 +620,7 @@ if ($LASTEXITCODE -eq 0) {
         if ($LASTEXITCODE -eq 0) {
             Write-Success "main actualizado com v$newVersion!"
         } else {
-            Write-Err "Push para main falhou -- faz manualmente: git checkout main && git merge $devBranch && git push origin main"
+            Write-Err "Push para main falhou"
         }
 
         # Voltar para dev
