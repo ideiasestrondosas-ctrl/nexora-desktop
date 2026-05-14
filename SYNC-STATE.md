@@ -5,72 +5,48 @@
 
 ---
 
-Actualizado: 2026-05-14 07:15
+Actualizado: 2026-05-14 07:35
 Agente: Claude Code (Kimi K2.6)
 
 ## O que foi feito
 
-### Sessao Actual — Plano V2: Correcções UI/UX Pós-Teste — CONCLUIDO
+### Sessao Actual — Hotfix: Tab Sistema em Branco + Versão Centralizada — CONCLUIDO
 
-**1. Settings > Tab Interface — Conteúdo Recuperado**
+**1. Tab Sistema — Ecrã em Branco Corrigido**
 - **src/pages/SettingsPage.tsx**:
-  - Adicionado tab `interface` com controles de **Tema** (botões Sistema / Claro / Escuro) e **Idioma** (dropdown pt/en)
-  - Integrado com `settingsStore.theme` e `handleUpdateSetting('theme'/'language')`
-
-**2. Settings > Tab Sistema — Timeout + Rust Simplificado**
-- **src/pages/SettingsPage.tsx**:
-  - Timeout de 5s no frontend para `get_system_info` — evita spinner infinito
-  - Mensagem "Timeout ao carregar informação do sistema (>5s)" se exceder
+  - Race condition do timeout corrigida via `useRef` (`systemTimedOut`) — evita que o timeout sobreponha o sucesso
+  - Tab Sistema agora mostra conteúdo **SEMPRE**, mesmo com erro — nunca fica vazia
+  - Dados mostram "N/A" como fallback quando `systemInfo` é null
+  - Botão "Tentar novamente" reutiliza a mesma lógica defensiva
 - **src-tauri/src/commands/system.rs**:
-  - `get_system_info`: `System::new_all()` → `System::new()` + `refresh_cpu_all()` + `refresh_memory()`
-  - Removido `Networks::new_with_refreshed_list()` que bloqueava em alguns sistemas
-  - `network_interfaces` devolve array vazio como fallback seguro
+  - `get_system_info` completamente reescrito — **não usa `sysinfo` para CPU/rede**
+  - CPU: `num_cpus` crate (instantâneo, nunca bloqueia)
+  - Memória: `sysinfo` apenas com `RefreshKind::new().with_memory(...)` — mínimo possível
+  - Rede: devolve `vec![]` (desactivada — `Networks::new_with_refreshed_list()` bloqueava)
+  - Disco: reutiliza `get_disk_space` (já testado, rápido)
+- **src-tauri/Cargo.toml**: Adicionada dependência `num_cpus = "1"`
 
-**3. Settings > Tab Sobre — Versão Fallback Corrigida**
+**2. Tab Sobre — Versão Centralizada + Histórico Dinâmico**
+- **src/lib/version.ts (NOVO)**:
+  - `APP_VERSION = '0.16.0'` — ponto único de verdade
+  - `VERSION_HISTORY` — array tipado com todas as versões e descrições
+  - Actualizar aqui propaga automaticamente para toda a UI
 - **src/pages/SettingsPage.tsx**:
-  - `v{installedInfo?.app_version || '0.13.0'}` → `v{installedInfo?.app_version ?? '...'}`
-  - Elimina versão hardcoded incorreta quando `installedInfo` é null
+  - Badge de versão: `installedInfo?.app_version ?? APP_VERSION` — nunca mostra "..."
+  - Indicador "(offline)" se `get_installed_info` falhar
+  - Histórico de versões: renderizado a partir de `VERSION_HISTORY` em vez de hardcoded
+  - Primeira entrada destacada a azul (`text-[#1A6FD4]`), resto a cinza
+  - `installedError` state adicionado para mostrar falhas de `get_installed_info`
 
-**4. TopBar — Aumento de Fontes e Widgets**
-- **src/components/TopBar.tsx**:
-  - Altura: `h-14` → `h-16`
-  - Título: `text-sm` → `text-base`
-  - Descrição: `text-[10px]` → `text-xs`
-  - Gauges: `w-10 h-10` → `w-12 h-12`, ícones `size={14}` → `size={16}`
-  - Labels de gauge: `text-[9px]` → `text-[10px]`
-  - Botão Sair: `size={18}` → `size={20}`, padding `p-2` → `p-2.5`
-
-**5. PipelineSummary — Estados Globais no Header**
-- **src/components/PipelineSummary.tsx**:
-  - Adicionado header com badges globais: **Em fila**, **A processar** (com pulse), **Concluídos**
-  - Valores calculados a partir do array `jobs` (filtrados por status)
-  - Layout em `flex flex-wrap gap-3` acima das fases individuais
-
-**6. QueuePage — Header Redundante Removido**
-- **src/pages/QueuePage.tsx**:
-  - Removido `<h1>Fila de Processamento</h1>` e badges globais (Em fila / A processar / Concluídos)
-  - Mantidos apenas badges de Quarentena e Erros quando >0
-  - PipelineSummary já mostra os estados globais
-
-**7. ProfilesPage — Dropdown + Vista Detalhe**
-- **src/pages/ProfilesPage.tsx** (reescrito):
-  - Dropdown no topo com grupos: **Pré-definidos** (system) e **Personalizados** (custom)
-  - Indicador visual: cadeado para system, checkmark para custom
-  - Vista detalhe do perfil seleccionado com cards de Vídeo / Áudio / Qualidade
-  - Acções no topo: **Criar** (sempre), **Editar** / **Duplicar** / **Apagar** (só para custom)
-  - Botão **Duplicar** disponível também para presets system
-  - Sidebar de edição mantida com validação de system vs custom
-
-**8. LibraryPage — Header Redundante Removido**
-- **src/pages/LibraryPage.tsx**:
-  - Removido cabeçalho com `<h1>Biblioteca</h1>` e botão "Adicionar Vídeos" no topo
-  - Mantidos: filters bar, drag-and-drop zone, empty state com botão, grid/list view
+**3. Error Handling Geral**
+- `get_installed_info` agora tem `.catch()` visível (antes tinha só `console.error`)
+- `get_system_info` retry reutiliza a mesma lógica de timeout defensiva
 
 ---
 
 ## Estado de compilacao
 
-- `cargo check`: **OK** (0 erros)
+- `cargo check`: **OK** (0 erros, 1 warning `mut` desnecessário corrigido)
 - `tsc --noEmit`: **OK** (0 erros)
 - `vitest run`: **OK** (25/25 tests passaram)
 
@@ -90,14 +66,13 @@ Agente: Claude Code (Kimi K2.6)
 ## Ficheiros modificados (sessao actual)
 
 ```
+NOVOS:
+src/lib/version.ts
+
 MODIFICADOS:
-src/components/TopBar.tsx
-src/components/PipelineSummary.tsx
 src/pages/SettingsPage.tsx
-src/pages/QueuePage.tsx
-src/pages/ProfilesPage.tsx
-src/pages/LibraryPage.tsx
 src-tauri/src/commands/system.rs
+src-tauri/Cargo.toml
 SYNC-STATE.md
 ```
 
@@ -105,8 +80,6 @@ SYNC-STATE.md
 
 ## Notas tecnicas para o proximo agente
 
-- **Tab Interface**: Tema e idioma são guardados em settingsStore mas o tema ainda não aplica CSS vars (apenas guarda valor). Light/Dark real é tarefa do Plano 3.
-- **Tab Sistema**: O timeout de 5s no frontend + simplificação Rust resolve o ecrã em branco. Se `get_system_info` continuar lento, considerar cache no Rust.
-- **PipelineSummary**: Os estados globais são calculados inline; se o array `jobs` for grande (>1000), considerar memoização com `useMemo`.
-- **ProfilesPage**: O dropdown usa estado local (`dropdownOpen`) com overlay fixed. O perfil seleccionado é guardado em `selectedProfileId`.
-- **QueuePage**: Remover o header foi seguro porque o TopBar já mostra "Fila de Processamento" e o PipelineSummary mostra os contadores globais.
+- **Tab Sistema**: A versão anterior usava `sysinfo::System::new()` + `refresh_cpu_all()` que ainda bloqueava em alguns sistemas Windows. A nova versão usa `num_cpus` para CPU (instantâneo) e `sysinfo` apenas para memória. Se continuar a haver problemas, remover também `sysinfo` da memória e devolver `0.0`.
+- **version.ts**: Este é o único sítio onde a versão da app é definida. `APP_VERSION` é usado como fallback no Sobre; `VERSION_HISTORY` é usado para o histórico. O Rust `env!("CARGO_PKG_VERSION")` devolve a versão do `Cargo.toml` — garantir que ambos estão sincronizados em cada release.
+- **Tab Sistema retry**: O botão "Tentar novamente" cria um novo timer e reseta `systemTimedOut.current = false`. Se o utilizador clicar múltiplas vezes rápido, timers antigos podem ficar órfãos — não é crítico mas pode causar state inconsistente em cenários extremos.

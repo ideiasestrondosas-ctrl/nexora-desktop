@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open, confirm } from '@tauri-apps/plugin-dialog';
 import { toast } from 'react-hot-toast';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { check } from '@tauri-apps/plugin-updater';
+import { APP_VERSION, VERSION_HISTORY } from '@/lib/version';
 import {
   FolderOpen, Monitor, Palette, Cpu,
   Trash2, Upload, Shield, Globe, Download,
@@ -82,6 +83,7 @@ export default function SettingsPage() {
   });
 
   const [installedInfo, setInstalledInfo] = useState<InstalledInfo | null>(null);
+  const [installedError, setInstalledError] = useState<string | null>(null);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [systemError, setSystemError] = useState<string | null>(null);
   const [systemLoading, setSystemLoading] = useState(true);
@@ -90,6 +92,8 @@ export default function SettingsPage() {
   const [changelog, setChangelog] = useState<string>('');
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [isDev, setIsDev] = useState(false);
+
+  const systemTimedOut = useRef(false);
 
   useEffect(() => {
     invoke<Record<string, string>>('get_settings')
@@ -109,26 +113,42 @@ export default function SettingsPage() {
       })
       .catch(() => {});
 
-    invoke<InstalledInfo>('get_installed_info').then(setInstalledInfo).catch(console.error);
+    // get_installed_info — com error handling visível
+    invoke<InstalledInfo>('get_installed_info')
+      .then(setInstalledInfo)
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Erro ao carregar info instalada';
+        console.error('get_installed_info failed:', msg);
+        setInstalledError(msg);
+      });
+
     invoke<string>('get_changelog').then(setChangelog).catch(() => setChangelog('Sem registos de alterações disponíveis.'));
 
-    // Novos comandos — com error handling visível e timeout de 5s
+    // get_system_info — com timeout defensivo (race condition corrigida via ref)
     setSystemLoading(true);
     setSystemError(null);
+    systemTimedOut.current = false;
     const systemTimeout = setTimeout(() => {
+      systemTimedOut.current = true;
       setSystemLoading(false);
       setSystemError('Timeout ao carregar informação do sistema (>5s)');
     }, 5000);
     invoke<SystemInfo>('get_system_info')
-      .then(setSystemInfo)
-      .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Erro desconhecido ao carregar informação do sistema';
-        console.error('get_system_info failed:', msg);
-        setSystemError(msg);
+      .then(data => {
+        if (!systemTimedOut.current) {
+          clearTimeout(systemTimeout);
+          setSystemInfo(data);
+          setSystemLoading(false);
+        }
       })
-      .finally(() => {
-        clearTimeout(systemTimeout);
-        setSystemLoading(false);
+      .catch((err: unknown) => {
+        if (!systemTimedOut.current) {
+          clearTimeout(systemTimeout);
+          const msg = err instanceof Error ? err.message : 'Erro desconhecido ao carregar informação do sistema';
+          console.error('get_system_info failed:', msg);
+          setSystemError(msg);
+          setSystemLoading(false);
+        }
       });
 
     invoke<DbInfo>('get_db_info').then(setDbInfo).catch(() => {});
@@ -471,24 +491,40 @@ export default function SettingsPage() {
             </div>
           )}
 
+          {/* ERRO — mostra card de erro MAS também os dados que temos */}
           {!systemLoading && systemError && (
             <div className="rounded-xl border border-red-500/30 p-6 bg-red-500/5">
               <div className="flex items-start gap-3">
                 <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-bold text-red-500 mb-1">Erro ao carregar informação do sistema</p>
                   <p className="text-xs text-gray-400 font-mono mb-4">{systemError}</p>
                   <button
                     onClick={() => {
                       setSystemLoading(true);
                       setSystemError(null);
+                      systemTimedOut.current = false;
+                      const timer = setTimeout(() => {
+                        systemTimedOut.current = true;
+                        setSystemLoading(false);
+                        setSystemError('Timeout ao carregar informação do sistema (>5s)');
+                      }, 5000);
                       invoke<SystemInfo>('get_system_info')
-                        .then(setSystemInfo)
-                        .catch((err: unknown) => {
-                          const msg = err instanceof Error ? err.message : 'Erro desconhecido';
-                          setSystemError(msg);
+                        .then(data => {
+                          if (!systemTimedOut.current) {
+                            clearTimeout(timer);
+                            setSystemInfo(data);
+                            setSystemLoading(false);
+                          }
                         })
-                        .finally(() => setSystemLoading(false));
+                        .catch((err: unknown) => {
+                          if (!systemTimedOut.current) {
+                            clearTimeout(timer);
+                            const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+                            setSystemError(msg);
+                            setSystemLoading(false);
+                          }
+                        });
                     }}
                     className="px-3 py-1.5 bg-[#1A6FD4] hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition-colors"
                   >
@@ -499,7 +535,8 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {!systemLoading && !systemError && (
+          {/* CONTEÚDO — mostra SEMPRE, mesmo com systemInfo null (usa defaults) */}
+          {!systemLoading && (
             <>
               <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
                 <SectionTitle>Informação do Sistema</SectionTitle>
@@ -508,14 +545,14 @@ export default function SettingsPage() {
                     <Terminal size={16} className="text-[#1A6FD4] shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <p className="text-gray-500">Sistema Operativo</p>
-                      <p className="text-white font-bold">{systemInfo?.os_name ?? '—'} {systemInfo?.os_version ?? ''}</p>
+                      <p className="text-white font-bold">{systemInfo?.os_name ?? 'N/A'} {systemInfo?.os_version ?? ''}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 bg-[#0a0d14] rounded-lg border border-[#1e2433]">
                     <Cpu size={16} className="text-[#1A6FD4] shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <p className="text-gray-500">Processador</p>
-                      <p className="text-white font-bold">{systemInfo?.cpu_model ?? '—'}</p>
+                      <p className="text-white font-bold">{systemInfo?.cpu_model ?? 'N/A'}</p>
                       <p className="text-gray-400">{systemInfo?.cpu_cores ?? '—'} cores / {systemInfo?.cpu_threads ?? '—'} threads</p>
                     </div>
                   </div>
@@ -531,7 +568,7 @@ export default function SettingsPage() {
                     <HardDrive size={16} className="text-yellow-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <p className="text-gray-500">Disco Principal</p>
-                      <p className="text-white font-bold">{systemInfo?.disk_type ?? '—'}</p>
+                      <p className="text-white font-bold">{systemInfo?.disk_type ?? 'N/A'}</p>
                       <p className="text-gray-400">{systemInfo?.disk_total_gb?.toFixed(0) ?? '—'} GB total / {systemInfo?.disk_free_gb?.toFixed(0) ?? '—'} GB livre</p>
                     </div>
                   </div>
@@ -547,9 +584,13 @@ export default function SettingsPage() {
                     <Network size={16} className="text-teal-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <p className="text-gray-500">Rede</p>
-                      {systemInfo?.network_interfaces?.map((ni, i) => (
-                        <p key={i} className="text-white font-bold">{ni.name} <span className="text-gray-400 font-normal">({ni.status})</span></p>
-                      )) ?? <p className="text-white font-bold">—</p>}
+                      {systemInfo?.network_interfaces && systemInfo.network_interfaces.length > 0 ? (
+                        systemInfo.network_interfaces.map((ni, i) => (
+                          <p key={i} className="text-white font-bold">{ni.name} <span className="text-gray-400 font-normal">({ni.status})</span></p>
+                        ))
+                      ) : (
+                        <p className="text-gray-400">Nenhuma informação disponível</p>
+                      )}
                       {systemInfo?.wifi_ssid && <p className="text-gray-400"><Wifi size={10} className="inline mr-1" />SSID: {systemInfo.wifi_ssid}</p>}
                     </div>
                   </div>
@@ -653,7 +694,8 @@ export default function SettingsPage() {
                 <h3 className="text-xl font-bold text-white">Nexora Media Processing</h3>
                 <p className="text-gray-400 text-sm">Desktop Edition — Native Multiplatform</p>
                 <div className="inline-block mt-1 px-2 py-0.5 bg-[#1e2433] text-xs font-mono rounded text-gray-300">
-                  v{installedInfo?.app_version ?? '...'}
+                  v{installedInfo?.app_version ?? APP_VERSION}
+                  {installedError && <span className="ml-2 text-red-400" title={installedError}>(offline)</span>}
                 </div>
               </div>
             </div>
@@ -684,22 +726,14 @@ export default function SettingsPage() {
           <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
             <SectionTitle>Histórico de Versões</SectionTitle>
             <div className="space-y-3 text-xs text-gray-400">
-              <div className="flex gap-3">
-                <span className="text-[#1A6FD4] font-bold shrink-0">v0.13.0</span>
-                <span>Pipeline completo com 8 passos, FFmpeg bundled, GPU auto-detect, top bar com métricas circulares, definições por tabs, aprovação de quarentena, VMAF ativo.</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-gray-500 font-bold shrink-0">v0.12.0</span>
-                <span>Factory reset, system tray, sidecar Node.js, SQLite schema completo, logs estruturados.</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-gray-500 font-bold shrink-0">v0.11.0</span>
-                <span>Frontend React 19, Zustand, Tailwind v4, drag-and-drop, tema claro/escuro.</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-gray-500 font-bold shrink-0">v0.10.0</span>
-                <span>Tauri 2.x setup, IPC commands, auto-updater config, CI/CD GitHub Actions.</span>
-              </div>
+              {VERSION_HISTORY.map((entry, idx) => (
+                <div key={entry.version} className="flex gap-3">
+                  <span className={idx === 0 ? 'text-[#1A6FD4] font-bold shrink-0' : 'text-gray-500 font-bold shrink-0'}>
+                    v{entry.version}
+                  </span>
+                  <span>{entry.description}</span>
+                </div>
+              ))}
             </div>
           </section>
         </div>

@@ -209,22 +209,27 @@ pub struct NetworkInterface {
 
 #[tauri::command]
 pub fn get_system_info(app: tauri::AppHandle) -> Result<SystemInfo, String> {
-    use sysinfo::System;
-    // Usar System::new() em vez de new_all() para evitar bloqueios em alguns sistemas
-    let mut sys = System::new();
-    sys.refresh_cpu_all();
-    sys.refresh_memory();
+    // ── Sistema Operativo (std, instantâneo) ─────────────────────────────────
+    let os_name = format!("{} {}", std::env::consts::OS, std::env::consts::ARCH);
+    let os_version = "Desconhecido".to_string();
 
-    let cpu_model = sys.cpus().first()
-        .map(|c| c.brand().to_string())
-        .unwrap_or_else(|| "Desconhecido".to_string());
-    let cpu_cores = sys.physical_core_count().unwrap_or(1);
-    let cpu_threads = sys.cpus().len();
+    // ── CPU (num_cpus, instantâneo — nunca bloqueia) ─────────────────────────
+    let cpu_model = std::env::var("PROCESSOR_IDENTIFIER").unwrap_or_else(|_| "N/A".to_string());
+    let cpu_cores = num_cpus::get_physical();
+    let cpu_threads = num_cpus::get();
 
-    let mem_total_gb = sys.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0);
-    let mem_used_gb = sys.used_memory() as f64 / (1024.0 * 1024.0 * 1024.0);
+    // ── Memória (sysinfo mínimo — apenas memória, sem CPU/rede/discos) ───────
+    let (mem_total_gb, mem_used_gb) = {
+        use sysinfo::{System, RefreshKind, MemoryRefreshKind};
+        let sys = System::new_with_specifics(
+            RefreshKind::new().with_memory(MemoryRefreshKind::everything()),
+        );
+        let total = sys.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0);
+        let used = sys.used_memory() as f64 / (1024.0 * 1024.0 * 1024.0);
+        (total, used)
+    };
 
-    // Disco: usa app_data_dir
+    // ── Disco (função existente, rápida) ─────────────────────────────────────
     let (disk_total_gb, disk_free_gb, disk_type) = {
         if let Ok(data_dir) = app.path().app_data_dir() {
             if let Some(path_str) = data_dir.to_str() {
@@ -248,11 +253,8 @@ pub fn get_system_info(app: tauri::AppHandle) -> Result<SystemInfo, String> {
         }
     };
 
-    // Rede: simplificado — evitar Networks::new_with_refreshed_list() que pode bloquear
+    // ── Rede (desactivada — Networks::new_with_refreshed_list() bloqueia) ────
     let network_interfaces: Vec<NetworkInterface> = vec![];
-
-    let os_name = format!("{} {}", std::env::consts::OS, std::env::consts::ARCH);
-    let os_version = System::kernel_version().unwrap_or_else(|| "Desconhecido".to_string());
 
     Ok(SystemInfo {
         os_name,
