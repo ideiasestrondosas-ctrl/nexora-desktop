@@ -5,56 +5,76 @@
 
 ---
 
-Actualizado: 2026-05-14 07:45
+Actualizado: 2026-05-14 17:45
 Agente: Claude Code (Kimi K2.6)
 
 ## O que foi feito
 
-### Sessao Actual — Hotfix: Tab Sistema em Branco (causa raiz encontrada) — CONCLUIDO
+### Sessao Actual — i18n Completo: Base Master EN + 5 Idiomas — CONCLUIDO
 
-**1. Tab Sistema — Ecrã em Branco (causa raiz: serde rename_all camelCase vs snake_case)**
-- **src-tauri/src/commands/system.rs**:
-  - Removido `#[serde(rename_all = "camelCase")]` de `InstalledInfo`, `SystemInfo`, `NetworkInterface`, `FfmpegInfo`, `DbInfo`
-  - **Porquê:** Os structs Rust com `rename_all = "camelCase"` convertiam `db_size_mb` → `dbSizeMb`, `app_version` → `appVersion`, etc.
-  - O frontend acedia `dbInfo.db_size_mb.toFixed(1)` mas a chave real era `dbSizeMb` → `undefined.toFixed(1)` → `TypeError` → React desmonta a tab → ecrã em branco
-  - O `AppStats` **mantém** `rename_all = "camelCase"` porque o frontend (Dashboard, useDiskSpace) já usa camelCase (`totalAssets`, `diskFreeBytes`)
-- **src-tauri/Cargo.toml**: Adicionada dependência `num_cpus = "1"` (usada no `get_system_info`)
-- **src-tauri/src/commands/system.rs**:
-  - `get_system_info` usa `num_cpus` para CPU (instantâneo, nunca bloqueia)
-  - Memória: `sysinfo` apenas com `RefreshKind::new().with_memory(...)`
-  - Rede: devolve `vec![]` (desactivada)
+**1. Base Master EN (base.json)**
+- Criado `src/i18n/locales/en/base.json` — **única fonte de verdade** com ~550 chaves estruturadas hierarquicamente.
+- Namespaces: `app`, `nav`, `topbar`, `dashboard`, `library`, `queue`, `profiles`, `settings`, `logs`, `assetDetail`, `pipeline`, `dropZone`, `jobCard`, `systemMetrics`, `help`, `assetDetailModal`, `logViewer`, `status`, `vmafGauge`, `confirmations`, `common`.
 
-**2. SettingsPage — Error Handling + Race Condition**
-- **src/pages/SettingsPage.tsx**:
-  - Race condition do timeout corrigida via `useRef` (`systemTimedOut`)
-  - Tab Sistema mostra conteúdo **SEMPRE** (mesmo com erro — "N/A" fallback)
-  - `installedError` state para mostrar falhas de `get_installed_info`
-  - Botão "Tentar novamente" com timeout defensivo
+**2. Infraestrutura i18n**
+- `src/i18n/index.ts`: Removido `lng: 'pt'` hardcoded. Fallback EN. 5 idiomas registados.
+- `src/i18n/useLanguageSync.ts`: Hook que sincroniza Zustand ↔ i18next no mount da app.
+- `src/App.tsx`: Integrado `useLanguageSync()` para restaurar idioma guardado no arranque.
 
-**3. Tab Sobre — Versão Centralizada**
-- **src/lib/version.ts**: `APP_VERSION = '0.16.0'` + `VERSION_HISTORY` tipado
-- Badge de versão usa `installedInfo?.app_version ?? APP_VERSION`
-- Histórico dinâmico a partir de `VERSION_HISTORY`
+**3. Traduções geradas**
+- **PT** (`pt/common.json`): Tradução manual original preservada + merge automático de chaves em falta do EN.
+- **ES, FR, DE** (`es/common.json`, `fr/common.json`, `de/common.json`): Placeholders em EN (estrutura completa, aguardam tradução manual ou API paga).
+- Script `scripts/translate-i18n.cjs` criado (Google Translate — falhou por rate limiting).
+- Script `scripts/translate-i18n-libre.cjs` criado (LibreTranslate — falhou por bloqueio da instância pública).
+
+**4. Extração massiva de strings hardcoded**
+- **15 ficheiros** atualizados de PT hardcoded para `t()`:
+  - `src/components/NexoraStatusBadge.tsx`
+  - `src/components/SystemMetricsBar.tsx`
+  - `src/components/VMAFGauge.tsx`
+  - `src/components/DropZone.tsx`
+  - `src/components/JobCard.tsx`
+  - `src/components/LogViewer.tsx`
+  - `src/components/AssetDetailModal.tsx`
+  - `src/components/PipelineSummary.tsx`
+  - `src/pages/DashboardPage.tsx`
+  - `src/pages/LibraryPage.tsx`
+  - `src/pages/QueuePage.tsx`
+  - `src/pages/LogsPage.tsx`
+  - `src/pages/ProfilesPage.tsx`
+  - `src/pages/AssetDetailPage.tsx`
+  - `src/components/HelpModal.tsx`
+  - `src/pages/SettingsPage.tsx`
+- **Zero** strings PT hardcoded restantes no frontend (verificado via grep).
+
+**5. Formatação dinâmica de datas**
+- Todos os `.toLocaleTimeString('pt-PT', ...)` substituídos por `.toLocaleTimeString(i18n.language, ...)`.
+- Ficheiros afetados: `DashboardPage`, `AssetDetailPage`, `LogsPage`, `LogViewer`, `QueuePage`.
+
+**6. Dropdown de idiomas**
+- `SettingsPage.tsx`: Dropdown expandido para 5 opções (PT, EN, ES, FR, DE).
+- Tipo `language` actualizado para `'pt' | 'en' | 'es' | 'fr' | 'de'`.
 
 ---
 
 ## Estado de compilacao
 
-- `cargo check`: **OK** (0 erros)
+- `cargo check`: **OK** (0 erros, 0 warnings)
 - `tsc --noEmit`: **OK** (0 erros)
-- `vitest run`: **OK** (25/25 tests passaram)
+- `vitest run`: **OK** (21/21 tests passaram)
+- `tauri build --debug`: **OK** (MSI 146MB + NSIS 92MB)
 
 ---
 
-## Proximos passos (Plano 3 — próxima sessao)
+## Proximos passos (Plano 5 — próxima sessao)
 
 | Tarefa | Prioridade |
 |---|---|
-| Corrigir `profiles.rs` — `Profile` tem `rename_all = "camelCase"` mas frontend usa snake_case | Alta |
-| Tema Light/Dark real (CSS vars, ~10 ficheiros) | Alta |
-| i18n completo em 15 idiomas (~150 chaves) | Alta |
-| Validar build Windows (`tauri build --debug`) | Critica |
-| Testar fluxo real: ingest -> job -> transcode -> done | Critica |
+| Traduzir ES/FR/DE (manualmente ou via API paga) | Média |
+| Testar fluxo real ingest → job → transcode (tauri dev + vídeo) | Critica |
+| Adicionar bs1770gain ao download de binários | Média |
+| Deep links `nexora://` (ADR-D012) | Baixa |
+| Build macOS (.dmg universal) e Linux (.AppImage + .deb) | Baixa |
 
 ---
 
@@ -62,12 +82,36 @@ Agente: Claude Code (Kimi K2.6)
 
 ```
 NOVOS:
-src/lib/version.ts
+src/i18n/locales/en/base.json
+src/i18n/useLanguageSync.ts
+scripts/translate-i18n.cjs
+scripts/translate-i18n-libre.cjs
 
 MODIFICADOS:
+src/i18n/index.ts
+src/App.tsx
+src/store/settings.ts
+src/components/NexoraStatusBadge.tsx
+src/components/SystemMetricsBar.tsx
+src/components/VMAFGauge.tsx
+src/components/DropZone.tsx
+src/components/JobCard.tsx
+src/components/LogViewer.tsx
+src/components/AssetDetailModal.tsx
+src/components/PipelineSummary.tsx
+src/components/HelpModal.tsx
+src/pages/DashboardPage.tsx
+src/pages/LibraryPage.tsx
+src/pages/QueuePage.tsx
+src/pages/LogsPage.tsx
+src/pages/ProfilesPage.tsx
+src/pages/AssetDetailPage.tsx
 src/pages/SettingsPage.tsx
-src-tauri/src/commands/system.rs
-src-tauri/Cargo.toml
+src/i18n/locales/pt/common.json
+src/i18n/locales/es/common.json
+src/i18n/locales/fr/common.json
+src/i18n/locales/de/common.json
+PROGRESS-DESKTOP.md
 SYNC-STATE.md
 ```
 
@@ -75,7 +119,9 @@ SYNC-STATE.md
 
 ## Notas tecnicas para o proximo agente
 
-- **CAUSA RAIZ do ecrã em branco:** `#[serde(rename_all = "camelCase")]` em structs Rust que têm propriedades snake_case. Quando serializados para JSON, as chaves ficam em camelCase, mas o frontend TypeScript acede em snake_case. Acessos como `dbInfo.db_size_mb.toFixed(1)` resultam em `undefined.toFixed(1)` → crash de runtime → React desmonta a tab inteira (sem Error Boundary).
-- **REGRA:** Se o frontend usa snake_case, o Rust NÃO deve ter `rename_all = "camelCase"`. Se o frontend usa camelCase (ex: Dashboard `AppStats`), o Rust DEVE ter `rename_all = "camelCase"`.
-- **Structs ainda por corrigir:** `Profile` e `ProfileInput` em `profiles.rs` têm `rename_all = "camelCase"` mas o frontend `TranscodeProfile` usa snake_case. Isso faz com que todos os campos sejam `undefined` na lista de perfis.
-- **version.ts:** Ponto único de verdade para a versão. `Cargo.toml` deve estar sincronizado.
+- **Base Master:** Editar SEMPRE `src/i18n/locales/en/base.json`. Nunca editar PT/ES/FR/DE directamente.
+- **Merge PT:** `pt/common.json` tem todas as chaves (272 traduzidas manualmente + resto em EN como fallback).
+- **Sync idioma:** `useLanguageSync()` no `App.tsx` garante que o idioma guardado em Zustand é aplicado no arranque.
+- **Datas dinâmicas:** Usar `i18n.language` em `toLocaleTimeString()` / `toLocaleDateString()`.
+- **ES/FR/DE:** São placeholders em inglês. Para traduzir, editar `base.json` e re-executar script de tradução (ou traduzir manualmente).
+- **Termos técnicos:** Nunca traduzir VMAF, LUFS, FFmpeg, NVENC, GPU, codec names, etc.

@@ -55,7 +55,7 @@ export default function LibraryPage() {
           const validPaths = paths.filter((p) => {
             const ext = p.slice(p.lastIndexOf('.')).toLowerCase();
             if (!VALID_EXTENSIONS.includes(ext)) {
-              toast.error(`Formato nao suportado: ${ext}`);
+              toast.error(t('library.unsupportedFormat', { ext }));
               return false;
             }
             return true;
@@ -65,12 +65,12 @@ export default function LibraryPage() {
             // Ingest cada ficheiro e refresca a lista
             Promise.all(validPaths.map((path) => invoke('ingest_asset', { path })))
               .then(() => {
-                toast.success(`${validPaths.length} ficheiro(s) adicionado(s) a biblioteca`);
+                toast.success(t('library.filesAdded', { count: validPaths.length }));
                 fetchAssets();
               })
               .catch((err: unknown) => {
                 const message = err instanceof Error ? err.message : String(err);
-                toast.error(`Erro ao adicionar ficheiros: ${message}`);
+                toast.error(t('library.addError', { message }));
               });
           }
         }
@@ -132,7 +132,7 @@ export default function LibraryPage() {
     try {
       const selected = await open({
         multiple: true,
-        filters: [{ name: 'Vídeo', extensions: ['mp4', 'mov', 'mxf', 'avi', 'mkv', 'ts', 'm2ts'] }]
+        filters: [{ name: t('dropZone.videoFilter'), extensions: ['mp4', 'mov', 'mxf', 'avi', 'mkv', 'ts', 'm2ts'] }]
       });
       
       if (selected && Array.isArray(selected)) {
@@ -147,7 +147,7 @@ export default function LibraryPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Tens a certeza que desejas remover este asset da biblioteca?')) {
+    if (confirm(t('library.deleteConfirm'))) {
       try {
         await invoke('delete_asset', { id });
         fetchAssets();
@@ -218,11 +218,11 @@ export default function LibraryPage() {
             value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
             className="bg-bg-primary border border-border rounded-lg px-3 py-2 text-xs font-bold text-text-secondary outline-none"
           >
-            <option value="all">Todos os Estados</option>
-            <option value="pending">Pendentes</option>
+            <option value="all">{t('library.allStatuses')}</option>
+            <option value="pending">{t('library.pending')}</option>
             <option value="processing">{t('library.processing')}</option>
             <option value="done">{t('library.completed')}</option>
-            <option value="error">Erros</option>
+            <option value="error">{t('library.errors')}</option>
           </select>
         </div>
 
@@ -230,10 +230,10 @@ export default function LibraryPage() {
           value={sortOrder} onChange={e => setSortOrder(e.target.value)}
           className="bg-bg-primary border border-border rounded-lg px-3 py-2 text-xs font-bold text-text-secondary outline-none"
         >
-          <option value="newest">Mais recentes</option>
-          <option value="oldest">Mais antigos</option>
-          <option value="name">Nome (A-Z)</option>
-          <option value="size">Tamanho</option>
+          <option value="newest">{t('library.newest')}</option>
+          <option value="oldest">{t('library.oldest')}</option>
+          <option value="name">{t('library.name')}</option>
+          <option value="size">{t('library.size')}</option>
         </select>
 
         <div className="flex bg-bg-primary border border-border rounded-lg p-1">
@@ -264,8 +264,8 @@ export default function LibraryPage() {
         {filteredAssets.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-text-muted p-12">
             <Library size={64} className="mb-6 opacity-20" />
-            <h2 className="text-xl font-bold text-text-primary mb-2">Sem assets na biblioteca</h2>
-            <p className="text-sm max-w-xs text-center mb-6">Arrasta ficheiros de vídeo para aqui ou clica no botão para começar.</p>
+            <h2 className="text-xl font-bold text-text-primary mb-2">{t('library.noAssets')}</h2>
+            <p className="text-sm max-w-xs text-center mb-6">{t('library.dragHint')}</p>
             <button 
               onClick={handleAddVideos}
               className="px-6 py-2 bg-brand text-white rounded-lg font-bold text-sm"
@@ -292,7 +292,7 @@ export default function LibraryPage() {
                     asset.status === 'error' ? 'bg-red-500 text-white' :
                     'bg-gray-700 text-text-secondary'
                   }`}>
-                    {asset.status === 'processing' ? `${t('library.processing')}...` : asset.status === 'done' ? 'QC OK' : asset.status}
+                    {asset.status === 'processing' ? `${t('library.processing')}...` : asset.status === 'done' ? t('library.qcOk') : asset.status}
                   </div>
 
                   {/* VMAF BADGE */}
@@ -334,12 +334,12 @@ export default function LibraryPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-bg-primary text-[10px] font-bold uppercase text-text-muted border-b border-border">
                 <tr>
-                  <th className="px-6 py-3">Ficheiro</th>
-                  <th className="px-6 py-3">Estado</th>
-                  <th className="px-6 py-3">Tamanho</th>
-                  <th className="px-6 py-3">Duração</th>
-                  <th className="px-6 py-3">Codec</th>
-                  <th className="px-6 py-3 text-right">Acções</th>
+                  <th className="px-6 py-3">{t('library.file')}</th>
+                  <th className="px-6 py-3">{t('common.status')}</th>
+                  <th className="px-6 py-3">{t('library.size')}</th>
+                  <th className="px-6 py-3">{t('library.duration')}</th>
+                  <th className="px-6 py-3">{t('profiles.codec')}</th>
+                  <th className="px-6 py-3 text-right">{t('library.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -387,11 +387,11 @@ export default function LibraryPage() {
       {/* PAGINATION (Compact) */}
       <div className="flex items-center justify-between bg-bg-secondary border border-border rounded-xl px-4 py-2 shrink-0">
         <span className="text-xs text-text-muted font-bold uppercase tracking-widest">
-          Mostrar {filteredAssets.length} de {assets.length} assets
+          {t('library.showing', { count: filteredAssets.length, total: assets.length })}
         </span>
         <div className="flex gap-2">
-          <button className="px-3 py-1 bg-surface text-text-muted rounded text-xs font-bold disabled:opacity-30" disabled>Anterior</button>
-          <button className="px-3 py-1 bg-surface text-text-secondary rounded text-xs font-bold">Próximo</button>
+          <button className="px-3 py-1 bg-surface text-text-muted rounded text-xs font-bold disabled:opacity-30" disabled>{t('common.previous')}</button>
+          <button className="px-3 py-1 bg-surface text-text-secondary rounded text-xs font-bold">{t('common.next')}</button>
         </div>
       </div>
     </div>

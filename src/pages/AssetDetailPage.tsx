@@ -62,7 +62,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [qcExpanded, setQcExpanded] = useState(true);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const fetchData = useCallback(async () => {
     try {
@@ -84,7 +84,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   }, [fetchData]);
 
   const handleDelete = async () => {
-    if (confirm('Tens a certeza que desejas apagar este asset? Esta acção não pode ser desfeita.')) {
+    if (confirm(t('assetDetail.deleteConfirm'))) {
       try {
         await invoke('delete_asset', { id: assetId }); // P12: backend espera 'id'
         onBack();
@@ -121,7 +121,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   if (loading || !asset) {
     return (
       <div className="h-full flex items-center justify-center text-text-muted">
-        <Loader2 className="animate-spin mr-2" /> Carregando detalhes do asset...
+        <Loader2 className="animate-spin mr-2" /> {t('assetDetail.loading')}
       </div>
     );
   }
@@ -164,20 +164,20 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
 
           <div className="grid grid-cols-2 gap-y-4 gap-x-8 mb-8">
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Tamanho</span>
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">{t('assetDetail.size')}</span>
               <span className="text-lg font-bold text-text-primary">{formatBytes(asset.size_bytes || 0)}</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Duração</span>
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">{t('assetDetail.duration')}</span>
               <span className="text-lg font-bold text-text-primary">{formatDuration(asset.duration_secs)}</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Vídeo</span>
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">{t('assetDetail.video')}</span>
               <span className="text-sm font-bold text-text-secondary">{asset.video_codec} / {asset.width}x{asset.height} / {asset.fps}fps</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Áudio</span>
-              <span className="text-sm font-bold text-text-secondary">{asset.audio_codec || 'N/A'} / 48kHz / Stereo</span>
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">{t('assetDetail.audio')}</span>
+              <span className="text-sm font-bold text-text-secondary">{asset.audio_codec || t('assetDetail.notAvailable')} / 48kHz / Stereo</span>
             </div>
           </div>
 
@@ -185,7 +185,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
             <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl w-fit">
               <Shield className="text-green-500" size={24} />
               <div>
-                <div className="text-[10px] font-black text-green-500 uppercase tracking-widest">Melhor Qualidade (VMAF)</div>
+                <div className="text-[10px] font-black text-green-500 uppercase tracking-widest">{t('assetDetail.bestQuality')}</div>
                 <div className="text-2xl font-black text-text-primary">{Math.max(...jobs.map(j => j.vmaf_score || 0)).toFixed(1)}</div>
               </div>
             </div>
@@ -215,28 +215,28 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
               <table className="w-full text-left text-sm">
                 <thead className="bg-white/5 text-[10px] font-bold uppercase text-text-muted">
                   <tr>
-                    <th className="px-6 py-3">Verificação</th>
-                    <th className="px-6 py-3">Resultado</th>
-                    <th className="px-6 py-3">Valor</th>
-                    <th className="px-6 py-3">Limite</th>
+                    <th className="px-6 py-3">{t('assetDetail.verification')}</th>
+                    <th className="px-6 py-3">{t('assetDetail.result')}</th>
+                    <th className="px-6 py-3">{t('assetDetail.value')}</th>
+                    <th className="px-6 py-3">{t('assetDetail.limit')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-text-secondary">Codec suportado</td>
+                    <td className="px-6 py-4 text-text-secondary">{t('assetDetail.codecSupported')}</td>
                     <td className="px-6 py-4 text-green-500 font-bold">✓</td>
                     <td className="px-6 py-4 text-text-secondary">{asset.video_codec}</td>
                     <td className="px-6 py-4 text-text-muted">--</td>
                   </tr>
                   <tr className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-text-secondary">Resolução mínima</td>
+                    <td className="px-6 py-4 text-text-secondary">{t('assetDetail.minResolution')}</td>
                     <td className="px-6 py-4 text-green-500 font-bold">✓</td>
                     <td className="px-6 py-4 text-text-secondary">{asset.width}x{asset.height}</td>
                     <td className="px-6 py-4 text-text-muted">≥ 720p</td>
                   </tr>
                   {jobs[0]?.vmaf_score && (
                     <tr className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 text-text-secondary">VMAF Score</td>
+                      <td className="px-6 py-4 text-text-secondary">{t('assetDetail.vmafScore')}</td>
                       <td className="px-6 py-4 text-green-500 font-bold">✓</td>
                       <td className="px-6 py-4 text-text-secondary">{jobs[0].vmaf_score.toFixed(1)}</td>
                       <td className="px-6 py-4 text-text-muted">≥ 85</td>
@@ -244,7 +244,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                   )}
                   {jobs[0]?.lufs && (
                     <tr className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 text-text-secondary">Níveis de áudio</td>
+                      <td className="px-6 py-4 text-text-secondary">{t('assetDetail.audioLevels')}</td>
                       <td className="px-6 py-4 text-green-500 font-bold">✓</td>
                       <td className="px-6 py-4 text-text-secondary">{jobs[0].lufs.toFixed(1)} LUFS</td>
                       <td className="px-6 py-4 text-text-muted">-23 ±1</td>
@@ -254,7 +254,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
               </table>
             </div>
             <p className="mt-4 text-[10px] text-text-muted font-bold uppercase tracking-widest text-right">
-              Aprovado automaticamente em {new Date(asset.created_at).toLocaleDateString('pt-PT')}
+              {t('assetDetail.approvedAt', { date: new Date(asset.created_at).toLocaleDateString(i18n.language) })}
             </p>
           </div>
         )}
@@ -269,7 +269,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
 
         <div className="relative pl-8 space-y-6 before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface">
           {jobs.length === 0 ? (
-            <div className="text-text-muted text-sm italic">Nenhum job processado para este asset.</div>
+            <div className="text-text-muted text-sm italic">{t('assetDetail.noJobs')}</div>
           ) : (
             jobs.map(job => (
               <div key={job.id} className="relative bg-bg-secondary border border-border rounded-2xl p-6 hover:border-brand/50 transition-all group">
@@ -312,11 +312,11 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
 
                 <div className="grid grid-cols-4 gap-4 text-center">
                   <div>
-                    <div className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1">Iniciado</div>
-                    <div className="text-xs text-text-primary font-bold">{new Date(job.created_at).toLocaleDateString('pt-PT')}</div>
+                    <div className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1">{t('assetDetail.started')}</div>
+                    <div className="text-xs text-text-primary font-bold">{new Date(job.created_at).toLocaleDateString(i18n.language)}</div>
                   </div>
                   <div>
-                    <div className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1">Duração</div>
+                    <div className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1">{t('assetDetail.jobDuration')}</div>
                     <div className="text-xs text-text-primary font-bold">2m 04s</div>
                   </div>
                   <div>
@@ -332,7 +332,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                 {job.output_path && (
                   <div className="mt-6 pt-4 border-t border-border flex justify-end">
                     <button className="flex items-center gap-2 text-[10px] font-black text-brand uppercase tracking-widest hover:underline">
-                      <ExternalLink size={14} /> Abrir Ficheiro Processado
+                      <ExternalLink size={14} /> {t('assetDetail.openProcessedFile')}
                     </button>
                   </div>
                 )}
@@ -352,7 +352,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
             <Play size={18} /> {t('assetDetail.reprocess')}
           </button>
           <button className="flex items-center gap-2 px-6 py-2 bg-surface hover:bg-surface-hover text-text-secondary rounded-xl font-bold transition-all">
-            <FolderOpen size={18} /> Abrir no Explorador
+            <FolderOpen size={18} /> {t('assetDetail.openInExplorer')}
           </button>
         </div>
         <button 

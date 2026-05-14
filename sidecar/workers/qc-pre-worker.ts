@@ -1,6 +1,6 @@
 import { statSync } from 'fs';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
-import { getAsset, writeAuditLog, updateJobStatus } from '../db';
+import { emit } from '../events';
 
 const MIN_DURATION_SECS = 0.5;
 const MAX_FILE_SIZE_BYTES = 100 * 1024 ** 3; // 100 GB
@@ -19,42 +19,27 @@ export class QCPreWorker {
       );
     }
 
-    const asset = getAsset(assetId);
-    if (!asset) throw new Error(`QC Pre: asset ${assetId} não encontrado`);
-
-    if (!asset.video_codec) {
+    if (!ctx.assetVideoCodec) {
       throw new Error('QC Pre: ficheiro sem stream de vídeo');
     }
 
-    if (asset.duration_secs !== null && asset.duration_secs < MIN_DURATION_SECS) {
-      throw new Error(`QC Pre: duração insuficiente (${asset.duration_secs}s)`);
+    if (ctx.assetDurationSecs !== null && ctx.assetDurationSecs !== undefined && ctx.assetDurationSecs < MIN_DURATION_SECS) {
+      throw new Error(`QC Pre: duração insuficiente (${ctx.assetDurationSecs}s)`);
     }
 
     // Regras de quarentena (replicadas do projeto principal)
     // Se o codec for desconhecido ou não suportado, entra em quarentena
     const unsupportedCodecs = ['hevc', 'prores', 'dnxhd', 'av1'];
-    const isUnsupported = unsupportedCodecs.some(c => asset.video_codec?.toLowerCase().includes(c));
+    const isUnsupported = unsupportedCodecs.some(c => ctx.assetVideoCodec?.toLowerCase().includes(c));
     const isVeryLarge = stat.size > 50 * 1024 ** 3; // > 50 GB
 
     if (isUnsupported || isVeryLarge) {
-      updateJobStatus(jobId, 'qc_quarantined');
-      writeAuditLog(jobId, 'qc-pre:quarantined', {
-        assetId,
-        reason: isUnsupported ? `Codec não suportado: ${asset.video_codec}` : 'Ficheiro > 10 GB',
-        sizeBytes: stat.size,
-        videoCodec: asset.video_codec,
-      });
+      emit({ type: 'job:status', jobId, status: 'qc_quarantined' });
+      emit({ type: 'log', level: 'INFO', source: 'qc-pre-worker', message: isUnsupported ? `Codec não suportado: ${ctx.assetVideoCodec}` : 'Ficheiro > 50 GB' });
       return 'QUARANTINE';
     }
 
-    writeAuditLog(jobId, 'qc-pre:passed', {
-      assetId,
-      sizeBytes: stat.size,
-      durationSecs: asset.duration_secs,
-      videoCodec: asset.video_codec,
-      audioCodec: asset.audio_codec,
-      resolution: `${asset.width}x${asset.height}`,
-    });
+    emit({ type: 'log', level: 'INFO', source: 'qc-pre-worker', message: `QC Pre passed: ${ctx.assetVideoCodec}, ${ctx.assetWidth}x${ctx.assetHeight}, ${ctx.assetDurationSecs}s` });
     return 'PASS';
   }
 }

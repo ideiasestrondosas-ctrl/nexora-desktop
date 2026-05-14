@@ -16,7 +16,7 @@ export default function LogsPage() {
   const [expandedErrors, setExpandedErrors] = useState<Record<string, boolean>>({});
   
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const filteredLogs = logs.filter((log) => {
     if (levelFilter !== 'Todos' && log.level.toUpperCase() !== levelFilter) return false;
@@ -48,7 +48,7 @@ export default function LogsPage() {
   };
 
   const handleClear = async () => {
-    if (confirm('Tem a certeza que deseja limpar todos os registos?')) {
+    if (confirm(t('logs.clearConfirm'))) {
       await invoke('clear_logs').catch(console.error);
       clearLogs();
     }
@@ -124,14 +124,14 @@ export default function LogsPage() {
           value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}
           className="bg-bg-primary border border-border rounded-lg px-4 py-2 text-sm text-text-primary outline-none"
         >
-          <option>Todas</option><option>sidecar</option><option>tauri</option><option>ffmpeg</option><option>app</option>
+          <option>{t('logs.sourceAll')}</option><option>sidecar</option><option>tauri</option><option>ffmpeg</option><option>app</option>
         </select>
 
         <select 
           value={timeFilter} onChange={e => setTimeFilter(e.target.value)}
           className="bg-bg-primary border border-border rounded-lg px-4 py-2 text-sm text-text-primary outline-none"
         >
-          <option>Tudo</option><option>Última hora</option><option>Últimas 6h</option><option>Últimas 24h</option><option>7 dias</option>
+          <option>{t('logs.timeAll')}</option><option>{t('logs.time1h')}</option><option>{t('logs.time6h')}</option><option>{t('logs.time24h')}</option><option>{t('logs.time7d')}</option>
         </select>
 
         <div className="flex items-center gap-2 pl-4 border-l border-border">
@@ -157,13 +157,13 @@ export default function LogsPage() {
             <div className="h-full flex flex-col items-center justify-center text-text-muted">
               <ScrollText className="w-12 h-12 mb-4 opacity-20" />
               <p>{t('logs.noLogs')}</p>
-              {(levelFilter !== 'Todos' || sourceFilter !== 'Todas' || searchTerm) && (
-                <p className="text-xs mt-2">Tenta remover os filtros</p>
+              {(levelFilter !== t('logs.allLevels') || sourceFilter !== t('logs.sourceAll') || searchTerm) && (
+                <p className="text-xs mt-2">{t('logs.tryRemoveFilters')}</p>
               )}
             </div>
           ) : (
             filteredLogs.map(log => {
-              const time = new Date(log.ts).toLocaleTimeString('pt-PT', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '.' + new Date(log.ts).getMilliseconds().toString().padStart(3, '0');
+              const time = new Date(log.ts).toLocaleTimeString(i18n.language, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '.' + new Date(log.ts).getMilliseconds().toString().padStart(3, '0');
               const isExpandable = log.level === 'error';
               const expanded = expandedErrors[log.id];
 
@@ -187,7 +187,7 @@ export default function LogsPage() {
                   <div className={`text-text-secondary font-mono text-xs whitespace-pre-wrap ${getRowBorder(log.level)}`}>
                     {expanded ? log.message : log.message.split('\n')[0]}
                     {isExpandable && !expanded && log.message.includes('\n') && (
-                      <span className="text-text-muted ml-2">... (clique para expandir)</span>
+                      <span className="text-text-muted ml-2">{t('logs.expand')}</span>
                     )}
                   </div>
                 </div>

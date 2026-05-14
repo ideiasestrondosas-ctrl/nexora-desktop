@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { open } from '@tauri-apps/plugin-dialog';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Upload, Plus } from 'lucide-react';
@@ -13,6 +14,7 @@ interface DropZoneProps {
 const VALID_EXTENSIONS = ['.mp4', '.mkv', '.mov', '.mxf', '.avi', '.webm'];
 
 export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }) => {
+  const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
 
   // Ref actualizado em cada render sem re-registar o listener
@@ -39,7 +41,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
           const validPaths = paths.filter((p) => {
             const ext = p.slice(p.lastIndexOf('.')).toLowerCase();
             if (!VALID_EXTENSIONS.includes(ext)) {
-              toast.error(`Formato não suportado: ${ext}`);
+              toast.error(t('dropZone.unsupportedFormat', { ext }));
               return false;
             }
             return true;
@@ -68,7 +70,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
     try {
       const selected = await open({
         multiple: true,
-        filters: [{ name: 'Video', extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm'] }],
+        filters: [{ name: t('dropZone.videoFilter'), extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm'] }],
       });
       if (Array.isArray(selected)) {
         onFilesSelectedRef.current(selected);
@@ -98,16 +100,16 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
 
       <div className="text-center">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Arraste vídeos para aqui
+          {t('dropZone.dropHere')}
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Ou clique para seleccionar ficheiros (MP4, MKV, MOV, MXF...)
+          {t('dropZone.clickToSelect')}
         </p>
       </div>
 
       <button className="mt-2 flex items-center gap-2 bg-nexora-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
         <Plus className="w-4 h-4" />
-        Adicionar Media
+        {t('dropZone.addMedia')}
       </button>
     </div>
   );

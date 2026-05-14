@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
+#[allow(dead_code)]
 pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow::Result<()> {
     let script_path = resolve_script_path(&app);
 
@@ -128,7 +129,7 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
 /// 1. resource_dir do Tauri (producao: ficheiro bundled no instalador)
 /// 2. Relativo ao executavel (desenvolvimento: exe em target/debug/ ou target/release/)
 /// 3. Working directory corrente (tauri dev define cwd como workspace)
-fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
+pub fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
     // 1. Producao: recurso incluido no bundle pelo Tauri
     if let Ok(resource_dir) = app.path().resource_dir() {
         // Tauri pode flattened o caminho ou manter a estrutura relativa
@@ -169,7 +170,7 @@ fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
 /// 1. Ao lado do executavel do Tauri (target/debug/ ou target/release/) — dev
 /// 2. resource_dir() do Tauri — producao (bundle do instalador)
 /// 3. Nome do comando no PATH (fallback)
-fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> PathBuf {
+pub fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> PathBuf {
     let ext = if cfg!(target_os = "windows") { ".exe" } else { "" };
 
     // 1. Desenvolvimento: ao lado do executavel (Tauri copia os externalBin para target/debug/)

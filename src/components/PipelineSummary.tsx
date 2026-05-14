@@ -14,14 +14,14 @@ interface PipelineSummaryProps {
 }
 
 const STEPS = [
-  { key: 'ingest',     label: 'Ingest',    desc: 'Asset inserido na BD com metadados' },
-  { key: 'qc-pre',     label: 'QC Pré',    desc: 'Ficheiro validado (tamanho, duração, codec)' },
-  { key: 'transcode',  label: 'Transcode', desc: 'Broadcast-hd concluído com FFmpeg bundled' },
-  { key: 'audio',      label: 'Áudio',     desc: 'Normalização R128 com LUFS -21.99' },
-  { key: 'proxy',      label: 'Proxy',     desc: 'Gerado em 960x540' },
-  { key: 'thumbnail',  label: 'Thumbnail', desc: 'Frame aos 5s em 640px' },
-  { key: 'qc-post',    label: 'QC Pós',    desc: 'SHA-256 do output verificado + VMAF' },
-  { key: 'delivery',   label: 'Delivery',  desc: 'Ficheiros movidos para pasta de saída' },
+  { key: 'ingest' },
+  { key: 'qc-pre' },
+  { key: 'transcode' },
+  { key: 'audio' },
+  { key: 'proxy' },
+  { key: 'thumbnail' },
+  { key: 'qc-post' },
+  { key: 'delivery' },
 ];
 
 function getStepIndex(stepKey: string | null): number {

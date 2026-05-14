@@ -21,7 +21,7 @@ interface Settings {
   gpu_acceleration: boolean;
   notifications_enabled: boolean;
   theme: 'system' | 'light' | 'dark';
-  language: 'pt' | 'en';
+  language: 'pt' | 'en' | 'es' | 'fr' | 'de';
   default_profile: string;
   vmaf_threshold: number;
   target_lufs: number;
@@ -107,7 +107,7 @@ export default function SettingsPage() {
         if (backendSettings.theme) settingsStore.setTheme(backendSettings.theme as 'system' | 'light' | 'dark');
         setLocalSettings(prev => ({
           ...prev,
-          language: (backendSettings.language as 'pt' | 'en') || 'pt',
+          language: (backendSettings.language as 'pt' | 'en' | 'es' | 'fr' | 'de') || 'pt',
           default_profile: backendSettings.default_profile || 'broadcast-hd',
           vmaf_threshold: Number(backendSettings.vmaf_threshold) || 85,
           target_lufs: Number(backendSettings.target_lufs) || -23,
@@ -119,12 +119,12 @@ export default function SettingsPage() {
     invoke<InstalledInfo>('get_installed_info')
       .then(setInstalledInfo)
       .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Erro ao carregar info instalada';
+        const msg = err instanceof Error ? err.message : t('settings.errors.installedInfo');
         console.error('get_installed_info failed:', msg);
         setInstalledError(msg);
       });
 
-    invoke<string>('get_changelog').then(setChangelog).catch(() => setChangelog('Sem registos de alterações disponíveis.'));
+    invoke<string>('get_changelog').then(setChangelog).catch(() => setChangelog(t('settings.about.noChangelog')));
 
     // get_system_info — com timeout defensivo (race condition corrigida via ref)
     setSystemLoading(true);
@@ -133,7 +133,7 @@ export default function SettingsPage() {
     const systemTimeout = setTimeout(() => {
       systemTimedOut.current = true;
       setSystemLoading(false);
-      setSystemError('Timeout ao carregar informação do sistema (>5s)');
+      setSystemError(t('settings.system.timeout'));
     }, 5000);
     invoke<SystemInfo>('get_system_info')
       .then(data => {
@@ -146,7 +146,7 @@ export default function SettingsPage() {
       .catch((err: unknown) => {
         if (!systemTimedOut.current) {
           clearTimeout(systemTimeout);
-          const msg = err instanceof Error ? err.message : 'Erro desconhecido ao carregar informação do sistema';
+          const msg = err instanceof Error ? err.message : t('settings.system.unknownError');
           console.error('get_system_info failed:', msg);
           setSystemError(msg);
           setSystemLoading(false);
@@ -195,33 +195,33 @@ export default function SettingsPage() {
     try {
       await invoke('open_data_dir');
     } catch (err) {
-      toast.error('Erro ao abrir pasta de dados');
+      toast.error(t('settings.toasts.openDataDirError'));
     }
   };
 
   const handleCheckUpdates = async () => {
     if (isDev) {
-      toast('Verificação de actualizações não disponível em modo de desenvolvimento', { icon: '⚠️' });
+      toast(t('settings.advanced.noUpdatesDev'), { icon: '⚠️' });
       return;
     }
     setCheckingUpdate(true);
     try {
       const update = await check();
       if (update) {
-        toast.success(`Nova versão disponível: ${update.version}`);
+        toast.success(t('settings.advanced.updateAvailable', { version: update.version }));
         await update.downloadAndInstall();
       } else {
-        toast('Já tens a versão mais recente', { icon: '✅' });
+        toast(t('settings.advanced.latestVersion'), { icon: '✅' });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('Updater error:', msg);
       if (msg.toLowerCase().includes('key') || msg.toLowerCase().includes('pubkey') || msg.toLowerCase().includes('updater')) {
-        toast.error('Verificação de actualizações apenas disponível em builds assinados de release');
+        toast.error(t('settings.advanced.updateErrorSigned'));
       } else if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('fetch')) {
-        toast.error('Erro de rede. Verifica a tua ligação à internet.');
+        toast.error(t('settings.advanced.updateErrorNetwork'));
       } else {
-        toast.error(`Erro ao verificar actualizações: ${msg}`);
+        toast.error(t('settings.advanced.updateErrorGeneric', { msg }));
       }
     } finally {
       setCheckingUpdate(false);
@@ -230,18 +230,12 @@ export default function SettingsPage() {
 
   const handleFactoryReset = async () => {
     const confirmed = await confirm(
-      'Tens a certeza que desejas realizar um RESET TOTAL?\n\n' +
-      'Isto irá apagar ABSOLUTAMENTE TUDO:\n' +
-      '• Toda a biblioteca de assets\n' +
-      '• Histórico de jobs e logs\n' +
-      '• Todos os perfis personalizados\n' +
-      '• Todas as tuas definições\n\n' +
-      'A aplicação será reiniciada. Esta acção é irreversível.',
-      { title: 'Nexora Desktop — Factory Reset', kind: 'error' }
+      t('settings.advanced.factoryResetConfirmDetailed'),
+      { title: t('settings.advanced.factoryResetTitle'), kind: 'error' }
     );
     if (confirmed) {
-      toast.loading('A preparar reset total...');
-      await invoke('factory_reset').catch(() => toast.error('Erro ao realizar reset'));
+      toast.loading(t('settings.advanced.factoryResetPreparing'));
+      await invoke('factory_reset').catch(() => toast.error(t('settings.toasts.resetError')));
     }
   };
 
@@ -256,9 +250,9 @@ export default function SettingsPage() {
       a.download = `nexora-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('Backup exportado');
+      toast.success(t('settings.toasts.exportSuccess'));
     } catch {
-      toast.error('Erro ao exportar');
+      toast.error(t('settings.advanced.exportError'));
     }
   };
 
@@ -276,12 +270,12 @@ export default function SettingsPage() {
       toast.success(t('settings.advanced.importSuccess'));
       window.location.reload();
     } catch {
-      toast.error('Erro ao importar');
+      toast.error(t('settings.toasts.importError'));
     }
   };
 
   const handleResetSettings = async () => {
-    const ok = await confirm('Repor todas as definições para os valores por omissão?', { title: 'Reiniciar Definições', kind: 'warning' });
+    const ok = await confirm(t('settings.advanced.resetConfirm'), { title: t('settings.advanced.resetTitle'), kind: 'warning' });
     if (!ok) return;
     await invoke('reset_database').catch(() => {});
     toast.success(t('settings.advanced.resetSuccess'));
@@ -289,11 +283,11 @@ export default function SettingsPage() {
   };
 
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
-    { id: 'general', label: 'Geral', icon: Shield },
-    { id: 'interface', label: 'Interface', icon: Palette },
-    { id: 'system', label: 'Sistema', icon: Server },
-    { id: 'advanced', label: 'Avançado', icon: Globe },
-    { id: 'about', label: 'Sobre', icon: Info },
+    { id: 'general', label: t('settings.tabs.general'), icon: Shield },
+    { id: 'interface', label: t('settings.tabs.interface'), icon: Palette },
+    { id: 'system', label: t('settings.tabs.system'), icon: Server },
+    { id: 'advanced', label: t('settings.tabs.advanced'), icon: Globe },
+    { id: 'about', label: t('settings.tabs.about'), icon: Info },
   ];
 
   const SectionTitle = ({ children }: { children: React.ReactNode }) => (
@@ -320,14 +314,14 @@ export default function SettingsPage() {
         })}
       </div>
 
-      {/* TAB: GERAL */}
+      {/* TAB: GENERAL */}
       {activeTab === 'general' && (
         <div className="space-y-6">
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-            <SectionTitle>Processamento</SectionTitle>
+            <SectionTitle>{t('settings.sections.processing')}</SectionTitle>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Pasta de saída</label>
+                <label className="block text-sm font-medium text-text-secondary mb-2">{t('settings.general.outputDir')}</label>
                 <div className="flex gap-2">
                   <input type="text" readOnly value={settingsStore.outputDir}
                     className="flex-1 bg-bg-primary border border-border rounded-lg px-4 text-text-secondary outline-none text-sm py-2"
@@ -341,19 +335,19 @@ export default function SettingsPage() {
                 {settingsStore.outputDir && <p className="mt-2 text-xs text-text-muted font-mono">{settingsStore.outputDir}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Jobs simultâneos</label>
+                <label className="block text-sm font-medium text-text-secondary mb-2">{t('settings.general.concurrentJobs')}</label>
                 <input type="range" min={1} max={4} step={1}
                   value={settingsStore.maxConcurrentJobs}
                   onChange={e => handleUpdateSetting('max_concurrent_jobs', parseInt(e.target.value))}
                   className="w-full accent-brand"
                 />
                 <div className="flex justify-between text-xs text-text-secondary mt-1">
-                  <span>{settingsStore.maxConcurrentJobs} job{settingsStore.maxConcurrentJobs > 1 ? 's' : ''}</span>
-                  <span>Mais jobs = mais CPU/RAM</span>
+                  <span>{t('settings.general.jobsLabel', { count: settingsStore.maxConcurrentJobs })}</span>
+                  <span>{t('settings.general.moreJobsCpuRam')}</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Perfil padrão</label>
+                <label className="block text-sm font-medium text-text-secondary mb-2">{t('settings.general.defaultProfile')}</label>
                 <select value={localSettings.default_profile}
                   onChange={e => handleUpdateSetting('default_profile', e.target.value)}
                   className="w-full bg-bg-primary border border-border rounded-lg px-4 py-2 text-text-primary outline-none text-sm"
@@ -370,11 +364,11 @@ export default function SettingsPage() {
           </section>
 
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-            <SectionTitle>Qualidade</SectionTitle>
+            <SectionTitle>{t('settings.sections.quality')}</SectionTitle>
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between mb-2">
-                  <label className="text-sm font-medium text-text-secondary">VMAF Mínimo</label>
+                  <label className="text-sm font-medium text-text-secondary">{t('settings.general.vmafMin')}</label>
                   <span className="text-sm font-mono text-brand">{localSettings.vmaf_threshold}</span>
                 </div>
                 <input type="range" min={0} max={100}
@@ -382,11 +376,11 @@ export default function SettingsPage() {
                   onChange={e => handleUpdateSetting('vmaf_threshold', parseInt(e.target.value))}
                   className="w-full accent-brand"
                 />
-                <p className="text-xs text-text-muted mt-1">Jobs abaixo deste valor são marcados com aviso.</p>
+                <p className="text-xs text-text-muted mt-1">{t('settings.general.vmafHint')}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">LUFS Alvo</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">{t('settings.general.targetLufs')}</label>
                   <select value={localSettings.target_lufs}
                     onChange={e => handleUpdateSetting('target_lufs', parseInt(e.target.value))}
                     className="w-full bg-bg-primary border border-border rounded-lg px-4 py-2 text-text-primary outline-none text-sm"
@@ -397,7 +391,7 @@ export default function SettingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">True Peak (dBTP)</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">{t('settings.general.truePeak')}</label>
                   <input type="number" step={0.1} defaultValue={-1}
                     className="w-full bg-bg-primary border border-border rounded-lg px-4 py-2 text-text-primary outline-none text-sm"
                   />
@@ -407,14 +401,14 @@ export default function SettingsPage() {
           </section>
 
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-            <SectionTitle>Aceleração de Hardware</SectionTitle>
+            <SectionTitle>{t('settings.sections.hardwareAcceleration')}</SectionTitle>
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-sm font-medium text-text-primary mb-1">Usar aceleração GPU</div>
+                <div className="text-sm font-medium text-text-primary mb-1">{t('settings.general.useGpu')}</div>
                 <div className="text-xs text-text-secondary">
-                  {gpuLoading ? 'A verificar...' : gpu?.available
-                    ? `GPU: ${gpu.vendor} (${gpu.encoder})`
-                    : 'Sem GPU compatível — a usar CPU (libx264)'}
+                  {gpuLoading ? t('settings.general.checkingGpu') : gpu?.available
+                    ? t('settings.general.gpuAvailable', { vendor: gpu.vendor, encoder: gpu.encoder })
+                    : t('settings.general.noGpu')}
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -428,10 +422,10 @@ export default function SettingsPage() {
           </section>
 
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-            <SectionTitle>Notificações</SectionTitle>
+            <SectionTitle>{t('settings.sections.notifications')}</SectionTitle>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-text-primary">Notificações do sistema</span>
+                <span className="text-sm font-medium text-text-primary">{t('settings.general.systemNotifications')}</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer"
                     checked={settingsStore.notificationsEnabled}
@@ -449,38 +443,41 @@ export default function SettingsPage() {
       {activeTab === 'interface' && (
         <div className="space-y-6">
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-            <SectionTitle>Tema</SectionTitle>
+            <SectionTitle>{t('settings.interface.theme')}</SectionTitle>
             <div className="flex gap-3">
-              {(['system', 'light', 'dark'] as const).map((t) => (
+              {(['system', 'light', 'dark'] as const).map((tTheme) => (
                 <button
-                  key={t}
-                  onClick={() => handleUpdateSetting('theme', t)}
+                  key={tTheme}
+                  onClick={() => handleUpdateSetting('theme', tTheme)}
                   className={`flex-1 py-3 rounded-lg text-sm font-bold border transition-all ${
-                    settingsStore.theme === t
+                    settingsStore.theme === tTheme
                       ? 'bg-brand border-brand text-white'
                       : 'bg-bg-primary border-border text-text-secondary hover:text-text-primary hover:border-gray-500'
                   }`}
                 >
-                  {t === 'system' && 'Sistema'}
-                  {t === 'light' && 'Claro'}
-                  {t === 'dark' && 'Escuro'}
+                  {tTheme === 'system' && t('settings.interface.system')}
+                  {tTheme === 'light' && t('settings.interface.light')}
+                  {tTheme === 'dark' && t('settings.interface.dark')}
                 </button>
               ))}
             </div>
             <p className="mt-3 text-xs text-text-muted">
-              O tema "Sistema" segue a preferência do teu sistema operativo.
+              {t('settings.interface.themeHint')}
             </p>
           </section>
 
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-            <SectionTitle>Idioma</SectionTitle>
+            <SectionTitle>{t('settings.interface.language')}</SectionTitle>
             <select
               value={localSettings.language}
               onChange={e => handleUpdateSetting('language', e.target.value)}
               className="w-full bg-bg-primary border border-border rounded-lg px-4 py-3 text-text-primary outline-none text-sm"
             >
-              <option value="pt">Português (Portugal)</option>
-              <option value="en">English</option>
+              <option value="pt">{t('settings.interface.pt')}</option>
+              <option value="en">{t('settings.interface.en')}</option>
+              <option value="es">{t('settings.interface.es')}</option>
+              <option value="fr">{t('settings.interface.fr')}</option>
+              <option value="de">{t('settings.interface.de')}</option>
             </select>
             <p className="mt-3 text-xs text-text-muted">
               {t('settings.interface.languageHint')}
@@ -489,23 +486,23 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* TAB: SISTEMA */}
+      {/* TAB: SYSTEM */}
       {activeTab === 'system' && (
         <div className="space-y-6">
           {systemLoading && (
             <div className="rounded-xl border border-border p-12 bg-bg-secondary text-center">
               <RefreshCw size={32} className="animate-spin mx-auto mb-4 text-brand" />
-              <p className="text-sm text-text-secondary">A carregar informação do sistema...</p>
+              <p className="text-sm text-text-secondary">{t('settings.system.loading')}</p>
             </div>
           )}
 
-          {/* ERRO — mostra card de erro MAS também os dados que temos */}
+          {/* ERROR — mostra card de erro MAS também os dados que temos */}
           {!systemLoading && systemError && (
             <div className="rounded-xl border border-red-500/30 p-6 bg-red-500/5">
               <div className="flex items-start gap-3">
                 <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-red-500 mb-1">Erro ao carregar informação do sistema</p>
+                  <p className="text-sm font-bold text-red-500 mb-1">{t('settings.system.errorTitle')}</p>
                   <p className="text-xs text-text-secondary font-mono mb-4">{systemError}</p>
                   <button
                     onClick={() => {
@@ -515,7 +512,7 @@ export default function SettingsPage() {
                       const timer = setTimeout(() => {
                         systemTimedOut.current = true;
                         setSystemLoading(false);
-                        setSystemError('Timeout ao carregar informação do sistema (>5s)');
+                        setSystemError(t('settings.system.timeout'));
                       }, 5000);
                       invoke<SystemInfo>('get_system_info')
                         .then(data => {
@@ -528,7 +525,7 @@ export default function SettingsPage() {
                         .catch((err: unknown) => {
                           if (!systemTimedOut.current) {
                             clearTimeout(timer);
-                            const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+                            const msg = err instanceof Error ? err.message : t('settings.system.unknownError');
                             setSystemError(msg);
                             setSystemLoading(false);
                           }
@@ -536,7 +533,7 @@ export default function SettingsPage() {
                     }}
                     className="px-3 py-1.5 bg-brand hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition-colors"
                   >
-                    Tentar novamente
+                    {t('settings.system.retry')}
                   </button>
                 </div>
               </div>
@@ -547,57 +544,57 @@ export default function SettingsPage() {
           {!systemLoading && (
             <>
               <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-                <SectionTitle>Informação do Sistema</SectionTitle>
+                <SectionTitle>{t('settings.system.systemInfo')}</SectionTitle>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
                   <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <Terminal size={16} className="text-brand shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-text-muted">Sistema Operativo</p>
+                      <p className="text-text-muted">{t('settings.system.os')}</p>
                       <p className="text-text-primary font-bold">{systemInfo?.os_name ?? 'N/A'} {systemInfo?.os_version ?? ''}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <Cpu size={16} className="text-brand shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-text-muted">Processador</p>
+                      <p className="text-text-muted">{t('settings.system.cpu')}</p>
                       <p className="text-text-primary font-bold">{systemInfo?.cpu_model ?? 'N/A'}</p>
-                      <p className="text-text-secondary">{systemInfo?.cpu_cores ?? '—'} cores / {systemInfo?.cpu_threads ?? '—'} threads</p>
+                      <p className="text-text-secondary">{t('settings.system.coresThreads', { cores: systemInfo?.cpu_cores ?? '—', threads: systemInfo?.cpu_threads ?? '—' })}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <MemoryStick size={16} className="text-green-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-text-muted">Memória RAM</p>
-                      <p className="text-text-primary font-bold">{systemInfo?.memory_total_gb?.toFixed(1) ?? '—'} GB total</p>
-                      <p className="text-text-secondary">{systemInfo?.memory_used_gb?.toFixed(1) ?? '—'} GB em uso</p>
+                      <p className="text-text-muted">{t('settings.system.memory')}</p>
+                      <p className="text-text-primary font-bold">{t('settings.system.memoryTotal', { total: systemInfo?.memory_total_gb?.toFixed(1) ?? '—' })}</p>
+                      <p className="text-text-secondary">{t('settings.system.memoryUsed', { used: systemInfo?.memory_used_gb?.toFixed(1) ?? '—' })}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <HardDrive size={16} className="text-yellow-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-text-muted">Disco Principal</p>
+                      <p className="text-text-muted">{t('settings.system.disk')}</p>
                       <p className="text-text-primary font-bold">{systemInfo?.disk_type ?? 'N/A'}</p>
-                      <p className="text-text-secondary">{systemInfo?.disk_total_gb?.toFixed(0) ?? '—'} GB total / {systemInfo?.disk_free_gb?.toFixed(0) ?? '—'} GB livre</p>
+                      <p className="text-text-secondary">{t('settings.system.diskTotalFree', { total: systemInfo?.disk_total_gb?.toFixed(0) ?? '—', free: systemInfo?.disk_free_gb?.toFixed(0) ?? '—' })}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <Monitor size={16} className="text-purple-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-text-muted">GPU</p>
+                      <p className="text-text-muted">{t('settings.system.gpu')}</p>
                       <p className="text-text-primary font-bold">{installedInfo?.gpu?.vendor?.toUpperCase() ?? 'CPU'} — {installedInfo?.gpu?.encoder ?? 'libx264'}</p>
-                      <p className="text-text-secondary">{installedInfo?.gpu?.available ? 'Aceleração disponível' : 'Processamento por software'}</p>
+                      <p className="text-text-secondary">{installedInfo?.gpu?.available ? t('settings.system.gpuAccelerationAvailable') : t('settings.system.gpuSoftware')}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <Network size={16} className="text-teal-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-text-muted">Rede</p>
+                      <p className="text-text-muted">{t('settings.system.network')}</p>
                       {systemInfo?.network_interfaces && systemInfo.network_interfaces.length > 0 ? (
                         systemInfo.network_interfaces.map((ni, i) => (
                           <p key={i} className="text-text-primary font-bold">{ni.name} <span className="text-text-secondary font-normal">({ni.status})</span></p>
                         ))
                       ) : (
-                        <p className="text-text-secondary">Nenhuma informação disponível</p>
+                        <p className="text-text-secondary">{t('settings.system.noNetworkInfo')}</p>
                       )}
                       {systemInfo?.wifi_ssid && <p className="text-text-secondary"><Wifi size={10} className="inline mr-1" />SSID: {systemInfo.wifi_ssid}</p>}
                     </div>
@@ -606,16 +603,16 @@ export default function SettingsPage() {
               </section>
 
               <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-                <SectionTitle>Binários & Base de Dados</SectionTitle>
+                <SectionTitle>{t('settings.system.binaries')}</SectionTitle>
                 <div className="space-y-3 font-mono text-xs">
                   <div className="flex justify-between border-b border-border pb-2">
                     <span className="text-text-muted flex items-center gap-2"><Code2 size={12} /> FFmpeg</span>
-                    <span className="text-text-secondary">{ffmpegInfo?.version ?? installedInfo?.ffmpeg_version ?? 'Não encontrado'}</span>
+                    <span className="text-text-secondary">{ffmpegInfo?.version ?? installedInfo?.ffmpeg_version ?? t('settings.system.notFound')}</span>
                   </div>
                   <div className="flex justify-between border-b border-border pb-2">
                     <span className="text-text-muted flex items-center gap-2"><Code2 size={12} /> libvmaf</span>
                     <span className={ffmpegInfo?.has_libvmaf ? 'text-green-500' : 'text-red-500'}>
-                      {ffmpegInfo?.has_libvmaf ? 'Disponível' : 'Indisponível'}
+                      {ffmpegInfo?.has_libvmaf ? t('settings.system.available') : t('settings.system.unavailable')}
                     </span>
                   </div>
                   <div className="flex justify-between border-b border-border pb-2">
@@ -623,26 +620,26 @@ export default function SettingsPage() {
                     <span className="text-text-secondary">{installedInfo?.node_version ?? 'N/A'}</span>
                   </div>
                   <div className="flex justify-between pb-2">
-                    <span className="text-text-muted flex items-center gap-2"><Database size={12} /> Base de Dados</span>
+                    <span className="text-text-muted flex items-center gap-2"><Database size={12} /> {t('settings.system.database')}</span>
                     <span className="text-text-secondary truncate max-w-[300px]">{installedInfo?.db_path ?? 'N/A'}</span>
                   </div>
                   {dbInfo && (
                     <div className="grid grid-cols-4 gap-2 pt-2">
                       <div className="text-center p-2 bg-bg-primary rounded border border-border">
                         <p className="text-text-primary font-bold">{dbInfo.db_size_mb.toFixed(1)} MB</p>
-                        <p className="text-text-muted">Tamanho</p>
+                        <p className="text-text-muted">{t('settings.system.dbSize')}</p>
                       </div>
                       <div className="text-center p-2 bg-bg-primary rounded border border-border">
                         <p className="text-text-primary font-bold">{dbInfo.assets_count}</p>
-                        <p className="text-text-muted">Assets</p>
+                        <p className="text-text-muted">{t('settings.system.dbAssets')}</p>
                       </div>
                       <div className="text-center p-2 bg-bg-primary rounded border border-border">
                         <p className="text-text-primary font-bold">{dbInfo.jobs_count}</p>
-                        <p className="text-text-muted">Jobs</p>
+                        <p className="text-text-muted">{t('settings.system.dbJobs')}</p>
                       </div>
                       <div className="text-center p-2 bg-bg-primary rounded border border-border">
                         <p className="text-text-primary font-bold">{dbInfo.logs_count}</p>
-                        <p className="text-text-muted">Logs</p>
+                        <p className="text-text-muted">{t('settings.system.dbLogs')}</p>
                       </div>
                     </div>
                   )}
@@ -653,11 +650,11 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* TAB: AVANÇADO */}
+      {/* TAB: ADVANCED */}
       {activeTab === 'advanced' && (
         <div className="space-y-6">
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-            <SectionTitle>Dados</SectionTitle>
+            <SectionTitle>{t('settings.sections.data')}</SectionTitle>
             <div className="grid grid-cols-2 gap-3">
               <button onClick={handleExport}
                 className="flex items-center justify-center gap-2 p-3 bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors text-sm font-medium"
@@ -673,7 +670,7 @@ export default function SettingsPage() {
           </section>
 
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
-            <SectionTitle>Manutenção</SectionTitle>
+            <SectionTitle>{t('settings.sections.maintenance')}</SectionTitle>
             <div className="space-y-3">
               <button onClick={handleResetSettings}
                 className="flex items-center gap-3 w-full p-3 bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors text-left text-sm font-medium"
@@ -683,14 +680,14 @@ export default function SettingsPage() {
               <button onClick={handleFactoryReset}
                 className="flex items-center gap-3 w-full p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors text-left text-sm font-medium"
               >
-                <Trash2 size={14} /> Reset Total (Factory Reset)
+                <Trash2 size={14} /> {t('settings.advanced.factoryReset')}
               </button>
             </div>
           </section>
         </div>
       )}
 
-      {/* TAB: SOBRE */}
+      {/* TAB: ABOUT */}
       {activeTab === 'about' && (
         <div className="space-y-6">
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
@@ -726,7 +723,7 @@ export default function SettingsPage() {
               <button onClick={handleOpenDataDir}
                 className="px-4 py-2 bg-surface hover:bg-surface-hover text-text-primary text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
               >
-                <ExternalLink size={14} /> Abrir Dados
+                <ExternalLink size={14} /> {t('settings.about.openData')}
               </button>
             </div>
           </section>

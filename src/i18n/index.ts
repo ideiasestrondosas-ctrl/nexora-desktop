@@ -2,12 +2,18 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
+import en from './locales/en/base.json';
 import pt from './locales/pt/common.json';
-import en from './locales/en/common.json';
+import es from './locales/es/common.json';
+import fr from './locales/fr/common.json';
+import de from './locales/de/common.json';
 
 const resources = {
-  pt: { common: pt },
   en: { common: en },
+  pt: { common: pt },
+  es: { common: es },
+  fr: { common: fr },
+  de: { common: de },
 };
 
 i18n
@@ -15,8 +21,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'pt',
-    lng: 'pt',
+    fallbackLng: 'en',
     ns: ['common'],
     defaultNS: 'common',
     interpolation: {

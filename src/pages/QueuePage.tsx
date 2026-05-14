@@ -34,18 +34,18 @@ interface QueueStats {
 }
 
 const PIPELINE_STEPS = [
-  { key: 'ingest',     label: 'Ingest',    desc: 'Asset inserido na BD com metadados' },
-  { key: 'qc-pre',     label: 'QC Pré',    desc: 'Ficheiro validado (tamanho, duração, codec)' },
-  { key: 'transcode',  label: 'Transcode', desc: 'Broadcast-hd concluído com FFmpeg bundled' },
-  { key: 'audio',      label: 'Áudio',     desc: 'Normalização R128 com LUFS -21.99' },
-  { key: 'proxy',      label: 'Proxy',     desc: 'Gerado em 960x540' },
-  { key: 'thumbnail',  label: 'Thumbnail', desc: 'Frame aos 5s em 640px' },
-  { key: 'qc-post',    label: 'QC Pós',    desc: 'SHA-256 do output verificado + VMAF' },
-  { key: 'delivery',   label: 'Delivery',  desc: 'Ficheiros movidos para pasta de saída' },
+  { key: 'ingest' },
+  { key: 'qc-pre' },
+  { key: 'transcode' },
+  { key: 'audio' },
+  { key: 'proxy' },
+  { key: 'thumbnail' },
+  { key: 'qc-post' },
+  { key: 'delivery' },
 ];
 
 export default function QueuePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<QueueStats>({
     queued: 0, processing: 0, doneToday: 0, errorToday: 0, quarantined: 0, rejectedToday: 0
@@ -98,7 +98,7 @@ export default function QueuePage() {
 
   const handleReject = async (jobId: string) => {
     try {
-      await invoke('reject_job', { id: jobId, reason: 'Rejeitado manualmente pelo operador' });
+      await invoke('reject_job', { id: jobId, reason: t('queue.rejectedManual') });
       fetchData();
     } catch (error) {
       console.error('Failed to reject job:', error);
@@ -118,7 +118,7 @@ export default function QueuePage() {
   const formatTime = (isoString: string | null) => {
     if (!isoString) return '--:--';
     const date = new Date(isoString);
-    return date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' });
   };
 
   const getVmafColor = (score: number | null) => {
@@ -275,7 +275,7 @@ export default function QueuePage() {
                   {/* PROGRESS BAR */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-end">
-                      <span className="text-xs font-bold text-text-secondary">A {job.step || 'preparar'}...</span>
+                      <span className="text-xs font-bold text-text-secondary">{t('queue.step', { step: job.step || t('queue.wait') })}</span>
                       <span className="text-xl font-black text-text-primary">{(job.progress * 100).toFixed(0)}%</span>
                     </div>
                     <div className="w-full h-3 bg-bg-primary rounded-full overflow-hidden border border-border">
@@ -291,7 +291,7 @@ export default function QueuePage() {
                       <Clock size={14} /> {t('queue.startedAt')} {formatTime(job.started_at)}
                     </div>
                     <div className="flex items-center gap-1">
-                      <Cpu size={14} /> GPU: NVENC
+                      <Cpu size={14} /> {t('queue.gpuNvenc')}
                     </div>
                   </div>
                 </div>
@@ -399,7 +399,7 @@ export default function QueuePage() {
                         </span>
                       ) : job.status === 'qc_rejected' ? (
                         <span className="flex items-center gap-1.5 text-orange-500 font-bold uppercase text-[10px]">
-                          <ShieldX size={14} /> Rejeitado
+                          <ShieldX size={14} /> {t('queue.rejected')}
                         </span>
                       ) : (
                        <span className="flex items-center gap-1.5 text-text-muted font-bold uppercase text-[10px]">

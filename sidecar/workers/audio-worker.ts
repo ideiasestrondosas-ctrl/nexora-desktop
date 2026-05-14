@@ -4,7 +4,7 @@ import { mkdtemp, rm, copyFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join, basename, extname } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
-import { writeAuditLog, getAsset } from '../db';
+import { emit } from '../events';
 import type { ProgressCallback } from './types';
 import { getFfmpegPath } from '../binaries';
 import { loadProfile } from '../profiles/types';
@@ -14,8 +14,6 @@ const execFileAsync = promisify(execFile);
 export class AudioWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
     const { assetId, assetPath, jobId, profile: profileName, outputDir } = ctx;
-    const asset = getAsset(assetId);
-    if (!asset) throw new Error(`Audio: asset ${assetId} não encontrado`);
 
     const profile = loadProfile(profileName);
     const targetLufs = profile.targetLufs;
@@ -59,14 +57,7 @@ export class AudioWorker {
 
       ctx.lufs = after.integratedLufs;
 
-      writeAuditLog(jobId, 'audio:completed', {
-        assetId,
-        targetLufs,
-        measuredLufs: after.integratedLufs,
-        truePeak: after.truePeak,
-        verifiedByBs1770,
-        finalPath,
-      });
+      emit({ type: 'log', level: 'INFO', source: 'audio-worker', message: `Audio completed: ${after.integratedLufs.toFixed(1)} LUFS -> ${finalPath}` });
 
       onProgress(1.0);
     } finally {

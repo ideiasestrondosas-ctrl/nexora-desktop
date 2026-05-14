@@ -4,7 +4,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { resolve } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
-import { getAsset, writeAuditLog } from '../db';
+import { emit } from '../events';
 import { getFfmpegPath } from '../binaries';
 import type { ProgressCallback } from './types';
 
@@ -23,8 +23,6 @@ const VMAF_THRESHOLDS: Record<string, number> = {
 export class QCPostWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
     const { assetId, jobId } = ctx;
-    const asset = getAsset(assetId);
-    if (!asset) throw new Error(`QC Post: asset ${assetId} não encontrado`);
 
     const distorted = ctx.transcodedPath;
     if (!distorted) throw new Error('QC Post: transcodedPath em falta');
@@ -41,7 +39,7 @@ export class QCPostWorker {
     let vmafPassed = false;
 
     try {
-      const vmafResult = await this.calculateVMAF(asset.path, distorted, ctx.profile);
+      const vmafResult = await this.calculateVMAF(ctx.assetPath, distorted, ctx.profile);
       vmafScore = vmafResult.mean;
       const threshold = VMAF_THRESHOLDS[ctx.profile] ?? 85;
       vmafPassed = vmafResult.mean >= threshold && vmafResult.percentile1 >= threshold - 5;
@@ -54,13 +52,7 @@ export class QCPostWorker {
 
     onProgress(0.9);
 
-    writeAuditLog(jobId, 'qc-post:passed', {
-      assetId,
-      sha256,
-      distorted,
-      vmafScore,
-      vmafPassed,
-    });
+    emit({ type: 'log', level: 'INFO', source: 'qc-post-worker', message: `QC Post passed: VMAF ${vmafScore ?? 'N/A'}, passed=${vmafPassed}` });
 
     onProgress(1.0);
   }

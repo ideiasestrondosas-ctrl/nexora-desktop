@@ -17,11 +17,13 @@ import AssetDetailPage from '@/pages/AssetDetailPage';
 import TopBar from '@/components/TopBar';
 
 import { useSettingsStore } from '@/store/settings';
+import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { cn } from '@/lib/utils';
 
 type Tab = 'dashboard' | 'library' | 'queue' | 'profiles' | 'settings' | 'logs' | 'detail';
 
 function App() {
+  useLanguageSync();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);

@@ -1,6 +1,7 @@
 mod commands;
 mod db;
 mod logger;
+mod queue;
 mod sidecar;
 mod state;
 mod tray;
@@ -32,9 +33,7 @@ pub fn run() {
 
             tray::setup(app)?;
 
-            if let Err(e) = sidecar::spawn(app.handle().clone(), &db_path) {
-                log::warn!("Sidecar não arrancou: {}", e);
-            }
+            queue::start(app.handle().clone(), &db_path);
 
             // Thread de métricas do sistema — emite "system-metrics" a cada 2 s
             let metrics_handle = app.handle().clone();

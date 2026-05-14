@@ -41,7 +41,7 @@ interface DashboardPageProps {
 }
 
 export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPageProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [stats, setStats] = useState<AppStats | null>(null);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [assetMap, setAssetMap] = useState<AssetMap>({});
@@ -119,7 +119,7 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
         <StatCard
           title={t('dashboard.assetsTotal')}
           value={stats?.totalAssets ?? 0}
-          subtitle="Ficheiros processados"
+          subtitle={t('dashboard.processedFiles')}
           icon={Archive}
           color="text-brand"
         />
@@ -133,7 +133,7 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
         <StatCard
           title={t('dashboard.vmafAvg')}
           value={stats?.avgVmaf != null ? stats.avgVmaf.toFixed(1) : '--'}
-          subtitle="Média de qualidade"
+          subtitle={t('dashboard.avgQuality')}
           icon={Gauge}
           color={getVmafColor(stats?.avgVmaf ?? null)}
         />
@@ -155,8 +155,8 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
           {recentJobs.length === 0 ? (
             <div className="p-12 text-center text-text-muted flex flex-col items-center">
               <Film size={32} className="mb-4 opacity-20" />
-              <p className="text-sm">Sem jobs recentes.</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest mt-1">Arrasta vídeos para processar.</p>
+              <p className="text-sm">{t('dashboard.noJobs')}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest mt-1">{t('dashboard.noJobsHint')}</p>
             </div>
           ) : (
             <div className="divide-y divide-border">
@@ -180,8 +180,8 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
                       <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1">
                         <Clock size={10} />
                         {job.started_at
-                          ? new Date(job.started_at).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })
-                          : new Date(job.created_at).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                          ? new Date(job.started_at).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })
+                          : new Date(job.created_at).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </div>
@@ -217,22 +217,22 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded bg-red-500" />
-            <span className="text-xs font-bold text-text-secondary flex-1">Abaixo de 70</span>
+            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmafBelow70')}</span>
             <span className="text-xs font-bold text-text-primary">{vmafDist.below70} jobs</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded bg-yellow-500" />
-            <span className="text-xs font-bold text-text-secondary flex-1">70 a 85</span>
+            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmaf70to85')}</span>
             <span className="text-xs font-bold text-text-primary">{vmafDist.from70to85} jobs</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded bg-green-500" />
-            <span className="text-xs font-bold text-text-secondary flex-1">85 a 95</span>
+            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmaf85to95')}</span>
             <span className="text-xs font-bold text-text-primary">{vmafDist.from85to95} jobs</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded bg-brand" />
-            <span className="text-xs font-bold text-text-secondary flex-1">Acima de 95</span>
+            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmafAbove95')}</span>
             <span className="text-xs font-bold text-text-primary">{vmafDist.above95} jobs</span>
           </div>
         </div>

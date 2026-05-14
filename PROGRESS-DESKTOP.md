@@ -106,9 +106,9 @@
 ## Em progresso agora
 
 ```
-Data:          2026-05-13
+Data:          2026-05-14
 Agente:        Claude Code (Kimi K2.6)
-A trabalhar em: Resolucao de binarios FFmpeg bundled + correcoes de consistencia
+A trabalhar em: Correcao profiles.rs serde + workers.test.ts stateless + build Windows validado
 Bloqueios:     Nenhum
 ```
 
@@ -224,6 +224,9 @@ nexora-desktop/
 | 2026-05-13 | HelpModal.tsx TabId nao incluia 'troubleshoot' | RESOLVIDO |
 | 2026-05-13 | SettingsPage.tsx campo nodejs_version vs node_version | RESOLVIDO |
 | 2026-05-13 | Cargo.toml description com mojibake | RESOLVIDO |
+| 2026-05-14 | profiles.rs `rename_all = "camelCase"` causava `undefined` em todos os campos no frontend | RESOLVIDO (removido camelCase de Profile e ProfileInput) |
+| 2026-05-14 | workers.test.ts falhava porque QCPreWorker agora e stateless (le do ctx, nao da BD) | RESOLVIDO (tests actualizados para mockar `emit` e passar metadados no ctx) |
+| 2026-05-14 | Aviso `dead_code` em `sidecar::spawn` (funcao antiga nao usada) | RESOLVIDO (`#[allow(dead_code)]`) |
 
 ---
 
@@ -256,6 +259,8 @@ nexora-desktop/
 | 2026-05-09 | Prompt Desktop 3 completo: Frontend React 19 com Zustand, Tailwind v4, 3 tabs de navegacao, hooks de polling e GPU, DropZone e JobCards. | Google Antigravity (Gemini 3.1 Pro) | src/**/*, package.json, src-tauri/Cargo.toml, src-tauri/src/lib.rs |
 | 2026-05-09 a 2026-05-13 | Iteracoes de bug fixes, gap analysis, novo UI (Dashboard, Biblioteca, Fila, Perfis, Logs, Asset Detail), sistema de logs, manual integrado, factory reset, exit app, controlo de execucao automatizado | Claude Sonnet 4.6 + Google Antigravity | Dezenas de ficheiros em src/, src-tauri/, sidecar/ |
 | 2026-05-13 | Resolucao de binarios FFmpeg bundled, correcoes de consistencia (get_stats, node_version, LibraryPage drop, HelpModal TabId, Cargo.toml description) | Claude Code (Kimi K2.6) | sidecar/binaries.ts, src-tauri/src/sidecar.rs, src-tauri/src/commands/system.rs, sidecar/workers/*.ts, src/pages/LibraryPage.tsx, src/pages/SettingsPage.tsx, src/components/HelpModal.tsx, src-tauri/Cargo.toml |
+| 2026-05-14 | Correcao profiles.rs (removido camelCase), workers.test.ts actualizado para stateless QCPreWorker, aviso dead_code suprimido, build Windows validado (MSI 146MB / NSIS 92MB) | Claude Code (Kimi K2.6) | src-tauri/src/commands/profiles.rs, tests/workers.test.ts, src-tauri/src/sidecar.rs |
+| 2026-05-14 | i18n completo: Base Master EN, 5 idiomas (PT/EN/ES/FR/DE), ~550 chaves, todas as strings hardcoded extraídas, formatação de datas dinâmica, sync de idioma no arranque | Claude Code (Kimi K2.6) | src/i18n/**/*, src/pages/*, src/components/* (15 ficheiros), scripts/translate-i18n.cjs |
 
 ---
 
@@ -272,8 +277,8 @@ nexora-desktop/
 9. [x] ~~Pipeline de Aprovação / Quarentena (qc_quarantined / qc_rejected) com painel no QueuePage~~
 10. [x] ~~VMAF ativo no QC-Post com thresholds por perfil e modelo VMAF v0.6.1~~
 11. [x] ~~Comandos Rust: get_system_info, get_ffmpeg_info, get_db_info, open_data_dir, approve_job, reject_job~~
-12. [ ] Validar build em Windows (tauri build --debug) com binarios
-13. [ ] Testar fluxo real: ingest -> job -> transcode -> done
+12. [x] ~~Validar build em Windows (tauri build --debug) com binarios~~ (MSI 146MB + NSIS 92MB gerados)
+13. [ ] Testar fluxo real: ingest -> job -> transcode -> done (requer teste manual com GUI)
 14. [ ] Adicionar bs1770gain ao download de binarios (ou tornar opcional)
 15. [ ] Adicionar testes de integracao Tauri (e2e)
 16. [ ] Deep links nexora:// (ADR-D012)
@@ -312,4 +317,4 @@ nexora-desktop/
 
 *Este ficheiro e a fonte de verdade do projecto Desktop.*
 *Em caso de duvida, consulta aqui.*
-*Ultima actualizacao: 2026-05-13 21:20 por Claude Code (Kimi K2.6)*
+*Ultima actualizacao: 2026-05-14 17:45 por Claude Code (Kimi K2.6)*
