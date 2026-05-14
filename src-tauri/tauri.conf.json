@@ -40,9 +40,10 @@
                                        "binaries/ffmpeg",
                                        "binaries/ffprobe"
                                    ],
-                   "resources":  [
-                                     "../sidecar/dist/nexora-sidecar.cjs"
-                                 ]
+                    "resources": [
+                                      "../sidecar/dist/nexora-sidecar.cjs",
+                                      "resources/vmaf_models"
+                                  ]
                },
     "plugins":  {
                     "updater":  {

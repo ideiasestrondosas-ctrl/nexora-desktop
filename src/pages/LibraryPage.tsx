@@ -4,7 +4,7 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { open } from '@tauri-apps/plugin-dialog';
 import toast from 'react-hot-toast';
 import { 
-  Library, Upload, Search, Filter, Grid2X2, List, Film, 
+  Library, Search, Filter, Grid2X2, List, Film,
   ExternalLink, Trash2, Play
 } from 'lucide-react';
 
@@ -197,20 +197,6 @@ export default function LibraryPage() {
 
   return (
     <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-500">
-      {/* HEADER */}
-      <div className="flex items-center justify-between shrink-0">
-        <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Biblioteca</h1>
-          <p className="text-xs font-medium text-gray-500">{filteredAssets.length} assets encontrados</p>
-        </div>
-        <button 
-          onClick={handleAddVideos}
-          className="flex items-center gap-2 bg-[#1A6FD4] hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-lg shadow-blue-900/20"
-        >
-          <Upload size={18} /> Adicionar Vídeos
-        </button>
-      </div>
-
       {/* FILTERS BAR */}
       <div className="flex flex-wrap items-center gap-4 bg-[#141824] border border-[#1e2433] rounded-xl p-3 shrink-0">
         <div className="relative flex-1 min-w-[200px]">

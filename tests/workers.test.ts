@@ -14,6 +14,7 @@ vi.mock('fs', async (importOriginal) => {
 vi.mock('../sidecar/db', () => ({
   getAsset: vi.fn(),
   writeAuditLog: vi.fn(),
+  updateJobStatus: vi.fn(),
 }));
 
 import { statSync } from 'fs';
@@ -24,6 +25,7 @@ import type { JobContext } from '../sidecar/orchestrator/NexoraDesktopOrchestrat
 const mockStatSync = statSync as Mock;
 const mockGetAsset = db.getAsset as Mock;
 const mockWriteAuditLog = db.writeAuditLog as Mock;
+const mockUpdateJobStatus = db.updateJobStatus as Mock;
 
 const BASE_CTX: JobContext = {
   jobId: 'job-1',
@@ -59,7 +61,7 @@ describe('QCPreWorker', () => {
 
   it('passa quando o asset é válido', async () => {
     const worker = new QCPreWorker();
-    await expect(worker.run(BASE_CTX)).resolves.toBeUndefined();
+    await expect(worker.run(BASE_CTX)).resolves.toBe('PASS');
     expect(mockWriteAuditLog).toHaveBeenCalledWith('job-1', 'qc-pre:passed', expect.any(Object));
   });
 
@@ -97,14 +99,21 @@ describe('QCPreWorker', () => {
   it('passa quando duration_secs é null (desconhecido)', async () => {
     mockGetAsset.mockReturnValue({ ...VALID_ASSET, duration_secs: null });
     const worker = new QCPreWorker();
-    await expect(worker.run(BASE_CTX)).resolves.toBeUndefined();
+    await expect(worker.run(BASE_CTX)).resolves.toBe('PASS');
   });
 
-  it('passa com ficheiro exactamente no limite de 100 GB', async () => {
-    const exactly100GB = 100 * 1024 ** 3;
-    mockStatSync.mockReturnValue({ size: exactly100GB });
+  it('coloca em quarentena ficheiros > 50 GB', async () => {
+    const size100GB = 100 * 1024 ** 3;
+    mockStatSync.mockReturnValue({ size: size100GB });
     const worker = new QCPreWorker();
-    await expect(worker.run(BASE_CTX)).resolves.toBeUndefined();
+    await expect(worker.run(BASE_CTX)).resolves.toBe('QUARANTINE');
+  });
+
+  it('coloca em quarentena ficheiros com codec não suportado', async () => {
+    mockGetAsset.mockReturnValue({ ...VALID_ASSET, video_codec: 'hevc' });
+    const worker = new QCPreWorker();
+    await expect(worker.run(BASE_CTX)).resolves.toBe('QUARANTINE');
+    expect(mockUpdateJobStatus).toHaveBeenCalledWith('job-1', 'qc_quarantined');
   });
 
   it('inclui metadados do asset no audit log', async () => {

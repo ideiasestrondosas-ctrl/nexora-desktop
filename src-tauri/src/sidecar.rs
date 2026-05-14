@@ -47,11 +47,15 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
         );
     }
 
+    // Passar resource_dir ao sidecar para resolver modelos VMAF e outros recursos
+    let resource_dir = app.path().resource_dir().ok();
+
     let mut child = Command::new("node")
         .arg(&script_path)
         .env("NEXORA_DB_PATH", db_path)
         .env("NEXORA_FFMPEG_PATH", &ffmpeg_path)
         .env("NEXORA_FFPROBE_PATH", &ffprobe_path)
+        .env("NEXORA_RESOURCE_DIR", resource_dir.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default())
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()

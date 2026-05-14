@@ -181,6 +181,189 @@ pub fn get_changelog() -> String {
     include_str!("../../../CHANGELOG.md").to_string()
 }
 
+// ── System Info (cross-platform via sysinfo + std) ───────────────────────────
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemInfo {
+    pub os_name: String,
+    pub os_version: String,
+    pub cpu_model: String,
+    pub cpu_cores: usize,
+    pub cpu_threads: usize,
+    pub memory_total_gb: f64,
+    pub memory_used_gb: f64,
+    pub disk_type: String,
+    pub disk_total_gb: f64,
+    pub disk_free_gb: f64,
+    pub network_interfaces: Vec<NetworkInterface>,
+    pub wifi_ssid: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkInterface {
+    pub name: String,
+    pub status: String,
+}
+
+#[tauri::command]
+pub fn get_system_info(app: tauri::AppHandle) -> Result<SystemInfo, String> {
+    use sysinfo::System;
+    // Usar System::new() em vez de new_all() para evitar bloqueios em alguns sistemas
+    let mut sys = System::new();
+    sys.refresh_cpu_all();
+    sys.refresh_memory();
+
+    let cpu_model = sys.cpus().first()
+        .map(|c| c.brand().to_string())
+        .unwrap_or_else(|| "Desconhecido".to_string());
+    let cpu_cores = sys.physical_core_count().unwrap_or(1);
+    let cpu_threads = sys.cpus().len();
+
+    let mem_total_gb = sys.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0);
+    let mem_used_gb = sys.used_memory() as f64 / (1024.0 * 1024.0 * 1024.0);
+
+    // Disco: usa app_data_dir
+    let (disk_total_gb, disk_free_gb, disk_type) = {
+        if let Ok(data_dir) = app.path().app_data_dir() {
+            if let Some(path_str) = data_dir.to_str() {
+                if let Ok(disk) = get_disk_space(path_str.to_string()) {
+                    let total = disk.total_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
+                    let free = disk.free_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
+                    let dtype = if cfg!(target_os = "windows") {
+                        "SSD/HDD".to_string()
+                    } else {
+                        "Desconhecido".to_string()
+                    };
+                    (total, free, dtype)
+                } else {
+                    (0.0, 0.0, "N/A".to_string())
+                }
+            } else {
+                (0.0, 0.0, "N/A".to_string())
+            }
+        } else {
+            (0.0, 0.0, "N/A".to_string())
+        }
+    };
+
+    // Rede: simplificado — evitar Networks::new_with_refreshed_list() que pode bloquear
+    let network_interfaces: Vec<NetworkInterface> = vec![];
+
+    let os_name = format!("{} {}", std::env::consts::OS, std::env::consts::ARCH);
+    let os_version = System::kernel_version().unwrap_or_else(|| "Desconhecido".to_string());
+
+    Ok(SystemInfo {
+        os_name,
+        os_version,
+        cpu_model,
+        cpu_cores,
+        cpu_threads,
+        memory_total_gb: mem_total_gb,
+        memory_used_gb: mem_used_gb,
+        disk_type,
+        disk_total_gb,
+        disk_free_gb,
+        network_interfaces,
+        wifi_ssid: None,
+    })
+}
+
+// ── FFmpeg Info ──────────────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FfmpegInfo {
+    pub version: String,
+    pub has_libvmaf: bool,
+    pub codecs: Vec<String>,
+}
+
+#[tauri::command]
+pub fn get_ffmpeg_info(app: tauri::AppHandle) -> Result<FfmpegInfo, String> {
+    let ffmpeg_path = resolve_media_binary_path(&app, "ffmpeg");
+
+    let version = Command::new(&ffmpeg_path)
+        .arg("-version")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .and_then(|s| s.lines().next().map(|l| l.trim().to_string()))
+        .unwrap_or_else(|| "Desconhecido".to_string());
+
+    let has_libvmaf = Command::new(&ffmpeg_path)
+        .args(["-filters"])
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.contains("libvmaf"))
+        .unwrap_or(false);
+
+    Ok(FfmpegInfo {
+        version,
+        has_libvmaf,
+        codecs: vec![],
+    })
+}
+
+// ── DB Info ──────────────────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DbInfo {
+    pub db_size_mb: f64,
+    pub assets_count: i64,
+    pub jobs_count: i64,
+    pub logs_count: i64,
+}
+
+#[tauri::command]
+pub fn get_db_info(state: State<'_, AppState>, app: tauri::AppHandle) -> Result<DbInfo, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+
+    let db_path = app.path().app_data_dir()
+        .ok()
+        .map(|p| p.join("nexora.db"))
+        .unwrap_or_default();
+
+    let db_size_mb = std::fs::metadata(&db_path)
+        .map(|m| m.len() as f64 / (1024.0 * 1024.0))
+        .unwrap_or(0.0);
+
+    let assets_count: i64 = db.query_row("SELECT COUNT(*) FROM assets", [], |r| r.get(0)).unwrap_or(0);
+    let jobs_count: i64 = db.query_row("SELECT COUNT(*) FROM jobs", [], |r| r.get(0)).unwrap_or(0);
+    let logs_count: i64 = db.query_row("SELECT COUNT(*) FROM logs", [], |r| r.get(0)).unwrap_or(0);
+
+    Ok(DbInfo {
+        db_size_mb,
+        assets_count,
+        jobs_count,
+        logs_count,
+    })
+}
+
+// Helper local para resolver path do FFmpeg (reusa lógica do sidecar.rs)
+use std::path::PathBuf;
+fn resolve_media_binary_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>, name: &str) -> PathBuf {
+    let ext = if cfg!(target_os = "windows") { ".exe" } else { "" };
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            let candidate = exe_dir.join(format!("{}{}", name, ext));
+            if candidate.exists() {
+                return candidate;
+            }
+        }
+    }
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        let candidate = resource_dir.join(format!("{}{}", name, ext));
+        if candidate.exists() {
+            return candidate;
+        }
+    }
+    PathBuf::from(name)
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppStats {
@@ -244,6 +427,33 @@ pub fn get_stats(
         disk_free_bytes,
         disk_total_bytes,
     })
+}
+
+#[tauri::command]
+pub fn open_data_dir(app: tauri::AppHandle) -> Result<(), String> {
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&dir)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&dir)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&dir)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
 
 #[tauri::command]

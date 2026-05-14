@@ -1,4 +1,4 @@
-import { markJobRunning, updateJobProgress, markJobDone, markJobFailed, writeAuditLog } from '../db';
+import { markJobRunning, updateJobProgress, markJobDone, markJobFailed, writeAuditLog, updateJobStatus } from '../db';
 import { emit } from '../events';
 import { IngestWorker } from '../workers/ingest-worker';
 import { QCPreWorker } from '../workers/qc-pre-worker';
@@ -15,7 +15,6 @@ export interface JobContext {
   assetPath: string;
   profile: string;
   outputDir: string;
-  // Preenchido pelos workers ao longo do pipeline
   transcodedPath?: string;
   proxyPath?: string;
   thumbnailPath?: string;
@@ -30,7 +29,6 @@ interface QueuedJob {
   output_path: string | null;
 }
 
-// Passos do pipeline e os seus pesos relativos (somam 1.0)
 const STEPS: Array<{ name: string; weight: number }> = [
   { name: 'ingest',     weight: 0.05 },
   { name: 'qc-pre',     weight: 0.05 },
@@ -74,7 +72,21 @@ export class NexoraDesktopOrchestrator {
       stepProgress(0, 1);
 
       // Passo 1 — QC Pre
-      await new QCPreWorker().run(ctx);
+      const qcResult = await new QCPreWorker().run(ctx);
+      if (qcResult === 'QUARANTINE') {
+        // Libertar slot — não marca como falhado, apenas emite evento
+        emit({ type: 'job:quarantined', jobId: job.id, assetId: job.asset_id });
+        writeAuditLog(job.id, 'pipeline:quarantined', {
+          assetId: job.asset_id,
+          profile: job.profile,
+        });
+        // O job fica com status 'qc_quarantined' definido pelo QCPreWorker
+        return; // Sai do pipeline sem falhar
+      }
+      if (qcResult === 'REJECT') {
+        // Não deve acontecer com a lógica actual (REJECT é via throw), mas por segurança
+        throw new Error('QC Pré: rejeitado');
+      }
       stepProgress(1, 1);
 
       // Passo 2 — Transcode

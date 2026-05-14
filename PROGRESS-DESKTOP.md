@@ -267,12 +267,16 @@ nexora-desktop/
 4. [x] ~~Corrigir tipagem InstalledInfo (node_version)~~
 5. [x] ~~Implementar LibraryPage.handleDrop~~
 6. [x] ~~Limpar Cargo.toml description~~
-7. [ ] Validar build em Windows (tauri build --debug) com binarios
-8. [ ] Testar fluxo real: ingest -> job -> transcode -> done
-9. [ ] Adicionar bs1770gain ao download de binarios (ou tornar opcional)
-10. [ ] Adicionar testes de integracao Tauri (e2e)
-11. [ ] VMAF real no QC-Post (requer libvmaf no FFmpeg bundled)
-12. [ ] Deep links nexora:// (ADR-D012)
+7. [x] ~~TopBar com gauges circulares CPU/RAM/GPU/Disco + botão sair icon~~
+8. [x] ~~Settings reorganizado em 5 tabs (Geral, Interface, Sistema, Avançado, Sobre) com botões funcionais~~
+9. [x] ~~Pipeline de Aprovação / Quarentena (qc_quarantined / qc_rejected) com painel no QueuePage~~
+10. [x] ~~VMAF ativo no QC-Post com thresholds por perfil e modelo VMAF v0.6.1~~
+11. [x] ~~Comandos Rust: get_system_info, get_ffmpeg_info, get_db_info, open_data_dir, approve_job, reject_job~~
+12. [ ] Validar build em Windows (tauri build --debug) com binarios
+13. [ ] Testar fluxo real: ingest -> job -> transcode -> done
+14. [ ] Adicionar bs1770gain ao download de binarios (ou tornar opcional)
+15. [ ] Adicionar testes de integracao Tauri (e2e)
+16. [ ] Deep links nexora:// (ADR-D012)
 
 ---
 
@@ -308,4 +312,4 @@ nexora-desktop/
 
 *Este ficheiro e a fonte de verdade do projecto Desktop.*
 *Em caso de duvida, consulta aqui.*
-*Ultima actualizacao: 2026-05-13 por Claude Code (Kimi K2.6)*
+*Ultima actualizacao: 2026-05-13 21:20 por Claude Code (Kimi K2.6)*

@@ -133,6 +133,8 @@ pub struct QueueStats {
     pub processing: i64,
     pub done_today: i64,
     pub error_today: i64,
+    pub quarantined: i64,
+    pub rejected_today: i64,
 }
 
 #[tauri::command]
@@ -158,7 +160,17 @@ pub fn get_queue_stats(state: State<AppState>) -> Result<QueueStats, String> {
             |r| r.get(0),
         )
         .unwrap_or(0);
-    Ok(QueueStats { queued, processing, done_today, error_today })
+    let quarantined: i64 = db
+        .query_row("SELECT COUNT(*) FROM jobs WHERE status='qc_quarantined'", [], |r| r.get(0))
+        .unwrap_or(0);
+    let rejected_today: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE status='qc_rejected' AND date(updated_at)=date('now')",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap_or(0);
+    Ok(QueueStats { queued, processing, done_today, error_today, quarantined, rejected_today })
 }
 
 #[tauri::command]
@@ -169,8 +181,38 @@ pub fn retry_job(id: String, state: State<AppState>) -> Result<bool, String> {
         .execute(
             "UPDATE jobs SET status='queued', progress=0.0, step=NULL, error=NULL,
              started_at=NULL, finished_at=NULL, updated_at=?1
-             WHERE id=?2 AND status IN ('error','cancelled')",
+             WHERE id=?2 AND status IN ('error','cancelled','qc_rejected')",
             rusqlite::params![now, id],
+        )
+        .map_err(|e| e.to_string())?;
+    Ok(rows > 0)
+}
+
+#[tauri::command]
+pub fn approve_job(id: String, state: State<AppState>) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let now = Utc::now().to_rfc3339();
+    let rows = db
+        .execute(
+            "UPDATE jobs SET status='queued', progress=0.0, step=NULL, error=NULL,
+             started_at=NULL, finished_at=NULL, updated_at=?1
+             WHERE id=?2 AND status='qc_quarantined'",
+            rusqlite::params![now, id],
+        )
+        .map_err(|e| e.to_string())?;
+    Ok(rows > 0)
+}
+
+#[tauri::command]
+pub fn reject_job(id: String, reason: Option<String>, state: State<AppState>) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let now = Utc::now().to_rfc3339();
+    let error_msg = reason.unwrap_or_else(|| "Rejeitado manualmente".to_string());
+    let rows = db
+        .execute(
+            "UPDATE jobs SET status='qc_rejected', error=?1, updated_at=?2
+             WHERE id=?3 AND status='qc_quarantined'",
+            rusqlite::params![error_msg, now, id],
         )
         .map_err(|e| e.to_string())?;
     Ok(rows > 0)

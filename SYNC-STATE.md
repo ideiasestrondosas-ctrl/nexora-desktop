@@ -5,84 +5,108 @@
 
 ---
 
-Actualizado: 2026-05-13 21:30
+Actualizado: 2026-05-14 07:15
 Agente: Claude Code (Kimi K2.6)
 
 ## O que foi feito
 
-### Sessao Actual - Correcao do Script de Sync + Release v0.16.0 - CONCLUIDO
+### Sessao Actual — Plano V2: Correcções UI/UX Pós-Teste — CONCLUIDO
 
-**1. Correcao do Script `scripts/sync.ps1` (CRITICO)**
-- **Problema**: O script fazia `git merge dev --ff-only` e depois fallback para merge normal. Quando a `main` remota foi reescrita (cleanup de binarios), o merge criava history divergente e o push falhava com `non-fast-forward`.
-- **Solucao**: Implementado squash merge para preservar o history limpo da `main`:
-  1. `git fetch origin main` - sincroniza com a main remota
-  2. `git reset --hard origin/main` - parte do estado limpo (descarta merges locais falhados)
-  3. `git merge --squash dev` - aplica todas as mudancas da dev como patch unico
-  4. `git commit -m "chore(release): v$newVersion"` - commit de release
-  5. `git push origin main` - push (sempre fast-forward agora)
-- **Resultado**: O script agora funciona correctamente mesmo quando a `main` tem history reescrito.
+**1. Settings > Tab Interface — Conteúdo Recuperado**
+- **src/pages/SettingsPage.tsx**:
+  - Adicionado tab `interface` com controles de **Tema** (botões Sistema / Claro / Escuro) e **Idioma** (dropdown pt/en)
+  - Integrado com `settingsStore.theme` e `handleUpdateSetting('theme'/'language')`
 
-**2. Release v0.16.0 - Merge dev -> main**
-- Commit na `dev`: `fix(sync): testar squash merge dev -> main`
-- Squash merge para `main`: `chore(release): v0.16.0`
-- **Conflitos resolvidos manualmente** durante o squash merge:
-  - `.gitignore`, `package.json`, `package-lock.json` - versao da dev (mais recente)
-  - `src-tauri/Cargo.lock`, `Cargo.toml`, `tauri.conf.json` - versao da dev
-  - `src/App.tsx`, `src/components/DropZone.tsx`, `src/pages/SettingsPage.tsx` - versao da dev
-  - `src/pages/HistoryPage.tsx`, `src/pages/ProcessPage.tsx` - removidos (renomeados na dev)
-- Push para `origin/main`: **SUCESSO** (`6581dde..4a2aca4 main -> main`)
-- Push para `origin/dev`: **SUCESSO** (`9e9a44e..360098c dev -> dev`)
+**2. Settings > Tab Sistema — Timeout + Rust Simplificado**
+- **src/pages/SettingsPage.tsx**:
+  - Timeout de 5s no frontend para `get_system_info` — evita spinner infinito
+  - Mensagem "Timeout ao carregar informação do sistema (>5s)" se exceder
+- **src-tauri/src/commands/system.rs**:
+  - `get_system_info`: `System::new_all()` → `System::new()` + `refresh_cpu_all()` + `refresh_memory()`
+  - Removido `Networks::new_with_refreshed_list()` que bloqueava em alguns sistemas
+  - `network_interfaces` devolve array vazio como fallback seguro
 
-**3. Estado Actual dos Branches**
-| Branch | Commit | Descricao |
-|---|---|---|
-| `dev` | `360098c` | `fix(sync): testar squash merge dev -> main` |
-| `main` | `4a2aca4` | `chore(release): v0.16.0` (squash merge da dev) |
-| `origin/dev` | `360098c` | Sincronizado |
-| `origin/main` | `4a2aca4` | Sincronizado |
+**3. Settings > Tab Sobre — Versão Fallback Corrigida**
+- **src/pages/SettingsPage.tsx**:
+  - `v{installedInfo?.app_version || '0.13.0'}` → `v{installedInfo?.app_version ?? '...'}`
+  - Elimina versão hardcoded incorreta quando `installedInfo` é null
 
-**4. Pipeline Testado (sessao anterior)**
-- Fluxo completo ingest -> transcode -> audio -> proxy -> thumbnail -> qc-post -> delivery funciona com FFmpeg bundled
-- LUFS: -21.99 (proximo do target -23)
-- Sem erros, todos os ficheiros gerados correctamente
+**4. TopBar — Aumento de Fontes e Widgets**
+- **src/components/TopBar.tsx**:
+  - Altura: `h-14` → `h-16`
+  - Título: `text-sm` → `text-base`
+  - Descrição: `text-[10px]` → `text-xs`
+  - Gauges: `w-10 h-10` → `w-12 h-12`, ícones `size={14}` → `size={16}`
+  - Labels de gauge: `text-[9px]` → `text-[10px]`
+  - Botão Sair: `size={18}` → `size={20}`, padding `p-2` → `p-2.5`
+
+**5. PipelineSummary — Estados Globais no Header**
+- **src/components/PipelineSummary.tsx**:
+  - Adicionado header com badges globais: **Em fila**, **A processar** (com pulse), **Concluídos**
+  - Valores calculados a partir do array `jobs` (filtrados por status)
+  - Layout em `flex flex-wrap gap-3` acima das fases individuais
+
+**6. QueuePage — Header Redundante Removido**
+- **src/pages/QueuePage.tsx**:
+  - Removido `<h1>Fila de Processamento</h1>` e badges globais (Em fila / A processar / Concluídos)
+  - Mantidos apenas badges de Quarentena e Erros quando >0
+  - PipelineSummary já mostra os estados globais
+
+**7. ProfilesPage — Dropdown + Vista Detalhe**
+- **src/pages/ProfilesPage.tsx** (reescrito):
+  - Dropdown no topo com grupos: **Pré-definidos** (system) e **Personalizados** (custom)
+  - Indicador visual: cadeado para system, checkmark para custom
+  - Vista detalhe do perfil seleccionado com cards de Vídeo / Áudio / Qualidade
+  - Acções no topo: **Criar** (sempre), **Editar** / **Duplicar** / **Apagar** (só para custom)
+  - Botão **Duplicar** disponível também para presets system
+  - Sidebar de edição mantida com validação de system vs custom
+
+**8. LibraryPage — Header Redundante Removido**
+- **src/pages/LibraryPage.tsx**:
+  - Removido cabeçalho com `<h1>Biblioteca</h1>` e botão "Adicionar Vídeos" no topo
+  - Mantidos: filters bar, drag-and-drop zone, empty state com botão, grid/list view
 
 ---
 
 ## Estado de compilacao
 
-- `cargo check`: **OK**
-- `npm run sidecar:build`: **OK** (33kb)
+- `cargo check`: **OK** (0 erros)
 - `tsc --noEmit`: **OK** (0 erros)
-- `vitest run`: **OK** (24/24)
-- `tauri build`: **OK** (.exe + .msi gerados)
+- `vitest run`: **OK** (25/25 tests passaram)
 
 ---
 
-## Proximos passos
+## Proximos passos (Plano 3 — próxima sessao)
 
 | Tarefa | Prioridade |
 |---|---|
-| Testar script sync.ps1 numa nova sessao para confirmar robustez | Alta |
-| Adicionar bs1770gain ao download de binarios (ou tornar opcional) | Alta |
-| Adicionar testes de integracao Tauri (e2e) | Media |
-| VMAF real no QC-Post (requer libvmaf no FFmpeg bundled) | Baixa |
-| Deep links nexora:// (ADR-D012) | Baixa |
+| Tema Light/Dark real (CSS vars, ~10 ficheiros) | Alta |
+| i18n completo em 15 idiomas (~150 chaves) | Alta |
+| Validar build Windows (`tauri build --debug`) | Critica |
+| Testar fluxo real: ingest -> job -> transcode -> done | Critica |
 
 ---
 
 ## Ficheiros modificados (sessao actual)
 
 ```
-scripts/sync.ps1                        (CORRIGIDO - squash merge dev -> main)
-SYNC-STATE.md                           (actualizado)
+MODIFICADOS:
+src/components/TopBar.tsx
+src/components/PipelineSummary.tsx
+src/pages/SettingsPage.tsx
+src/pages/QueuePage.tsx
+src/pages/ProfilesPage.tsx
+src/pages/LibraryPage.tsx
+src-tauri/src/commands/system.rs
+SYNC-STATE.md
 ```
 
 ---
 
 ## Notas tecnicas para o proximo agente
 
-- **Script de Sync**: O `scripts/sync.ps1` agora usa squash merge para `dev` -> `main`. Isto preserva o history limpo da `main` (sem binarios grandes) e evita conflitos quando a `main` tem history reescrito. O script funciona em 3 passos: fetch + reset --hard origin/main -> merge --squash dev -> commit -> push.
-- **Binarios FFmpeg**: O Tauri 2 copia os `externalBin` para `target/debug/` (dev) e `resource_dir()` (producao). O `sidecar.rs` procura nestes locais e passa os paths absolutos ao sidecar via env vars. O `sidecar/binaries.ts` consome estas env vars.
-- **Branch git**: Ambos os branches (`dev` e `main`) estao sincronizados com o GitHub. A `main` tem history limpo (v0.16.0). A `dev` tem o desenvolvimento completo.
-- **Tauri IPC**: Novos comandos `exit_app` e `factory_reset` foram adicionados pelo Antigravity. Verificar `src-tauri/src/lib.rs` se houver erros de invoke.
-- **Pipeline testado**: Fluxo completo funciona com FFmpeg bundled.
+- **Tab Interface**: Tema e idioma são guardados em settingsStore mas o tema ainda não aplica CSS vars (apenas guarda valor). Light/Dark real é tarefa do Plano 3.
+- **Tab Sistema**: O timeout de 5s no frontend + simplificação Rust resolve o ecrã em branco. Se `get_system_info` continuar lento, considerar cache no Rust.
+- **PipelineSummary**: Os estados globais são calculados inline; se o array `jobs` for grande (>1000), considerar memoização com `useMemo`.
+- **ProfilesPage**: O dropdown usa estado local (`dropdownOpen`) com overlay fixed. O perfil seleccionado é guardado em `selectedProfileId`.
+- **QueuePage**: Remover o header foi seguro porque o TopBar já mostra "Fila de Processamento" e o PipelineSummary mostra os contadores globais.

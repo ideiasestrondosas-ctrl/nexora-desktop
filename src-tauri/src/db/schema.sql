@@ -31,6 +31,9 @@ CREATE TABLE IF NOT EXISTS jobs (
     output_path TEXT,
     vmaf_score  REAL,
     lufs        REAL,
+    -- Estados expandidos: queued, processing, done, error, cancelled,
+    -- qc_quarantined (aguarda aprovação humana), qc_rejected (rejeitado no QC)
+    CHECK (status IN ('queued', 'processing', 'done', 'error', 'cancelled', 'qc_quarantined', 'qc_rejected')),
     FOREIGN KEY (asset_id) REFERENCES assets(id)
 );
 

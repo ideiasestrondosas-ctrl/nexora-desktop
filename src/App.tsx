@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Toaster } from 'react-hot-toast';
 import { 
   LayoutDashboard, Library as LibraryIcon, ListVideo, 
-  Settings, Terminal, UserCircle, ShieldCheck, LogOut
+  Settings, Terminal, UserCircle, ShieldCheck
 } from 'lucide-react';
 
 import DashboardPage from '@/pages/DashboardPage';
@@ -13,6 +13,7 @@ import ProfilesPage from '@/pages/ProfilesPage';
 import SettingsPage from '@/pages/SettingsPage';
 import LogsPage from '@/pages/LogsPage';
 import AssetDetailPage from '@/pages/AssetDetailPage';
+import TopBar from '@/components/TopBar';
 
 import { useSettingsStore } from '@/store/settings';
 import { cn } from '@/lib/utils';
@@ -134,32 +135,23 @@ function App() {
             <Terminal size={18} />
             <span className="text-xs font-bold uppercase tracking-widest">Registos</span>
           </button>
-          
-          <div className="px-4 py-2 flex flex-col">
-            <span className="text-[9px] font-black text-gray-700 uppercase tracking-[0.3em]">Ambiente</span>
-            <span className="text-[10px] font-bold text-[#1A6FD4] uppercase">Produção v{appVersion}</span>
-          </div>
 
-          <button
-            onClick={() => invoke('exit_app')}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 mt-4 border border-red-500/10"
-          >
-            <LogOut size={18} />
-            <span className="text-xs font-bold uppercase tracking-widest">Sair do Programa</span>
-          </button>
+          <div className="px-4 py-2 flex flex-col">
+            <span className="text-[9px] font-black text-gray-700 uppercase tracking-[0.3em]">Versão</span>
+            <span className="text-[10px] font-bold text-[#1A6FD4] uppercase">v{appVersion}</span>
+          </div>
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#0a0d14] relative">
-        {/* DRAG AREA (Tauri) */}
-        <div data-tauri-drag-region className="h-8 w-full shrink-0 absolute top-0 left-0 z-40"></div>
+        <TopBar activeTab={activeTab} />
 
-        <div className="flex-1 overflow-y-auto p-8 pt-12 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
           {activeTab === 'dashboard' && (
-            <DashboardPage 
-              onNavigate={handleNavigate} 
-              onSelectAsset={handleSelectAsset} 
+            <DashboardPage
+              onNavigate={handleNavigate}
+              onSelectAsset={handleSelectAsset}
             />
           )}
           {activeTab === 'library' && <LibraryPage />}
@@ -168,9 +160,9 @@ function App() {
           {activeTab === 'settings' && <SettingsPage />}
           {activeTab === 'logs' && <LogsPage />}
           {activeTab === 'detail' && selectedAssetId && (
-            <AssetDetailPage 
-              assetId={selectedAssetId} 
-              onBack={() => setActiveTab('library')} 
+            <AssetDetailPage
+              assetId={selectedAssetId}
+              onBack={() => setActiveTab('library')}
             />
           )}
         </div>

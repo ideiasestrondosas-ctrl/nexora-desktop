@@ -36,7 +36,7 @@ export class NexoraSimpleQueue {
     }, POLL_INTERVAL_MS);
   }
 
-  private async poll(): Promise<void> {
+    private async poll(): Promise<void> {
     try {
       const runningCount = getRunningJobCount();
       if (runningCount >= MAX_CONCURRENT) return;
@@ -51,6 +51,7 @@ export class NexoraSimpleQueue {
         }
 
         // Fire-and-forget — cada job corre em paralelo limitado por MAX_CONCURRENT
+        // Jobs em quarentena libertam o slot automaticamente (o orchestrator retorna cedo)
         new NexoraDesktopOrchestrator()
           .run(job, asset.path, this.outputDir)
           .catch((err: unknown) => {
