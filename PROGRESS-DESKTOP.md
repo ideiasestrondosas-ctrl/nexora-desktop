@@ -108,7 +108,7 @@
 ```
 Data:          2026-05-14
 Agente:        Claude Code (Kimi K2.6)
-A trabalhar em: Correcao profiles.rs serde + workers.test.ts stateless + build Windows validado
+A trabalhar em: Traducao ES/FR/DE via Ollama local (556 chaves cada) + validacao builds
 Bloqueios:     Nenhum
 ```
 
@@ -227,6 +227,7 @@ nexora-desktop/
 | 2026-05-14 | profiles.rs `rename_all = "camelCase"` causava `undefined` em todos os campos no frontend | RESOLVIDO (removido camelCase de Profile e ProfileInput) |
 | 2026-05-14 | workers.test.ts falhava porque QCPreWorker agora e stateless (le do ctx, nao da BD) | RESOLVIDO (tests actualizados para mockar `emit` e passar metadados no ctx) |
 | 2026-05-14 | Aviso `dead_code` em `sidecar::spawn` (funcao antiga nao usada) | RESOLVIDO (`#[allow(dead_code)]`) |
+| 2026-05-14 | ES/FR/DE incompletos (~122 chaves) — placeholders em EN | RESOLVIDO (traducao completa via Ollama local qwen2.5:7b-instruct, 556 chaves cada) |
 
 ---
 
@@ -261,6 +262,7 @@ nexora-desktop/
 | 2026-05-13 | Resolucao de binarios FFmpeg bundled, correcoes de consistencia (get_stats, node_version, LibraryPage drop, HelpModal TabId, Cargo.toml description) | Claude Code (Kimi K2.6) | sidecar/binaries.ts, src-tauri/src/sidecar.rs, src-tauri/src/commands/system.rs, sidecar/workers/*.ts, src/pages/LibraryPage.tsx, src/pages/SettingsPage.tsx, src/components/HelpModal.tsx, src-tauri/Cargo.toml |
 | 2026-05-14 | Correcao profiles.rs (removido camelCase), workers.test.ts actualizado para stateless QCPreWorker, aviso dead_code suprimido, build Windows validado (MSI 146MB / NSIS 92MB) | Claude Code (Kimi K2.6) | src-tauri/src/commands/profiles.rs, tests/workers.test.ts, src-tauri/src/sidecar.rs |
 | 2026-05-14 | i18n completo: Base Master EN, 5 idiomas (PT/EN/ES/FR/DE), ~550 chaves, todas as strings hardcoded extraídas, formatação de datas dinâmica, sync de idioma no arranque | Claude Code (Kimi K2.6) | src/i18n/**/*, src/pages/*, src/components/* (15 ficheiros), scripts/translate-i18n.cjs |
+| 2026-05-14 | Traducao ES/FR/DE completadas via Ollama local (qwen2.5:7b-instruct, batches de 8, retry com backoff), script translate-ollama.cjs melhorado, 556 chaves/idioma, tsc/vitest/cargo OK | Claude Code (Kimi K2.6) | scripts/translate-ollama.cjs, src/i18n/locales/es/common.json, src/i18n/locales/fr/common.json, src/i18n/locales/de/common.json |
 
 ---
 
@@ -278,10 +280,11 @@ nexora-desktop/
 10. [x] ~~VMAF ativo no QC-Post com thresholds por perfil e modelo VMAF v0.6.1~~
 11. [x] ~~Comandos Rust: get_system_info, get_ffmpeg_info, get_db_info, open_data_dir, approve_job, reject_job~~
 12. [x] ~~Validar build em Windows (tauri build --debug) com binarios~~ (MSI 146MB + NSIS 92MB gerados)
-13. [ ] Testar fluxo real: ingest -> job -> transcode -> done (requer teste manual com GUI)
-14. [ ] Adicionar bs1770gain ao download de binarios (ou tornar opcional)
-15. [ ] Adicionar testes de integracao Tauri (e2e)
-16. [ ] Deep links nexora:// (ADR-D012)
+13. [x] Traduzir ES/FR/DE via Ollama local (556 chaves cada, 0 fallbacks)
+14. [ ] Testar fluxo real: ingest -> job -> transcode -> done (requer teste manual com GUI)
+15. [ ] Adicionar bs1770gain ao download de binarios (ou tornar opcional)
+16. [ ] Adicionar testes de integracao Tauri (e2e)
+17. [ ] Deep links nexora:// (ADR-D012)
 
 ---
 
@@ -317,4 +320,4 @@ nexora-desktop/
 
 *Este ficheiro e a fonte de verdade do projecto Desktop.*
 *Em caso de duvida, consulta aqui.*
-*Ultima actualizacao: 2026-05-14 17:45 por Claude Code (Kimi K2.6)*
+*Ultima actualizacao: 2026-05-14 21:45 por Claude Code (Kimi K2.6)*
