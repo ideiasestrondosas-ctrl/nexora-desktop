@@ -4,7 +4,6 @@ use std::process::Command;
 use tauri::{Manager, State};
 
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct InstalledInfo {
     pub app_version: String,
     pub ffmpeg_version: Option<String>,
@@ -184,7 +183,6 @@ pub fn get_changelog() -> String {
 // ── System Info (cross-platform via sysinfo + std) ───────────────────────────
 
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct SystemInfo {
     pub os_name: String,
     pub os_version: String,
@@ -201,7 +199,6 @@ pub struct SystemInfo {
 }
 
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct NetworkInterface {
     pub name: String,
     pub status: String,
@@ -275,7 +272,6 @@ pub fn get_system_info(app: tauri::AppHandle) -> Result<SystemInfo, String> {
 // ── FFmpeg Info ──────────────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct FfmpegInfo {
     pub version: String,
     pub has_libvmaf: bool,
@@ -312,7 +308,6 @@ pub fn get_ffmpeg_info(app: tauri::AppHandle) -> Result<FfmpegInfo, String> {
 // ── DB Info ──────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct DbInfo {
     pub db_size_mb: f64,
     pub assets_count: i64,
