@@ -1,0 +1,144 @@
+NEXORA DESKTOP — ARCHIVO DE ORIGEN DE LA TRADUCCIÓN
+=========================================
+
+INSTRUCCIONES:
+1. Copie TODO el contenido a continuación (Ctrl+A, Ctrl+C)
+2. Vaya a https://translate.google.com
+3. Seleccione: Inglés → [Idioma de destino]
+4. Pegue en el cuadro izquierdo (Ctrl+V)
+5. Copie el resultado traducido del cuadro derecho
+6. Guarde como: es_translation.txt, fr_translation.txt o de_translation.txt
+
+REGLAS:
+- NUNCA traduzca el texto dentro de los corchetes []
+- NUNCA modifique los marcadores de posición {{placeholders}} como {{count}}, {{total}}, {{used}}, {{name}}, {{version}}, {{msg}}, {{date}}, {{step}}, {{message}}, {{cores}}, {{threads}}
+- NUNCA traduzca términos técnicos: VMAF, LUFS, FFmpeg, FFprobe, GPU, NVENC, AMF, QSV, CPU, RAM, H.264, H.265, HEVC, ProRes, DNxHD, AV1, AAC, PCM, MOV, MP4, MXF, TS, SHA-256, dBTP, fps, kbps, Mbps, GB, MB, Node.js, SQLite, Tauri, React, Rust, Nexora, BBC, Netflix, DPP, Windows, macOS, Linux, VS Code, npm, LUFS, LU, EBU R128, R128
+- Conserve la puntuación y el formato
+- Mantenga los símbolos de flecha como ← tal cual
+
+===============================================
+
+[app.name] Procesamiento de medios de Nexora
+[app.desktopEdition] Edición de escritorio — Multiplataforma nativa
+[app.version] Versión
+[nav.dashboard] Panel de control
+[nav.library] Biblioteca
+[nav.queue] Cola
+[nav.profiles] Perfiles
+[nav.settings] Configuración
+[nav.logs] Registros
+[topbar.dashboardDesc] Descripción general del sistema y métricas en tiempo real
+[topbar.libraryDesc] Gestión y vista previa de activos
+[topbar.queueDesc] Canalización de trabajos y aprobaciones
+[topbar.profilesDesc] Configuración del perfil de transcodificación
+[topbar.settingsDesc] Preferencias e información del sistema
+[topbar.logsDesc] Historial de eventos y Diagnóstico
+[topbar.detailDesc] Metadatos y procesamiento de archivos
+[topbar.cpu] CPU
+[topbar.ram] RAM
+[topbar.gpu] GPU
+[topbar.disk] Disco
+[topbar.exit] Salir
+[dashboard.assetsTotal] Activos totales
+[dashboard.jobsToday] Trabajos de hoy
+[dashboard.vmafAvg] VMAF promedio
+[dashboard.recentJobs] Trabajos recientes
+[dashboard.vmafDistribution] Distribución de VMAF
+[dashboard.completedToday] Completados hoy
+[dashboard.noJobs] No se procesaron trabajos hoy.
+
+[dashboard.noJobsHint] Arrastre los videos para procesarlos. [dashboard.viewAll] Ver todo
+[dashboard.profile] Perfil
+[dashboard.status] Estado
+[dashboard.completed] Completado
+[dashboard.inQueue] En cola
+[dashboard.processing] Procesando
+[dashboard.error] Error
+[dashboard.cancelled] Cancelado
+[dashboard.vmafBelow70] Menos de 70
+[dashboard.vmaf70to85] De 70 a 85
+[dashboard.vmaf85to95] De 85 a 95
+[dashboard.vmafAbove95] Más de 95
+[dashboard.processedFiles] Archivos procesados
+[dashboard.avgQuality] Calidad media
+[library.searchPlaceholder] Buscar en la biblioteca...
+[library.allStatuses] Todos los estados
+[library.pending] Pendiente
+[library.processing] Procesando
+[library.completed] Completado
+[library.errors] Errores
+[library.newest] Más reciente
+[library.oldest] Más antiguo
+[library.name] Nombre (A-Z)
+[library.size] Tamaño
+[library.noAssets] No hay archivos en la biblioteca
+[library.dragHint] Arrastre los archivos de vídeo aquí o haga clic en el botón para comenzar.
+[library.addVideos] Agregar videos
+[library.showing] Mostrando {{count}} de {{total}} activos
+[library.previous] Anterior
+[library.next] Siguiente
+[library.addError] Error al agregar archivos: {{message}}
+[library.file] Archivo
+[library.duration] Duración
+[library.actions] Acciones
+[queue.pipelineSummary] Resumen del proceso
+[queue.totalJobs] {{count}} trabajos totales
+[queue.queued] En cola
+[queue.processing] Procesando
+[queue.completed] Completado
+[queue.quarantine] Cuarentena
+[queue.errorsToday] Errores de hoy
+[queue.pendingApprovals] Aprobaciones pendientes
+[queue.quarantineMsg] Este activo se puso en cuarentena durante el control de calidad previo. Revise los metadatos antes de aprobar o rechazar.
+
+[queue.approve] Aprobar
+[queue.reject] Rechazar
+[queue.processingTitle] Procesando
+[queue.slotsUsed] {{used}}/{{total}} ranuras en uso
+[queue.cancel] Cancelar
+[queue.startedAt] Iniciado
+[queue.gpuLabel] GPU
+[queue.queuedTitle] En cola
+[queue.position] Pos.
+[queue.filename] Nombre de archivo
+[queue.profile] Perfil
+[queue.addedAt] Añadido en
+[queue.state] Estado
+[queue.wait] Esperando
+[queue.completedAndHistory] Completado e historial
+[queue.vmaf] VMAF
+[queue.finishedAt] Finalizado
+[queue.actions] Acciones
+[queue.retry] Reintentar
+[queue.rejected] Rechazado
+[queue.rejectedManual] Rechazado manualmente por el operador
+[queue.step] {{step}}...
+[queue.gpuNvenc] GPU: NVENC
+[profiles.create] Crear
+[profiles.edit] Editar
+[profiles.duplicate] Duplicar
+[profiles.delete] Eliminar
+[profiles.systemProfiles] Integrado
+[profiles.customProfiles] Personalizado
+[profiles.noProfileSelected] No Perfil seleccionado
+[profiles.video] Vídeo
+[profiles.audio] Audio
+[profiles.quality] Calidad
+[profiles.codec] Códec
+[profiles.resolution] Resolución
+[profiles.fps] FPS
+[profiles.bitrate] Tasa de bits
+[profiles.videoBitrate] Tasa de bits de vídeo
+[profiles.audioBitrate] Tasa de bits de audio
+[profiles.audioCodec] Códec de audio
+[profiles.sampleRate] Frecuencia de muestreo
+[profiles.targetLufs] LUFS objetivo
+[profiles.truePeak] Pico real
+[profiles.vmafMin] VMAF mínimo
+[profiles.cpuPreset] Preajuste de CPU
+[profiles.h264Profile] Perfil H.264
+[profiles.container] Contenedor
+[profiles.original] Original
+[profiles.auto] Automático
+[profiles.general] General
+[perfiles.cancel]
