@@ -1,5 +1,6 @@
 import React from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { useTranslation } from 'react-i18next';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 import { useGPU } from '@/hooks/useGPU';
 import { useDiskSpace } from '@/hooks/useDiskSpace';
@@ -11,15 +12,17 @@ export interface ScreenInfo {
   description: string;
 }
 
-const SCREEN_MAP: Record<string, ScreenInfo> = {
-  dashboard: { name: 'Dashboard', description: 'Visão geral do sistema e métricas em tempo real' },
-  library: { name: 'Biblioteca', description: 'Gestão de assets e pré-visualização' },
-  queue: { name: 'Fila de Processamento', description: 'Pipeline de jobs e aprovações' },
-  profiles: { name: 'Perfis de Codificação', description: 'Configuração de perfis de transcode' },
-  settings: { name: 'Definições', description: 'Preferências e informação do sistema' },
-  logs: { name: 'Registos', description: 'Histórico de eventos e diagnóstico' },
-  detail: { name: 'Detalhe do Asset', description: 'Metadados e processamento do ficheiro' },
-};
+function useScreenMap(t: (key: string) => string): Record<string, ScreenInfo> {
+  return {
+    dashboard: { name: t('nav.dashboard'), description: t('topbar.dashboardDesc') },
+    library: { name: t('nav.library'), description: t('topbar.libraryDesc') },
+    queue: { name: t('nav.queue'), description: t('topbar.queueDesc') },
+    profiles: { name: t('nav.profiles'), description: t('topbar.profilesDesc') },
+    settings: { name: t('nav.settings'), description: t('topbar.settingsDesc') },
+    logs: { name: t('nav.logs'), description: t('topbar.logsDesc') },
+    detail: { name: t('assetDetail.originalFile'), description: t('topbar.detailDesc') },
+  };
+}
 
 function CircularGauge({ value, label, icon: Icon, colorClass }: {
   value: number; label: string; icon: React.ElementType; colorClass: string;
@@ -39,7 +42,7 @@ function CircularGauge({ value, label, icon: Icon, colorClass }: {
         <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
           <circle
             cx="24" cy="24" r={radius}
-            className="stroke-[#1e2433] fill-none"
+            className="stroke-border fill-none"
             strokeWidth="4"
           />
           <circle
@@ -54,8 +57,8 @@ function CircularGauge({ value, label, icon: Icon, colorClass }: {
         <Icon size={16} className={cn('absolute', colorClass)} />
       </div>
       <div className="flex flex-col leading-none">
-        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{label}</span>
-        <span className={cn('text-xs font-bold', pct > 80 ? 'text-red-500' : 'text-white')}>
+        <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">{label}</span>
+        <span className={cn('text-xs font-bold', pct > 80 ? 'text-red-500' : 'text-text-primary')}>
           {isNaN(pct) ? '--' : `${pct.toFixed(0)}%`}
         </span>
       </div>
@@ -68,11 +71,13 @@ interface TopBarProps {
 }
 
 export default function TopBar({ activeTab }: TopBarProps) {
+  const { t } = useTranslation();
   const metrics = useSystemMetrics();
   const { gpu } = useGPU();
   const disk = useDiskSpace();
 
-  const screen = SCREEN_MAP[activeTab] ?? { name: activeTab, description: '' };
+  const screenMap = useScreenMap(t);
+  const screen = screenMap[activeTab] ?? { name: activeTab, description: '' };
 
   const cpuPercent = metrics?.cpuPercent ?? 0;
   const memPercent = metrics && metrics.memTotalBytes > 0
@@ -82,28 +87,28 @@ export default function TopBar({ activeTab }: TopBarProps) {
   const diskPercent = disk.usedPercent ?? 0;
 
   return (
-    <div className="h-16 bg-[#0a0d14] border-b border-[#1e2433] flex items-center justify-between px-6 shrink-0 z-40">
+    <div className="h-16 bg-bg-primary border-b border-border flex items-center justify-between px-6 shrink-0 z-40">
       {/* Drag area + Título */}
       <div data-tauri-drag-region className="flex-1 flex items-center gap-3 min-w-0">
         <div className="flex flex-col">
-          <h2 className="text-base font-bold text-white leading-tight truncate">{screen.name}</h2>
-          <span className="text-xs text-gray-500 font-medium truncate">{screen.description}</span>
+          <h2 className="text-base font-bold text-text-primary leading-tight truncate">{screen.name}</h2>
+          <span className="text-xs text-text-muted font-medium truncate">{screen.description}</span>
         </div>
       </div>
 
       {/* Métricas circulares */}
       <div className="hidden md:flex items-center gap-6 mr-5">
-        <CircularGauge value={cpuPercent} label="CPU" icon={Cpu} colorClass="text-[#1A6FD4]" />
-        <CircularGauge value={memPercent} label="RAM" icon={MemoryStick} colorClass="text-green-500" />
-        <CircularGauge value={gpuPercent} label="GPU" icon={Monitor} colorClass="text-purple-500" />
-        <CircularGauge value={diskPercent} label="Disco" icon={HardDrive} colorClass="text-yellow-500" />
+        <CircularGauge value={cpuPercent} label={t('topbar.cpu')} icon={Cpu} colorClass="text-brand" />
+        <CircularGauge value={memPercent} label={t('topbar.ram')} icon={MemoryStick} colorClass="text-green-500" />
+        <CircularGauge value={gpuPercent} label={t('topbar.gpu')} icon={Monitor} colorClass="text-purple-500" />
+        <CircularGauge value={diskPercent} label={t('topbar.disk')} icon={HardDrive} colorClass="text-yellow-500" />
       </div>
 
       {/* Botão Sair */}
       <button
         onClick={() => invoke('exit_app')}
-        className="p-2.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-        title="Sair do programa"
+        className="p-2.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+        title={t('topbar.exit')}
       >
         <LogOut size={20} />
       </button>

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Toaster } from 'react-hot-toast';
-import { 
-  LayoutDashboard, Library as LibraryIcon, ListVideo, 
+import { useTranslation } from 'react-i18next';
+import {
+  LayoutDashboard, Library as LibraryIcon, ListVideo,
   Settings, Terminal, UserCircle, ShieldCheck
 } from 'lucide-react';
 
@@ -21,10 +22,11 @@ import { cn } from '@/lib/utils';
 type Tab = 'dashboard' | 'library' | 'queue' | 'profiles' | 'settings' | 'logs' | 'detail';
 
 function App() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [appVersion, setAppVersion] = useState('2.0.0');
-  
+
   const theme = useSettingsStore(state => state.theme);
 
   // Handle theme changes
@@ -49,11 +51,11 @@ function App() {
   }, []);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'library', label: 'Biblioteca', icon: LibraryIcon },
-    { id: 'queue', label: 'Fila', icon: ListVideo },
-    { id: 'profiles', label: 'Perfis', icon: UserCircle },
-    { id: 'settings', label: 'Definições', icon: Settings },
+    { id: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
+    { id: 'library', label: t('nav.library'), icon: LibraryIcon },
+    { id: 'queue', label: t('nav.queue'), icon: ListVideo },
+    { id: 'profiles', label: t('nav.profiles'), icon: UserCircle },
+    { id: 'settings', label: t('nav.settings'), icon: Settings },
   ];
 
   const handleNavigate = (tab: string) => {
@@ -67,14 +69,14 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0a0d14] text-gray-100 overflow-hidden font-sans selection:bg-[#1A6FD4]/30">
-      <Toaster 
+    <div className="flex h-screen bg-bg-primary text-text-primary overflow-hidden font-sans selection:bg-brand/30">
+      <Toaster
         position="bottom-right"
         toastOptions={{
           style: {
-            background: '#141824',
-            color: '#fff',
-            border: '1px border #1e2433',
+            background: 'var(--color-bg-secondary)',
+            color: 'var(--color-text-primary)',
+            border: '1px solid var(--color-border)',
             fontSize: '12px',
             fontWeight: 'bold'
           }
@@ -82,18 +84,18 @@ function App() {
       />
 
       {/* SIDEBAR */}
-      <aside className="w-64 bg-[#0a0d14] border-r border-[#1e2433] flex flex-col shrink-0 z-50">
+      <aside className="w-64 bg-bg-primary border-r border-border flex flex-col shrink-0 z-50">
         {/* DRAG AREA (Tauri) */}
         <div data-tauri-drag-region className="h-8 w-full shrink-0"></div>
 
         {/* LOGO */}
         <div className="px-6 py-4 flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-[#1A6FD4] rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/40">
+          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-lg shadow-brand/20">
             <ShieldCheck className="text-white" size={24} />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-tighter text-white leading-none">NEXORA</h1>
-            <span className="text-[10px] font-black tracking-[0.2em] text-[#1A6FD4] uppercase">Desktop</span>
+            <h1 className="text-lg font-black tracking-tighter text-text-primary leading-none">NEXORA</h1>
+            <span className="text-[10px] font-black tracking-[0.2em] text-brand uppercase">Desktop</span>
           </div>
         </div>
 
@@ -108,12 +110,12 @@ function App() {
                 onClick={() => handleNavigate(item.id)}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative",
-                  isActive 
-                    ? "bg-[#1A6FD4]/10 text-white font-bold" 
-                    : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                  isActive
+                    ? "bg-brand/10 text-text-primary font-bold"
+                    : "text-text-muted hover:text-text-secondary hover:bg-bg-hover"
                 )}
               >
-                <Icon size={20} className={cn("transition-transform", isActive ? "text-[#1A6FD4]" : "group-hover:scale-110")} />
+                <Icon size={20} className={cn("transition-transform", isActive ? "text-brand" : "group-hover:scale-110")} />
                 <span className="text-sm">{item.label}</span>
                 {isActive && (
                   <div className="absolute left-0 w-1 h-6 bg-[#1A6FD4] rounded-r-full"></div>
@@ -124,27 +126,27 @@ function App() {
         </nav>
 
         {/* BOTTOM NAV */}
-        <div className="p-4 space-y-2 border-t border-[#1e2433]">
+        <div className="p-4 space-y-2 border-t border-border">
           <button
             onClick={() => setActiveTab('logs')}
             className={cn(
               "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200",
-              activeTab === 'logs' ? "bg-white/10 text-white" : "text-gray-500 hover:text-gray-300"
+              activeTab === 'logs' ? "bg-bg-hover text-text-primary" : "text-text-muted hover:text-text-secondary"
             )}
           >
             <Terminal size={18} />
-            <span className="text-xs font-bold uppercase tracking-widest">Registos</span>
+            <span className="text-xs font-bold uppercase tracking-widest">{t('nav.logs')}</span>
           </button>
 
           <div className="px-4 py-2 flex flex-col">
-            <span className="text-[9px] font-black text-gray-700 uppercase tracking-[0.3em]">Versão</span>
-            <span className="text-[10px] font-bold text-[#1A6FD4] uppercase">v{appVersion}</span>
+            <span className="text-[9px] font-black text-text-muted uppercase tracking-[0.3em]">{t('app.version')}</span>
+            <span className="text-[10px] font-bold text-brand uppercase">v{appVersion}</span>
           </div>
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[#0a0d14] relative">
+      <main className="flex-1 flex flex-col min-w-0 bg-bg-primary relative">
         <TopBar activeTab={activeTab} />
 
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">

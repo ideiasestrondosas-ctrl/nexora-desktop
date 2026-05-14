@@ -1,11 +1,68 @@
 @import "tailwindcss";
 
+/* ── Design Tokens ─────────────────────────────────────────────────────────── */
 @theme {
+  /* Brand */
+  --color-brand: #1A6FD4;
+  --color-brand-hover: #3b82f6;
+
+  /* Backgrounds (Light default) */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-bg-hover: rgba(0, 0, 0, 0.04);
+
+  /* Text (Light default) */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+
+  /* Surface / Elevated (Light default) */
+  --color-surface: #e2e8f0;
+  --color-surface-hover: #cbd5e1;
+
+  /* Borders (Light default) */
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+
+  /* Status */
+  --color-success: #16a34a;
+  --color-warning: #ca8a04;
+  --color-error: #dc2626;
+  --color-info: #1A6FD4;
+
+  /* Legacy brand aliases */
   --color-nexora-blue: #1A6FD4;
   --color-nexora-green: #4FB8A0;
 }
 
-/* Custom Scrollbar */
+/* ── Dark mode overrides ───────────────────────────────────────────────────── */
+.dark {
+  --color-bg-primary: #0a0d14;
+  --color-bg-secondary: #141824;
+  --color-bg-tertiary: #0f121a;
+  --color-bg-hover: rgba(255, 255, 255, 0.05);
+
+  --color-surface: #1e2433;
+  --color-surface-hover: #2a3143;
+
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+
+  --color-border: #1e2433;
+  --color-border-hover: #2a3143;
+
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
+  --color-info: #1A6FD4;
+}
+
+/* ── Dark variant for Tailwind utilities ───────────────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Custom Scrollbar ──────────────────────────────────────────────────────── */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
@@ -15,12 +72,16 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #1e2433;
+  background: var(--color-border);
   border-radius: 10px;
 }
 
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1e2433;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #1A6FD4;
+  background: var(--color-brand);
 }
 
 *,
@@ -42,8 +103,9 @@ body {
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #0a0d14;
-  color: #f3f4f6;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Animations */

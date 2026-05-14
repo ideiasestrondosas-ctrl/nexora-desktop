@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { Archive, Activity, Gauge, Clock, Loader2, Film, ChevronRight } from 'lucide-react';
 
@@ -40,6 +41,7 @@ interface DashboardPageProps {
 }
 
 export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPageProps) {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<AppStats | null>(null);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [assetMap, setAssetMap] = useState<AssetMap>({});
@@ -73,7 +75,7 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
   }, [fetchData]);
 
   const getVmafColor = (score: number | null) => {
-    if (score === null) return 'text-gray-500';
+    if (score === null) return 'text-text-muted';
     if (score >= 85) return 'text-green-500';
     if (score >= 70) return 'text-yellow-500';
     return 'text-red-500';
@@ -90,22 +92,22 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
     title: string; value: string | number; subtitle: string;
     icon: React.ElementType; color: string;
   }) => (
-    <div className="bg-[#141824] border border-[#1e2433] rounded-2xl p-6 flex flex-col">
+    <div className="bg-bg-secondary border border-border rounded-2xl p-6 flex flex-col">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{title}</span>
-        <div className={`p-2 rounded-lg bg-[#0a0d14] border border-[#1e2433] ${color}`}>
+        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">{title}</span>
+        <div className={`p-2 rounded-lg bg-bg-primary border border-border ${color}`}>
           <Icon size={20} />
         </div>
       </div>
-      <div className="text-3xl font-black text-white mb-1">{value}</div>
-      <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{subtitle}</div>
+      <div className="text-3xl font-black text-text-primary mb-1">{value}</div>
+      <div className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{subtitle}</div>
     </div>
   );
 
   if (loading && !stats) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-500 animate-pulse">
-        <Loader2 className="animate-spin mr-2" /> A carregar...
+      <div className="h-full flex items-center justify-center text-text-muted animate-pulse">
+        <Loader2 className="animate-spin mr-2" /> {t('common.loading')}
       </div>
     );
   }
@@ -115,21 +117,21 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
       {/* STATS CARDS — 3 colunas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
-          title="Assets Totais"
+          title={t('dashboard.assetsTotal')}
           value={stats?.totalAssets ?? 0}
           subtitle="Ficheiros processados"
           icon={Archive}
-          color="text-[#1A6FD4]"
+          color="text-brand"
         />
         <StatCard
-          title="Jobs Hoje"
+          title={t('dashboard.jobsToday')}
           value={stats?.jobsToday ?? 0}
-          subtitle="Concluídos hoje"
+          subtitle={t('dashboard.completedToday')}
           icon={Activity}
           color="text-green-500"
         />
         <StatCard
-          title="VMAF Médio"
+          title={t('dashboard.vmafAvg')}
           value={stats?.avgVmaf != null ? stats.avgVmaf.toFixed(1) : '--'}
           subtitle="Média de qualidade"
           icon={Gauge}
@@ -140,42 +142,42 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
       {/* JOBS RECENTES — largura total */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500">Jobs Recentes</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted">{t('dashboard.recentJobs')}</h2>
           <button
             onClick={() => onNavigate('queue')}
-            className="text-[11px] font-bold text-[#1A6FD4] hover:underline uppercase tracking-widest flex items-center gap-1"
+            className="text-[11px] font-bold text-brand hover:underline uppercase tracking-widest flex items-center gap-1"
           >
-            Ver todos <ChevronRight size={14} />
+            {t('dashboard.viewAll')} <ChevronRight size={14} />
           </button>
         </div>
 
-        <div className="bg-[#141824] border border-[#1e2433] rounded-2xl overflow-hidden">
+        <div className="bg-bg-secondary border border-border rounded-2xl overflow-hidden">
           {recentJobs.length === 0 ? (
-            <div className="p-12 text-center text-gray-500 flex flex-col items-center">
+            <div className="p-12 text-center text-text-muted flex flex-col items-center">
               <Film size={32} className="mb-4 opacity-20" />
               <p className="text-sm">Sem jobs recentes.</p>
               <p className="text-[10px] font-bold uppercase tracking-widest mt-1">Arrasta vídeos para processar.</p>
             </div>
           ) : (
-            <div className="divide-y divide-[#1e2433]">
+            <div className="divide-y divide-border">
               {recentJobs.map(job => (
                 <div
                   key={job.id}
-                  className="p-4 flex items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer"
+                  className="p-4 flex items-center gap-4 hover:bg-bg-hover transition-colors cursor-pointer"
                   onClick={() => onSelectAsset(job.asset_id)}
                 >
-                  <div className="w-10 h-10 bg-[#0a0d14] rounded-lg flex items-center justify-center shrink-0">
-                    <Film size={18} className="text-gray-500" />
+                  <div className="w-10 h-10 bg-bg-primary rounded-lg flex items-center justify-center shrink-0">
+                    <Film size={18} className="text-text-muted" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold text-white truncate">
+                    <div className="text-sm font-bold text-text-primary truncate">
                       {assetMap[job.asset_id] ?? `Asset ${job.asset_id.slice(0, 8)}`}
                     </div>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="px-1.5 py-0.5 bg-[#1e2433] text-[9px] font-black uppercase text-blue-400 rounded">
+                        <span className="px-1.5 py-0.5 bg-surface text-[9px] font-black uppercase text-blue-400 rounded">
                         {job.profile}
                       </span>
-                      <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest flex items-center gap-1">
+                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1">
                         <Clock size={10} />
                         {job.started_at
                           ? new Date(job.started_at).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })
@@ -186,11 +188,15 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${
                       job.status === 'done' ? 'text-green-500' :
-                      job.status === 'processing' ? 'text-[#1A6FD4] animate-pulse' :
+                      job.status === 'processing' ? 'text-brand animate-pulse' :
                       job.status === 'error' ? 'text-red-500' :
-                      'text-gray-500'
+                      'text-text-muted'
                     }`}>
-                      {job.status === 'processing' ? `A PROCESSAR ${Math.round(job.progress * 100)}%` : job.status.toUpperCase()}
+                      {job.status === 'processing' ? `${t('dashboard.processing')} ${Math.round(job.progress * 100)}%` :
+                       job.status === 'done' ? t('dashboard.completed') :
+                       job.status === 'error' ? t('dashboard.error') :
+                       job.status === 'cancelled' ? t('dashboard.cancelled') :
+                       job.status.toUpperCase()}
                     </div>
                     {job.vmaf_score != null && (
                       <div className={`text-xs font-black ${getVmafColor(job.vmaf_score)}`}>
@@ -206,28 +212,28 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
       </div>
 
       {/* DISTRIBUIÇÃO VMAF — largura total */}
-      <div className="bg-[#141824] border border-[#1e2433] rounded-2xl p-6">
-        <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-6">Distribuição VMAF</h3>
+      <div className="bg-bg-secondary border border-border rounded-2xl p-6">
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-6">{t('dashboard.vmafDistribution')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded bg-red-500" />
-            <span className="text-xs font-bold text-gray-400 flex-1">Abaixo de 70</span>
-            <span className="text-xs font-bold text-white">{vmafDist.below70} jobs</span>
+            <span className="text-xs font-bold text-text-secondary flex-1">Abaixo de 70</span>
+            <span className="text-xs font-bold text-text-primary">{vmafDist.below70} jobs</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded bg-yellow-500" />
-            <span className="text-xs font-bold text-gray-400 flex-1">70 a 85</span>
-            <span className="text-xs font-bold text-white">{vmafDist.from70to85} jobs</span>
+            <span className="text-xs font-bold text-text-secondary flex-1">70 a 85</span>
+            <span className="text-xs font-bold text-text-primary">{vmafDist.from70to85} jobs</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded bg-green-500" />
-            <span className="text-xs font-bold text-gray-400 flex-1">85 a 95</span>
-            <span className="text-xs font-bold text-white">{vmafDist.from85to95} jobs</span>
+            <span className="text-xs font-bold text-text-secondary flex-1">85 a 95</span>
+            <span className="text-xs font-bold text-text-primary">{vmafDist.from85to95} jobs</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded bg-[#1A6FD4]" />
-            <span className="text-xs font-bold text-gray-400 flex-1">Acima de 95</span>
-            <span className="text-xs font-bold text-white">{vmafDist.above95} jobs</span>
+            <div className="w-3 h-3 rounded bg-brand" />
+            <span className="text-xs font-bold text-text-secondary flex-1">Acima de 95</span>
+            <span className="text-xs font-bold text-text-primary">{vmafDist.above95} jobs</span>
           </div>
         </div>
       </div>

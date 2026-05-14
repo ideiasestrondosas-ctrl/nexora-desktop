@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, AlertCircle, Clock, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -107,9 +108,9 @@ function PhaseDots({ stepIdx, active, completed, failed, quarantined, totalJobs 
         if (totalJobs === 0) status = 'pending';
 
         const colorClass = {
-          pending: 'bg-[#1e2433]',
+          pending: 'bg-surface',
           done: 'bg-green-500',
-          active: 'bg-[#1A6FD4] animate-pulse',
+          active: 'bg-brand animate-pulse',
           error: 'bg-red-500',
           quarantine: 'bg-yellow-500',
         }[status];
@@ -118,7 +119,7 @@ function PhaseDots({ stepIdx, active, completed, failed, quarantined, totalJobs 
           <div key={idx} className="flex items-center">
             <div className={cn('w-2.5 h-2.5 rounded-full transition-colors', colorClass)} />
             {idx < STEPS.length - 1 && (
-              <div className={cn('w-3 h-0.5', idx < stepIdx || (completed > 0 && status !== 'pending') ? 'bg-green-500/50' : 'bg-[#1e2433]')} />
+              <div className={cn('w-3 h-0.5', idx < stepIdx || (completed > 0 && status !== 'pending') ? 'bg-green-500/50' : 'bg-surface')} />
             )}
           </div>
         );
@@ -128,34 +129,35 @@ function PhaseDots({ stepIdx, active, completed, failed, quarantined, totalJobs 
 }
 
 export default function PipelineSummary({ jobs }: PipelineSummaryProps) {
+  const { t } = useTranslation();
   const totalJobs = jobs.length;
   const globalQueued = jobs.filter(j => j.status === 'queued').length;
   const globalProcessing = jobs.filter(j => j.status === 'processing').length;
   const globalDone = jobs.filter(j => j.status === 'done').length;
 
   return (
-    <div className="bg-[#141824] border border-[#1e2433] rounded-2xl p-6 space-y-4">
+    <div className="bg-bg-secondary border border-border rounded-2xl p-6 space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-black uppercase tracking-widest text-gray-500">Resumo do Pipeline</h3>
-        <span className="text-[10px] text-gray-600 font-mono">{totalJobs} jobs no total</span>
+        <h3 className="text-xs font-black uppercase tracking-widest text-text-muted">{t('queue.pipelineSummary')}</h3>
+        <span className="text-[10px] text-text-muted font-mono">{t('queue.totalJobs', { count: totalJobs })}</span>
       </div>
 
       {/* ESTADOS GLOBAIS */}
       <div className="flex flex-wrap gap-3 mb-4">
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0a0d14] border border-[#1e2433] rounded-lg">
-          <Clock size={12} className="text-gray-500" />
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Em fila</span>
-          <span className="text-xs font-black text-white">{globalQueued}</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-bg-primary border border-border rounded-lg">
+          <Clock size={12} className="text-text-muted" />
+          <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">{t('queue.queued')}</span>
+          <span className="text-xs font-black text-text-primary">{globalQueued}</span>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1A6FD4]/10 border border-[#1A6FD4]/20 rounded-lg">
-          <div className="w-2 h-2 bg-[#1A6FD4] rounded-full animate-pulse" />
-          <span className="text-[10px] font-bold text-[#1A6FD4] uppercase tracking-wider">A processar</span>
-          <span className="text-xs font-black text-white">{globalProcessing}</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-lg">
+          <div className="w-2 h-2 bg-brand rounded-full animate-pulse" />
+          <span className="text-[10px] font-bold text-brand uppercase tracking-wider">{t('queue.processing')}</span>
+          <span className="text-xs font-black text-text-primary">{globalProcessing}</span>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg">
           <CheckCircle2 size={12} className="text-green-500" />
-          <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">Concluídos</span>
-          <span className="text-xs font-black text-white">{globalDone}</span>
+          <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">{t('queue.completed')}</span>
+          <span className="text-xs font-black text-text-primary">{globalDone}</span>
         </div>
       </div>
 
@@ -169,20 +171,20 @@ export default function PipelineSummary({ jobs }: PipelineSummaryProps) {
               key={step.key}
               className={cn(
                 'flex items-center gap-4 p-3 rounded-xl border transition-colors',
-                active > 0 ? 'border-[#1A6FD4]/30 bg-[#1A6FD4]/5' :
+                active > 0 ? 'border-brand/30 bg-brand/5' :
                 quarantined > 0 ? 'border-yellow-500/30 bg-yellow-500/5' :
                 failed > 0 ? 'border-red-500/30 bg-red-500/5' :
-                'border-[#1e2433] bg-[#0a0d14]'
+                'border-border bg-bg-primary'
               )}
             >
               {/* Número da fase */}
               <div className={cn(
                 'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0',
-                active > 0 ? 'bg-[#1A6FD4] text-white' :
+                active > 0 ? 'bg-brand text-white' :
                 quarantined > 0 ? 'bg-yellow-500 text-black' :
                 failed > 0 ? 'bg-red-500 text-white' :
                 completed > 0 ? 'bg-green-500 text-white' :
-                'bg-[#1e2433] text-gray-500'
+                'bg-surface text-text-muted'
               )}>
                 {idx + 1}
               </div>
@@ -190,8 +192,8 @@ export default function PipelineSummary({ jobs }: PipelineSummaryProps) {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-white">{step.label}</span>
-                  <span className="text-[10px] text-gray-500 truncate">{step.desc}</span>
+                  <span className="text-sm font-bold text-text-primary">{t(`pipeline.${step.key}`)}</span>
+                  <span className="text-[10px] text-text-muted truncate">{t(`pipeline.${step.key}Desc`)}</span>
                 </div>
 
                 {/* Indicador visual de 8 bolinhas */}
@@ -215,7 +217,7 @@ export default function PipelineSummary({ jobs }: PipelineSummaryProps) {
                   </span>
                 )}
                 {active > 0 && (
-                  <span className="flex items-center gap-1 text-[#1A6FD4]">
+                  <span className="flex items-center gap-1 text-brand">
                     <Clock size={12} className="animate-pulse" /> {active}
                   </span>
                 )}

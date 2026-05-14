@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open, confirm } from '@tauri-apps/plugin-dialog';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { check } from '@tauri-apps/plugin-updater';
@@ -73,6 +74,7 @@ type SettingsTab = 'general' | 'interface' | 'system' | 'advanced' | 'about';
 export default function SettingsPage() {
   const settingsStore = useSettingsStore();
   const { gpu, loading: gpuLoading } = useGPU();
+  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [localSettings, setLocalSettings] = useState<Partial<Settings>>({
@@ -166,6 +168,12 @@ export default function SettingsPage() {
       if (key === 'gpu_acceleration') settingsStore.setGpuAcceleration(value);
       if (key === 'notifications_enabled') settingsStore.setNotificationsEnabled(value);
       if (key === 'theme') settingsStore.setTheme(value);
+      if (key === 'language') {
+        settingsStore.setLanguage(value);
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { default: i18n } = await import('@/i18n');
+        i18n.changeLanguage(value);
+      }
       setLocalSettings(prev => ({ ...prev, [key]: value }));
     } catch (error) {
       console.error('Failed to update setting', error);
@@ -265,7 +273,7 @@ export default function SettingsPage() {
           await invoke('update_settings', { key: k, value: String(v) });
         }
       }
-      toast.success('Definições importadas');
+      toast.success(t('settings.advanced.importSuccess'));
       window.location.reload();
     } catch {
       toast.error('Erro ao importar');
@@ -276,7 +284,7 @@ export default function SettingsPage() {
     const ok = await confirm('Repor todas as definições para os valores por omissão?', { title: 'Reiniciar Definições', kind: 'warning' });
     if (!ok) return;
     await invoke('reset_database').catch(() => {});
-    toast.success('Definições repostas');
+    toast.success(t('settings.advanced.resetSuccess'));
     window.location.reload();
   };
 
@@ -289,13 +297,13 @@ export default function SettingsPage() {
   ];
 
   const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-    <h3 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">{children}</h3>
+    <h3 className="text-xs font-black uppercase tracking-widest text-text-muted mb-4">{children}</h3>
   );
 
   return (
     <div className="max-w-[900px] mx-auto pb-12 animate-in fade-in duration-300">
       {/* TABS HEADER */}
-      <div className="flex gap-1 mb-6 bg-[#0f121a] border border-[#1e2433] rounded-xl p-1">
+      <div className="flex gap-1 mb-6 bg-bg-tertiary border border-border rounded-xl p-1">
         {tabs.map(t => {
           const Icon = t.icon;
           return (
@@ -303,7 +311,7 @@ export default function SettingsPage() {
               key={t.id}
               onClick={() => setActiveTab(t.id)}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeTab === t.id ? 'bg-[#1A6FD4] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                activeTab === t.id ? 'bg-brand text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
               }`}
             >
               <Icon size={14} /> {t.label}
@@ -315,40 +323,40 @@ export default function SettingsPage() {
       {/* TAB: GERAL */}
       {activeTab === 'general' && (
         <div className="space-y-6">
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>Processamento</SectionTitle>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Pasta de saída</label>
+                <label className="block text-sm font-medium text-text-secondary mb-2">Pasta de saída</label>
                 <div className="flex gap-2">
                   <input type="text" readOnly value={settingsStore.outputDir}
-                    className="flex-1 bg-[#0a0d14] border border-[#1e2433] rounded-lg px-4 text-gray-300 outline-none text-sm py-2"
+                    className="flex-1 bg-bg-primary border border-border rounded-lg px-4 text-text-secondary outline-none text-sm py-2"
                   />
                   <button onClick={handleSelectDir}
-                    className="px-4 py-2 bg-[#1e2433] hover:bg-[#2a3143] text-white rounded-lg flex items-center gap-2 transition-colors text-sm"
+                    className="px-4 py-2 bg-surface hover:bg-surface-hover text-text-primary rounded-lg flex items-center gap-2 transition-colors text-sm"
                   >
-                    <FolderOpen size={14} /> Escolher
+                    <FolderOpen size={14} /> {t('settings.general.choose')}
                   </button>
                 </div>
-                {settingsStore.outputDir && <p className="mt-2 text-xs text-gray-500 font-mono">{settingsStore.outputDir}</p>}
+                {settingsStore.outputDir && <p className="mt-2 text-xs text-text-muted font-mono">{settingsStore.outputDir}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Jobs simultâneos</label>
+                <label className="block text-sm font-medium text-text-secondary mb-2">Jobs simultâneos</label>
                 <input type="range" min={1} max={4} step={1}
                   value={settingsStore.maxConcurrentJobs}
                   onChange={e => handleUpdateSetting('max_concurrent_jobs', parseInt(e.target.value))}
-                  className="w-full accent-[#1A6FD4]"
+                  className="w-full accent-brand"
                 />
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                <div className="flex justify-between text-xs text-text-secondary mt-1">
                   <span>{settingsStore.maxConcurrentJobs} job{settingsStore.maxConcurrentJobs > 1 ? 's' : ''}</span>
                   <span>Mais jobs = mais CPU/RAM</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Perfil padrão</label>
+                <label className="block text-sm font-medium text-text-secondary mb-2">Perfil padrão</label>
                 <select value={localSettings.default_profile}
                   onChange={e => handleUpdateSetting('default_profile', e.target.value)}
-                  className="w-full bg-[#0a0d14] border border-[#1e2433] rounded-lg px-4 py-2 text-white outline-none text-sm"
+                  className="w-full bg-bg-primary border border-border rounded-lg px-4 py-2 text-text-primary outline-none text-sm"
                 >
                   <option value="broadcast-hd">broadcast-hd</option>
                   <option value="broadcast-sd">broadcast-sd</option>
@@ -361,27 +369,27 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>Qualidade</SectionTitle>
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-300">VMAF Mínimo</label>
-                  <span className="text-sm font-mono text-[#1A6FD4]">{localSettings.vmaf_threshold}</span>
+                  <label className="text-sm font-medium text-text-secondary">VMAF Mínimo</label>
+                  <span className="text-sm font-mono text-brand">{localSettings.vmaf_threshold}</span>
                 </div>
                 <input type="range" min={0} max={100}
                   value={localSettings.vmaf_threshold}
                   onChange={e => handleUpdateSetting('vmaf_threshold', parseInt(e.target.value))}
-                  className="w-full accent-[#1A6FD4]"
+                  className="w-full accent-brand"
                 />
-                <p className="text-xs text-gray-500 mt-1">Jobs abaixo deste valor são marcados com aviso.</p>
+                <p className="text-xs text-text-muted mt-1">Jobs abaixo deste valor são marcados com aviso.</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">LUFS Alvo</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">LUFS Alvo</label>
                   <select value={localSettings.target_lufs}
                     onChange={e => handleUpdateSetting('target_lufs', parseInt(e.target.value))}
-                    className="w-full bg-[#0a0d14] border border-[#1e2433] rounded-lg px-4 py-2 text-white outline-none text-sm"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-4 py-2 text-text-primary outline-none text-sm"
                   >
                     <option value={-23}>-23 LUFS (Broadcast)</option>
                     <option value={-16}>-16 LUFS (Streaming)</option>
@@ -389,21 +397,21 @@ export default function SettingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">True Peak (dBTP)</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">True Peak (dBTP)</label>
                   <input type="number" step={0.1} defaultValue={-1}
-                    className="w-full bg-[#0a0d14] border border-[#1e2433] rounded-lg px-4 py-2 text-white outline-none text-sm"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-4 py-2 text-text-primary outline-none text-sm"
                   />
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>Aceleração de Hardware</SectionTitle>
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-sm font-medium text-white mb-1">Usar aceleração GPU</div>
-                <div className="text-xs text-gray-400">
+                <div className="text-sm font-medium text-text-primary mb-1">Usar aceleração GPU</div>
+                <div className="text-xs text-text-secondary">
                   {gpuLoading ? 'A verificar...' : gpu?.available
                     ? `GPU: ${gpu.vendor} (${gpu.encoder})`
                     : 'Sem GPU compatível — a usar CPU (libx264)'}
@@ -414,22 +422,22 @@ export default function SettingsPage() {
                   checked={settingsStore.gpuAcceleration}
                   onChange={e => handleUpdateSetting('gpu_acceleration', e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-[#1e2433] rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1A6FD4]"></div>
+                <div className="w-11 h-6 bg-surface rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
               </label>
             </div>
           </section>
 
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>Notificações</SectionTitle>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-white">Notificações do sistema</span>
+                <span className="text-sm font-medium text-text-primary">Notificações do sistema</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer"
                     checked={settingsStore.notificationsEnabled}
                     onChange={e => handleUpdateSetting('notifications_enabled', e.target.checked)}
                   />
-                  <div className="w-11 h-6 bg-[#1e2433] rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1A6FD4]"></div>
+                <div className="w-11 h-6 bg-surface rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
                 </label>
               </div>
             </div>
@@ -440,7 +448,7 @@ export default function SettingsPage() {
       {/* TAB: INTERFACE */}
       {activeTab === 'interface' && (
         <div className="space-y-6">
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>Tema</SectionTitle>
             <div className="flex gap-3">
               {(['system', 'light', 'dark'] as const).map((t) => (
@@ -449,8 +457,8 @@ export default function SettingsPage() {
                   onClick={() => handleUpdateSetting('theme', t)}
                   className={`flex-1 py-3 rounded-lg text-sm font-bold border transition-all ${
                     settingsStore.theme === t
-                      ? 'bg-[#1A6FD4] border-[#1A6FD4] text-white'
-                      : 'bg-[#0a0d14] border-[#1e2433] text-gray-400 hover:text-white hover:border-gray-500'
+                      ? 'bg-brand border-brand text-white'
+                      : 'bg-bg-primary border-border text-text-secondary hover:text-text-primary hover:border-gray-500'
                   }`}
                 >
                   {t === 'system' && 'Sistema'}
@@ -459,23 +467,23 @@ export default function SettingsPage() {
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-xs text-gray-500">
+            <p className="mt-3 text-xs text-text-muted">
               O tema "Sistema" segue a preferência do teu sistema operativo.
             </p>
           </section>
 
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>Idioma</SectionTitle>
             <select
               value={localSettings.language}
               onChange={e => handleUpdateSetting('language', e.target.value)}
-              className="w-full bg-[#0a0d14] border border-[#1e2433] rounded-lg px-4 py-3 text-white outline-none text-sm"
+              className="w-full bg-bg-primary border border-border rounded-lg px-4 py-3 text-text-primary outline-none text-sm"
             >
               <option value="pt">Português (Portugal)</option>
               <option value="en">English</option>
             </select>
-            <p className="mt-3 text-xs text-gray-500">
-              A alteração de idioma será aplicada após reiniciar a aplicação.
+            <p className="mt-3 text-xs text-text-muted">
+              {t('settings.interface.languageHint')}
             </p>
           </section>
         </div>
@@ -485,9 +493,9 @@ export default function SettingsPage() {
       {activeTab === 'system' && (
         <div className="space-y-6">
           {systemLoading && (
-            <div className="rounded-xl border border-[#1e2433] p-12 bg-[#141824] text-center">
-              <RefreshCw size={32} className="animate-spin mx-auto mb-4 text-[#1A6FD4]" />
-              <p className="text-sm text-gray-400">A carregar informação do sistema...</p>
+            <div className="rounded-xl border border-border p-12 bg-bg-secondary text-center">
+              <RefreshCw size={32} className="animate-spin mx-auto mb-4 text-brand" />
+              <p className="text-sm text-text-secondary">A carregar informação do sistema...</p>
             </div>
           )}
 
@@ -498,7 +506,7 @@ export default function SettingsPage() {
                 <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-bold text-red-500 mb-1">Erro ao carregar informação do sistema</p>
-                  <p className="text-xs text-gray-400 font-mono mb-4">{systemError}</p>
+                  <p className="text-xs text-text-secondary font-mono mb-4">{systemError}</p>
                   <button
                     onClick={() => {
                       setSystemLoading(true);
@@ -526,7 +534,7 @@ export default function SettingsPage() {
                           }
                         });
                     }}
-                    className="px-3 py-1.5 bg-[#1A6FD4] hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition-colors"
+                    className="px-3 py-1.5 bg-brand hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition-colors"
                   >
                     Tentar novamente
                   </button>
@@ -538,103 +546,103 @@ export default function SettingsPage() {
           {/* CONTEÚDO — mostra SEMPRE, mesmo com systemInfo null (usa defaults) */}
           {!systemLoading && (
             <>
-              <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+              <section className="rounded-xl border border-border p-6 bg-bg-secondary">
                 <SectionTitle>Informação do Sistema</SectionTitle>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-                  <div className="flex items-start gap-3 p-3 bg-[#0a0d14] rounded-lg border border-[#1e2433]">
-                    <Terminal size={16} className="text-[#1A6FD4] shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
+                    <Terminal size={16} className="text-brand shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-gray-500">Sistema Operativo</p>
-                      <p className="text-white font-bold">{systemInfo?.os_name ?? 'N/A'} {systemInfo?.os_version ?? ''}</p>
+                      <p className="text-text-muted">Sistema Operativo</p>
+                      <p className="text-text-primary font-bold">{systemInfo?.os_name ?? 'N/A'} {systemInfo?.os_version ?? ''}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-[#0a0d14] rounded-lg border border-[#1e2433]">
-                    <Cpu size={16} className="text-[#1A6FD4] shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
+                    <Cpu size={16} className="text-brand shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-gray-500">Processador</p>
-                      <p className="text-white font-bold">{systemInfo?.cpu_model ?? 'N/A'}</p>
-                      <p className="text-gray-400">{systemInfo?.cpu_cores ?? '—'} cores / {systemInfo?.cpu_threads ?? '—'} threads</p>
+                      <p className="text-text-muted">Processador</p>
+                      <p className="text-text-primary font-bold">{systemInfo?.cpu_model ?? 'N/A'}</p>
+                      <p className="text-text-secondary">{systemInfo?.cpu_cores ?? '—'} cores / {systemInfo?.cpu_threads ?? '—'} threads</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-[#0a0d14] rounded-lg border border-[#1e2433]">
+                  <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <MemoryStick size={16} className="text-green-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-gray-500">Memória RAM</p>
-                      <p className="text-white font-bold">{systemInfo?.memory_total_gb?.toFixed(1) ?? '—'} GB total</p>
-                      <p className="text-gray-400">{systemInfo?.memory_used_gb?.toFixed(1) ?? '—'} GB em uso</p>
+                      <p className="text-text-muted">Memória RAM</p>
+                      <p className="text-text-primary font-bold">{systemInfo?.memory_total_gb?.toFixed(1) ?? '—'} GB total</p>
+                      <p className="text-text-secondary">{systemInfo?.memory_used_gb?.toFixed(1) ?? '—'} GB em uso</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-[#0a0d14] rounded-lg border border-[#1e2433]">
+                  <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <HardDrive size={16} className="text-yellow-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-gray-500">Disco Principal</p>
-                      <p className="text-white font-bold">{systemInfo?.disk_type ?? 'N/A'}</p>
-                      <p className="text-gray-400">{systemInfo?.disk_total_gb?.toFixed(0) ?? '—'} GB total / {systemInfo?.disk_free_gb?.toFixed(0) ?? '—'} GB livre</p>
+                      <p className="text-text-muted">Disco Principal</p>
+                      <p className="text-text-primary font-bold">{systemInfo?.disk_type ?? 'N/A'}</p>
+                      <p className="text-text-secondary">{systemInfo?.disk_total_gb?.toFixed(0) ?? '—'} GB total / {systemInfo?.disk_free_gb?.toFixed(0) ?? '—'} GB livre</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-[#0a0d14] rounded-lg border border-[#1e2433]">
+                  <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <Monitor size={16} className="text-purple-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-gray-500">GPU</p>
-                      <p className="text-white font-bold">{installedInfo?.gpu?.vendor?.toUpperCase() ?? 'CPU'} — {installedInfo?.gpu?.encoder ?? 'libx264'}</p>
-                      <p className="text-gray-400">{installedInfo?.gpu?.available ? 'Aceleração disponível' : 'Processamento por software'}</p>
+                      <p className="text-text-muted">GPU</p>
+                      <p className="text-text-primary font-bold">{installedInfo?.gpu?.vendor?.toUpperCase() ?? 'CPU'} — {installedInfo?.gpu?.encoder ?? 'libx264'}</p>
+                      <p className="text-text-secondary">{installedInfo?.gpu?.available ? 'Aceleração disponível' : 'Processamento por software'}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-[#0a0d14] rounded-lg border border-[#1e2433]">
+                  <div className="flex items-start gap-3 p-3 bg-bg-primary rounded-lg border border-border">
                     <Network size={16} className="text-teal-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-gray-500">Rede</p>
+                      <p className="text-text-muted">Rede</p>
                       {systemInfo?.network_interfaces && systemInfo.network_interfaces.length > 0 ? (
                         systemInfo.network_interfaces.map((ni, i) => (
-                          <p key={i} className="text-white font-bold">{ni.name} <span className="text-gray-400 font-normal">({ni.status})</span></p>
+                          <p key={i} className="text-text-primary font-bold">{ni.name} <span className="text-text-secondary font-normal">({ni.status})</span></p>
                         ))
                       ) : (
-                        <p className="text-gray-400">Nenhuma informação disponível</p>
+                        <p className="text-text-secondary">Nenhuma informação disponível</p>
                       )}
-                      {systemInfo?.wifi_ssid && <p className="text-gray-400"><Wifi size={10} className="inline mr-1" />SSID: {systemInfo.wifi_ssid}</p>}
+                      {systemInfo?.wifi_ssid && <p className="text-text-secondary"><Wifi size={10} className="inline mr-1" />SSID: {systemInfo.wifi_ssid}</p>}
                     </div>
                   </div>
                 </div>
               </section>
 
-              <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+              <section className="rounded-xl border border-border p-6 bg-bg-secondary">
                 <SectionTitle>Binários & Base de Dados</SectionTitle>
                 <div className="space-y-3 font-mono text-xs">
-                  <div className="flex justify-between border-b border-[#1e2433] pb-2">
-                    <span className="text-gray-500 flex items-center gap-2"><Code2 size={12} /> FFmpeg</span>
-                    <span className="text-gray-300">{ffmpegInfo?.version ?? installedInfo?.ffmpeg_version ?? 'Não encontrado'}</span>
+                  <div className="flex justify-between border-b border-border pb-2">
+                    <span className="text-text-muted flex items-center gap-2"><Code2 size={12} /> FFmpeg</span>
+                    <span className="text-text-secondary">{ffmpegInfo?.version ?? installedInfo?.ffmpeg_version ?? 'Não encontrado'}</span>
                   </div>
-                  <div className="flex justify-between border-b border-[#1e2433] pb-2">
-                    <span className="text-gray-500 flex items-center gap-2"><Code2 size={12} /> libvmaf</span>
+                  <div className="flex justify-between border-b border-border pb-2">
+                    <span className="text-text-muted flex items-center gap-2"><Code2 size={12} /> libvmaf</span>
                     <span className={ffmpegInfo?.has_libvmaf ? 'text-green-500' : 'text-red-500'}>
                       {ffmpegInfo?.has_libvmaf ? 'Disponível' : 'Indisponível'}
                     </span>
                   </div>
-                  <div className="flex justify-between border-b border-[#1e2433] pb-2">
-                    <span className="text-gray-500 flex items-center gap-2"><Terminal size={12} /> Node.js</span>
-                    <span className="text-gray-300">{installedInfo?.node_version ?? 'N/A'}</span>
+                  <div className="flex justify-between border-b border-border pb-2">
+                    <span className="text-text-muted flex items-center gap-2"><Terminal size={12} /> Node.js</span>
+                    <span className="text-text-secondary">{installedInfo?.node_version ?? 'N/A'}</span>
                   </div>
                   <div className="flex justify-between pb-2">
-                    <span className="text-gray-500 flex items-center gap-2"><Database size={12} /> Base de Dados</span>
-                    <span className="text-gray-300 truncate max-w-[300px]">{installedInfo?.db_path ?? 'N/A'}</span>
+                    <span className="text-text-muted flex items-center gap-2"><Database size={12} /> Base de Dados</span>
+                    <span className="text-text-secondary truncate max-w-[300px]">{installedInfo?.db_path ?? 'N/A'}</span>
                   </div>
                   {dbInfo && (
                     <div className="grid grid-cols-4 gap-2 pt-2">
-                      <div className="text-center p-2 bg-[#0a0d14] rounded border border-[#1e2433]">
-                        <p className="text-white font-bold">{dbInfo.db_size_mb.toFixed(1)} MB</p>
-                        <p className="text-gray-500">Tamanho</p>
+                      <div className="text-center p-2 bg-bg-primary rounded border border-border">
+                        <p className="text-text-primary font-bold">{dbInfo.db_size_mb.toFixed(1)} MB</p>
+                        <p className="text-text-muted">Tamanho</p>
                       </div>
-                      <div className="text-center p-2 bg-[#0a0d14] rounded border border-[#1e2433]">
-                        <p className="text-white font-bold">{dbInfo.assets_count}</p>
-                        <p className="text-gray-500">Assets</p>
+                      <div className="text-center p-2 bg-bg-primary rounded border border-border">
+                        <p className="text-text-primary font-bold">{dbInfo.assets_count}</p>
+                        <p className="text-text-muted">Assets</p>
                       </div>
-                      <div className="text-center p-2 bg-[#0a0d14] rounded border border-[#1e2433]">
-                        <p className="text-white font-bold">{dbInfo.jobs_count}</p>
-                        <p className="text-gray-500">Jobs</p>
+                      <div className="text-center p-2 bg-bg-primary rounded border border-border">
+                        <p className="text-text-primary font-bold">{dbInfo.jobs_count}</p>
+                        <p className="text-text-muted">Jobs</p>
                       </div>
-                      <div className="text-center p-2 bg-[#0a0d14] rounded border border-[#1e2433]">
-                        <p className="text-white font-bold">{dbInfo.logs_count}</p>
-                        <p className="text-gray-500">Logs</p>
+                      <div className="text-center p-2 bg-bg-primary rounded border border-border">
+                        <p className="text-text-primary font-bold">{dbInfo.logs_count}</p>
+                        <p className="text-text-muted">Logs</p>
                       </div>
                     </div>
                   )}
@@ -648,29 +656,29 @@ export default function SettingsPage() {
       {/* TAB: AVANÇADO */}
       {activeTab === 'advanced' && (
         <div className="space-y-6">
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>Dados</SectionTitle>
             <div className="grid grid-cols-2 gap-3">
               <button onClick={handleExport}
-                className="flex items-center justify-center gap-2 p-3 bg-[#1e2433] hover:bg-[#2a3143] text-white rounded-lg transition-colors text-sm font-medium"
+                className="flex items-center justify-center gap-2 p-3 bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors text-sm font-medium"
               >
-                <Download size={14} /> Exportar
+                <Download size={14} /> {t('settings.advanced.export')}
               </button>
               <button onClick={handleImport}
-                className="flex items-center justify-center gap-2 p-3 bg-[#1e2433] hover:bg-[#2a3143] text-white rounded-lg transition-colors text-sm font-medium"
+                className="flex items-center justify-center gap-2 p-3 bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors text-sm font-medium"
               >
-                <Upload size={14} /> Importar
+                <Upload size={14} /> {t('settings.advanced.import')}
               </button>
             </div>
           </section>
 
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>Manutenção</SectionTitle>
             <div className="space-y-3">
               <button onClick={handleResetSettings}
-                className="flex items-center gap-3 w-full p-3 bg-[#1e2433] hover:bg-[#2a3143] text-white rounded-lg transition-colors text-left text-sm font-medium"
+                className="flex items-center gap-3 w-full p-3 bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors text-left text-sm font-medium"
               >
-                <RotateCcw size={14} /> Repor definições
+                <RotateCcw size={14} /> {t('settings.advanced.resetSettings')}
               </button>
               <button onClick={handleFactoryReset}
                 className="flex items-center gap-3 w-full p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors text-left text-sm font-medium"
@@ -685,50 +693,50 @@ export default function SettingsPage() {
       {/* TAB: SOBRE */}
       {activeTab === 'about' && (
         <div className="space-y-6">
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-[#1A6FD4] flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-blue-900/40">
+              <div className="w-16 h-16 rounded-2xl bg-brand flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-blue-900/40">
                 N
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">Nexora Media Processing</h3>
-                <p className="text-gray-400 text-sm">Desktop Edition — Native Multiplatform</p>
-                <div className="inline-block mt-1 px-2 py-0.5 bg-[#1e2433] text-xs font-mono rounded text-gray-300">
+                <h3 className="text-xl font-bold text-text-primary">Nexora Media Processing</h3>
+                <p className="text-text-secondary text-sm">Desktop Edition — Native Multiplatform</p>
+                <div className="inline-block mt-1 px-2 py-0.5 bg-surface text-xs font-mono rounded text-text-secondary">
                   v{installedInfo?.app_version ?? APP_VERSION}
                   {installedError && <span className="ml-2 text-red-400" title={installedError}>(offline)</span>}
                 </div>
               </div>
             </div>
 
-            <div className="border border-[#1e2433] rounded-lg overflow-hidden bg-[#0a0d14]">
-              <div className="p-4 border-b border-[#1e2433]">
-                <span className="font-medium text-gray-300 text-sm">Notas de Lançamento</span>
+            <div className="border border-border rounded-lg overflow-hidden bg-bg-primary">
+              <div className="p-4 border-b border-border">
+                <span className="font-medium text-text-secondary text-sm">{t('settings.about.releaseNotes')}</span>
               </div>
               <div className="p-4 max-h-[200px] overflow-y-auto">
-                <pre className="text-xs text-gray-400 font-mono whitespace-pre-wrap">{changelog}</pre>
+                <pre className="text-xs text-text-secondary font-mono whitespace-pre-wrap">{changelog}</pre>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-3 mt-6">
               <button onClick={handleCheckUpdates} disabled={checkingUpdate}
-                className="px-4 py-2 bg-[#1A6FD4] hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-brand hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
               >
-                <RefreshCw size={14} className={checkingUpdate ? 'animate-spin' : ''} /> Verificar Actualizações
+                <RefreshCw size={14} className={checkingUpdate ? 'animate-spin' : ''} /> {t('settings.about.checkUpdates')}
               </button>
               <button onClick={handleOpenDataDir}
-                className="px-4 py-2 bg-[#1e2433] hover:bg-[#2a3143] text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-surface hover:bg-surface-hover text-text-primary text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
               >
                 <ExternalLink size={14} /> Abrir Dados
               </button>
             </div>
           </section>
 
-          <section className="rounded-xl border border-[#1e2433] p-6 bg-[#141824]">
-            <SectionTitle>Histórico de Versões</SectionTitle>
-            <div className="space-y-3 text-xs text-gray-400">
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+            <SectionTitle>{t('settings.about.versionHistory')}</SectionTitle>
+            <div className="space-y-3 text-xs text-text-secondary">
               {VERSION_HISTORY.map((entry, idx) => (
                 <div key={entry.version} className="flex gap-3">
-                  <span className={idx === 0 ? 'text-[#1A6FD4] font-bold shrink-0' : 'text-gray-500 font-bold shrink-0'}>
+                  <span className={idx === 0 ? 'text-brand font-bold shrink-0' : 'text-text-muted font-bold shrink-0'}>
                     v{entry.version}
                   </span>
                   <span>{entry.description}</span>
