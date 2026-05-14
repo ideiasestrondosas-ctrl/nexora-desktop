@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Job } from '@/store/jobs';
 import { ProgressBar } from './ProgressBar';
 import { NexoraStatusBadge } from './NexoraStatusBadge';
@@ -13,6 +14,7 @@ interface JobCardProps {
 }
 
 export const JobCard: React.FC<JobCardProps> = ({ job, filename, onCancel }) => {
+  const { t } = useTranslation();
   const isProcessing = job.status === 'processing';
   const isDone = job.status === 'done';
   const isError = job.status === 'error';
@@ -51,7 +53,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, filename, onCancel }) => 
           <button 
             onClick={() => onCancel(job.id)}
             className="text-gray-400 hover:text-red-500 transition-colors"
-            title="Cancelar Job"
+            title={t('jobCard.cancel')}
           >
             <XCircle className="w-5 h-5" />
           </button>
@@ -61,7 +63,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, filename, onCancel }) => 
       <div className="mt-4">
         <div className="flex justify-between items-end mb-1.5">
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {job.step || (isProcessing ? 'A processar...' : '')}
+            {job.step || (isProcessing ? t('jobCard.processing') : '')}
           </span>
           <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
             {Math.round(job.progress * 100)}%
@@ -89,9 +91,9 @@ export const JobCard: React.FC<JobCardProps> = ({ job, filename, onCancel }) => 
           
           <div className="text-[10px] text-gray-400 flex items-center gap-1">
              {isDone ? (
-               <><CheckCircle className="w-3 h-3 text-green-500" /> Concluído em {job.finished_at ? new Date(job.finished_at).toLocaleTimeString() : ''}</>
+               <><CheckCircle className="w-3 h-3 text-green-500" /> {t('jobCard.completedAt', { date: job.finished_at ? new Date(job.finished_at).toLocaleTimeString() : '' })}</>
              ) : isError ? (
-               <><AlertCircle className="w-3 h-3 text-red-500" /> {job.error || 'Erro desconhecido'}</>
+               <><AlertCircle className="w-3 h-3 text-red-500" /> {job.error || t('jobCard.unknownError')}</>
              ) : null}
           </div>
         </div>

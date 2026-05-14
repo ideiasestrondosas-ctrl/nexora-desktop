@@ -4,7 +4,11 @@ import { createReadStream } from 'fs';
 import { createHash } from 'crypto';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { getFfprobePath } from '../binaries';
+<<<<<<< HEAD
 import { updateAssetFields, writeAuditLog } from '../db';
+=======
+import { emit } from '../events';
+>>>>>>> dev
 
 const execFileAsync = promisify(execFile);
 
@@ -27,18 +31,9 @@ export class IngestWorker {
     // Extrair metadata com ffprobe
     const meta = await extractMetadata(assetPath);
 
-    updateAssetFields(assetId, {
-      duration_secs: meta.duration,
-      video_codec: meta.videoCodec,
-      audio_codec: meta.audioCodec,
-      width: meta.width,
-      height: meta.height,
-      fps: meta.fps,
-      metadata: JSON.stringify({ ...meta, sha256 }),
-      status: 'ingested',
-    });
+    emit({ type: 'asset:updated', assetId, data: { duration_secs: meta.duration, video_codec: meta.videoCodec, audio_codec: meta.audioCodec, width: meta.width, height: meta.height, fps: meta.fps, metadata: JSON.stringify({ ...meta, sha256 }), status: 'ingested' } });
 
-    writeAuditLog(jobId, 'ingest:completed', { assetId, sha256, ...meta });
+    emit({ type: 'log', level: 'INFO', source: 'ingest-worker', message: 'Ingest completed' });
   }
 }
 

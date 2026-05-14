@@ -1,0 +1,149 @@
+NEXORA DESKTOP – ÜBERSETZUNGSQUELLDATEI
+=========================================
+
+ANLEITUNG:
+1. Kopieren Sie den gesamten folgenden Inhalt (Strg+A, Strg+C).
+2. Gehen Sie zu https://translate.google.com.
+3. Wählen Sie: Englisch → [Zielsprache].
+4. Fügen Sie den Text in das linke Feld ein (Strg+V).
+5. Kopieren Sie das übersetzte Ergebnis aus dem rechten Feld.
+6. Speichern Sie die Datei unter: es_translation.txt, fr_translation.txt oder de_translation.txt
+
+REGELN:
+- Übersetzen Sie niemals Text innerhalb von eckigen Klammern.
+- Ändern Sie niemals {{placeholder}} wie {{count}}, {{total}}, {{used}}, {{name}}, {{version}}, {{msg}}, {{date}}, {{step}}, {{message}}, {{cores}}, {{threads}}.
+- Technische Begriffe wie VMAF, LUFS, FFmpeg, FFprobe, GPU, NVENC, AMF, QSV, CPU, RAM, H.264, H.265, HEVC, ProRes, DNxHD, AV1, AAC, PCM, MOV, MP4, MXF, TS, SHA-256, dBTP, fps, kbps, Mbps, GB, MB, Node.js, SQLite, Tauri, React, Rust, Nexora, BBC, Netflix, DPP, Windows, macOS, Linux, VS Code, npm, LUFS, LU, EBU R128, R128 dürfen NIEMALS übersetzt werden.
+
+– Zeichensetzung und Formatierung beibehalten.
+– Pfeilsymbole wie ← beibehalten. Wie besehen
+
+==============================================
+
+[app.name] Nexora Media Processing
+[app.desktopEdition] Desktop Edition – Native Multiplattform
+[app.version] Version
+[nav.dashboard] Dashboard
+[nav.library] Bibliothek
+[nav.queue] Warteschlange
+[nav.profiles] Profile
+[nav.settings] Einstellungen
+[nav.logs] Protokolle
+[topbar.dashboardDesc] Systemübersicht und Echtzeitmetriken
+[topbar.libraryDesc] Asset-Verwaltung und Vorschau
+[topbar.queueDesc] Job-Pipeline und Genehmigungen
+[topbar.profilesDesc] Transkodierungsprofilkonfiguration
+[topbar.settingsDesc] Einstellungen und Systeminformationen
+[topbar.logsDesc] Ereignisverlauf und Diagnose
+[topbar.detailDesc] Dateimetadaten und Verarbeitung
+[topbar.cpu] CPU
+[topbar.ram] RAM
+[topbar.gpu] GPU
+[topbar.disk] Festplatte
+[topbar.exit] Beenden
+[dashboard.assetsTotal] Gesamtressourcen
+[dashboard.jobsToday] Heutige Aufträge
+[dashboard.vmafAvg] Durchschnittliche VMAF
+[dashboard.recentJobs] Aktuelle Aufträge
+[dashboard.vmafDistribution] VMAF-Verteilung
+[dashboard.completedToday] Heute abgeschlossene Aufträge
+[dashboard.noJobs] Heute wurden keine Aufträge verarbeitet.
+
+[dashboard.noJobsHint] Videos zur Verarbeitung per Drag & Drop hinzufügen.
+
+[dashboard.viewAll] Alle anzeigen
+[dashboard.profile] Profil
+[dashboard.status] Status
+[dashboard.completed] Abgeschlossen
+[dashboard.inQueue] In der Warteschlange
+[dashboard.processing] Wird verarbeitet
+[dashboard.error] Fehler
+[dashboard.cancelled] Abgebrochen
+[dashboard.vmafBelow70] Unter 70
+[dashboard.vmaf70to85] 70 bis 85
+[dashboard.vmaf85to95] 85 bis 95
+[dashboard.vmafAbove95] Über 95
+[dashboard.processedFiles] Verarbeitete Dateien
+[dashboard.avgQuality] Durchschnittliche Qualität
+[library.searchPlaceholder] Bibliothek durchsuchen...
+[library.allStatuses] Alle Status
+[library.pending] Ausstehend
+[library.processing] Verarbeitung
+[library.completed] Abgeschlossen
+[library.errors] Fehler
+[library.newest] Neueste Datei
+[library.oldest] Älteste Datei
+[library.name] Name (A-Z)
+[library.size] Größe
+[library.noAssets] Keine Dateien in der Bibliothek
+[library.dragHint] Ziehen Sie Videodateien hierher oder klicken Sie auf die Schaltfläche, um zu beginnen.
+
+[library.addVideos] Videos hinzufügen
+[library.showing] Zeigt {{count}} von {{total}} Assets an
+[library.previous] Vorheriges Video
+[library.next] Nächstes Video
+[library.addError] Fehler beim Hinzufügen von Dateien: {{message}}
+[library.file] Datei
+[library.duration] Dauer
+[library.actions] Aktionen
+[queue.pipelineSummary] Pipeline-Zusammenfassung
+[queue.totalJobs] {{count}} Jobs insgesamt
+[queue.queued] In der Warteschlange
+[queue.processing] Wird verarbeitet
+[queue.completed] Abgeschlossen
+[queue.quarantine] Quarantäne
+[queue.errorsToday] Heutige Fehler
+[queue.pendingApprovals] Ausstehende Genehmigungen
+[queue.quarantineMsg] Dieses Asset wurde während der Vorab-Qualitätskontrolle in Quarantäne verschoben. Überprüfen Sie die Metadaten, bevor Sie es genehmigen oder ablehnen.
+
+[queue.approve] Genehmigen
+[queue.reject] Ablehnen
+[queue.processingTitle] Verarbeitung
+[queue.slotsUsed] {{used}}/{{total}} belegte Slots
+[queue.cancel] Abbrechen
+[queue.startedAt] Gestartet
+[queue.gpuLabel] GPU
+[queue.queuedTitle] In der Warteschlange
+[queue.position] Position
+
+[queue.filename] Dateiname
+[queue.profile] Profil
+[queue.addedAt] Hinzugefügt am
+[queue.state] Status
+[queue.wait] Wartend
+[queue.completedAndHistory] Abgeschlossen & Verlauf
+[queue.vmaf] VMAF
+[queue.finishedAt] Abgeschlossen
+[queue.actions] Aktionen
+[queue.retry] Wiederholen
+[queue.rejected] Abgelehnt
+[queue.rejectedManual] Manuell vom Bediener abgelehnt
+[queue.step] {{step}}...
+[queue.gpuNvenc] GPU: NVENC
+[profiles.create] Erstellen
+[profiles.edit] Bearbeiten
+[profiles.duplicate] Duplizieren
+[profiles.delete] Löschen
+[profiles.systemProfiles] Integriert
+[profiles.customProfiles] Benutzerdefiniert
+[profiles.noProfileSelected] Kein Profil ausgewählt
+[profiles.video] Video
+[profiles.audio] Audio
+[profiles.quality] Qualität
+[profiles.codec] Codec
+[profiles.resolution] Auflösung
+[profiles.fps] FPS
+[profiles.bitrate] Bitrate
+[profiles.videoBitrate] Videobitrate
+[profiles.audioBitrate] Audiobitrate
+[profiles.audioCodec] Audiocodec
+[profiles.sampleRate] Abtastrate
+[profiles.targetLufs] Ziel-LUFS
+[profiles.truePeak] Wahrer Spitzenwert
+[profiles.vmafMin] Minimaler VMAF-Wert
+[profiles.cpuPreset] CPU-Voreinstellung
+[profiles.h264Profile] H.264-Profil
+[profiles.container] Container
+[profiles.original] Original
+[profiles.auto] Automatisch
+[profiles.general] Allgemein
+[profiles.cancel]

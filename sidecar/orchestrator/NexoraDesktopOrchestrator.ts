@@ -1,4 +1,3 @@
-import { markJobRunning, updateJobProgress, markJobDone, markJobFailed, writeAuditLog } from '../db';
 import { emit } from '../events';
 import { IngestWorker } from '../workers/ingest-worker';
 import { QCPreWorker } from '../workers/qc-pre-worker';
@@ -15,7 +14,15 @@ export interface JobContext {
   assetPath: string;
   profile: string;
   outputDir: string;
-  // Preenchido pelos workers ao longo do pipeline
+  // Asset metadata (passed from Rust, avoids DB read)
+  assetDurationSecs?: number | null;
+  assetVideoCodec?: string | null;
+  assetAudioCodec?: string | null;
+  assetWidth?: number | null;
+  assetHeight?: number | null;
+  assetFps?: number | null;
+  assetSizeBytes?: number | null;
+  // Results
   transcodedPath?: string;
   proxyPath?: string;
   thumbnailPath?: string;
@@ -23,14 +30,6 @@ export interface JobContext {
   lufs?: number;
 }
 
-interface QueuedJob {
-  id: string;
-  asset_id: string;
-  profile: string;
-  output_path: string | null;
-}
-
-// Passos do pipeline e os seus pesos relativos (somam 1.0)
 const STEPS: Array<{ name: string; weight: number }> = [
   { name: 'ingest',     weight: 0.05 },
   { name: 'qc-pre',     weight: 0.05 },
@@ -43,17 +42,8 @@ const STEPS: Array<{ name: string; weight: number }> = [
 ];
 
 export class NexoraDesktopOrchestrator {
-  async run(job: QueuedJob, assetPath: string, outputDir: string): Promise<void> {
-    const ctx: JobContext = {
-      jobId: job.id,
-      assetId: job.asset_id,
-      assetPath,
-      profile: job.profile,
-      outputDir: job.output_path ?? outputDir,
-    };
-
-    markJobRunning(job.id);
-    emit({ type: 'job:started', jobId: job.id, assetId: job.asset_id });
+  async run(ctx: JobContext): Promise<void> {
+    emit({ type: 'job:started', jobId: ctx.jobId, assetId: ctx.assetId });
 
     let globalProgress = 0;
     const stepOffsets = STEPS.map((_, i) =>
@@ -64,8 +54,7 @@ export class NexoraDesktopOrchestrator {
       const offset = stepOffsets[stepIdx] ?? 0;
       const weight = STEPS[stepIdx]?.weight ?? 0;
       globalProgress = offset + localProgress * weight;
-      updateJobProgress(job.id, globalProgress, STEPS[stepIdx]?.name ?? '');
-      emit({ type: 'job:progress', jobId: job.id, progress: globalProgress });
+      emit({ type: 'job:progress', jobId: ctx.jobId, progress: globalProgress, step: STEPS[stepIdx]?.name ?? '' });
     };
 
     try {
@@ -74,7 +63,14 @@ export class NexoraDesktopOrchestrator {
       stepProgress(0, 1);
 
       // Passo 1 — QC Pre
-      await new QCPreWorker().run(ctx);
+      const qcResult = await new QCPreWorker().run(ctx);
+      if (qcResult === 'QUARANTINE') {
+        emit({ type: 'job:quarantined', jobId: ctx.jobId, assetId: ctx.assetId });
+        return;
+      }
+      if (qcResult === 'REJECT') {
+        throw new Error('QC Pré: rejeitado');
+      }
       stepProgress(1, 1);
 
       // Passo 2 — Transcode
@@ -113,31 +109,20 @@ export class NexoraDesktopOrchestrator {
       // Passo 7 — Delivery
       await new DeliveryWorker().run(ctx, (p) => stepProgress(7, p));
 
-      markJobDone(job.id, ctx.transcodedPath ?? null, ctx.vmafScore ?? null, ctx.lufs ?? null);
-
       emit({
         type: 'job:completed',
-        jobId: job.id,
-        assetId: job.asset_id,
+        jobId: ctx.jobId,
+        assetId: ctx.assetId,
         data: {
           outputPath: ctx.transcodedPath ?? null,
           vmafScore: ctx.vmafScore ?? null,
           lufs: ctx.lufs ?? null,
         },
       });
-
-      writeAuditLog(job.id, 'pipeline:completed', {
-        assetId: job.asset_id,
-        profile: job.profile,
-        vmafScore: ctx.vmafScore ?? null,
-        lufs: ctx.lufs ?? null,
-        outputPath: ctx.transcodedPath ?? null,
-      });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      markJobFailed(job.id, message);
-      emit({ type: 'job:failed', jobId: job.id, error: message });
-      writeAuditLog(job.id, 'pipeline:failed', { assetId: job.asset_id, error: message });
+      emit({ type: 'job:failed', jobId: ctx.jobId, error: message });
+      throw err;
     }
   }
 }

@@ -2,7 +2,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { join, basename, extname } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
-import { getAsset, writeAuditLog } from '../db';
+import { emit } from '../events';
 import type { ProgressCallback } from './types';
 import { getFfmpegPath } from '../binaries';
 
@@ -14,15 +14,13 @@ const THUMB_WIDTH = 640;
 export class ThumbnailWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
     const { assetId, assetPath, jobId, outputDir } = ctx;
-    const asset = getAsset(assetId);
-    if (!asset) throw new Error(`Thumbnail: asset ${assetId} não encontrado`);
 
     const input = ctx.transcodedPath ?? assetPath;
     const ext = extname(input);
       const ffmpegPath = getFfmpegPath();
 
     // Usar offset seguro: mínimo entre 5s e metade da duração
-    const duration = asset.duration_secs ?? 10;
+    const duration = ctx.assetDurationSecs ?? 10;
     const offset = Math.min(THUMB_OFFSET_SECS, duration / 2);
 
     onProgress(0.2);
@@ -45,7 +43,7 @@ export class ThumbnailWorker {
 
     ctx.thumbnailPath = thumbPath;
 
-    writeAuditLog(jobId, 'thumbnail:completed', { assetId, thumbPath, offsetSecs: offset });
+    emit({ type: 'log', level: 'INFO', source: 'thumbnail-worker', message: `Thumbnail completed: ${thumbPath} @ ${offset}s` });
     onProgress(1.0);
   }
 }

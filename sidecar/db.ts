@@ -136,6 +136,13 @@ export function markJobFailed(jobId: string, error: string): void {
     .run(now, now, error.slice(0, 2000), jobId);
 }
 
+export function updateJobStatus(jobId: string, status: string): void {
+  const now = new Date().toISOString();
+  getDb()
+    .prepare(`UPDATE jobs SET status = ?, updated_at = ? WHERE id = ?`)
+    .run(status, now, jobId);
+}
+
 // ── Helpers: Assets ────────────────────────────────────────────────
 
 export function getAsset(assetId: string): AssetRow | null {

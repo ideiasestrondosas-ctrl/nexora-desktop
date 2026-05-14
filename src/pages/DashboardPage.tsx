@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+<<<<<<< HEAD
 import { invoke } from '@tauri-apps/api/core';
 import { 
   Archive, Activity, HardDrive, Cpu, 
@@ -7,6 +8,11 @@ import {
 } from 'lucide-react';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 import { useGPU } from '@/hooks/useGPU';
+=======
+import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
+import { Archive, Activity, Gauge, Clock, Loader2, Film, ChevronRight } from 'lucide-react';
+>>>>>>> dev
 
 // Backend retorna camelCase via serde(rename_all = "camelCase")
 interface AppStats {
@@ -18,12 +24,19 @@ interface AppStats {
   diskTotalBytes: number | null;
 }
 
+<<<<<<< HEAD
 // Backend Job struct — sem campo filename (buscamos via assets)
+=======
+>>>>>>> dev
 interface Job {
   id: string;
   asset_id: string;
   profile: string;
+<<<<<<< HEAD
   status: 'queued' | 'processing' | 'done' | 'error' | 'cancelled';
+=======
+  status: 'queued' | 'processing' | 'done' | 'error' | 'cancelled' | 'qc_quarantined' | 'qc_rejected';
+>>>>>>> dev
   priority: number;
   progress: number;
   step: string | null;
@@ -37,9 +50,14 @@ interface Job {
   output_path: string | null;
 }
 
+<<<<<<< HEAD
 // Asset mínimo para resolver filenames
 interface AssetMap {
   [id: string]: string; // asset_id → filename
+=======
+interface AssetMap {
+  [id: string]: string;
+>>>>>>> dev
 }
 
 interface DashboardPageProps {
@@ -48,12 +66,19 @@ interface DashboardPageProps {
 }
 
 export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPageProps) {
+<<<<<<< HEAD
+=======
+  const { t, i18n } = useTranslation();
+>>>>>>> dev
   const [stats, setStats] = useState<AppStats | null>(null);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [assetMap, setAssetMap] = useState<AssetMap>({});
   const [loading, setLoading] = useState(true);
+<<<<<<< HEAD
   const metrics = useSystemMetrics();
   const { gpu } = useGPU();
+=======
+>>>>>>> dev
 
   const fetchData = useCallback(async () => {
     try {
@@ -64,7 +89,10 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
       ]);
       setStats(statsData);
       setRecentJobs(jobsData.slice(0, 5));
+<<<<<<< HEAD
       // Constrói mapa asset_id → filename para resolução de nomes
+=======
+>>>>>>> dev
       const map: AssetMap = {};
       for (const a of assetsData) {
         map[a.id] = a.filename;
@@ -83,6 +111,7 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
     return () => clearInterval(interval);
   }, [fetchData]);
 
+<<<<<<< HEAD
   // Converte bytes para GB com 1 decimal
   const bytesToGb = (bytes: number | null | undefined) => {
     if (!bytes) return 0;
@@ -91,12 +120,19 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
 
   const getVmafColor = (score: number | null) => {
     if (score === null) return 'text-gray-500';
+=======
+  const getVmafColor = (score: number | null) => {
+    if (score === null) return 'text-text-muted';
+>>>>>>> dev
     if (score >= 85) return 'text-green-500';
     if (score >= 70) return 'text-yellow-500';
     return 'text-red-500';
   };
 
+<<<<<<< HEAD
   // Calcula distribuição VMAF real a partir dos jobs recentes
+=======
+>>>>>>> dev
   const vmafDist = {
     below70: recentJobs.filter(j => j.vmaf_score !== null && j.vmaf_score < 70).length,
     from70to85: recentJobs.filter(j => j.vmaf_score !== null && j.vmaf_score >= 70 && j.vmaf_score < 85).length,
@@ -104,6 +140,7 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
     above95: recentJobs.filter(j => j.vmaf_score !== null && j.vmaf_score >= 95).length,
   };
 
+<<<<<<< HEAD
   const diskFreeGb = bytesToGb(stats?.diskFreeBytes).toFixed(0);
   const diskTotalGb = bytesToGb(stats?.diskTotalBytes);
   const diskUsedPct = diskTotalGb > 0
@@ -120,10 +157,13 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
     ? `${gpu.vendor.toUpperCase()} (${gpu.encoder})`
     : 'CPU (sem GPU)';
 
+=======
+>>>>>>> dev
   const StatCard = ({ title, value, subtitle, icon: Icon, color }: {
     title: string; value: string | number; subtitle: string;
     icon: React.ElementType; color: string;
   }) => (
+<<<<<<< HEAD
     <div className="bg-[#141824] border border-[#1e2433] rounded-2xl p-6 flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{title}</span>
@@ -133,19 +173,36 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
       </div>
       <div className="text-3xl font-black text-white mb-1">{value}</div>
       <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{subtitle}</div>
+=======
+    <div className="bg-bg-secondary border border-border rounded-2xl p-6 flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">{title}</span>
+        <div className={`p-2 rounded-lg bg-bg-primary border border-border ${color}`}>
+          <Icon size={20} />
+        </div>
+      </div>
+      <div className="text-3xl font-black text-text-primary mb-1">{value}</div>
+      <div className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{subtitle}</div>
+>>>>>>> dev
     </div>
   );
 
   if (loading && !stats) {
     return (
+<<<<<<< HEAD
       <div className="h-full flex items-center justify-center text-gray-500 animate-pulse">
         <Loader2 className="animate-spin mr-2" /> Carregando visão geral...
+=======
+      <div className="h-full flex items-center justify-center text-text-muted animate-pulse">
+        <Loader2 className="animate-spin mr-2" /> {t('common.loading')}
+>>>>>>> dev
       </div>
     );
   }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+<<<<<<< HEAD
       {/* HEADER */}
       <header>
         <h1 className="text-3xl font-black text-white mb-1">Dashboard</h1>
@@ -165,10 +222,26 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
           title="Jobs Hoje"
           value={stats?.jobsToday ?? 0}
           subtitle="Concluídos hoje"
+=======
+      {/* STATS CARDS — 3 colunas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard
+          title={t('dashboard.assetsTotal')}
+          value={stats?.totalAssets ?? 0}
+          subtitle={t('dashboard.processedFiles')}
+          icon={Archive}
+          color="text-brand"
+        />
+        <StatCard
+          title={t('dashboard.jobsToday')}
+          value={stats?.jobsToday ?? 0}
+          subtitle={t('dashboard.completedToday')}
+>>>>>>> dev
           icon={Activity}
           color="text-green-500"
         />
         <StatCard
+<<<<<<< HEAD
           title="VMAF Médio"
           value={stats?.avgVmaf != null ? stats.avgVmaf.toFixed(1) : '--'}
           subtitle="Média de qualidade"
@@ -340,6 +413,111 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
                 <span className="text-xs font-bold text-white">{vmafDist.above95} jobs</span>
               </div>
             </div>
+=======
+          title={t('dashboard.vmafAvg')}
+          value={stats?.avgVmaf != null ? stats.avgVmaf.toFixed(1) : '--'}
+          subtitle={t('dashboard.avgQuality')}
+          icon={Gauge}
+          color={getVmafColor(stats?.avgVmaf ?? null)}
+        />
+      </div>
+
+      {/* JOBS RECENTES — largura total */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted">{t('dashboard.recentJobs')}</h2>
+          <button
+            onClick={() => onNavigate('queue')}
+            className="text-[11px] font-bold text-brand hover:underline uppercase tracking-widest flex items-center gap-1"
+          >
+            {t('dashboard.viewAll')} <ChevronRight size={14} />
+          </button>
+        </div>
+
+        <div className="bg-bg-secondary border border-border rounded-2xl overflow-hidden">
+          {recentJobs.length === 0 ? (
+            <div className="p-12 text-center text-text-muted flex flex-col items-center">
+              <Film size={32} className="mb-4 opacity-20" />
+              <p className="text-sm">{t('dashboard.noJobs')}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest mt-1">{t('dashboard.noJobsHint')}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {recentJobs.map(job => (
+                <div
+                  key={job.id}
+                  className="p-4 flex items-center gap-4 hover:bg-bg-hover transition-colors cursor-pointer"
+                  onClick={() => onSelectAsset(job.asset_id)}
+                >
+                  <div className="w-10 h-10 bg-bg-primary rounded-lg flex items-center justify-center shrink-0">
+                    <Film size={18} className="text-text-muted" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-text-primary truncate">
+                      {assetMap[job.asset_id] ?? `Asset ${job.asset_id.slice(0, 8)}`}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="px-1.5 py-0.5 bg-surface text-[9px] font-black uppercase text-blue-400 rounded">
+                        {job.profile}
+                      </span>
+                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1">
+                        <Clock size={10} />
+                        {job.started_at
+                          ? new Date(job.started_at).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })
+                          : new Date(job.created_at).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${
+                      job.status === 'done' ? 'text-green-500' :
+                      job.status === 'processing' ? 'text-brand animate-pulse' :
+                      job.status === 'error' ? 'text-red-500' :
+                      'text-text-muted'
+                    }`}>
+                      {job.status === 'processing' ? `${t('dashboard.processing')} ${Math.round(job.progress * 100)}%` :
+                       job.status === 'done' ? t('dashboard.completed') :
+                       job.status === 'error' ? t('dashboard.error') :
+                       job.status === 'cancelled' ? t('dashboard.cancelled') :
+                       job.status.toUpperCase()}
+                    </div>
+                    {job.vmaf_score != null && (
+                      <div className={`text-xs font-black ${getVmafColor(job.vmaf_score)}`}>
+                        VMAF {job.vmaf_score.toFixed(1)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* DISTRIBUIÇÃO VMAF — largura total */}
+      <div className="bg-bg-secondary border border-border rounded-2xl p-6">
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-6">{t('dashboard.vmafDistribution')}</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded bg-red-500" />
+            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmafBelow70')}</span>
+            <span className="text-xs font-bold text-text-primary">{vmafDist.below70} jobs</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded bg-yellow-500" />
+            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmaf70to85')}</span>
+            <span className="text-xs font-bold text-text-primary">{vmafDist.from70to85} jobs</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded bg-green-500" />
+            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmaf85to95')}</span>
+            <span className="text-xs font-bold text-text-primary">{vmafDist.from85to95} jobs</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded bg-brand" />
+            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmafAbove95')}</span>
+            <span className="text-xs font-bold text-text-primary">{vmafDist.above95} jobs</span>
+>>>>>>> dev
           </div>
         </div>
       </div>

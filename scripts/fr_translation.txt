@@ -1,0 +1,192 @@
+NEXORA DESKTOP — FICHIER SOURCE DE TRADUCTION
+========================================
+
+INSTRUCTIONS :
+
+1. Copiez tout le contenu ci-dessous (Ctrl+A, Ctrl+C)
+
+2. Rendez-vous sur https://translate.google.com
+
+3. Sélectionnez : Anglais → [Langue cible]
+
+4. Collez dans la zone de gauche (Ctrl+V)
+
+5. Copiez le résultat de la traduction depuis la zone de droite
+
+6. Enregistrez sous : es_translation.txt, fr_translation.txt ou de_translation.txt
+
+RÈGLES :
+
+- Ne JAMAIS traduire le texte entre crochets [ ]
+
+- Ne JAMAIS modifier les {{placeholders}} tels que {{count}}, {{total}}, {{used}}, {{name}}, {{version}}, {{msg}}, {{date}}, {{step}}, {{message}}, {{cores}}, {{threads}}
+
+- Ne JAMAIS traduire les termes techniques : VMAF, LUFS, FFmpeg, FFprobe, GPU, NVENC, AMF, QSV, CPU, RAM, H.264, H.265, HEVC, ProRes, DNxHD, AV1, AAC, PCM, MOV, MP4, MXF, TS, SHA-256, dBTP, fps, kbps, Mbps, GB, MB, Node.js, SQLite, Tauri, React, Rust, Nexora, BBC, Netflix, DPP, Windows, macOS, Linux, VS Code, npm, LUFS, LU, EBU R128, R128
+
+- Conserver la ponctuation et la mise en forme
+
+- Conserver les symboles fléchés comme ← tels quels
+
+==============================================
+
+[app.name] Nexora Media Processing
+
+[app.desktopEdition] Édition Bureau — Multiplateforme native
+
+[app.version] Version
+
+[nav.dashboard] Tableau de bord
+
+[nav.library] Bibliothèque
+
+[nav.queue] File d'attente
+
+[nav.profiles] Profils
+
+[nav.settings] Paramètres
+
+[nav.logs] Journaux
+
+[topbar.dashboardDesc] Vue d'ensemble du système et indicateurs en temps réel
+
+[topbar.libraryDesc] Gestion et aperçu des ressources
+
+[topbar.queueDesc] Pipeline des tâches et approbations
+
+[topbar.profilesDesc] Configuration du profil de transcodage
+
+[topbar.settingsDesc] Préférences et informations système
+
+[topbar.logsDesc] Historique des événements et diagnostics
+
+[topbar.detailDesc] Métadonnées et traitement des fichiers
+
+[topbar.cpu] Processeur
+
+[topbar.ram] Mémoire vive
+
+[topbar.gpu] Carte graphique
+
+[topbar.disk] Disque
+
+[topbar.exit] Quitter
+
+[dashboard.assetsTotal] Total Ressources
+
+[dashboard.jobsToday] Tâches du jour
+
+[dashboard.vmafAvg] VMAF moyen
+
+[dashboard.recentJobs] Tâches récentes
+
+[dashboard.vmafDistribution] Répartition des VMAF
+
+[dashboard.completedToday] Tâches terminées aujourd'hui
+
+[dashboard.noJobs] Aucune tâche traitée aujourd'hui.
+
+[dashboard.noJobsHint] Glissez les vidéos à traiter. [dashboard.viewAll] Tout afficher
+[dashboard.profile] Profil
+[dashboard.status] Statut
+[dashboard.completed] Terminé
+[dashboard.inQueue] En file d'attente
+[dashboard.processing] En cours de traitement
+[dashboard.error] Erreur
+[dashboard.cancelled] Annulé
+[dashboard.vmafBelow70] Inférieur à 70
+[dashboard.vmaf70to85] De 70 à 85
+[dashboard.vmaf85to95] De 85 à 95
+[dashboard.vmafAbove95] Supérieur à 95
+[dashboard.processedFiles] Fichiers traités
+[dashboard.avgQuality] Qualité moyenne
+[library.searchPlaceholder] Rechercher dans la bibliothèque...
+
+[library.allStatuses] Tous les statuts
+[library.pending] En attente
+[library.processing] Traitement en cours
+
+[library.completed] Terminé
+
+[library.errors] Erreurs
+
+[library.newest] Plus récent
+[library.oldest] Plus ancien
+
+[library.name] Nom (A-Z)
+
+[library.size] Taille
+
+[library.noAssets] Aucun fichier dans la bibliothèque
+
+[library.dragHint] Glissez-déposez les fichiers vidéo ici ou cliquez sur le bouton pour commencer.
+
+[library.addVideos] Ajouter des vidéos
+[library.showing] Affichage de {{count}} ressources sur {{total}}
+[library.previous] Précédent
+[library.next] Suivant
+[library.addError] Erreur lors de l'ajout des fichiers : {{message}}
+[library.file] Fichier
+[library.duration] Durée
+[library.actions] Actions
+[queue.pipelineSummary] Résumé du pipeline
+[queue.totalJobs] {{count}} tâches au total
+[queue.queued] En file d'attente
+[queue.processing] Traitement en cours
+[queue.completed] Terminé
+[queue.quarantine] Mise en quarantaine
+[queue.errorsToday] Erreurs du jour
+[queue.pendingApprovals] Approbations en attente
+[queue.quarantineMsg] Cette ressource a été mise en quarantaine lors du pré-contrôle qualité. Veuillez vérifier les métadonnées avant d'approuver ou de refuser.
+
+[queue.approve] Approuver
+[queue.reject] Refuser
+[queue.processingTitle] Traitement en cours
+[queue.slotsUsed] {{used}}/{{total}} emplacements utilisés
+[queue.cancel] Annuler
+[queue.startedAt] Démarré
+[queue.gpuLabel] GPU
+[queue.queuedTitle] En file d'attente
+[queue.position] Position
+
+[queue.filename] Nom du fichier
+[queue.profile] Profil
+[queue.addedAt] Ajouté le
+[queue.state] État
+[queue.wait] En attente
+[queue.completedAndHistory] Terminé et historique
+[queue.vmaf] VMAF
+[queue.finishedAt] Terminé
+[queue.actions] Actions
+[queue.retry] Nouvelle tentative
+[queue.rejected] Rejeté
+[queue.rejectedManual] Rejeté manuellement par l'opérateur
+[queue.step] {{step}}...
+[queue.gpuNvenc] GPU : NVENC
+[profiles.create] Créer
+[profiles.edit] Modifier
+[profiles.duplicate] Dupliquer
+[profiles.delete] Supprimer
+[profiles.systemProfiles] Profils intégrés
+[profiles.customProfiles] Profils personnalisés
+[profiles.noProfileSelected] Aucun profil sélectionné
+[profiles.video] Vidéo
+[profiles.audio] Audio
+[profiles.quality] Qualité
+[profiles.codec] Codec
+[profiles.resolution] Résolution
+[profiles.fps] FPS
+[profiles.bitrate] Débit binaire
+[profiles.videoBitrate] Débit binaire vidéo
+[profiles.audioBitrate] Débit binaire audio
+[profiles.audioCodec] Codec audio
+[profiles.sampleRate] Fréquence d'échantillonnage
+[profiles.targetLufs] LUFS cible
+[profiles.truePeak] Vrais pics
+[profiles.vmafMin] VMAF minimum
+[profiles.cpuPreset] Préréglage du processeur
+[profiles.h264Profile] Profil H.264
+[profiles.container] Conteneur
+[profiles.original] Original
+[profiles.auto] Automatique
+[profiles.general] Général
+[profiles.cancel]

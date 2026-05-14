@@ -4,7 +4,7 @@ import { mkdtemp, rm, copyFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join, basename, extname } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
-import { getAsset, writeAuditLog } from '../db';
+import { emit } from '../events';
 import type { ProgressCallback } from './types';
 import { getFfmpegPath } from '../binaries';
 
@@ -13,8 +13,6 @@ const execFileAsync = promisify(execFile);
 export class ProxyWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
     const { assetId, assetPath, jobId, outputDir } = ctx;
-    const asset = getAsset(assetId);
-    if (!asset) throw new Error(`Proxy: asset ${assetId} não encontrado`);
 
     const input = ctx.transcodedPath ?? assetPath;
     const ext = extname(input) || '.mp4';
@@ -24,7 +22,7 @@ export class ProxyWorker {
       const tmpOutput = join(tmpDir, `proxy${ext}`);
       const ffmpegPath = getFfmpegPath();
 
-      const fps = asset.fps ?? 25;
+      const fps = ctx.assetFps ?? 25;
       const gop = Math.round(fps * 2);
 
       onProgress(0.1);
@@ -63,7 +61,7 @@ export class ProxyWorker {
 
       ctx.proxyPath = finalPath;
 
-      writeAuditLog(jobId, 'proxy:completed', { assetId, finalPath });
+      emit({ type: 'log', level: 'INFO', source: 'proxy-worker', message: `Proxy completed: ${finalPath}` });
       onProgress(1.0);
     } finally {
       await rm(tmpDir, { recursive: true, force: true }).catch(() => {});

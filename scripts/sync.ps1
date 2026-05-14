@@ -17,6 +17,57 @@ function Write-Err($msg)     { Write-Host "[ERROR] $msg" -ForegroundColor Red }
 function Write-Info($msg)    { Write-Host "        $msg" -ForegroundColor Gray }
 
 # ---------------------------------------------------------
+# FUNCAO: Merge dev -> main (reutilizavel)
+# ---------------------------------------------------------
+function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
+    Write-Step "Modo Release: a fazer merge $sourceBranch -> main..."
+
+    git checkout main 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "Nao foi possivel mudar para main"
+        return $false
+    }
+
+    # Sincronizar com origin/main (que pode ter history reescrito)
+    git fetch origin main 2>&1 | Out-Null
+    git reset --hard origin/main 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "Nao foi possivel sincronizar com origin/main"
+        git checkout $sourceBranch 2>&1 | Out-Null
+        return $false
+    }
+
+    # Squash merge: aplica todas as mudancas da dev como um patch unico
+    git merge --squash $sourceBranch 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "Merge squash falhou. Possiveis conflitos de ficheiros."
+        Write-Info "Resolva manualmente: git checkout main && git merge --squash $sourceBranch"
+        git checkout $sourceBranch 2>&1 | Out-Null
+        return $false
+    }
+
+    # Commit de release
+    git commit -m "chore(release): v$targetVersion" --no-verify 2>&1 | Out-Null
+
+    if ($authUrl) {
+        git push -u "$authUrl" main --tags 2>&1
+    } else {
+        git push -u origin main --tags 2>&1
+    }
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Success "main actualizado com v$targetVersion!"
+    } else {
+        Write-Err "Push para main falhou"
+    }
+
+    # Voltar para dev
+    git checkout $sourceBranch 2>&1 | Out-Null
+    Write-Success "De volta ao branch $sourceBranch"
+    return $true
+}
+
+# ---------------------------------------------------------
 # AJUDA (-Help)
 # ---------------------------------------------------------
 if ($Help) {
@@ -261,8 +312,62 @@ $status  = git status --porcelain
 $unpushed = git log origin/$branch..HEAD --oneline 2>$null
 
 if (-not $status -and -not $unpushed) {
-    Write-Success "Workspace e GitHub estao sincronizados. Nada para fazer."
-    Pop-Location; exit 0
+    if ($Release) {
+        Write-Warn "Workspace limpo, mas modo Release activo. A continuar..."
+    } else {
+        Write-Success "Workspace e GitHub estao sincronizados. Nada para fazer."
+        Pop-Location; exit 0
+    }
+}
+
+# ---------------------------------------------------------
+# GUARDIA: placeholders + ficheiros grandes
+# ---------------------------------------------------------
+Write-Step "Verificando placeholders e ficheiros grandes..."
+
+# 1. Restaurar placeholders de binarios FFmpeg/FFprobe substituidos por binarios reais
+$restoredCount = 0
+foreach ($binRelPath in $BINARY_PLACEHOLDERS) {
+    $fullPath = Join-Path $WORKSPACE $binRelPath
+    if (Test-Path $fullPath) {
+        $fileSize = (Get-Item $fullPath).Length
+        if ($fileSize -gt 100) {
+            $sizeMB = [math]::Round($fileSize / 1MB, 1)
+            Write-Warn "Binario real em placeholder: $binRelPath ($sizeMB MB) -> a restaurar para 1 byte"
+            [System.IO.File]::WriteAllBytes($fullPath, [byte[]](0))
+            $restoredCount++
+        }
+    }
+}
+if ($restoredCount -gt 0) {
+    Write-Success "$restoredCount placeholder(s) restaurado(s). Binarios sao descarregados pelo CI."
+} else {
+    Write-Success "Placeholders OK"
+}
+
+# 2. Detectar ficheiros grandes no workspace (excluindo dirs de build conhecidos)
+$largeFiles = @()
+try {
+    $largeFiles = Get-ChildItem -Path $WORKSPACE -Recurse -File -ErrorAction SilentlyContinue |
+        Where-Object {
+            $p = $_.FullName
+            $p -notmatch [regex]::Escape("\\.git\\") -and
+            $p -notmatch [regex]::Escape("\\node_modules\\") -and
+            $p -notmatch [regex]::Escape("\\src-tauri\\target\\") -and
+            $p -notmatch [regex]::Escape("\\dist\\") -and
+            ($_.Length / 1MB) -gt $LARGE_FILE_LIMIT_MB
+        }
+} catch {}
+
+if ($largeFiles.Count -gt 0) {
+    Write-Warn "$($largeFiles.Count) ficheiro(s) acima de $($LARGE_FILE_LIMIT_MB) MB -- serao excluidos do commit:"
+    $largeFiles | ForEach-Object {
+        $rel  = $_.FullName.Substring($WORKSPACE.Length + 1)
+        $sizeMB = [math]::Round($_.Length / 1MB, 1)
+        Write-Info "  $rel ($sizeMB MB)"
+    }
+} else {
+    Write-Success "Nenhum ficheiro grande detectado"
 }
 
 # ---------------------------------------------------------
@@ -392,9 +497,84 @@ if ($status) {
 }
 
 # ---------------------------------------------------------
+# FALLBACK: detectar tag e mensagem quando nao houve commit novo
+# ---------------------------------------------------------
+if (-not $commitMsg) {
+    $commitMsg = (git log -1 --pretty=%B 2>$null) | Select-Object -First 1
+}
+$lastTag = git describe --tags --abbrev=0 2>$null
+if (-not $newVersion -and $lastTag) {
+    $newVersion = $lastTag -replace '^v',''
+}
+
+# ---------------------------------------------------------
+# MENU: PROMOVER RELEASE EXISTENTE (quando Release=true e workspace limpo)
+# ---------------------------------------------------------
+$promoteExisting = $false
+if ($Release -and -not $status) {
+    if ($lastTag) {
+        Write-Host ""
+        Write-Host "Release detectada: $lastTag (ultima tag na dev)" -ForegroundColor Cyan
+        Write-Host "O que queres fazer?" -ForegroundColor White
+        Write-Host ""
+        Write-Host "1) Promover $lastTag para main + criar GitHub Release"
+        Write-Host "2) Escolher outra tag existente"
+        Write-Host "3) Criar nova tag (bump versao manual)"
+        Write-Host "4) Cancelar"
+        Write-Host ""
+        $promoteChoice = Read-Host "Opcao [1-4]"
+        switch ($promoteChoice) {
+            "1" {
+                $newVersion = $lastTag -replace '^v',''
+                $commitMsg = (git log -1 --pretty=%B 2>$null) | Select-Object -First 1
+                $isNewRelease = $true
+                $promoteExisting = $true
+            }
+            "2" {
+                $allTags = git tag -l | Sort-Object -Property @{Expression={[version]($_ -replace '^v','')}} -Descending
+                Write-Host ""
+                Write-Host "Tags disponiveis:" -ForegroundColor White
+                $idx = 1
+                $tagList = @()
+                $allTags | ForEach-Object {
+                    Write-Host "  $idx) $_" -ForegroundColor Gray
+                    $tagList += $_
+                    $idx++
+                }
+                $tagChoice = Read-Host "Escolha a tag (numero)"
+                $selectedTag = $tagList[$tagChoice - 1]
+                if ($selectedTag) {
+                    $newVersion = $selectedTag -replace '^v',''
+                    $commitMsg = (git log -1 $selectedTag --pretty=%B 2>$null) | Select-Object -First 1
+                    $isNewRelease = $true
+                    $promoteExisting = $true
+                } else {
+                    Write-Warn "Tag invalida. A cancelar."
+                    Pop-Location; exit 0
+                }
+            }
+            "3" {
+                # continua para o fluxo normal de bump
+                $promoteExisting = $false
+            }
+            "4" {
+                Write-Host "Cancelado." -ForegroundColor Gray
+                Pop-Location; exit 0
+            }
+            default {
+                Write-Warn "Opcao invalida. A cancelar."
+                Pop-Location; exit 0
+            }
+        }
+    } else {
+        Write-Warn "Nenhuma tag detectada na dev. A continuar com bump de versao..."
+    }
+}
+
+# ---------------------------------------------------------
 # GESTAO DE VERSAO (SemVer) - Tauri: sincroniza 3 ficheiros
 # ---------------------------------------------------------
-if (-not $SkipRelease) {
+if (-not $SkipRelease -and -not $promoteExisting) {
     Write-Step "Iniciando processo de versionamento (Tauri)..."
 
     # 1. Ler versao actual a partir de package.json (ou Cargo.toml se package.json ausente)
@@ -547,12 +727,17 @@ if (-not $SkipRelease) {
 $syncUncommitted = git status --porcelain "SYNC-STATE.md" 2>$null
 $syncInUnpushed  = git log "origin/$branch..HEAD" --name-only --format="" 2>$null | Select-String "SYNC-STATE.md"
 if (-not $syncUncommitted -and -not $syncInUnpushed) {
-    Write-Warn "SYNC-STATE.md nao foi actualizado nesta sessao."
-    Write-Host "  Recomendado: actualiza SYNC-STATE.md para o proximo agente saber onde paraste." -ForegroundColor Gray
-    $ans = Read-Host "  Continuar o push sem actualizar SYNC-STATE.md? [S/N]"
-    if ($ans -notmatch '^[Ss]$') {
-        Write-Host "  Push cancelado. Actualiza SYNC-STATE.md e corre o script de novo." -ForegroundColor Yellow
-        Pop-Location; exit 0
+    if ($Release) {
+        Write-Warn "SYNC-STATE.md nao foi actualizado nesta sessao, mas modo Release activo."
+        Write-Host "  A continuar com a promocao da release..." -ForegroundColor Gray
+    } else {
+        Write-Warn "SYNC-STATE.md nao foi actualizado nesta sessao."
+        Write-Host "  Recomendado: actualiza SYNC-STATE.md para o proximo agente saber onde paraste." -ForegroundColor Gray
+        $ans = Read-Host "  Continuar o push sem actualizar SYNC-STATE.md? [S/N]"
+        if ($ans -notmatch '^[Ss]$') {
+            Write-Host "  Push cancelado. Actualiza SYNC-STATE.md e corre o script de novo." -ForegroundColor Yellow
+            Pop-Location; exit 0
+        }
     }
 } else {
     Write-Success "SYNC-STATE.md actualizado"
@@ -579,9 +764,8 @@ if ($LASTEXITCODE -eq 0) {
     # MERGE PARA MAIN (apenas com -Release)
     # ---------------------------------------------------------
     if ($Release) {
-        Write-Step "Modo Release: a fazer merge dev -> main..."
-
         $devBranch = $branch
+<<<<<<< HEAD
 
         git checkout main 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) {
@@ -626,28 +810,64 @@ if ($LASTEXITCODE -eq 0) {
         # Voltar para dev
         git checkout $devBranch 2>&1 | Out-Null
         Write-Success "De volta ao branch $devBranch"
+=======
+        Invoke-MergeToMain $newVersion $devBranch $authenticatedUrl | Out-Null
+>>>>>>> dev
     }
 
     # Criar GitHub Release se houver nova versao e token
     if ($isNewRelease -and $script:GITHUB_TOKEN) {
         Write-Step "Criando Release no GitHub via API..."
+
+        # Verificar se release ja existe para esta tag
+        $releaseExists = $false
+        $existingReleaseId = $null
+        $headers = @{
+            "Authorization" = "token $script:GITHUB_TOKEN"
+            "Accept"        = "application/vnd.github+json"
+        }
+
         try {
-            $releaseBody = @{
-                tag_name   = "v$newVersion"
-                name       = "Nexora Desktop v$newVersion"
-                body       = "### Alteracoes nesta versao`n`n- $commitMsg`n`nConsulte o CHANGELOG.md para detalhes."
-                draft      = $false
-                prerelease = $false
-            } | ConvertTo-Json
+            $existing = Invoke-RestMethod `
+                -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/tags/v$newVersion" `
+                -Method Get `
+                -Headers $headers
+            $releaseExists = $true
+            $existingReleaseId = $existing.id
+            Write-Warn "Release v$newVersion ja existe no GitHub."
+        } catch {
+            # 404 esperado se nao existir
+            $releaseExists = $false
+        }
 
-            $headers = @{
-                "Authorization" = "token $script:GITHUB_TOKEN"
-                "Accept"        = "application/vnd.github+json"
+        if ($releaseExists) {
+            $ans = Read-Host "  Queres recriar a release v$newVersion? [S/N]"
+            if ($ans -match '^[Ss]$') {
+                try {
+                    Invoke-RestMethod `
+                        -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/$existingReleaseId" `
+                        -Method Delete `
+                        -Headers $headers > $null
+                    Write-Success "Release anterior removida."
+                    $releaseExists = $false
+                } catch {
+                    Write-Warn "Nao foi possivel remover a release existente: $_"
+                }
             }
+        }
 
-            $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($releaseBody)
-
+        if (-not $releaseExists) {
             try {
+                $releaseBody = @{
+                    tag_name   = "v$newVersion"
+                    name       = "Nexora Desktop v$newVersion"
+                    body       = "### Alteracoes nesta versao`n`n- $commitMsg`n`nConsulte o CHANGELOG.md para detalhes."
+                    draft      = $false
+                    prerelease = $false
+                } | ConvertTo-Json
+
+                $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($releaseBody)
+
                 Invoke-RestMethod `
                     -Uri     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases" `
                     -Method  Post `
@@ -664,8 +884,6 @@ if ($LASTEXITCODE -eq 0) {
                     Write-Warn "Nao foi possivel publicar a Release: $_"
                 }
             }
-        } catch {
-            Write-Warn "Falha ao preparar JSON da Release: $_"
         }
     }
 } else {

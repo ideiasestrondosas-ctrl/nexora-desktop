@@ -6,7 +6,10 @@ use tauri::State;
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+<<<<<<< HEAD
 #[serde(rename_all = "camelCase")]
+=======
+>>>>>>> dev
 pub struct Profile {
     pub id: String,
     pub name: String,
@@ -87,7 +90,10 @@ pub fn list_profiles(state: State<AppState>) -> Result<Vec<Profile>, String> {
 }
 
 #[derive(Debug, Deserialize)]
+<<<<<<< HEAD
 #[serde(rename_all = "camelCase")]
+=======
+>>>>>>> dev
 pub struct ProfileInput {
     pub name: String,
     pub description: Option<String>,

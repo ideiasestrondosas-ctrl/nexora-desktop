@@ -5,11 +5,16 @@
 
 ---
 
+<<<<<<< HEAD
 Actualizado: 2026-05-13 20:00
+=======
+Actualizado: 2026-05-14 21:45
+>>>>>>> dev
 Agente: Claude Code (Kimi K2.6)
 
 ## O que foi feito
 
+<<<<<<< HEAD
 ### Sessao Actual - Resolucao de Binarios + Correcoes de Consistencia + Teste Pipeline - CONCLUIDO
 
 **1. Resolucao de Binarios FFmpeg Bundled (CRITICO)**
@@ -60,11 +65,42 @@ Agente: Claude Code (Kimi K2.6)
 - **Causa**: `main` foi reescrita para limpar ficheiros grandes do history (11x cleanup binaries)
 - **Commit comum**: `77e6853` (base de v0.3.1)
 - **Recomendacao**: Sincronizar `main` -> `dev` primeiro (merge dos 23 commits de cleanup), depois fazer release `dev` -> `main`
+=======
+### Sessao Actual — Traducao ES/FR/DE via Ollama — CONCLUIDO
+
+**1. Melhoria do script de traducao**
+- `scripts/translate-ollama.cjs`: Batch size reduzido de 15 para 8, delay aumentado para 1500ms.
+- Adicionado retry com exponential backoff (3 tentativas por batch).
+- Fallback para EN em caso de falha total de batch (continua em vez de crashar).
+- Resume automatico: filtra chaves ja traduzidas no ficheiro existente.
+
+**2. Traducao ES (Espanhol)**
+- 122 chaves existentes -> 556 chaves completas.
+- 55 batches (8 keys/batch), 0 fallbacks.
+- Tempo total: ~35 minutos.
+
+**3. Traducao FR (Frances)**
+- 147 chaves existentes -> 556 chaves completas.
+- 52 batches, 0 fallbacks.
+- Tempo total: ~30 minutos.
+
+**4. Traducao DE (Alemao)**
+- 122 chaves existentes -> 556 chaves completas.
+- 55 batches, 0 fallbacks.
+- Tempo total: ~35 minutos.
+
+**5. Validacao**
+- `cargo check`: OK (0 erros, 0 warnings)
+- `tsc --noEmit`: OK (0 erros)
+- `vitest run`: OK (21/21 tests passaram)
+- Contagem de chaves: ES=556, FR=556, DE=556 (correspondem ao base.json EN)
+>>>>>>> dev
 
 ---
 
 ## Estado de compilacao
 
+<<<<<<< HEAD
 - `cargo check`: **OK**
 - `npm run sidecar:build`: **OK** (33kb)
 - `tsc --noEmit`: **OK** (0 erros)
@@ -84,12 +120,30 @@ Agente: Claude Code (Kimi K2.6)
 | Adicionar testes de integracao Tauri (e2e) | Media |
 | VMAF real no QC-Post (requer libvmaf no FFmpeg bundled) | Baixa |
 | Deep links nexora:// (ADR-D012) | Baixa |
+=======
+- `cargo check`: **OK** (0 erros, 0 warnings)
+- `tsc --noEmit`: **OK** (0 erros)
+- `vitest run`: **OK** (21/21 tests passaram)
+- `tauri build --debug`: **OK** (MSI 146MB + NSIS 92MB)
+
+---
+
+## Proximos passos (Plano 6 — proxima sessao)
+
+| Tarefa | Prioridade |
+|---|---|
+| Testar fluxo real ingest -> job -> transcode (tauri dev + video) | Critica |
+| Adicionar bs1770gain ao download de binarios | Media |
+| Deep links `nexora://` (ADR-D012) | Baixa |
+| Build macOS (.dmg universal) e Linux (.AppImage + .deb) | Baixa |
+>>>>>>> dev
 
 ---
 
 ## Ficheiros modificados (sessao actual)
 
 ```
+<<<<<<< HEAD
 sidecar/binaries.ts               (NOVO - helper resolucao FFmpeg/FFprobe)
 sidecar/workers/transcode-worker.ts   (import getFfmpegPath)
 sidecar/workers/audio-worker.ts       (import getFfmpegPath)
@@ -106,14 +160,31 @@ tests/fixtures/test-720p-5s.mp4       (dummy video para teste)
 scripts/test-pipeline-dummy.mjs       (script de teste end-to-end)
 PROGRESS-DESKTOP.md                   (actualizado)
 SYNC-STATE.md                         (actualizado)
+=======
+MODIFICADOS:
+scripts/translate-ollama.cjs
+src/i18n/locales/es/common.json
+src/i18n/locales/fr/common.json
+src/i18n/locales/de/common.json
+PROGRESS-DESKTOP.md
+SYNC-STATE.md
+>>>>>>> dev
 ```
 
 ---
 
 ## Notas tecnicas para o proximo agente
 
+<<<<<<< HEAD
 - **Binarios FFmpeg**: O Tauri 2 copia os `externalBin` para `target/debug/` (dev) e `resource_dir()` (producao). O `sidecar.rs` procura nestes locais e passa os paths absolutos ao sidecar via env vars. O `sidecar/binaries.ts` consome estas env vars. Se nao encontrar, faz fallback para `ffmpeg`/`ffprobe` no PATH.
 - **Branch git**: Estamos em `dev`. `origin/main` existe mas esta atrasado (v0.3.1) e com history reescrita (cleanup de binarios). Nao fazer merge para main sem autorizacao explicita do utilizador.
 - **Tauri IPC**: Novos comandos `exit_app` e `factory_reset` foram adicionados pelo Antigravity. Verificar `src-tauri/src/lib.rs` se houver erros de invoke.
 - **Logs**: O logger do Rust escreve na BD SQLite e emite eventos Tauri (`log-entry`). O sidecar emite eventos JSON no stdout que o Rust consome e re-emite como `sidecar:event`.
 - **Pipeline testado**: Fluxo completo ingest -> transcode -> audio -> proxy -> thumbnail -> qc-post -> delivery funciona com FFmpeg bundled.
+=======
+- **Base Master:** Editar SEMPRE `src/i18n/locales/en/base.json`. Nunca editar PT/ES/FR/DE directamente.
+- **Sync idioma:** `useLanguageSync()` no `App.tsx` garante que o idioma guardado em Zustand e aplicado no arranque.
+- **Datas dinamicas:** Usar `i18n.language` em `toLocaleTimeString()` / `toLocaleDateString()`.
+- **Termos tecnicos:** Nunca traduzir VMAF, LUFS, FFmpeg, NVENC, GPU, codec names, etc.
+- **Ollama:** Script suporta resume automatico. Se falhar a meio, re-executar o mesmo comando continua de onde parou.
+>>>>>>> dev

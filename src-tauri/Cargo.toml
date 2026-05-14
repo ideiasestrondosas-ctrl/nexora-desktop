@@ -1,6 +1,10 @@
 [package]
 name = "nexora-desktop"
+<<<<<<< HEAD
 version = "0.16.0"
+=======
+version = "0.17.0"
+>>>>>>> dev
 description = "Nexora Media Processing - Desktop Native"
 authors = ["Nexora"]
 edition = "2021"
@@ -25,5 +29,9 @@ uuid = { version = "1", features = ["v4"] }
 anyhow = "1"
 log = "0.4"
 chrono = { version = "0.4", features = ["serde"] }
+<<<<<<< HEAD
+=======
+num_cpus = "1"
+>>>>>>> dev
 sysinfo = { version = "0.32", default-features = false, features = ["system", "network"] }
 tokio = { version = "1", features = ["time", "sync"] }

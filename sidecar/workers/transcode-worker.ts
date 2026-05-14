@@ -4,7 +4,7 @@ import { mkdtemp, rm, copyFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join, extname, basename } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
-import { getAsset, writeAuditLog } from '../db';
+import { emit } from '../events';
 import type { ProgressCallback } from './types';
 import { getFfmpegPath } from '../binaries';
 import { loadProfile } from '../profiles/types';
@@ -16,8 +16,6 @@ const FFMPEG_TIMEOUT_MS = 14_400_000; // 4h — ADR-D010
 export class TranscodeWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
     const { assetId, assetPath, jobId, profile: profileName, outputDir } = ctx;
-    const asset = getAsset(assetId);
-    if (!asset) throw new Error(`Transcode: asset ${assetId} não encontrado`);
 
     const profile = loadProfile(profileName);
     const gpu = await detectGPU();
@@ -28,17 +26,21 @@ export class TranscodeWorker {
 
     try {
       const tmpOutput = join(tmpDir, `output${ext}`);
+<<<<<<< HEAD
       const args = buildArgs(assetPath, tmpOutput, profile, encoder, asset.fps);
+=======
+      const args = buildArgs(assetPath, tmpOutput, profile, encoder, ctx.assetFps ?? null);
+>>>>>>> dev
       const ffmpegPath = getFfmpegPath();
 
       // Tentar GPU; em caso de falha usar CPU fallback
       try {
-        await runFFmpeg(ffmpegPath, args, asset.duration_secs, onProgress);
+        await runFFmpeg(ffmpegPath, args, ctx.assetDurationSecs ?? null, onProgress);
       } catch (gpuErr) {
         if (encoder !== 'libx264') {
           console.warn(`Transcode: GPU (${encoder}) falhou — CPU fallback`);
-          const cpuArgs = buildArgs(assetPath, tmpOutput, profile, 'libx264', asset.fps);
-          await runFFmpeg(ffmpegPath, cpuArgs, asset.duration_secs, onProgress);
+          const cpuArgs = buildArgs(assetPath, tmpOutput, profile, 'libx264', ctx.assetFps ?? null);
+          await runFFmpeg(ffmpegPath, cpuArgs, ctx.assetDurationSecs ?? null, onProgress);
         } else {
           throw gpuErr;
         }
@@ -49,7 +51,7 @@ export class TranscodeWorker {
       await copyFile(tmpOutput, finalPath);
 
       ctx.transcodedPath = finalPath;
-      writeAuditLog(jobId, 'transcode:completed', { assetId, profileName, encoder, finalPath });
+      emit({ type: 'log', level: 'INFO', source: 'transcode-worker', message: `Transcode completed: ${profileName} (${encoder}) -> ${finalPath}` });
     } finally {
       await rm(tmpDir, { recursive: true, force: true }).catch(() => {});
     }
