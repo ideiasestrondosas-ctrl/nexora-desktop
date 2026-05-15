@@ -5,40 +5,31 @@
 
 ---
 
-Actualizado: 2026-05-15 00:45
+Actualizado: 2026-05-15 01:00
 Agente: Claude Code (Kimi K2.6)
 
 ## O que foi feito
 
-### Sessao Anterior — Correcao sync.ps1 (Opção A) + Merge main actualizado — CONCLUIDO
+### Sessao Anterior — README, docs, HelpOverlay, i18n — CONCLUIDO
 *(Ver SYNC-STATE.md no historico do Git para detalhes)*
 
-### Sessao Actual — README, docs, HelpOverlay, i18n — CONCLUIDO
+### Sessao Actual — Correcoes HelpOverlay + screenshots — CONCLUIDO
 
-**1. README.md completo**
-- Reescrito completamente em ingles (base): hero, badges, features, screenshots placeholders, arquitectura, quick start, perfis, atalhos, desenvolvimento, licenca GPL v3.
+**1. Correcao das traducoes EN no HelpOverlay**
+- Causa: o `i18n/index.ts` carrega o ingles de `base.json`, mas as chaves `help.*` novas foram adicionadas ao `common.json`.
+- Solucao: adicionadas todas as chaves `help.screens.*`, `help.tabs.*` (dashboard, library, queue, settings, logs) e `help.openFullGuide` ao `base.json`.
+- Resultado: o popup ja mostra texto traduzido em vez de chaves brutas.
 
-**2. Documentacao em `docs/`**
-- `docs/USER_MANUAL.md` — manual completo do utilizador (intro, getting started, todos os ecras, pipeline de 8 passos, perfis, QC, troubleshooting).
-- `docs/SCREEN_GUIDE.md` — guia visual de cada ecra com todos os elementos UI, badges, cores, icones, fluxos de interaccao.
-- `docs/FUNCTIONS.md` — referencia tecnica: Tauri commands, workers, DB schema, hooks, eventos IPC, parametros FFmpeg.
-- `docs/INSTALL.md` — guia por plataforma (Win/macOS/Linux) com requisitos, instalacao, primeiro arranque, atualizacoes, desinstalacao.
-- `docs/LICENSE.md` — GPL v3 com notas de componentes de terceiros.
+**2. Correcao do scroll horizontal no HelpOverlay**
+- Adicionada classe CSS `.scrollbar-hide` ao `index.css` (esconde scrollbar em todos os browsers).
+- As tabs do HelpOverlay usam `scrollbar-hide` + padding reduzido (`px-2.5 py-1.5`).
+- Resultado: sem scroll horizontal visivel.
 
-**3. HelpOverlay (Opcao B)**
-- `src/components/HelpModal.tsx` — redesenhado como overlay transparente com backdrop blur.
-- Cards concisos por ecra (Dashboard, Library, Queue, Profiles, Settings, Logs) + tab Intro.
-- Botao "Open Full Guide" que abre o README no browser via `openUrl`.
-- Fecha com Escape, click fora, ou botao X.
-- Integrado com i18n (traduzido para PT/ES/FR/DE).
-
-**4. Botao HelpCircle no TopBar**
-- `src/components/TopBar.tsx` — adicionado icone `HelpCircle` (❓) no canto superior direito, ao lado do Exit.
-- Tooltip e callback `onHelpOpen` passado pelo App.tsx.
-
-**5. i18n**
-- Adicionadas ~80 chaves `help.*` a `src/i18n/locales/en/common.json`.
-- Traduzidas para PT, ES, FR, DE nos respectivos ficheiros `common.json`.
+**3. Correcao dos screenshots**
+- Renomeado `docs/screenshots/queues.png` → `queue.png` (o README procurava `queue.png`).
+- Copiados todos os PNGs para `public/screenshots/` para serem servidos pela app Tauri.
+- Adicionadas imagens aos cards de cada ecra no HelpOverlay (Dashboard, Library, Queue, Profiles, Settings, Logs).
+- Resultado: screenshots visiveis tanto no README do GitHub como dentro da app.
 
 ---
 
@@ -68,22 +59,13 @@ Agente: Claude Code (Kimi K2.6)
 
 ```
 MODIFICADOS:
-README.md
 SYNC-STATE.md
 src/components/HelpModal.tsx
-src/components/TopBar.tsx
-src/App.tsx
-src/i18n/locales/en/common.json
-src/i18n/locales/pt/common.json
-src/i18n/locales/es/common.json
-src/i18n/locales/fr/common.json
-src/i18n/locales/de/common.json
+src/i18n/locales/en/base.json
+src/index.css
+docs/screenshots/queue.png (renomeado)
 NOVOS:
-docs/USER_MANUAL.md
-docs/SCREEN_GUIDE.md
-docs/FUNCTIONS.md
-docs/INSTALL.md
-docs/LICENSE.md
+public/screenshots/
 ```
 
 ---
@@ -96,5 +78,5 @@ docs/LICENSE.md
 - **Termos tecnicos:** Nunca traduzir VMAF, LUFS, FFmpeg, NVENC, GPU, codec names, etc.
 - **Ollama:** Script suporta resume automatico. Se falhar a meio, re-executar o mesmo comando continua de onde parou.
 - **sync.ps1:** Agora suporta promocao de releases existentes mesmo com workspace limpo. Usar `sync.ps1 -Release` ou opcao 3 no menu interactivo.
-- **HelpOverlay:** O overlay usa `@tauri-apps/plugin-opener` para abrir o guia completo no browser. Se o plugin nao estiver disponivel, falha silenciosamente.
-- **Screenshots:** Os placeholders em `docs/screenshots/*.png` devem ser substituidos por capturas reais da aplicacao.
+- **HelpOverlay:** Usa `@tauri-apps/plugin-opener` para abrir o guia completo no browser. Screenshots sao servidos de `public/screenshots/`.
+- **Screenshots:** `docs/screenshots/` para GitHub; `public/screenshots/` para a app. Manter ambos sincronizados.

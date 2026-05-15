@@ -404,8 +404,13 @@
     "subtitle": "Quick reference guide",
     "tabs": {
       "intro": "Introduction",
-      "usage": "How to use",
+      "dashboard": "Dashboard",
+      "library": "Library",
+      "queue": "Queue",
       "profiles": "Profiles",
+      "settings": "Settings",
+      "logs": "Logs",
+      "usage": "How to use",
       "metrics": "Metrics",
       "system": "System",
       "support": "Support",
@@ -549,7 +554,76 @@
       "platforms": "Platforms",
       "year": "Year",
       "footer": "Nexora Media Processing — Professional media pipeline for broadcast and web.",
-      "reportIssues": "To report problems or suggestions, check the system logs and include the relevant output in your report."
+      "reportIssues": "To report problems or suggestions, check the system logs and include the relevant output in your report.",
+      "openFullGuide": "Open Full Guide",
+      "screens": {
+        "dashboard": {
+          "title": "Dashboard — System Overview",
+          "desc": "The Dashboard shows your system health at a glance: total assets, jobs completed today, and average VMAF score.",
+          "stat1": "Total Assets — all media files in your library",
+          "stat2": "Jobs Today — completed jobs in the last 24 hours",
+          "stat3": "Average VMAF — mean quality score of recent outputs",
+          "recentJobs": "Recent Jobs — click any job to open its Asset Detail",
+          "tip1": "The Dashboard auto-refreshes every 10 seconds.",
+          "tip2": "Click any job in the Recent Jobs list to jump to Asset Detail.",
+          "tip3": "The VMAF Distribution bar shows quality tiers at a glance."
+        },
+        "library": {
+          "title": "Library — Asset Management",
+          "desc": "The Library is your media repository. Ingest files via drag-and-drop or file dialog, then manage, preview, and reprocess them.",
+          "dragDrop": "Drag & drop files from anywhere on your OS",
+          "gridList": "Toggle between Grid and List views",
+          "searchFilter": "Search by filename and filter by status",
+          "reprocess": "Click any asset to reprocess with a different profile",
+          "tip1": "Supported formats: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+          "tip2": "Hover over a grid card to reveal Open and Play buttons.",
+          "tip3": "The view mode (Grid/List) is remembered between sessions."
+        },
+        "queue": {
+          "title": "Queue — Job Monitoring",
+          "desc": "The Queue shows all jobs in real time. Watch the 8-stage pipeline visualizer, approve quarantined jobs, and retry failures.",
+          "pipeline": "8-stage pipeline visualizer with colour-coded steps",
+          "quarantine": "Quarantined jobs appear in Pending Approvals",
+          "approveReject": "Approve to continue, or Reject to cancel",
+          "retry": "Failed jobs can be retried with one click",
+          "tip1": "The Queue auto-refreshes every 2 seconds.",
+          "tip2": "Green check = done, Blue pulse = active, Yellow shield = quarantined, Red = error.",
+          "tip3": "Hover over any pipeline step to see its name and description."
+        },
+        "profiles": {
+          "title": "Profiles — Transcode Configuration",
+          "desc": "Profiles define how media is transcoded. Use built-in presets for common workflows, or create custom profiles with specific codec, resolution, and quality settings.",
+          "presets": "6 system presets: Broadcast HD/SD, Web 4K/HD, Proxy, Social",
+          "custom": "Create custom profiles with the editor sidebar",
+          "duplicate": "Duplicate any profile as a starting point",
+          "settings": "Set video codec, resolution, bitrate, audio LUFS, and VMAF threshold",
+          "tip1": "System presets are read-only. Duplicate them to make changes.",
+          "tip2": "Lower CPU preset = better quality but slower encoding.",
+          "tip3": "The VMAF threshold determines the minimum acceptable quality score."
+        },
+        "settings": {
+          "title": "Settings — Configuration",
+          "desc": "Configure output directory, concurrent jobs, GPU acceleration, notifications, theme, language, and more.",
+          "general": "General — output folder, concurrent jobs, GPU, notifications",
+          "interface": "Interface — theme (System/Light/Dark) and language",
+          "system": "System — OS/hardware info, FFmpeg version, DB stats",
+          "advanced": "Advanced — export/import settings, factory reset",
+          "tip1": "Set your Output Directory first — this is where all processed files go.",
+          "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
+          "tip3": "Factory Reset wipes everything. Export your settings first if unsure."
+        },
+        "logs": {
+          "title": "Logs — Diagnostics",
+          "desc": "View structured application logs with filtering by level, source, and time range. Export logs for troubleshooting.",
+          "filter": "Filter by level (DEBUG/INFO/WARN/ERROR), source, or time",
+          "export": "Export all logs to a text file for sharing",
+          "levels": "Red border = ERROR, Yellow border = WARN",
+          "autoScroll": "Auto-scroll keeps the view at the newest entries",
+          "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
+          "tip2": "Search for specific error messages to find patterns.",
+          "tip3": "Clearing logs does not affect the database or jobs."
+        }
+      }
     }
   },
   "assetDetailModal": {
