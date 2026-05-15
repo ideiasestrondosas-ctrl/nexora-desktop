@@ -9,12 +9,6 @@
 import { NexoraDesktopOrchestrator, JobContext } from './orchestrator/NexoraDesktopOrchestrator';
 import { emit } from './events';
 import { nxInfo, nxError } from './logger';
-<<<<<<< HEAD
-import { tmpdir } from 'os';
-import { join } from 'path';
-import { mkdirSync } from 'fs';
-=======
->>>>>>> dev
 
 interface JobInput {
   jobId: string;
@@ -43,35 +37,6 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-<<<<<<< HEAD
-// Sinais de terminação limpa
-process.on('SIGTERM', () => {
-  nxInfo('sidecar', 'Sidecar a terminar (SIGTERM)');
-  queue.stop();
-  process.exit(0);
-});
-process.on('SIGINT', () => {
-  nxInfo('sidecar', 'Sidecar a terminar (SIGINT)');
-  queue.stop();
-  process.exit(0);
-});
-
-// Erros não capturados — emitir evento antes de terminar
-process.on('uncaughtException', (err) => {
-  nxError('sidecar', `Excepção não capturada: ${err.message}`);
-  emit({ type: 'job:failed', error: err.message });
-  process.exit(1);
-});
-process.on('unhandledRejection', (reason) => {
-  const message = reason instanceof Error ? reason.message : String(reason);
-  nxError('sidecar', `Promise rejeitada: ${message}`);
-  emit({ type: 'job:failed', error: message });
-  process.exit(1);
-});
-
-nxInfo('sidecar', `Sidecar Node.js iniciado — DB: ${dbPath}`);
-queue.start();
-=======
   let job: JobInput;
   try {
     job = JSON.parse(raw) as JobInput;
@@ -121,4 +86,3 @@ main().catch((err: unknown) => {
   emit({ type: 'job:failed', error: `Fatal error: ${msg}` });
   process.exit(1);
 });
->>>>>>> dev

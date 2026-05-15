@@ -371,56 +371,6 @@ if ($largeFiles.Count -gt 0) {
 }
 
 # ---------------------------------------------------------
-# GUARDIA: placeholders + ficheiros grandes
-# ---------------------------------------------------------
-Write-Step "Verificando placeholders e ficheiros grandes..."
-
-# 1. Restaurar placeholders de binarios FFmpeg/FFprobe substituidos por binarios reais
-$restoredCount = 0
-foreach ($binRelPath in $BINARY_PLACEHOLDERS) {
-    $fullPath = Join-Path $WORKSPACE $binRelPath
-    if (Test-Path $fullPath) {
-        $fileSize = (Get-Item $fullPath).Length
-        if ($fileSize -gt 100) {
-            $sizeMB = [math]::Round($fileSize / 1MB, 1)
-            Write-Warn "Binario real em placeholder: $binRelPath ($sizeMB MB) -> a restaurar para 1 byte"
-            [System.IO.File]::WriteAllBytes($fullPath, [byte[]](0))
-            $restoredCount++
-        }
-    }
-}
-if ($restoredCount -gt 0) {
-    Write-Success "$restoredCount placeholder(s) restaurado(s). Binarios sao descarregados pelo CI."
-} else {
-    Write-Success "Placeholders OK"
-}
-
-# 2. Detectar ficheiros grandes no workspace (excluindo dirs de build conhecidos)
-$largeFiles = @()
-try {
-    $largeFiles = Get-ChildItem -Path $WORKSPACE -Recurse -File -ErrorAction SilentlyContinue |
-        Where-Object {
-            $p = $_.FullName
-            $p -notmatch [regex]::Escape("\\.git\\") -and
-            $p -notmatch [regex]::Escape("\\node_modules\\") -and
-            $p -notmatch [regex]::Escape("\\src-tauri\\target\\") -and
-            $p -notmatch [regex]::Escape("\\dist\\") -and
-            ($_.Length / 1MB) -gt $LARGE_FILE_LIMIT_MB
-        }
-} catch {}
-
-if ($largeFiles.Count -gt 0) {
-    Write-Warn "$($largeFiles.Count) ficheiro(s) acima de $($LARGE_FILE_LIMIT_MB) MB -- serao excluidos do commit:"
-    $largeFiles | ForEach-Object {
-        $rel  = $_.FullName.Substring($WORKSPACE.Length + 1)
-        $sizeMB = [math]::Round($_.Length / 1MB, 1)
-        Write-Info "  $rel ($sizeMB MB)"
-    }
-} else {
-    Write-Success "Nenhum ficheiro grande detectado"
-}
-
-# ---------------------------------------------------------
 # COMMIT DE CODIGO
 # ---------------------------------------------------------
 $commitMsg  = ""
@@ -765,54 +715,7 @@ if ($LASTEXITCODE -eq 0) {
     # ---------------------------------------------------------
     if ($Release) {
         $devBranch = $branch
-<<<<<<< HEAD
-
-        git checkout main 2>&1 | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Err "Nao foi possivel mudar para main"
-            Pop-Location; exit 1
-        }
-
-        # Sincronizar com origin/main (que pode ter history reescrito)
-        git fetch origin main 2>&1 | Out-Null
-        git reset --hard origin/main 2>&1 | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Err "Nao foi possivel sincronizar com origin/main"
-            git checkout $devBranch 2>&1 | Out-Null
-            Pop-Location; exit 1
-        }
-
-        # Squash merge: aplica todas as mudancas da dev como um patch unico
-        # Isto preserva o history limpo da main e evita conflitos de history reescrito
-        git merge --squash $devBranch 2>&1 | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Err "Merge squash falhou. Possiveis conflitos de ficheiros."
-            Write-Info "Resolva manualmente: git checkout main && git merge --squash dev"
-            git checkout $devBranch 2>&1 | Out-Null
-            Pop-Location; exit 1
-        }
-
-        # Commit de release
-        git commit -m "chore(release): v$newVersion" --no-verify 2>&1 | Out-Null
-
-        if ($script:GITHUB_TOKEN) {
-            git push -u "$authenticatedUrl" main --tags 2>&1
-        } else {
-            git push -u origin main --tags 2>&1
-        }
-
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "main actualizado com v$newVersion!"
-        } else {
-            Write-Err "Push para main falhou"
-        }
-
-        # Voltar para dev
-        git checkout $devBranch 2>&1 | Out-Null
-        Write-Success "De volta ao branch $devBranch"
-=======
         Invoke-MergeToMain $newVersion $devBranch $authenticatedUrl | Out-Null
->>>>>>> dev
     }
 
     # Criar GitHub Release se houver nova versao e token

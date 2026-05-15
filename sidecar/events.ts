@@ -20,10 +20,7 @@ export interface SidecarEvent {
   title?: string;
   body?: string;
   data?: unknown;
-<<<<<<< HEAD
-=======
   status?: string;
->>>>>>> dev
   // Para eventos 'log'
   level?: string;
   source?: string;

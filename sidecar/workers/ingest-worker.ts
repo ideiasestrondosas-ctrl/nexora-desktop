@@ -4,11 +4,7 @@ import { createReadStream } from 'fs';
 import { createHash } from 'crypto';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { getFfprobePath } from '../binaries';
-<<<<<<< HEAD
-import { updateAssetFields, writeAuditLog } from '../db';
-=======
 import { emit } from '../events';
->>>>>>> dev
 
 const execFileAsync = promisify(execFile);
 

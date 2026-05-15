@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-<<<<<<< HEAD
-=======
 import { useTranslation } from 'react-i18next';
->>>>>>> dev
 import { open } from '@tauri-apps/plugin-dialog';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Upload, Plus } from 'lucide-react';
@@ -44,11 +41,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
           const validPaths = paths.filter((p) => {
             const ext = p.slice(p.lastIndexOf('.')).toLowerCase();
             if (!VALID_EXTENSIONS.includes(ext)) {
-<<<<<<< HEAD
-              toast.error(`Formato não suportado: ${ext}`);
-=======
               toast.error(t('dropZone.unsupportedFormat', { ext }));
->>>>>>> dev
               return false;
             }
             return true;
@@ -77,11 +70,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
     try {
       const selected = await open({
         multiple: true,
-<<<<<<< HEAD
-        filters: [{ name: 'Video', extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm'] }],
-=======
         filters: [{ name: t('dropZone.videoFilter'), extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm'] }],
->>>>>>> dev
       });
       if (Array.isArray(selected)) {
         onFilesSelectedRef.current(selected);

@@ -26,11 +26,7 @@ export class TranscodeWorker {
 
     try {
       const tmpOutput = join(tmpDir, `output${ext}`);
-<<<<<<< HEAD
-      const args = buildArgs(assetPath, tmpOutput, profile, encoder, asset.fps);
-=======
       const args = buildArgs(assetPath, tmpOutput, profile, encoder, ctx.assetFps ?? null);
->>>>>>> dev
       const ffmpegPath = getFfmpegPath();
 
       // Tentar GPU; em caso de falha usar CPU fallback

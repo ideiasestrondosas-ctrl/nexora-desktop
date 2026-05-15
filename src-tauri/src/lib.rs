@@ -1,10 +1,7 @@
 mod commands;
 mod db;
 mod logger;
-<<<<<<< HEAD
-=======
 mod queue;
->>>>>>> dev
 mod sidecar;
 mod state;
 mod tray;
@@ -70,38 +67,6 @@ pub fn run() {
                 }
             });
 
-            // Thread de métricas do sistema — emite "system-metrics" a cada 2 s
-            let metrics_handle = app.handle().clone();
-            std::thread::spawn(move || {
-                use sysinfo::{Networks, System};
-                let mut sys = System::new();
-                let mut nets = Networks::new_with_refreshed_list();
-
-                // Primeira leitura de CPU (necessita de 2 amostras para valor correcto)
-                sys.refresh_cpu_usage();
-                std::thread::sleep(std::time::Duration::from_millis(600));
-
-                loop {
-                    std::thread::sleep(std::time::Duration::from_secs(2));
-                    sys.refresh_cpu_usage();
-                    sys.refresh_memory();
-                    nets.refresh();
-
-                    let rx: u64 = nets.iter().map(|(_, n)| n.received()).sum();
-                    let tx: u64 = nets.iter().map(|(_, n)| n.transmitted()).sum();
-
-                    let metrics = commands::metrics::SystemMetrics {
-                        cpu_percent: sys.global_cpu_usage(),
-                        mem_used_bytes: sys.used_memory(),
-                        mem_total_bytes: sys.total_memory(),
-                        net_rx_bps: rx / 2,
-                        net_tx_bps: tx / 2,
-                    };
-
-                    let _ = metrics_handle.emit("system-metrics", &metrics);
-                }
-            });
-
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -115,11 +80,8 @@ pub fn run() {
             commands::jobs::list_jobs,
             commands::jobs::get_queue_stats,
             commands::jobs::retry_job,
-<<<<<<< HEAD
-=======
             commands::jobs::approve_job,
             commands::jobs::reject_job,
->>>>>>> dev
             commands::settings::get_settings,
             commands::settings::update_settings,
             commands::system::detect_gpu,
@@ -128,15 +90,11 @@ pub fn run() {
             commands::system::get_changelog,
             commands::system::get_stats,
             commands::system::get_installed_info,
-<<<<<<< HEAD
-            commands::system::exit_app,
-=======
             commands::system::get_system_info,
             commands::system::get_ffmpeg_info,
             commands::system::get_db_info,
             commands::system::exit_app,
             commands::system::open_data_dir,
->>>>>>> dev
             commands::system::factory_reset,
             commands::profiles::list_profiles,
             commands::profiles::create_profile,

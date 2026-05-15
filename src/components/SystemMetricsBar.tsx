@@ -1,8 +1,5 @@
 import React from 'react';
-<<<<<<< HEAD
-=======
 import { useTranslation } from 'react-i18next';
->>>>>>> dev
 import { Cpu, MemoryStick, ArrowDown, ArrowUp } from 'lucide-react';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 import { cn } from '@/lib/utils';
@@ -29,20 +26,13 @@ function MiniBar({ value, color }: { value: number; color: string }) {
 }
 
 export const SystemMetricsBar: React.FC = () => {
-<<<<<<< HEAD
-=======
   const { t } = useTranslation();
->>>>>>> dev
   const m = useSystemMetrics();
 
   if (!m) {
     return (
       <div className="hidden xl:flex items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider animate-pulse">
-<<<<<<< HEAD
-        <span>A carregar métricas...</span>
-=======
         <span>{t('systemMetrics.loading')}</span>
->>>>>>> dev
       </div>
     );
   }

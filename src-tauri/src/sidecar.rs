@@ -48,21 +48,15 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
         );
     }
 
-<<<<<<< HEAD
-=======
     // Passar resource_dir ao sidecar para resolver modelos VMAF e outros recursos
     let resource_dir = app.path().resource_dir().ok();
 
->>>>>>> dev
     let mut child = Command::new("node")
         .arg(&script_path)
         .env("NEXORA_DB_PATH", db_path)
         .env("NEXORA_FFMPEG_PATH", &ffmpeg_path)
         .env("NEXORA_FFPROBE_PATH", &ffprobe_path)
-<<<<<<< HEAD
-=======
         .env("NEXORA_RESOURCE_DIR", resource_dir.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default())
->>>>>>> dev
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()
@@ -135,11 +129,7 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
 /// 1. resource_dir do Tauri (producao: ficheiro bundled no instalador)
 /// 2. Relativo ao executavel (desenvolvimento: exe em target/debug/ ou target/release/)
 /// 3. Working directory corrente (tauri dev define cwd como workspace)
-<<<<<<< HEAD
-fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
-=======
 pub fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf {
->>>>>>> dev
     // 1. Producao: recurso incluido no bundle pelo Tauri
     if let Ok(resource_dir) = app.path().resource_dir() {
         // Tauri pode flattened o caminho ou manter a estrutura relativa
@@ -180,11 +170,7 @@ pub fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf
 /// 1. Ao lado do executavel do Tauri (target/debug/ ou target/release/) — dev
 /// 2. resource_dir() do Tauri — producao (bundle do instalador)
 /// 3. Nome do comando no PATH (fallback)
-<<<<<<< HEAD
-fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> PathBuf {
-=======
 pub fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> PathBuf {
->>>>>>> dev
     let ext = if cfg!(target_os = "windows") { ".exe" } else { "" };
 
     // 1. Desenvolvimento: ao lado do executavel (Tauri copia os externalBin para target/debug/)

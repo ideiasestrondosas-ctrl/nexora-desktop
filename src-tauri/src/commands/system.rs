@@ -4,10 +4,6 @@ use std::process::Command;
 use tauri::{Manager, State};
 
 #[derive(Debug, Serialize)]
-<<<<<<< HEAD
-#[serde(rename_all = "camelCase")]
-=======
->>>>>>> dev
 pub struct InstalledInfo {
     pub app_version: String,
     pub ffmpeg_version: Option<String>,
@@ -184,8 +180,6 @@ pub fn get_changelog() -> String {
     include_str!("../../../CHANGELOG.md").to_string()
 }
 
-<<<<<<< HEAD
-=======
 // ── System Info (cross-platform via sysinfo + std) ───────────────────────────
 
 #[derive(Debug, Serialize)]
@@ -367,7 +361,6 @@ fn resolve_media_binary_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>, name:
     PathBuf::from(name)
 }
 
->>>>>>> dev
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppStats {
@@ -434,8 +427,6 @@ pub fn get_stats(
 }
 
 #[tauri::command]
-<<<<<<< HEAD
-=======
 pub fn open_data_dir(app: tauri::AppHandle) -> Result<(), String> {
     let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     #[cfg(target_os = "windows")]
@@ -463,7 +454,6 @@ pub fn open_data_dir(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
->>>>>>> dev
 pub fn exit_app(app: tauri::AppHandle) {
     app.exit(0);
 }
