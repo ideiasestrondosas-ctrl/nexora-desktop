@@ -24,7 +24,106 @@
     "ram": "RAM",
     "gpu": "GPU",
     "disk": "Festplatte",
-    "exit": "Beenden"
+    "exit": "Beenden",
+    "help": "Hilfe"
+  },
+  "help": {
+    "title": "Benutzerhandbuch",
+    "subtitle": "Schnellreferenz für alle Bildschirme und Funktionen",
+    "openFullGuide": "Vollständige Anleitung öffnen",
+    "tabs": {
+      "intro": "Einführung",
+      "dashboard": "Dashboard",
+      "library": "Bibliothek",
+      "queue": "Warteschlange",
+      "profiles": "Profile",
+      "settings": "Einstellungen",
+      "logs": "Protokolle"
+    },
+    "intro": {
+      "whatIs": "Was ist Nexora Desktop?",
+      "description": "Nexora Desktop ist eine native Multiplattform-Anwendung für professionelle Videoverarbeitung. Es bietet GPU-beschleunigte Transkodierung, Audio-Normalisierung gemäß EBU R128, wahrnehmungsbasierte Qualitätsbewertung (VMAF) und eine vollständige 8-stufige Qualitätskontroll-Pipeline.",
+      "quickStart": "Schnellstart:",
+      "quickStartDesc": "Gehen Sie zu Bibliothek → ziehen Sie eine Videodatei → klicken Sie auf Neu verarbeiten → wählen Sie ein Profil → überwachen Sie in Warteschlange → überprüfen Sie die Ergebnisse in Asset-Detail.",
+      "features": {
+        "transcoding": "GPU-Transkodierung",
+        "transcodingDesc": "Erkennt automatisch NVIDIA NVENC, AMD AMF, Intel QSV oder CPU-Fallback für optimale Kodierungsgeschwindigkeit.",
+        "vmafAnalysis": "VMAF-Qualität",
+        "vmafDesc": "Wahrnehmungsbasierte Qualitätsmessung durch Vergleich von Quelle vs. Ausgabe. Werte über 90 sind Broadcast-Qualität.",
+        "profiles": "Profile",
+        "profilesDesc": "6 integrierte Voreinstellungen (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus ein vollständiger benutzerdefinierter Profil-Editor.",
+        "gpuAuto": "Auto-Erkennung",
+        "gpuAutoDesc": "Systemmetriken, GPU-Erkennung und Binary-Status werden beim Start automatisch überprüft."
+      }
+    },
+    "screens": {
+      "dashboard": {
+        "title": "Dashboard — Systemübersicht",
+        "desc": "Das Dashboard zeigt den Systemzustand auf einen Blick: Gesamt-Assets, heute abgeschlossene Aufträge und durchschnittliche VMAF-Punktzahl.",
+        "stat1": "Gesamt-Assets — alle Mediendateien in Ihrer Bibliothek",
+        "stat2": "Aufträge heute — in den letzten 24 Stunden abgeschlossene Aufträge",
+        "stat3": "Durchschnittliche VMAF — mittlere Qualitätspunktzahl der letzten Ausgaben",
+        "recentJobs": "Aktuelle Aufträge — klicken Sie auf einen Auftrag, um Asset-Details zu öffnen",
+        "tip1": "Das Dashboard aktualisiert sich automatisch alle 10 Sekunden.",
+        "tip2": "Klicken Sie auf einen Auftrag in der Liste, um zu Asset-Details zu springen.",
+        "tip3": "Die VMAF-Verteilungsleiste zeigt Qualitätsstufen auf einen Blick."
+      },
+      "library": {
+        "title": "Bibliothek — Asset-Verwaltung",
+        "desc": "Die Bibliothek ist Ihr Medien-Repository. Aufnahme von Dateien per Drag-and-Drop oder Dateidialog, dann verwalten, vorschauen und neu verarbeiten.",
+        "dragDrop": "Dateien per Drag-and-Drop von überall auf Ihrem Betriebssystem",
+        "gridList": "Zwischen Raster- und Listenansicht wechseln",
+        "searchFilter": "Nach Dateiname suchen und nach Status filtern",
+        "reprocess": "Klicken Sie auf ein Asset, um es mit einem anderen Profil neu zu verarbeiten",
+        "tip1": "Unterstützte Formate: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Bewegen Sie den Mauszeiger über eine Karte, um die Schaltflächen Öffnen und Abspielen anzuzeigen.",
+        "tip3": "Der Ansichtsmodus (Raster/Liste) wird zwischen Sitzungen gespeichert."
+      },
+      "queue": {
+        "title": "Warteschlange — Auftragsüberwachung",
+        "desc": "Die Warteschlange zeigt alle Aufträge in Echtzeit. Beobachten Sie den 8-stufigen Pipeline-Visualizer, genehmigen Sie Quarantäne-Aufträge und wiederholen Sie Fehler.",
+        "pipeline": "8-stufiger Pipeline-Visualizer mit farbcodierten Schritten",
+        "quarantine": "Quarantäne-Aufträge erscheinen unter Ausstehende Genehmigungen",
+        "approveReject": "Genehmigen zum Fortfahren, oder Ablehnen zum Abbrechen",
+        "retry": "Fehlgeschlagene Aufträge können mit einem Klick wiederholt werden",
+        "tip1": "Die Warteschlange aktualisiert sich automatisch alle 2 Sekunden.",
+        "tip2": "Grün = abgeschlossen, Blau = aktiv, Gelb = Quarantäne, Rot = Fehler.",
+        "tip3": "Bewegen Sie den Mauszeiger über einen Pipeline-Schritt, um seinen Namen und seine Beschreibung zu sehen."
+      },
+      "profiles": {
+        "title": "Profile — Transkodierungskonfiguration",
+        "desc": "Profile definieren, wie Medien transkodiert werden. Verwenden Sie integrierte Voreinstellungen für gängige Workflows, oder erstellen Sie benutzerdefinierte Profile mit spezifischem Codec, Auflösung und Qualitätseinstellungen.",
+        "presets": "6 System-Voreinstellungen: Broadcast HD/SD, Web 4K/HD, Proxy, Social",
+        "custom": "Erstellen Sie benutzerdefinierte Profile mit dem Seitenleisten-Editor",
+        "duplicate": "Duplizieren Sie jedes Profil als Ausgangspunkt",
+        "settings": "Definieren Sie Video-Codec, Auflösung, Bitrate, Audio-LUFS und VMAF-Schwelle",
+        "tip1": "System-Voreinstellungen sind schreibgeschützt. Duplizieren Sie sie, um Änderungen vorzunehmen.",
+        "tip2": "Niedrigerer CPU-Preset = bessere Qualität, aber langsameres Encodieren.",
+        "tip3": "Die VMAF-Schwelle bestimmt die minimal akzeptable Qualitätspunktzahl."
+      },
+      "settings": {
+        "title": "Einstellungen — Konfiguration",
+        "desc": "Konfigurieren Sie Ausgabeverzeichnis, gleichzeitige Aufträge, GPU-Beschleunigung, Benachrichtigungen, Theme, Sprache und mehr.",
+        "general": "Allgemein — Ausgabeverzeichnis, gleichzeitige Aufträge, GPU, Benachrichtigungen",
+        "interface": "Oberfläche — Theme (System/Hell/Dunkel) und Sprache",
+        "system": "System — SO/Hardware-Info, FFmpeg-Version, DB-Statistiken",
+        "advanced": "Erweitert — Einstellungen exportieren/importieren, Werksreset",
+        "tip1": "Legen Sie zuerst das Ausgabeverzeichnis fest — hier werden alle verarbeiteten Dateien gespeichert.",
+        "tip2": "Mehr gleichzeitige Aufträge = mehr CPU/RAM-Nutzung. Beginnen Sie mit 2.",
+        "tip3": "Werksreset löscht alles. Exportieren Sie zuerst Ihre Einstellungen, wenn unsicher."
+      },
+      "logs": {
+        "title": "Protokolle — Diagnose",
+        "desc": "Sehen Sie sich strukturierte Anwendungsprotokolle mit Filterung nach Ebene, Quelle und Zeitraum an. Exportieren Sie Protokolle zur Fehlerbehebung.",
+        "filter": "Filtern nach Ebene (DEBUG/INFO/WARN/ERROR), Quelle oder Zeit",
+        "export": "Alle Protokolle in eine Textdatei exportieren zum Teilen",
+        "levels": "Roter Rand = ERROR, Gelber Rand = WARN",
+        "autoScroll": "Auto-Scroll hält die Ansicht auf den neuesten Einträgen",
+        "tip1": "Verwenden Sie Ctrl+Shift+E als Tastenkürzel zum Exportieren von Protokollen.",
+        "tip2": "Suchen Sie nach spezifischen Fehlermeldungen, um Muster zu finden.",
+        "tip3": "Das Löschen von Protokollen wirkt sich nicht auf die Datenbank oder Aufträge aus."
+      }
+    }
   },
   "dashboard": {
     "assetsTotal": "Gesamtressourcen",

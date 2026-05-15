@@ -15,6 +15,7 @@ import SettingsPage from '@/pages/SettingsPage';
 import LogsPage from '@/pages/LogsPage';
 import AssetDetailPage from '@/pages/AssetDetailPage';
 import TopBar from '@/components/TopBar';
+import { HelpOverlay } from '@/components/HelpModal';
 
 import { useSettingsStore } from '@/store/settings';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
@@ -28,6 +29,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [appVersion, setAppVersion] = useState('2.0.0');
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const theme = useSettingsStore(state => state.theme);
 
@@ -149,7 +151,9 @@ function App() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 bg-bg-primary relative">
-        <TopBar activeTab={activeTab} />
+        <TopBar activeTab={activeTab} onHelpOpen={() => setHelpOpen(true)} />
+
+        {helpOpen && <HelpOverlay onClose={() => setHelpOpen(false)} />}
 
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
           {activeTab === 'dashboard' && (

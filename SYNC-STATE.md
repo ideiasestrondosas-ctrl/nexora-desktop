@@ -5,28 +5,40 @@
 
 ---
 
-Actualizado: 2026-05-14 23:55
+Actualizado: 2026-05-15 00:45
 Agente: Claude Code (Kimi K2.6)
 
 ## O que foi feito
 
-### Sessao Anterior — Traducao ES/FR/DE via Ollama — CONCLUIDO
+### Sessao Anterior — Correcao sync.ps1 (Opção A) + Merge main actualizado — CONCLUIDO
 *(Ver SYNC-STATE.md no historico do Git para detalhes)*
 
-### Sessao Actual — Correcao sync.ps1 (Opção A) + Merge main actualizado — CONCLUIDO
+### Sessao Actual — README, docs, HelpOverlay, i18n — CONCLUIDO
 
-**1. Correcao do script `scripts/sync.ps1` (Opção A)**
-- Substituído `git merge --squash` por `git merge -X theirs --no-edit` na funcao `Invoke-MergeToMain`.
-- Motivo: o squash merge nao actualiza o merge-base entre `main` e `dev`, causando conflitos recorrentes em releases consecutivas.
-- O merge normal com `-X theirs` resolve automaticamente conflitos a favor da `dev` e mantem o merge-base actualizado.
+**1. README.md completo**
+- Reescrito completamente em ingles (base): hero, badges, features, screenshots placeholders, arquitectura, quick start, perfis, atalhos, desenvolvimento, licenca GPL v3.
 
-**2. Merge main <- dev (com merge normal)**
-- Abortado o merge squash falhado na `main`.
-- Reset da `main` para `origin/main` (limpo).
-- Merge `dev` para `main` com `git merge -X theirs --no-edit dev`.
-- Resultado: sucesso sem conflitos, 35 ficheiros alterados.
-- `main` actualizada para `48693e2`.
-- Push para origin realizado.
+**2. Documentacao em `docs/`**
+- `docs/USER_MANUAL.md` — manual completo do utilizador (intro, getting started, todos os ecras, pipeline de 8 passos, perfis, QC, troubleshooting).
+- `docs/SCREEN_GUIDE.md` — guia visual de cada ecra com todos os elementos UI, badges, cores, icones, fluxos de interaccao.
+- `docs/FUNCTIONS.md` — referencia tecnica: Tauri commands, workers, DB schema, hooks, eventos IPC, parametros FFmpeg.
+- `docs/INSTALL.md` — guia por plataforma (Win/macOS/Linux) com requisitos, instalacao, primeiro arranque, atualizacoes, desinstalacao.
+- `docs/LICENSE.md` — GPL v3 com notas de componentes de terceiros.
+
+**3. HelpOverlay (Opcao B)**
+- `src/components/HelpModal.tsx` — redesenhado como overlay transparente com backdrop blur.
+- Cards concisos por ecra (Dashboard, Library, Queue, Profiles, Settings, Logs) + tab Intro.
+- Botao "Open Full Guide" que abre o README no browser via `openUrl`.
+- Fecha com Escape, click fora, ou botao X.
+- Integrado com i18n (traduzido para PT/ES/FR/DE).
+
+**4. Botao HelpCircle no TopBar**
+- `src/components/TopBar.tsx` — adicionado icone `HelpCircle` (❓) no canto superior direito, ao lado do Exit.
+- Tooltip e callback `onHelpOpen` passado pelo App.tsx.
+
+**5. i18n**
+- Adicionadas ~80 chaves `help.*` a `src/i18n/locales/en/common.json`.
+- Traduzidas para PT, ES, FR, DE nos respectivos ficheiros `common.json`.
 
 ---
 
@@ -48,6 +60,7 @@ Agente: Claude Code (Kimi K2.6)
 | Deep links `nexora://` (ADR-D012) | Baixa |
 | Build macOS (.dmg universal) e Linux (.AppImage + .deb) | Baixa |
 | Criar GitHub Release v0.17.0 manualmente (se necessario) | Baixa |
+| Traduzir docs/ para ES/FR/DE/PT com Ollama (futuro) | Baixa |
 
 ---
 
@@ -55,8 +68,22 @@ Agente: Claude Code (Kimi K2.6)
 
 ```
 MODIFICADOS:
-scripts/sync.ps1
+README.md
 SYNC-STATE.md
+src/components/HelpModal.tsx
+src/components/TopBar.tsx
+src/App.tsx
+src/i18n/locales/en/common.json
+src/i18n/locales/pt/common.json
+src/i18n/locales/es/common.json
+src/i18n/locales/fr/common.json
+src/i18n/locales/de/common.json
+NOVOS:
+docs/USER_MANUAL.md
+docs/SCREEN_GUIDE.md
+docs/FUNCTIONS.md
+docs/INSTALL.md
+docs/LICENSE.md
 ```
 
 ---
@@ -69,3 +96,5 @@ SYNC-STATE.md
 - **Termos tecnicos:** Nunca traduzir VMAF, LUFS, FFmpeg, NVENC, GPU, codec names, etc.
 - **Ollama:** Script suporta resume automatico. Se falhar a meio, re-executar o mesmo comando continua de onde parou.
 - **sync.ps1:** Agora suporta promocao de releases existentes mesmo com workspace limpo. Usar `sync.ps1 -Release` ou opcao 3 no menu interactivo.
+- **HelpOverlay:** O overlay usa `@tauri-apps/plugin-opener` para abrir o guia completo no browser. Se o plugin nao estiver disponivel, falha silenciosamente.
+- **Screenshots:** Os placeholders em `docs/screenshots/*.png` devem ser substituidos por capturas reais da aplicacao.

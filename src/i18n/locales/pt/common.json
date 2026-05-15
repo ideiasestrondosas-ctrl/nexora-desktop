@@ -24,7 +24,106 @@
     "ram": "RAM",
     "gpu": "GPU",
     "disk": "Disco",
-    "exit": "Sair do programa"
+    "exit": "Sair do programa",
+    "help": "Ajuda"
+  },
+  "help": {
+    "title": "Manual do Utilizador",
+    "subtitle": "Referência rápida para todos os ecrãs e funcionalidades",
+    "openFullGuide": "Abrir Guia Completo",
+    "tabs": {
+      "intro": "Introdução",
+      "dashboard": "Dashboard",
+      "library": "Biblioteca",
+      "queue": "Fila",
+      "profiles": "Perfis",
+      "settings": "Definições",
+      "logs": "Registos"
+    },
+    "intro": {
+      "whatIs": "O que é o Nexora Desktop?",
+      "description": "O Nexora Desktop é uma aplicação nativa multiplataforma para processamento profissional de vídeo. Fornece transcodificação acelerada por GPU, normalização de áudio em conformidade com a norma EBU R128, avaliação de qualidade perceptual (VMAF) e um pipeline completo de controlo de qualidade com 8 etapas.",
+      "quickStart": "Início Rápido:",
+      "quickStartDesc": "Vá a Biblioteca → arraste um ficheiro de vídeo → clique em Reprocessar → selecione um perfil → monitorize na Fila → reveja os resultados em Detalhe do Asset.",
+      "features": {
+        "transcoding": "Transcodificação GPU",
+        "transcodingDesc": "Deteta automaticamente NVIDIA NVENC, AMD AMF, Intel QSV ou recuo para CPU para velocidade de codificação ótima.",
+        "vmafAnalysis": "Qualidade VMAF",
+        "vmafDesc": "Medição de qualidade perceptual comparando origem vs. resultado. Pontuações acima de 90 são de qualidade broadcast.",
+        "profiles": "Perfis",
+        "profilesDesc": "6 predefinições integradas (Broadcast HD/SD, Web 4K/HD, Proxy, Social) mais um editor completo de perfis personalizados.",
+        "gpuAuto": "Deteção Automática",
+        "gpuAutoDesc": "Métricas do sistema, deteção de GPU e estado dos binários são verificados automaticamente no arranque."
+      }
+    },
+    "screens": {
+      "dashboard": {
+        "title": "Dashboard — Visão Geral do Sistema",
+        "desc": "O Dashboard mostra a saúde do sistema de relance: assets totais, jobs concluídos hoje e pontuação VMAF média.",
+        "stat1": "Assets Totais — todos os ficheiros multimédia na biblioteca",
+        "stat2": "Jobs Hoje — jobs concluídos nas últimas 24 horas",
+        "stat3": "VMAF Médio — pontuação de qualidade média dos outputs recentes",
+        "recentJobs": "Jobs Recentes — clique em qualquer job para abrir o Detalhe do Asset",
+        "tip1": "O Dashboard atualiza automaticamente a cada 10 segundos.",
+        "tip2": "Clique em qualquer job na lista de Jobs Recentes para saltar para o Detalhe do Asset.",
+        "tip3": "A barra de Distribuição VMAF mostra os níveis de qualidade de relance."
+      },
+      "library": {
+        "title": "Biblioteca — Gestão de Assets",
+        "desc": "A Biblioteca é o repositório de multimédia. Ingestione ficheiros via drag-and-drop ou diálogo de ficheiros, depois gerencie, pré-visualize e reprocesse-os.",
+        "dragDrop": "Arraste e largue ficheiros de qualquer lugar do seu sistema operativo",
+        "gridList": "Alterne entre vistas de Grelha e Lista",
+        "searchFilter": "Pesquise por nome de ficheiro e filtre por estado",
+        "reprocess": "Clique em qualquer asset para reprocessar com um perfil diferente",
+        "tip1": "Formatos suportados: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Passe o rato sobre um cartão da grelha para revelar os botões Abrir e Reproduzir.",
+        "tip3": "O modo de vista (Grelha/Lista) é memorizado entre sessões."
+      },
+      "queue": {
+        "title": "Fila — Monitorização de Jobs",
+        "desc": "A Fila mostra todos os jobs em tempo real. Veja o visualizador do pipeline de 8 etapas, aprove jobs em quarentena e tente novamente falhas.",
+        "pipeline": "Visualizador do pipeline de 8 etapas com passos codificados por cor",
+        "quarantine": "Jobs em quarentena aparecem em Aprovações Pendentes",
+        "approveReject": "Aprove para continuar, ou Rejeite para cancelar",
+        "retry": "Jobs falhados podem ser tentados novamente com um clique",
+        "tip1": "A Fila atualiza automaticamente a cada 2 segundos.",
+        "tip2": "Visto verde = concluído, Ponto azul = ativo, Escudo amarelo = quarentena, Vermelho = erro.",
+        "tip3": "Passe o rato sobre qualquer passo do pipeline para ver o seu nome e descrição."
+      },
+      "profiles": {
+        "title": "Perfis — Configuração de Transcodificação",
+        "desc": "Os perfis definem como o multimédia é transcodificado. Use predefinições integradas para fluxos de trabalho comuns, ou crie perfis personalizados com codec, resolução e definições de qualidade específicas.",
+        "presets": "6 predefinições de sistema: Broadcast HD/SD, Web 4K/HD, Proxy, Social",
+        "custom": "Crie perfis personalizados com o editor lateral",
+        "duplicate": "Duplique qualquer perfil como ponto de partida",
+        "settings": "Defina codec de vídeo, resolução, bitrate, LUFS de áudio e limiar VMAF",
+        "tip1": "As predefinições de sistema são só de leitura. Duplique-as para fazer alterações.",
+        "tip2": "CPU preset mais baixo = melhor qualidade mas codificação mais lenta.",
+        "tip3": "O limiar VMAF determina a pontuação mínima de qualidade aceitável."
+      },
+      "settings": {
+        "title": "Definições — Configuração",
+        "desc": "Configure a pasta de saída, jobs simultâneos, aceleração GPU, notificações, tema, idioma e mais.",
+        "general": "Geral — pasta de saída, jobs simultâneos, GPU, notificações",
+        "interface": "Interface — tema (Sistema/Claro/Escuro) e idioma",
+        "system": "Sistema — info do SO/hardware, versão FFmpeg, estatísticas BD",
+        "advanced": "Avançado — exportar/importar definições, reset de fábrica",
+        "tip1": "Defina primeiro a Pasta de Saída — é aqui que todos os ficheiros processados vão.",
+        "tip2": "Mais jobs simultâneos = mais uso de CPU/RAM. Comece com 2.",
+        "tip3": "O Reset de Fábrica apaga tudo. Exporte as suas definições primeiro se tiver dúvidas."
+      },
+      "logs": {
+        "title": "Registos — Diagnóstico",
+        "desc": "Veja registos estruturados da aplicação com filtragem por nível, fonte e intervalo de tempo. Exporte registos para resolução de problemas.",
+        "filter": "Filtre por nível (DEBUG/INFO/WARN/ERROR), fonte ou tempo",
+        "export": "Exporte todos os registos para um ficheiro de texto para partilha",
+        "levels": "Borda vermelha = ERROR, Borda amarela = WARN",
+        "autoScroll": "O scroll automático mantém a vista nas entradas mais recentes",
+        "tip1": "Use Ctrl+Shift+E como atalho para exportar registos.",
+        "tip2": "Pesquise mensagens de erro específicas para encontrar padrões.",
+        "tip3": "Limpar registos não afeta a base de dados ou os jobs."
+      }
+    }
   },
   "dashboard": {
     "assetsTotal": "Assets Totais",

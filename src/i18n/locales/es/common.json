@@ -24,7 +24,106 @@
     "ram": "RAM",
     "gpu": "GPU",
     "disk": "Disco",
-    "exit": "Salir"
+    "exit": "Salir",
+    "help": "Ayuda"
+  },
+  "help": {
+    "title": "Manual del Usuario",
+    "subtitle": "Referencia rápida para todas las pantallas y funciones",
+    "openFullGuide": "Abrir Guía Completa",
+    "tabs": {
+      "intro": "Introducción",
+      "dashboard": "Panel de control",
+      "library": "Biblioteca",
+      "queue": "Cola",
+      "profiles": "Perfiles",
+      "settings": "Configuración",
+      "logs": "Registros"
+    },
+    "intro": {
+      "whatIs": "¿Qué es Nexora Desktop?",
+      "description": "Nexora Desktop es una aplicación nativa multiplataforma para el procesamiento profesional de vídeo. Proporciona transcodificación acelerada por GPU, normalización de audio según el estándar EBU R128, puntuación de calidad perceptual (VMAF) y un pipeline completo de control de calidad de 8 etapas.",
+      "quickStart": "Inicio Rápido:",
+      "quickStartDesc": "Vaya a Biblioteca → arrastre un archivo de vídeo → haga clic en Reprocesar → seleccione un perfil → monitorice en Cola → revise los resultados en Detalle del Activo.",
+      "features": {
+        "transcoding": "Transcodificación GPU",
+        "transcodingDesc": "Detecta automáticamente NVIDIA NVENC, AMD AMF, Intel QSV o respaldo a CPU para una velocidad de codificación óptima.",
+        "vmafAnalysis": "Calidad VMAF",
+        "vmafDesc": "Medición de calidad perceptual comparando origen vs. salida. Puntuaciones superiores a 90 son de calidad broadcast.",
+        "profiles": "Perfiles",
+        "profilesDesc": "6 preajustes integrados (Broadcast HD/SD, Web 4K/HD, Proxy, Social) más un editor completo de perfiles personalizados.",
+        "gpuAuto": "Detección Automática",
+        "gpuAutoDesc": "Las métricas del sistema, detección de GPU y estado de binarios se verifican automáticamente al iniciar."
+      }
+    },
+    "screens": {
+      "dashboard": {
+        "title": "Panel de control — Visión general del sistema",
+        "desc": "El Panel de control muestra la salud del sistema de un vistazo: activos totales, trabajos completados hoy y puntuación VMAF promedio.",
+        "stat1": "Activos totales — todos los archivos multimedia en su biblioteca",
+        "stat2": "Trabajos hoy — trabajos completados en las últimas 24 horas",
+        "stat3": "VMAF promedio — puntuación de calidad media de las salidas recientes",
+        "recentJobs": "Trabajos recientes — haga clic en cualquier trabajo para abrir Detalle del Activo",
+        "tip1": "El Panel de control se actualiza automáticamente cada 10 segundos.",
+        "tip2": "Haga clic en cualquier trabajo de la lista para saltar a Detalle del Activo.",
+        "tip3": "La barra de Distribución VMAF muestra los niveles de calidad de un vistazo."
+      },
+      "library": {
+        "title": "Biblioteca — Gestión de activos",
+        "desc": "La Biblioteca es su repositorio multimedia. Ingeste archivos mediante arrastrar y soltar o diálogo de archivos, luego administre, previsualice y reprocese.",
+        "dragDrop": "Arrastre y suelte archivos desde cualquier lugar de su sistema operativo",
+        "gridList": "Alterne entre vistas de Cuadrícula y Lista",
+        "searchFilter": "Busque por nombre de archivo y filtre por estado",
+        "reprocess": "Haga clic en cualquier activo para reprocesar con un perfil diferente",
+        "tip1": "Formatos soportados: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Pase el cursor sobre una tarjeta para revelar los botones Abrir y Reproducir.",
+        "tip3": "El modo de vista (Cuadrícula/Lista) se recuerda entre sesiones."
+      },
+      "queue": {
+        "title": "Cola — Monitoreo de trabajos",
+        "desc": "La Cola muestra todos los trabajos en tiempo real. Observe el visualizador del pipeline de 8 etapas, apruebe trabajos en cuarentena y reintente fallidos.",
+        "pipeline": "Visualizador del pipeline de 8 etapas con pasos codificados por color",
+        "quarantine": "Los trabajos en cuarentena aparecen en Aprobaciones Pendientes",
+        "approveReject": "Apruebe para continuar, o Rechace para cancelar",
+        "retry": "Los trabajos fallidos pueden reintentarse con un clic",
+        "tip1": "La Cola se actualiza automáticamente cada 2 segundos.",
+        "tip2": "Verde = completado, Azul = activo, Amarillo = cuarentena, Rojo = error.",
+        "tip3": "Pase el cursor sobre cualquier paso del pipeline para ver su nombre y descripción."
+      },
+      "profiles": {
+        "title": "Perfiles — Configuración de transcodificación",
+        "desc": "Los perfiles definen cómo se transcodifica el multimedia. Use preajustes integrados para flujos de trabajo comunes, o cree perfiles personalizados con codec, resolución y ajustes de calidad específicos.",
+        "presets": "6 preajustes de sistema: Broadcast HD/SD, Web 4K/HD, Proxy, Social",
+        "custom": "Cree perfiles personalizados con el editor lateral",
+        "duplicate": "Duplique cualquier perfil como punto de partida",
+        "settings": "Defina codec de vídeo, resolución, bitrate, LUFS de audio y umbral VMAF",
+        "tip1": "Los preajustes de sistema son de solo lectura. Duplíquelos para hacer cambios.",
+        "tip2": "CPU preset más bajo = mejor calidad pero codificación más lenta.",
+        "tip3": "El umbral VMAF determina la puntuación mínima de calidad aceptable."
+      },
+      "settings": {
+        "title": "Configuración — Ajustes",
+        "desc": "Configure la carpeta de salida, trabajos simultáneos, aceleración GPU, notificaciones, tema, idioma y más.",
+        "general": "General — carpeta de salida, trabajos simultáneos, GPU, notificaciones",
+        "interface": "Interfaz — tema (Sistema/Claro/Oscuro) e idioma",
+        "system": "Sistema — info del SO/hardware, versión FFmpeg, estadísticas BD",
+        "advanced": "Avanzado — exportar/importar ajustes, restablecimiento de fábrica",
+        "tip1": "Configure primero la Carpeta de Salida — es donde irán todos los archivos procesados.",
+        "tip2": "Más trabajos simultáneos = más uso de CPU/RAM. Comience con 2.",
+        "tip3": "El Restablecimiento de Fábrica borra todo. Exporte sus ajustes primero si no está seguro."
+      },
+      "logs": {
+        "title": "Registros — Diagnóstico",
+        "desc": "Vea registros estructurados de la aplicación con filtrado por nivel, fuente y rango de tiempo. Exporte registros para resolución de problemas.",
+        "filter": "Filtre por nivel (DEBUG/INFO/WARN/ERROR), fuente o tiempo",
+        "export": "Exporte todos los registros a un archivo de texto para compartir",
+        "levels": "Borde rojo = ERROR, Borde amarillo = WARN",
+        "autoScroll": "El desplazamiento automático mantiene la vista en las entradas más recientes",
+        "tip1": "Use Ctrl+Shift+E como atajo para exportar registros.",
+        "tip2": "Busque mensajes de error específicos para encontrar patrones.",
+        "tip3": "Limpiar registros no afecta la base de datos ni los trabajos."
+      }
+    }
   },
   "dashboard": {
     "assetsTotal": "Activos totales",

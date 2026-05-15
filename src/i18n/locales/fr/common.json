@@ -24,7 +24,106 @@
     "ram": "Mémoire vive",
     "gpu": "Carte graphique",
     "disk": "Disque",
-    "exit": "Quitter"
+    "exit": "Quitter",
+    "help": "Aide"
+  },
+  "help": {
+    "title": "Manuel de l'Utilisateur",
+    "subtitle": "Référence rapide pour tous les écrans et fonctionnalités",
+    "openFullGuide": "Ouvrir le Guide Complet",
+    "tabs": {
+      "intro": "Introduction",
+      "dashboard": "Tableau de bord",
+      "library": "Bibliothèque",
+      "queue": "File d'attente",
+      "profiles": "Profils",
+      "settings": "Paramètres",
+      "logs": "Journaux"
+    },
+    "intro": {
+      "whatIs": "Qu'est-ce que Nexora Desktop ?",
+      "description": "Nexora Desktop est une application native multiplateforme pour le traitement professionnel de vidéo. Elle fournit un transcodage accéléré par GPU, une normalisation audio conforme à la norme EBU R128, une notation de qualité perceptuelle (VMAF) et un pipeline complet de contrôle qualité en 8 étapes.",
+      "quickStart": "Démarrage Rapide :",
+      "quickStartDesc": "Allez dans Bibliothèque → glissez un fichier vidéo → cliquez sur Retraiter → sélectionnez un profil → surveillez dans File d'attente → consultez les résultats dans Détail de l'asset.",
+      "features": {
+        "transcoding": "Transcodage GPU",
+        "transcodingDesc": "Détection automatique de NVIDIA NVENC, AMD AMF, Intel QSV ou retour au CPU pour une vitesse de codage optimale.",
+        "vmafAnalysis": "Qualité VMAF",
+        "vmafDesc": "Mesure de qualité perceptuelle comparant source vs. sortie. Les scores supérieurs à 90 sont de qualité broadcast.",
+        "profiles": "Profils",
+        "profilesDesc": "6 préréglages intégrés (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus un éditeur complet de profils personnalisés.",
+        "gpuAuto": "Détection Automatique",
+        "gpuAutoDesc": "Les métriques système, la détection GPU et l'état des binaires sont vérifiés automatiquement au démarrage."
+      }
+    },
+    "screens": {
+      "dashboard": {
+        "title": "Tableau de bord — Vue d'ensemble du système",
+        "desc": "Le Tableau de bord montre la santé du système en un coup d'œil : assets totaux, tâches terminées aujourd'hui et score VMAF moyen.",
+        "stat1": "Assets totaux — tous les fichiers multimédias dans votre bibliothèque",
+        "stat2": "Tâches du jour — tâches terminées dans les dernières 24 heures",
+        "stat3": "VMAF moyen — score de qualité moyen des sorties récentes",
+        "recentJobs": "Tâches récentes — cliquez sur une tâche pour ouvrir le Détail de l'asset",
+        "tip1": "Le Tableau de bord s'actualise automatiquement toutes les 10 secondes.",
+        "tip2": "Cliquez sur une tâche de la liste pour accéder au Détail de l'asset.",
+        "tip3": "La barre de Répartition VMAF montre les niveaux de qualité en un coup d'œil."
+      },
+      "library": {
+        "title": "Bibliothèque — Gestion des assets",
+        "desc": "La Bibliothèque est votre répertoire multimédia. Ingérez des fichiers par glisser-déposer ou dialogue de fichiers, puis gérez, prévisualisez et retraitez-les.",
+        "dragDrop": "Glissez-déposez des fichiers depuis n'importe où sur votre système d'exploitation",
+        "gridList": "Basculez entre les vues Grille et Liste",
+        "searchFilter": "Recherchez par nom de fichier et filtrez par statut",
+        "reprocess": "Cliquez sur un asset pour retraiter avec un profil différent",
+        "tip1": "Formats pris en charge : MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Survolez une carte de grille pour révéler les boutons Ouvrir et Lire.",
+        "tip3": "Le mode de vue (Grille/Liste) est mémorisé entre les sessions."
+      },
+      "queue": {
+        "title": "File d'attente — Surveillance des tâches",
+        "desc": "La File d'attente montre toutes les tâches en temps réel. Observez le visualiseur du pipeline de 8 étapes, approuvez les tâches en quarantaine et réessayez les échecs.",
+        "pipeline": "Visualiseur du pipeline de 8 étapes avec étapes codées par couleur",
+        "quarantine": "Les tâches en quarantaine apparaissent dans Approbations en attente",
+        "approveReject": "Approuvez pour continuer, ou Rejetez pour annuler",
+        "retry": "Les tâches échouées peuvent être relancées en un clic",
+        "tip1": "La File d'attente s'actualise automatiquement toutes les 2 secondes.",
+        "tip2": "Vert = terminé, Bleu = actif, Jaune = quarantaine, Rouge = erreur.",
+        "tip3": "Survolez une étape du pipeline pour voir son nom et sa description."
+      },
+      "profiles": {
+        "title": "Profils — Configuration de transcodage",
+        "desc": "Les profils définissent comment le multimédia est transcodé. Utilisez les préréglages intégrés pour les flux de travail courants, ou créez des profils personnalisés avec codec, résolution et paramètres de qualité spécifiques.",
+        "presets": "6 préréglages système : Broadcast HD/SD, Web 4K/HD, Proxy, Social",
+        "custom": "Créez des profils personnalisés avec l'éditeur latéral",
+        "duplicate": "Dupliquez n'importe quel profil comme point de départ",
+        "settings": "Définissez le codec vidéo, la résolution, le bitrate, les LUFS audio et le seuil VMAF",
+        "tip1": "Les préréglages système sont en lecture seule. Dupliquez-les pour faire des modifications.",
+        "tip2": "CPU preset plus bas = meilleure qualité mais encodage plus lent.",
+        "tip3": "Le seuil VMAF détermine le score de qualité minimal acceptable."
+      },
+      "settings": {
+        "title": "Paramètres — Configuration",
+        "desc": "Configurez le dossier de sortie, les tâches simultanées, l'accélération GPU, les notifications, le thème, la langue et plus.",
+        "general": "Général — dossier de sortie, tâches simultanées, GPU, notifications",
+        "interface": "Interface — thème (Système/Clair/Sombre) et langue",
+        "system": "Système — info SO/matériel, version FFmpeg, stats BD",
+        "advanced": "Avancé — export/import des paramètres, réinitialisation usine",
+        "tip1": "Définissez d'abord le Dossier de Sortie — c'est là que vont tous les fichiers traités.",
+        "tip2": "Plus de tâches simultanées = plus d'utilisation CPU/RAM. Commencez par 2.",
+        "tip3": "La Réinitialisation Usine efface tout. Exportez vos paramètres d'abord si vous n'êtes pas sûr."
+      },
+      "logs": {
+        "title": "Journaux — Diagnostic",
+        "desc": "Consultez les journaux structurés de l'application avec filtrage par niveau, source et plage horaire. Exportez les journaux pour le dépannage.",
+        "filter": "Filtrez par niveau (DEBUG/INFO/WARN/ERROR), source ou temps",
+        "export": "Exportez tous les journaux vers un fichier texte pour partage",
+        "levels": "Bordure rouge = ERROR, Bordure jaune = WARN",
+        "autoScroll": "Le défilement automatique garde la vue sur les entrées les plus récentes",
+        "tip1": "Utilisez Ctrl+Shift+E comme raccourci pour exporter les journaux.",
+        "tip2": "Recherchez des messages d'erreur spécifiques pour trouver des patterns.",
+        "tip3": "Effacer les journaux n'affecte pas la base de données ni les tâches."
+      }
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Ressources",
