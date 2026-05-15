@@ -37,17 +37,14 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
         return $false
     }
 
-    # Squash merge: aplica todas as mudancas da dev como um patch unico
-    git merge --squash $sourceBranch 2>&1 | Out-Null
+    # Merge normal com theirs: evita conflitos recorrentes ao actualizar merge-base
+    git merge -X theirs --no-edit $sourceBranch 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        Write-Err "Merge squash falhou. Possiveis conflitos de ficheiros."
-        Write-Info "Resolva manualmente: git checkout main && git merge --squash $sourceBranch"
+        Write-Err "Merge falhou. Possiveis conflitos de ficheiros."
+        Write-Info "Resolva manualmente: git checkout main && git merge -X theirs --no-edit $sourceBranch"
         git checkout $sourceBranch 2>&1 | Out-Null
         return $false
     }
-
-    # Commit de release
-    git commit -m "chore(release): v$targetVersion" --no-verify 2>&1 | Out-Null
 
     if ($authUrl) {
         git push -u "$authUrl" main --tags 2>&1
