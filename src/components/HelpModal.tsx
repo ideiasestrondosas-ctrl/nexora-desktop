@@ -29,24 +29,32 @@ const SCREENSHOTS: Record<Exclude<ScreenTab, 'intro'>, string> = {
   logs: '/screenshots/asset-detail.png',
 };
 
-function ScreenCard({ title, icon, children, tips, screenshot }: {
+function ScreenCard({ title, icon, children, tips, screenshot, onImageClick }: {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
   tips?: string[];
   screenshot?: string;
+  onImageClick?: () => void;
 }) {
   return (
     <div className="bg-bg-secondary/80 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden">
       {screenshot && (
-        <div className="w-full h-40 bg-bg-tertiary border-b border-border/50 overflow-hidden">
+        <div
+          className="w-full h-40 bg-bg-tertiary border-b border-border/50 overflow-hidden cursor-pointer group relative"
+          onClick={onImageClick}
+          title="Click to enlarge"
+        >
           <img
             src={screenshot}
             alt={title}
-            className="w-full h-full object-cover object-top"
+            className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <span className="text-white text-xs font-bold bg-black/50 px-2 py-1 rounded-md">Click to enlarge</span>
+          </div>
         </div>
       )}
       <div className="p-5 space-y-3">
@@ -77,15 +85,22 @@ function ScreenCard({ title, icon, children, tips, screenshot }: {
 
 export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<ScreenTab>('intro');
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const { t } = useTranslation();
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (lightboxImage) {
+          setLightboxImage(null);
+        } else {
+          onClose();
+        }
+      }
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [onClose]);
+  }, [onClose, lightboxImage]);
 
   const openFullGuide = async () => {
     try {
@@ -189,6 +204,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
               <ScreenCard
                 title={t('help.screens.dashboard.title')}
                 icon={<LayoutDashboard className="w-4 h-4" />}
+                onImageClick={() => setLightboxImage(SCREENSHOTS.dashboard)}
                 tips={[
                   t('help.screens.dashboard.tip1'),
                   t('help.screens.dashboard.tip2'),
@@ -212,6 +228,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
               <ScreenCard
                 title={t('help.screens.library.title')}
                 icon={<Library className="w-4 h-4" />}
+                onImageClick={() => setLightboxImage(SCREENSHOTS.library)}
                 tips={[
                   t('help.screens.library.tip1'),
                   t('help.screens.library.tip2'),
@@ -235,6 +252,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
               <ScreenCard
                 title={t('help.screens.queue.title')}
                 icon={<ListVideo className="w-4 h-4" />}
+                onImageClick={() => setLightboxImage(SCREENSHOTS.queue)}
                 tips={[
                   t('help.screens.queue.tip1'),
                   t('help.screens.queue.tip2'),
@@ -258,6 +276,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
               <ScreenCard
                 title={t('help.screens.profiles.title')}
                 icon={<UserCircle className="w-4 h-4" />}
+                onImageClick={() => setLightboxImage(SCREENSHOTS.profiles)}
                 tips={[
                   t('help.screens.profiles.tip1'),
                   t('help.screens.profiles.tip2'),
@@ -281,6 +300,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
               <ScreenCard
                 title={t('help.screens.settings.title')}
                 icon={<Settings className="w-4 h-4" />}
+                onImageClick={() => setLightboxImage(SCREENSHOTS.settings)}
                 tips={[
                   t('help.screens.settings.tip1'),
                   t('help.screens.settings.tip2'),
@@ -304,6 +324,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
               <ScreenCard
                 title={t('help.screens.logs.title')}
                 icon={<Terminal className="w-4 h-4" />}
+                onImageClick={() => setLightboxImage(SCREENSHOTS.logs)}
                 tips={[
                   t('help.screens.logs.tip1'),
                   t('help.screens.logs.tip2'),
@@ -324,6 +345,31 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
 
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div className="relative max-w-[90vw] max-h-[85vh] flex flex-col items-center">
+            <button
+              onClick={() => setLightboxImage(null)}
+              className="absolute -top-10 right-0 p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+              title={t('common.close')}
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={lightboxImage}
+              alt="Screenshot"
+              className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <p className="text-white/60 text-xs mt-2">Click outside to close</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
