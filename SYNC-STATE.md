@@ -15,21 +15,24 @@ Agente: Claude Code (Kimi K2.6)
 
 ### Sessao Actual — Correcoes HelpOverlay + screenshots — CONCLUIDO
 
-**1. Correcao das traducoes EN no HelpOverlay**
-- Causa: o `i18n/index.ts` carrega o ingles de `base.json`, mas as chaves `help.*` novas foram adicionadas ao `common.json`.
-- Solucao: adicionadas todas as chaves `help.screens.*`, `help.tabs.*` (dashboard, library, queue, settings, logs) e `help.openFullGuide` ao `base.json`.
-- Resultado: o popup ja mostra texto traduzido em vez de chaves brutas.
+**1. Correcao das traducoes EN no HelpOverlay (v2)**
+- Causa: as chaves `help.screens.*` foram adicionadas dentro de `help.about.screens` no `base.json`, mas o componente procura `help.screens.*`.
+- Solucao: movidas as chaves `help.screens.*` do nivel `help.about` para o nivel `help` (raiz da secao help).
+- Adicionadas tambem `help.openFullGuide`, `help.intro.quickStart` e `help.intro.quickStartDesc` ao nivel correto.
+- Resultado: todas as chaves de traducao sao resolvidas correctamente.
 
 **2. Correcao do scroll horizontal no HelpOverlay**
 - Adicionada classe CSS `.scrollbar-hide` ao `index.css` (esconde scrollbar em todos os browsers).
 - As tabs do HelpOverlay usam `scrollbar-hide` + padding reduzido (`px-2.5 py-1.5`).
 - Resultado: sem scroll horizontal visivel.
 
-**3. Correcao dos screenshots**
+**3. Correcao dos screenshots + Lightbox**
 - Renomeado `docs/screenshots/queues.png` → `queue.png` (o README procurava `queue.png`).
 - Copiados todos os PNGs para `public/screenshots/` para serem servidos pela app Tauri.
-- Adicionadas imagens aos cards de cada ecra no HelpOverlay (Dashboard, Library, Queue, Profiles, Settings, Logs).
-- Resultado: screenshots visiveis tanto no README do GitHub como dentro da app.
+- Adicionadas imagens aos cards de cada ecra no HelpOverlay.
+- **Lightbox**: ao clicar numa imagem, abre overlay em tamanho completo (`max-w-[90vw] max-h-[85vh]`) com fundo escurecido.
+- Fecha com click fora, botao X, ou tecla Escape.
+- Resultado: screenshots visiveis no card e ampliaveis para analise detalhada.
 
 ---
 
