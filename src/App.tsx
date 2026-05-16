@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, Library as LibraryIcon, ListVideo,
@@ -77,18 +77,7 @@ function App() {
 
   return (
     <div className="flex h-screen bg-bg-primary text-text-primary overflow-hidden font-sans selection:bg-brand/30">
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: 'var(--color-bg-secondary)',
-            color: 'var(--color-text-primary)',
-            border: '1px solid var(--color-border)',
-            fontSize: '12px',
-            fontWeight: 'bold'
-          }
-        }}
-      />
+      <Toaster position="bottom-right" richColors closeButton />
 
       {/* SIDEBAR */}
       <aside className="w-64 bg-bg-primary border-r border-border flex flex-col shrink-0 z-50">
