@@ -1,11 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
-import { Toaster } from 'sonner';
+import { listen } from '@tauri-apps/api/event';
+import { Toaster, toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import {
-  LayoutDashboard, Library as LibraryIcon, ListVideo,
-  Settings, Terminal, UserCircle, ShieldCheck
+  LayoutDashboard,
+  Library as LibraryIcon,
+  ListVideo,
+  Settings,
+  Terminal,
+  UserCircle,
+  ShieldCheck,
 } from 'lucide-react';
 
 import DashboardPage from '@/pages/DashboardPage';
@@ -21,6 +27,7 @@ import { HelpOverlay } from '@/components/HelpModal';
 import { useSettingsStore } from '@/store/settings';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { cn } from '@/lib/utils';
+import { hasSupportedExtension } from '@/components/DropZone';
 
 type Tab = 'dashboard' | 'library' | 'queue' | 'profiles' | 'settings' | 'logs' | 'detail';
 
@@ -32,14 +39,62 @@ function App() {
   const [appVersion, setAppVersion] = useState('—');
   const [helpOpen, setHelpOpen] = useState(false);
 
-  const theme = useSettingsStore(state => state.theme);
+  const theme = useSettingsStore((state) => state.theme);
+
+  // Refs para aceder ao tab activo e à função t sem re-registar o listener
+  const activeTabRef = useRef<Tab>(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
+  // Listener global de drag-drop — trata drops em qualquer página excepto Biblioteca
+  // (a LibraryPage tem o seu próprio listener para refresh imediato da lista)
+  useEffect(() => {
+    const DEFAULT_PROFILE = 'web-hd';
+    const unsub = listen<{ paths: string[] }>('tauri://drag-drop', async (event) => {
+      if (activeTabRef.current === 'library') return;
+
+      const paths = event.payload.paths.filter(hasSupportedExtension);
+      if (paths.length === 0) {
+        toast.error(tRef.current('dropZone.noSupportedFiles'));
+        return;
+      }
+
+      let ingested = 0;
+      for (const path of paths) {
+        try {
+          const asset = await invoke<{ id: string }>('ingest_asset', { path });
+          await invoke('submit_job', { assetId: asset.id, profile: DEFAULT_PROFILE, priority: 0 });
+          ingested++;
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error('Ingest global falhou:', msg);
+          toast.error(tRef.current('library.addError', { message: msg }));
+        }
+      }
+
+      if (ingested > 0) {
+        setActiveTab('library');
+        toast.success(tRef.current('library.filesAdded', { count: ingested }));
+      }
+    });
+    return () => {
+      unsub.then((fn) => fn());
+    };
+  }, []); // registado uma vez — activeTab e t lidos via ref
 
   // Handle theme changes
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
       root.classList.add(systemTheme);
     } else {
       root.classList.add(theme);
@@ -53,7 +108,7 @@ function App() {
       .catch(() =>
         invoke<string>('get_app_version')
           .then(setAppVersion)
-          .catch(() => setAppVersion('?'))
+          .catch(() => setAppVersion('?')),
       );
   }, []);
 
@@ -90,28 +145,39 @@ function App() {
             <ShieldCheck className="text-white" size={24} />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-tighter text-text-primary leading-none">NEXORA</h1>
-            <span className="text-[10px] font-black tracking-[0.2em] text-brand uppercase">Desktop</span>
+            <h1 className="text-lg font-black tracking-tighter text-text-primary leading-none">
+              NEXORA
+            </h1>
+            <span className="text-[10px] font-black tracking-[0.2em] text-brand uppercase">
+              Desktop
+            </span>
           </div>
         </div>
 
         {/* MAIN NAV */}
         <nav className="flex-1 px-4 space-y-2">
-          {navItems.map(item => {
+          {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id || (item.id === 'library' && activeTab === 'detail');
+            const isActive =
+              activeTab === item.id || (item.id === 'library' && activeTab === 'detail');
             return (
               <button
                 key={item.id}
                 onClick={() => handleNavigate(item.id)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative",
+                  'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative',
                   isActive
-                    ? "bg-brand/10 text-text-primary font-bold"
-                    : "text-text-muted hover:text-text-secondary hover:bg-bg-hover"
+                    ? 'bg-brand/10 text-text-primary font-bold'
+                    : 'text-text-muted hover:text-text-secondary hover:bg-bg-hover',
                 )}
               >
-                <Icon size={20} className={cn("transition-transform", isActive ? "text-brand" : "group-hover:scale-110")} />
+                <Icon
+                  size={20}
+                  className={cn(
+                    'transition-transform',
+                    isActive ? 'text-brand' : 'group-hover:scale-110',
+                  )}
+                />
                 <span className="text-sm">{item.label}</span>
                 {isActive && (
                   <div className="absolute left-0 w-1 h-6 bg-[#1A6FD4] rounded-r-full"></div>
@@ -126,8 +192,10 @@ function App() {
           <button
             onClick={() => setActiveTab('logs')}
             className={cn(
-              "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200",
-              activeTab === 'logs' ? "bg-bg-hover text-text-primary" : "text-text-muted hover:text-text-secondary"
+              'w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200',
+              activeTab === 'logs'
+                ? 'bg-bg-hover text-text-primary'
+                : 'text-text-muted hover:text-text-secondary',
             )}
           >
             <Terminal size={18} />
@@ -135,7 +203,9 @@ function App() {
           </button>
 
           <div className="px-4 py-2 flex flex-col">
-            <span className="text-[9px] font-black text-text-muted uppercase tracking-[0.3em]">{t('app.version')}</span>
+            <span className="text-[9px] font-black text-text-muted uppercase tracking-[0.3em]">
+              {t('app.version')}
+            </span>
             <span className="text-[10px] font-bold text-brand uppercase">v{appVersion}</span>
           </div>
         </div>
@@ -147,12 +217,14 @@ function App() {
 
         <HelpOverlay open={helpOpen} onOpenChange={setHelpOpen} />
 
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div
+          className={cn(
+            'flex-1 p-8 custom-scrollbar',
+            activeTab === 'library' ? 'flex flex-col overflow-hidden' : 'overflow-y-auto',
+          )}
+        >
           {activeTab === 'dashboard' && (
-            <DashboardPage
-              onNavigate={handleNavigate}
-              onSelectAsset={handleSelectAsset}
-            />
+            <DashboardPage onNavigate={handleNavigate} onSelectAsset={handleSelectAsset} />
           )}
           {activeTab === 'library' && <LibraryPage />}
           {activeTab === 'queue' && <QueuePage />}
@@ -160,10 +232,7 @@ function App() {
           {activeTab === 'settings' && <SettingsPage />}
           {activeTab === 'logs' && <LogsPage />}
           {activeTab === 'detail' && selectedAssetId && (
-            <AssetDetailPage
-              assetId={selectedAssetId}
-              onBack={() => setActiveTab('library')}
-            />
+            <AssetDetailPage assetId={selectedAssetId} onBack={() => setActiveTab('library')} />
           )}
         </div>
       </main>
