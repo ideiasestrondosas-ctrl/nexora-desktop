@@ -264,6 +264,7 @@ nexora-desktop/
 | 2026-05-14 | i18n completo: Base Master EN, 5 idiomas (PT/EN/ES/FR/DE), ~550 chaves, todas as strings hardcoded extraÃ­das, formataÃ§Ã£o de datas dinÃ¢mica, sync de idioma no arranque | Claude Code (Kimi K2.6) | src/i18n/**/*, src/pages/*, src/components/* (15 ficheiros), scripts/translate-i18n.cjs |
 | 2026-05-14 | Traducao ES/FR/DE completadas via Ollama local (qwen2.5:7b-instruct, batches de 8, retry com backoff), script translate-ollama.cjs melhorado, 556 chaves/idioma, tsc/vitest/cargo OK | Claude Code (Kimi K2.6) | scripts/translate-ollama.cjs, src/i18n/locales/es/common.json, src/i18n/locales/fr/common.json, src/i18n/locales/de/common.json |
 | 2026-05-16 | Correcao bloco help duplicado em PT/ES/FR/DE (removido JSON invalido), traducao completa para 10 novos idiomas (AR/IT/JA/KO/NL/PL/RU/SV/TR/ZH) via Ollama local, script translate-all.cjs criado, 618 chaves/idioma, tsc OK | Claude Code (Kimi K2.6) | scripts/translate-all.cjs, src/i18n/locales/*/common.json |
+| 2026-05-16 | Correcao mojibake (caracteres UTF-8 duplamente codificados) em PT/ES/FR/DE via script fix-encoding.cjs, menu de idiomas expandido para 15 linguas em SettingsPage.tsx e i18n/index.ts | Claude Code (Kimi K2.6) | scripts/fix-encoding.cjs, src/i18n/index.ts, src/pages/SettingsPage.tsx, src/i18n/locales/en/base.json, src/i18n/locales/{pt,es,fr,de}/common.json |
 
 ---
 

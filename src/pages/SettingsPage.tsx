@@ -21,7 +21,7 @@ interface Settings {
   gpu_acceleration: boolean;
   notifications_enabled: boolean;
   theme: 'system' | 'light' | 'dark';
-  language: 'pt' | 'en' | 'es' | 'fr' | 'de';
+  language: 'pt' | 'en' | 'es' | 'fr' | 'de' | 'ar' | 'it' | 'ja' | 'ko' | 'nl' | 'pl' | 'ru' | 'sv' | 'tr' | 'zh';
   default_profile: string;
   vmaf_threshold: number;
   target_lufs: number;
@@ -107,7 +107,7 @@ export default function SettingsPage() {
         if (backendSettings.theme) settingsStore.setTheme(backendSettings.theme as 'system' | 'light' | 'dark');
         setLocalSettings(prev => ({
           ...prev,
-          language: (backendSettings.language as 'pt' | 'en' | 'es' | 'fr' | 'de') || 'pt',
+          language: (backendSettings.language as Settings['language']) || 'pt',
           default_profile: backendSettings.default_profile || 'broadcast-hd',
           vmaf_threshold: Number(backendSettings.vmaf_threshold) || 85,
           target_lufs: Number(backendSettings.target_lufs) || -23,
@@ -478,6 +478,16 @@ export default function SettingsPage() {
               <option value="es">{t('settings.interface.es')}</option>
               <option value="fr">{t('settings.interface.fr')}</option>
               <option value="de">{t('settings.interface.de')}</option>
+              <option value="ar">{t('settings.interface.ar')}</option>
+              <option value="it">{t('settings.interface.it')}</option>
+              <option value="ja">{t('settings.interface.ja')}</option>
+              <option value="ko">{t('settings.interface.ko')}</option>
+              <option value="nl">{t('settings.interface.nl')}</option>
+              <option value="pl">{t('settings.interface.pl')}</option>
+              <option value="ru">{t('settings.interface.ru')}</option>
+              <option value="sv">{t('settings.interface.sv')}</option>
+              <option value="tr">{t('settings.interface.tr')}</option>
+              <option value="zh">{t('settings.interface.zh')}</option>
             </select>
             <p className="mt-3 text-xs text-text-muted">
               {t('settings.interface.languageHint')}

@@ -47,6 +47,17 @@ Agente: Claude Code (Kimi K2.6)
 - Modelo: `qwen2.5:7b-instruct` via Ollama local.
 - Resultado: todos os 15 idiomas da app agora tem `common.json` completo.
 
+**6. Correcao mojibake (caracteres especiais corrompidos)**
+- Causa: ficheiros PT/ES/FR/DE tinham caracteres UTF-8 interpretados como Windows-1252 (double-encoding), resultando em `VersÃ£o` em vez de `Versão`, `Ã‰dition` em vez de `Édition`.
+- Criado script `scripts/fix-encoding.cjs` com mapeamento manual para padrões complexos (3+ chars) e automático para padrões simples (2 chars).
+- Resultado: todos os caracteres especiais (acentos, cedilhas, em-dash, arrows, aspas curvas) estão corretos nos 4 ficheiros.
+
+**7. Menu de idiomas expandido para 15 linguas**
+- `src/i18n/index.ts`: registados os 10 novos idiomas no i18next.
+- `src/pages/SettingsPage.tsx`: tipo `Settings.language`, cast e dropdown `<select>` expandidos para 15 opções.
+- `src/i18n/locales/en/base.json` + PT/ES/FR/DE: adicionadas chaves `settings.interface.{ar,it,ja,ko,nl,pl,ru,sv,tr,zh}` com nomes traduzidos.
+- Resultado: utilizador pode agora seleccionar qualquer um dos 15 idiomas em Definições > Interface.
+
 ---
 
 ## Estado de compilacao
@@ -56,6 +67,7 @@ Agente: Claude Code (Kimi K2.6)
 - `vitest run`: **OK** (21/21 tests passaram)
 - `tauri build --debug`: **OK** (MSI 146MB + NSIS 92MB)
 - Validacao JSON i18n: **OK** (16 ficheiros, 0 invalidos)
+- `fix-encoding.cjs`: script de correcao de mojibake criado e executado com sucesso
 
 ---
 
@@ -78,12 +90,16 @@ Agente: Claude Code (Kimi K2.6)
 MODIFICADOS:
 SYNC-STATE.md
 PROGRESS-DESKTOP.md
+src/i18n/index.ts
+src/pages/SettingsPage.tsx
+src/i18n/locales/en/base.json
 src/i18n/locales/pt/common.json
 src/i18n/locales/es/common.json
 src/i18n/locales/fr/common.json
 src/i18n/locales/de/common.json
 NOVOS:
 scripts/translate-all.cjs
+scripts/fix-encoding.cjs
 src/i18n/locales/ar/common.json
 src/i18n/locales/it/common.json
 src/i18n/locales/ja/common.json
