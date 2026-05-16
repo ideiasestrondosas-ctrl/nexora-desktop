@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { Archive, Activity, Gauge, Clock, Loader2, Film, ChevronRight } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 
 // Backend retorna camelCase via serde(rename_all = "camelCase")
 interface AppStats {
@@ -46,6 +48,8 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [assetMap, setAssetMap] = useState<AssetMap>({});
   const [loading, setLoading] = useState(true);
+  const metrics = useSystemMetrics();
+  const [metricsHistory, setMetricsHistory] = useState<{ cpu: number; ram: number }[]>([]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -73,6 +77,15 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
     const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, [fetchData]);
+
+  // Manter histórico de 60 amostras (1 min a 1 sample/2s)
+  useEffect(() => {
+    if (!metrics) return;
+    const ramPct = metrics.memTotalBytes > 0
+      ? (metrics.memUsedBytes / metrics.memTotalBytes) * 100
+      : 0;
+    setMetricsHistory((h) => [...h.slice(-59), { cpu: metrics.cpuPercent, ram: ramPct }]);
+  }, [metrics]);
 
   const getVmafColor = (score: number | null) => {
     if (score === null) return 'text-text-muted';
@@ -211,31 +224,68 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
         </div>
       </div>
 
-      {/* DISTRIBUIÇÃO VMAF — largura total */}
-      <div className="bg-bg-secondary border border-border rounded-2xl p-6">
-        <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-6">{t('dashboard.vmafDistribution')}</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded bg-red-500" />
-            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmafBelow70')}</span>
-            <span className="text-xs font-bold text-text-primary">{vmafDist.below70} jobs</span>
+      {/* GRÁFICOS — VMAF + Sistema */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* Histograma VMAF */}
+        <div className="bg-bg-secondary border border-border rounded-2xl p-6">
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-4">
+            {t('dashboard.vmafDistribution')}
+          </h3>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={[
+              { range: '<70',    count: vmafDist.below70,    fill: '#ef4444' },
+              { range: '70–85',  count: vmafDist.from70to85, fill: '#eab308' },
+              { range: '85–95',  count: vmafDist.from85to95, fill: '#22c55e' },
+              { range: '>95',    count: vmafDist.above95,    fill: '#1A6FD4' },
+            ]} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+              <XAxis dataKey="range" tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }} />
+              <Tooltip
+                contentStyle={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 11 }}
+                cursor={{ fill: 'var(--color-bg-hover)' }}
+              />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                {[
+                  { fill: '#ef4444' }, { fill: '#eab308' },
+                  { fill: '#22c55e' }, { fill: '#1A6FD4' },
+                ].map((entry, i) => (
+                  <rect key={i} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Sparklines CPU + RAM */}
+        <div className="bg-bg-secondary border border-border rounded-2xl p-6 space-y-4">
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+            {t('dashboard.systemMetrics')}
+          </h3>
+          <div>
+            <div className="flex justify-between text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">
+              <span>CPU</span>
+              <span>{metrics ? `${metrics.cpuPercent.toFixed(0)}%` : '—'}</span>
+            </div>
+            <ResponsiveContainer width="100%" height={50}>
+              <AreaChart data={metricsHistory} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <Area type="monotone" dataKey="cpu" stroke="#1A6FD4" fill="#1A6FD4" fillOpacity={0.15} strokeWidth={1.5} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded bg-yellow-500" />
-            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmaf70to85')}</span>
-            <span className="text-xs font-bold text-text-primary">{vmafDist.from70to85} jobs</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded bg-green-500" />
-            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmaf85to95')}</span>
-            <span className="text-xs font-bold text-text-primary">{vmafDist.from85to95} jobs</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded bg-brand" />
-            <span className="text-xs font-bold text-text-secondary flex-1">{t('dashboard.vmafAbove95')}</span>
-            <span className="text-xs font-bold text-text-primary">{vmafDist.above95} jobs</span>
+          <div>
+            <div className="flex justify-between text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">
+              <span>RAM</span>
+              <span>{metrics ? `${((metrics.memUsedBytes / metrics.memTotalBytes) * 100).toFixed(0)}%` : '—'}</span>
+            </div>
+            <ResponsiveContainer width="100%" height={50}>
+              <AreaChart data={metricsHistory} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <Area type="monotone" dataKey="ram" stroke="#4FB8A0" fill="#4FB8A0" fillOpacity={0.15} strokeWidth={1.5} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
+
       </div>
     </div>
   );
