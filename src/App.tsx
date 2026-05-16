@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { getVersion } from '@tauri-apps/api/app';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import {
@@ -28,7 +29,7 @@ function App() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
-  const [appVersion, setAppVersion] = useState('2.0.0');
+  const [appVersion, setAppVersion] = useState('—');
   const [helpOpen, setHelpOpen] = useState(false);
 
   const theme = useSettingsStore(state => state.theme);
@@ -45,13 +46,15 @@ function App() {
     }
   }, [theme]);
 
-  // Load app version
+  // Carregar versão real do binário Tauri
   useEffect(() => {
-    if (typeof invoke === 'function') {
-      invoke<string>('get_app_version')
-        .then(setAppVersion)
-        .catch(() => setAppVersion('2.0.0'));
-    }
+    getVersion()
+      .then(setAppVersion)
+      .catch(() =>
+        invoke<string>('get_app_version')
+          .then(setAppVersion)
+          .catch(() => setAppVersion('?'))
+      );
   }, []);
 
   const navItems = [
