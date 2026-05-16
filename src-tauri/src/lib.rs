@@ -35,6 +35,26 @@ pub fn run() {
 
             queue::start(app.handle().clone(), &db_path);
 
+            // Thread de espaço em disco — emite "disk-space" a cada 10 s
+            let disk_handle = app.handle().clone();
+            std::thread::spawn(move || {
+                loop {
+                    std::thread::sleep(std::time::Duration::from_secs(10));
+                    let stats = disk_handle
+                        .path()
+                        .app_data_dir()
+                        .ok()
+                        .and_then(|p| p.to_str().map(str::to_string))
+                        .and_then(|path| commands::system::get_disk_space(path).ok());
+                    if let Some(s) = stats {
+                        let _ = disk_handle.emit("disk-space", serde_json::json!({
+                            "diskFreeBytes": s.free_bytes,
+                            "diskTotalBytes": s.total_bytes,
+                        }));
+                    }
+                }
+            });
+
             // Thread de métricas do sistema — emite "system-metrics" a cada 2 s
             let metrics_handle = app.handle().clone();
             std::thread::spawn(move || {
