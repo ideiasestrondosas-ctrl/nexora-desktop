@@ -7,6 +7,10 @@ dist/
 build/
 out/
 
+# Bundle stats (gerado por rollup-plugin-visualizer)
+stats.html
+dist/stats.html
+
 # Rust (GRANDE - nunca commitar)
 target/
 src-tauri/target/
