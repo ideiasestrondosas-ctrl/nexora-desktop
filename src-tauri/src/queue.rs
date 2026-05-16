@@ -189,8 +189,8 @@ fn run_job<R: Runtime>(
         "assetSizeBytes": size_bytes,
     });
 
-    let mut child = Command::new("node")
-        .arg(&script_path)
+    let mut cmd = Command::new("node");
+    cmd.arg(&script_path)
         .env("NEXORA_DB_PATH", db_path)
         .env("NEXORA_FFMPEG_PATH", &ffmpeg_path)
         .env("NEXORA_FFPROBE_PATH", &ffprobe_path)
@@ -198,9 +198,21 @@ fn run_job<R: Runtime>(
         .env("NEXORA_OUTPUT_DIR", &output_dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    // Esconder a janela de console Node.js no Windows
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    let mut child = cmd
         .spawn()
         .map_err(|e| anyhow::anyhow!("Failed to spawn sidecar: {}", e))?;
+
+    info!("[sidecar] arrancou com PID {} para job {}", child.id(), job_id);
 
     // Enviar job JSON via stdin
     if let Some(mut stdin) = child.stdin.take() {

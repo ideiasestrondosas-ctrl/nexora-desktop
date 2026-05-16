@@ -4,6 +4,8 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
+/// Spawn de sidecar persistente (daemon). Actualmente não usado — o modelo adoptado
+/// é um processo Node.js por job, gerido em queue.rs::run_job().
 #[allow(dead_code)]
 pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow::Result<()> {
     let script_path = resolve_script_path(&app);
