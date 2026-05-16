@@ -11,7 +11,16 @@ interface DropZoneProps {
   className?: string;
 }
 
-export const SUPPORTED_EXTENSIONS = ['.mp4', '.mkv', '.mov', '.mxf', '.avi', '.webm', '.ts', '.m2ts'] as const;
+export const SUPPORTED_EXTENSIONS = [
+  '.mp4',
+  '.mkv',
+  '.mov',
+  '.mxf',
+  '.avi',
+  '.webm',
+  '.ts',
+  '.m2ts',
+] as const;
 
 export function hasSupportedExtension(path: string): boolean {
   const lower = path.toLowerCase();
@@ -48,13 +57,19 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
     return () => {
       unlisteners.forEach((p) => p.then((fn) => fn()));
     };
-  }, []); // deps vazias — regista exactamente uma vez
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // deps vazias — listeners registados uma única vez; onFilesSelectedRef garante acesso à versão actual
 
   const handleOpenFileDialog = async () => {
     try {
       const selected = await open({
         multiple: true,
-        filters: [{ name: t('dropZone.videoFilter'), extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm', 'ts', 'm2ts'] }],
+        filters: [
+          {
+            name: t('dropZone.videoFilter'),
+            extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm', 'ts', 'm2ts'],
+          },
+        ],
       });
       if (Array.isArray(selected)) {
         onFilesSelectedRef.current(selected);
@@ -85,7 +100,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
         isDragging
           ? 'border-nexora-green bg-nexora-green/5'
           : 'border-gray-300 dark:border-gray-700 hover:border-nexora-blue hover:bg-nexora-blue/5',
-        className
+        className,
       )}
       onDragOver={(e) => e.preventDefault()}
     >
