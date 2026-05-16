@@ -6,8 +6,17 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import {
-  Library, Search, Filter, Grid2X2, List, Film,
-  ExternalLink, Trash2, Play, Plus, FolderOpen
+  Library,
+  Search,
+  Filter,
+  Grid2X2,
+  List,
+  Film,
+  ExternalLink,
+  Trash2,
+  Play,
+  Plus,
+  FolderOpen,
 } from 'lucide-react';
 import { hasSupportedExtension } from '@/components/DropZone';
 
@@ -53,40 +62,43 @@ export default function LibraryPage() {
   }, []);
 
   // Ingerir lista de paths e submeter jobs automaticamente
-  const ingestPaths = useCallback(async (paths: string[]) => {
-    const validPaths = paths.filter(hasSupportedExtension);
-    if (validPaths.length === 0) {
-      toast.error(t('dropZone.noSupportedFiles'));
-      return;
-    }
-
-    setIsIngesting(true);
-    let ingested = 0;
-    const errors: string[] = [];
-
-    for (const path of validPaths) {
-      try {
-        const asset = await invoke<Asset>('ingest_asset', { path });
-        // Submeter job automaticamente com o perfil por defeito
-        await invoke('submit_job', { assetId: asset.id, profile: DEFAULT_PROFILE, priority: 0 });
-        ingested++;
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(msg);
-        console.error('Ingest/submit failed:', msg);
+  const ingestPaths = useCallback(
+    async (paths: string[]) => {
+      const validPaths = paths.filter(hasSupportedExtension);
+      if (validPaths.length === 0) {
+        toast.error(t('dropZone.noSupportedFiles'));
+        return;
       }
-    }
 
-    setIsIngesting(false);
+      setIsIngesting(true);
+      let ingested = 0;
+      const errors: string[] = [];
 
-    if (ingested > 0) {
-      toast.success(t('library.filesAdded', { count: ingested }));
-      await fetchAssets();
-    }
-    if (errors.length > 0) {
-      toast.error(t('library.addError', { message: errors[0] }));
-    }
-  }, [fetchAssets, t]);
+      for (const path of validPaths) {
+        try {
+          const asset = await invoke<Asset>('ingest_asset', { path });
+          // Submeter job automaticamente com o perfil por defeito
+          await invoke('submit_job', { assetId: asset.id, profile: DEFAULT_PROFILE, priority: 0 });
+          ingested++;
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(msg);
+          console.error('Ingest/submit failed:', msg);
+        }
+      }
+
+      setIsIngesting(false);
+
+      if (ingested > 0) {
+        toast.success(t('library.filesAdded', { count: ingested }));
+        await fetchAssets();
+      }
+      if (errors.length > 0) {
+        toast.error(t('library.addError', { message: errors[0] }));
+      }
+    },
+    [fetchAssets, t],
+  );
 
   // Listeners Tauri para drag-and-drop nativo (registados uma vez)
   useEffect(() => {
@@ -118,7 +130,12 @@ export default function LibraryPage() {
     try {
       const selected = await open({
         multiple: true,
-        filters: [{ name: t('dropZone.videoFilter'), extensions: ['mp4', 'mov', 'mxf', 'avi', 'mkv', 'webm', 'ts', 'm2ts'] }],
+        filters: [
+          {
+            name: t('dropZone.videoFilter'),
+            extensions: ['mp4', 'mov', 'mxf', 'avi', 'mkv', 'webm', 'ts', 'm2ts'],
+          },
+        ],
       });
       if (!selected) return;
       const paths = Array.isArray(selected) ? selected : [selected];
@@ -175,7 +192,9 @@ export default function LibraryPage() {
       h > 0 ? h : null,
       m.toString().padStart(h > 0 ? 2 : 1, '0'),
       s.toString().padStart(2, '0'),
-    ].filter(Boolean).join(':');
+    ]
+      .filter(Boolean)
+      .join(':');
   };
 
   const filteredAssets = assets
@@ -185,8 +204,10 @@ export default function LibraryPage() {
       return true;
     })
     .sort((a, b) => {
-      if (sortOrder === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      if (sortOrder === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      if (sortOrder === 'newest')
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (sortOrder === 'oldest')
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       if (sortOrder === 'name') return a.filename.localeCompare(b.filename);
       if (sortOrder === 'size') return b.size_bytes - a.size_bytes;
       return 0;
@@ -202,7 +223,7 @@ export default function LibraryPage() {
   });
 
   return (
-    <div className="flex flex-col h-full space-y-4 animate-in fade-in duration-500">
+    <div className="flex flex-col flex-1 min-h-0 space-y-4 animate-in fade-in duration-500">
       {/* TOOLBAR */}
       <div className="flex flex-wrap items-center gap-3 bg-bg-secondary border border-border rounded-xl p-3 shrink-0">
         {/* Pesquisa */}
@@ -286,7 +307,10 @@ export default function LibraryPage() {
         className={`flex-1 overflow-y-auto min-h-0 border-2 border-dashed rounded-2xl transition-all duration-200 ${
           isDragging ? 'border-brand bg-brand/5 scale-[0.995]' : 'border-transparent'
         }`}
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleHtmlDrop}
       >
@@ -311,26 +335,41 @@ export default function LibraryPage() {
           /* Vista em grelha */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-1">
             {filteredAssets.map((asset) => (
-              <div key={asset.id} className="bg-bg-secondary border border-border rounded-xl overflow-hidden group hover:border-brand/50 transition-all">
+              <div
+                key={asset.id}
+                className="bg-bg-secondary border border-border rounded-xl overflow-hidden group hover:border-brand/50 transition-all"
+              >
                 {/* THUMBNAIL */}
                 <div className="aspect-video bg-bg-primary relative flex items-center justify-center">
                   {asset.thumbnail_path ? (
-                    <img src={asset.thumbnail_path} alt={asset.filename} className="w-full h-full object-cover" />
+                    <img
+                      src={asset.thumbnail_path}
+                      alt={asset.filename}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <Film size={32} className="text-gray-800" />
                   )}
 
                   {/* BADGE DE STATUS */}
-                  <div className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
-                    asset.status === 'done' ? 'bg-green-500 text-white' :
-                    asset.status === 'processing' ? 'bg-brand text-white animate-pulse' :
-                    asset.status === 'error' ? 'bg-red-500 text-white' :
-                    'bg-gray-700 text-text-secondary'
-                  }`}>
-                    {asset.status === 'processing' ? `${t('library.processing')}...` :
-                     asset.status === 'done' ? t('library.qcOk') :
-                     asset.status === 'pending' ? t('library.pending') :
-                     asset.status}
+                  <div
+                    className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
+                      asset.status === 'done'
+                        ? 'bg-green-500 text-white'
+                        : asset.status === 'processing'
+                          ? 'bg-brand text-white animate-pulse'
+                          : asset.status === 'error'
+                            ? 'bg-red-500 text-white'
+                            : 'bg-gray-700 text-text-secondary'
+                    }`}
+                  >
+                    {asset.status === 'processing'
+                      ? `${t('library.processing')}...`
+                      : asset.status === 'done'
+                        ? t('library.qcOk')
+                        : asset.status === 'pending'
+                          ? t('library.pending')
+                          : asset.status}
                   </div>
 
                   {/* VMAF BADGE */}
@@ -361,7 +400,10 @@ export default function LibraryPage() {
 
                 {/* INFO */}
                 <div className="p-4">
-                  <h3 className="font-bold text-text-primary text-sm truncate mb-2" title={asset.filename}>
+                  <h3
+                    className="font-bold text-text-primary text-sm truncate mb-2"
+                    title={asset.filename}
+                  >
                     {asset.filename}
                   </h3>
                   <div className="flex items-center justify-between text-[11px] font-bold text-text-muted uppercase tracking-tighter">
@@ -409,19 +451,32 @@ export default function LibraryPage() {
                   >
                     <div className="flex items-center gap-3 py-4">
                       <Film size={16} className="text-text-muted shrink-0" />
-                      <span className="font-bold text-text-primary truncate max-w-[300px]">{asset.filename}</span>
+                      <span className="font-bold text-text-primary truncate max-w-[300px]">
+                        {asset.filename}
+                      </span>
                     </div>
-                    <span className={`px-6 text-[10px] font-black uppercase tracking-widest ${
-                      asset.status === 'done' ? 'text-green-500' :
-                      asset.status === 'processing' ? 'text-brand' :
-                      asset.status === 'error' ? 'text-red-500' :
-                      'text-text-muted'
-                    }`}>
+                    <span
+                      className={`px-6 text-[10px] font-black uppercase tracking-widest ${
+                        asset.status === 'done'
+                          ? 'text-green-500'
+                          : asset.status === 'processing'
+                            ? 'text-brand'
+                            : asset.status === 'error'
+                              ? 'text-red-500'
+                              : 'text-text-muted'
+                      }`}
+                    >
                       {asset.status}
                     </span>
-                    <span className="px-6 text-text-secondary text-sm">{formatBytes(asset.size_bytes)}</span>
-                    <span className="px-6 text-text-secondary text-sm">{formatDuration(asset.duration_secs)}</span>
-                    <span className="px-6 text-text-muted font-mono text-xs">{asset.video_codec ?? '—'}</span>
+                    <span className="px-6 text-text-secondary text-sm">
+                      {formatBytes(asset.size_bytes)}
+                    </span>
+                    <span className="px-6 text-text-secondary text-sm">
+                      {formatDuration(asset.duration_secs)}
+                    </span>
+                    <span className="px-6 text-text-muted font-mono text-xs">
+                      {asset.video_codec ?? '—'}
+                    </span>
                     <div className="px-6 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded">
                         <ExternalLink size={14} />
@@ -447,8 +502,15 @@ export default function LibraryPage() {
           {t('library.showing', { count: filteredAssets.length, total: assets.length })}
         </span>
         <div className="flex gap-2">
-          <button className="px-3 py-1 bg-surface text-text-muted rounded text-xs font-bold disabled:opacity-30" disabled>{t('common.previous')}</button>
-          <button className="px-3 py-1 bg-surface text-text-secondary rounded text-xs font-bold">{t('common.next')}</button>
+          <button
+            className="px-3 py-1 bg-surface text-text-muted rounded text-xs font-bold disabled:opacity-30"
+            disabled
+          >
+            {t('common.previous')}
+          </button>
+          <button className="px-3 py-1 bg-surface text-text-secondary rounded text-xs font-bold">
+            {t('common.next')}
+          </button>
         </div>
       </div>
     </div>

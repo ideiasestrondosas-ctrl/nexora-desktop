@@ -16,6 +16,14 @@ interface JobInput {
   assetPath: string;
   profile: string;
   outputDir: string;
+  // Metadados do asset passados pelo Rust — podem ser null para assets recém-ingeridos
+  assetDurationSecs?: number | null;
+  assetVideoCodec?: string | null;
+  assetAudioCodec?: string | null;
+  assetWidth?: number | null;
+  assetHeight?: number | null;
+  assetFps?: number | null;
+  assetSizeBytes?: number | null;
 }
 
 // Read one line from stdin
@@ -23,7 +31,9 @@ function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
     let data = '';
     process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => { data += chunk; });
+    process.stdin.on('data', (chunk) => {
+      data += chunk;
+    });
     process.stdin.on('end', () => resolve(data.trim()));
     process.stdin.on('error', reject);
   });
@@ -56,6 +66,14 @@ async function main(): Promise<void> {
     assetPath: job.assetPath,
     profile: job.profile,
     outputDir: job.outputDir,
+    // Pré-preencher com valores da DB — o IngestWorker irá sobrescrever com ffprobe
+    assetDurationSecs: job.assetDurationSecs ?? null,
+    assetVideoCodec: job.assetVideoCodec ?? null,
+    assetAudioCodec: job.assetAudioCodec ?? null,
+    assetWidth: job.assetWidth ?? null,
+    assetHeight: job.assetHeight ?? null,
+    assetFps: job.assetFps ?? null,
+    assetSizeBytes: job.assetSizeBytes ?? null,
   };
 
   try {

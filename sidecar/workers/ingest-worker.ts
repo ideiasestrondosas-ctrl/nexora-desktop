@@ -27,7 +27,28 @@ export class IngestWorker {
     // Extrair metadata com ffprobe
     const meta = await extractMetadata(assetPath);
 
-    emit({ type: 'asset:updated', assetId, data: { duration_secs: meta.duration, video_codec: meta.videoCodec, audio_codec: meta.audioCodec, width: meta.width, height: meta.height, fps: meta.fps, metadata: JSON.stringify({ ...meta, sha256 }), status: 'ingested' } });
+    // Actualizar ctx para que os workers seguintes (QCPre, Transcode, etc.) vejam os valores reais
+    ctx.assetDurationSecs = meta.duration;
+    ctx.assetVideoCodec = meta.videoCodec;
+    ctx.assetAudioCodec = meta.audioCodec;
+    ctx.assetWidth = meta.width;
+    ctx.assetHeight = meta.height;
+    ctx.assetFps = meta.fps;
+
+    emit({
+      type: 'asset:updated',
+      assetId,
+      data: {
+        duration_secs: meta.duration,
+        video_codec: meta.videoCodec,
+        audio_codec: meta.audioCodec,
+        width: meta.width,
+        height: meta.height,
+        fps: meta.fps,
+        metadata: JSON.stringify({ ...meta, sha256 }),
+        status: 'ingested',
+      },
+    });
 
     emit({ type: 'log', level: 'INFO', source: 'ingest-worker', message: 'Ingest completed' });
   }
@@ -44,12 +65,12 @@ async function computeSHA256(filePath: string): Promise<string> {
 }
 
 async function extractMetadata(filePath: string): Promise<StreamMetadata> {
-    const ffprobePath = getFfprobePath();
+  const ffprobePath = getFfprobePath();
   try {
     const { stdout } = await execFileAsync(
       ffprobePath,
       ['-v', 'quiet', '-print_format', 'json', '-show_streams', '-show_format', filePath],
-      { timeout: 30_000 }
+      { timeout: 30_000 },
     );
 
     const data = JSON.parse(stdout) as {
@@ -83,6 +104,13 @@ async function extractMetadata(filePath: string): Promise<StreamMetadata> {
       fps,
     };
   } catch {
-    return { duration: null, videoCodec: null, audioCodec: null, width: null, height: null, fps: null };
+    return {
+      duration: null,
+      videoCodec: null,
+      audioCodec: null,
+      width: null,
+      height: null,
+      fps: null,
+    };
   }
 }

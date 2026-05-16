@@ -31,30 +31,35 @@ export interface JobContext {
 }
 
 const STEPS: Array<{ name: string; weight: number }> = [
-  { name: 'ingest',     weight: 0.05 },
-  { name: 'qc-pre',     weight: 0.05 },
-  { name: 'transcode',  weight: 0.50 },
-  { name: 'audio',      weight: 0.15 },
-  { name: 'proxy',      weight: 0.10 },
-  { name: 'thumbnail',  weight: 0.03 },
-  { name: 'qc-post',    weight: 0.07 },
-  { name: 'delivery',   weight: 0.05 },
+  { name: 'ingest', weight: 0.05 },
+  { name: 'qc-pre', weight: 0.05 },
+  { name: 'transcode', weight: 0.5 },
+  { name: 'audio', weight: 0.15 },
+  { name: 'proxy', weight: 0.1 },
+  { name: 'thumbnail', weight: 0.03 },
+  { name: 'qc-post', weight: 0.07 },
+  { name: 'delivery', weight: 0.05 },
 ];
 
 export class NexoraDesktopOrchestrator {
   async run(ctx: JobContext): Promise<void> {
-    emit({ type: 'job:started', jobId: ctx.jobId, assetId: ctx.assetId });
+    // Nota: job:started já foi emitido por index.ts — não repetir aqui
 
     let globalProgress = 0;
     const stepOffsets = STEPS.map((_, i) =>
-      STEPS.slice(0, i).reduce((acc, s) => acc + s.weight, 0)
+      STEPS.slice(0, i).reduce((acc, s) => acc + s.weight, 0),
     );
 
     const stepProgress = (stepIdx: number, localProgress: number): void => {
       const offset = stepOffsets[stepIdx] ?? 0;
       const weight = STEPS[stepIdx]?.weight ?? 0;
       globalProgress = offset + localProgress * weight;
-      emit({ type: 'job:progress', jobId: ctx.jobId, progress: globalProgress, step: STEPS[stepIdx]?.name ?? '' });
+      emit({
+        type: 'job:progress',
+        jobId: ctx.jobId,
+        progress: globalProgress,
+        step: STEPS[stepIdx]?.name ?? '',
+      });
     };
 
     try {
