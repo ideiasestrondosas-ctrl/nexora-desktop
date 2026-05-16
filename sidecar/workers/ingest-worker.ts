@@ -19,7 +19,7 @@ interface StreamMetadata {
 
 export class IngestWorker {
   async run(ctx: JobContext): Promise<void> {
-    const { assetId, assetPath, jobId } = ctx;
+    const { assetId, assetPath } = ctx;
 
     // Calcular SHA-256 via stream (sem carregar em memória)
     const sha256 = await computeSHA256(assetPath);

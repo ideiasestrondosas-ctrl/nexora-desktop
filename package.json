@@ -66,6 +66,7 @@
         "esbuild": "^0.28.0",
         "eslint": "^9.15.0",
         "eslint-plugin-react-hooks": "^5.0.0",
+        "globals": "^17.6.0",
         "jsdom": "^25.0.0",
         "prettier": "^3.4.0",
         "rollup-plugin-visualizer": "^5.12.0",

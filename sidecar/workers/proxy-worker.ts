@@ -12,7 +12,7 @@ const execFileAsync = promisify(execFile);
 
 export class ProxyWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
-    const { assetId, assetPath, jobId, outputDir } = ctx;
+    const { assetPath, outputDir } = ctx;
 
     const input = ctx.transcodedPath ?? assetPath;
     const ext = extname(input) || '.mp4';

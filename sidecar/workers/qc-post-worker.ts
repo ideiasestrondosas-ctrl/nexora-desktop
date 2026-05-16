@@ -1,4 +1,4 @@
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
 import { createHash } from 'crypto';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
@@ -22,14 +22,11 @@ const VMAF_THRESHOLDS: Record<string, number> = {
 
 export class QCPostWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
-    const { assetId, jobId } = ctx;
-
     const distorted = ctx.transcodedPath;
     if (!distorted) throw new Error('QC Post: transcodedPath em falta');
 
     onProgress(0.2);
 
-    // SHA-256 do ficheiro final para integridade
     const sha256 = await computeSHA256(distorted);
 
     onProgress(0.5);
@@ -52,7 +49,7 @@ export class QCPostWorker {
 
     onProgress(0.9);
 
-    emit({ type: 'log', level: 'INFO', source: 'qc-post-worker', message: `QC Post passed: VMAF ${vmafScore ?? 'N/A'}, passed=${vmafPassed}` });
+    emit({ type: 'log', level: 'INFO', source: 'qc-post-worker', message: `QC Post passed: VMAF ${vmafScore ?? 'N/A'}, passed=${vmafPassed}, sha256=${sha256}` });
 
     onProgress(1.0);
   }
@@ -76,7 +73,7 @@ export class QCPostWorker {
       resolve(__dirname, '..', '..', 'src-tauri', 'resources', 'vmaf_models', 'vmaf_v0.6.1.json'),
       resolve(__dirname, '..', '..', 'resources', 'vmaf_models', 'vmaf_v0.6.1.json'),
     ];
-    const modelPath = modelCandidates.find(p => p && require('fs').existsSync(p)) ?? '';
+    const modelPath = modelCandidates.find(p => p && existsSync(p)) ?? '';
 
     // Verificar se o modelo existe; se não, usar modelo embutido do FFmpeg (se disponível)
     const hasModel = !!modelPath;
@@ -98,7 +95,10 @@ export class QCPostWorker {
       throw new Error('VMAF: JSON de resultado não encontrado no stdout');
     }
 
-    const vmafData = JSON.parse(jsonMatch[0]);
+    const vmafData = JSON.parse(jsonMatch[0]) as {
+      pooled_metrics?: { vmaf?: { mean?: number; min?: number; max?: number; harmonic_mean?: number } };
+      frames?: Array<{ metrics?: { vmaf?: number } }>;
+    };
     const pooled = vmafData.pooled_metrics ?? {};
 
     const mean = pooled.vmaf?.mean ?? 0;
@@ -108,7 +108,7 @@ export class QCPostWorker {
 
     // Calcular percentis a partir dos frames se disponíveis
     const frames = vmafData.frames ?? [];
-    const scores = frames.map((f: any) => f.metrics?.vmaf ?? 0).sort((a: number, b: number) => a - b);
+    const scores = frames.map((f) => f.metrics?.vmaf ?? 0).sort((a, b) => a - b);
     const percentile1 = scores.length > 0 ? scores[Math.floor(scores.length * 0.01)] ?? scores[0] : 0;
     const percentile5 = scores.length > 0 ? scores[Math.floor(scores.length * 0.05)] ?? scores[0] : 0;
 

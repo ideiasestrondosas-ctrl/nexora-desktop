@@ -6,7 +6,6 @@ import type { ProgressCallback } from './types';
 
 export class DeliveryWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
-    const { assetId, jobId } = ctx;
 
     const source = ctx.transcodedPath;
     if (!source) throw new Error('Delivery: transcodedPath em falta');

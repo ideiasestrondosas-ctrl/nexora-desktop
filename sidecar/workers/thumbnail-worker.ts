@@ -13,7 +13,7 @@ const THUMB_WIDTH = 640;
 
 export class ThumbnailWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
-    const { assetId, assetPath, jobId, outputDir } = ctx;
+    const { assetPath, outputDir } = ctx;
 
     const input = ctx.transcodedPath ?? assetPath;
     const ext = extname(input);

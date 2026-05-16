@@ -15,7 +15,7 @@ const FFMPEG_TIMEOUT_MS = 14_400_000; // 4h — ADR-D010
 
 export class TranscodeWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
-    const { assetId, assetPath, jobId, profile: profileName, outputDir } = ctx;
+    const { assetPath, profile: profileName, outputDir } = ctx;
 
     const profile = loadProfile(profileName);
     const gpu = await detectGPU();

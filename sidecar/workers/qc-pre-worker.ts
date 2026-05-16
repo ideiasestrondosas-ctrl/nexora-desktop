@@ -9,7 +9,7 @@ export type QCPreResult = 'PASS' | 'QUARANTINE' | 'REJECT';
 
 export class QCPreWorker {
   async run(ctx: JobContext): Promise<QCPreResult> {
-    const { assetId, assetPath, jobId } = ctx;
+    const { assetPath, jobId } = ctx;
 
     const stat = statSync(assetPath);
     if (stat.size === 0) throw new Error('QC Pre: ficheiro vazio');

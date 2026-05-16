@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open, confirm } from '@tauri-apps/plugin-dialog';
 import { toast } from 'sonner';
@@ -158,9 +158,10 @@ export default function SettingsPage() {
 
     // Detectar modo de desenvolvimento
     setIsDev(import.meta.env.DEV);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // executa apenas na montagem; settingsStore e t sao referencias estaveis
 
-  const handleUpdateSetting = async (key: keyof Settings, value: any) => {
+  const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
     try {
       await invoke('update_settings', { key, value }).catch(console.warn);
       if (key === 'output_dir') settingsStore.setOutputDir(value);
@@ -169,10 +170,9 @@ export default function SettingsPage() {
       if (key === 'notifications_enabled') settingsStore.setNotificationsEnabled(value);
       if (key === 'theme') settingsStore.setTheme(value);
       if (key === 'language') {
-        settingsStore.setLanguage(value);
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        settingsStore.setLanguage(value as string);
         const { default: i18n } = await import('@/i18n');
-        i18n.changeLanguage(value);
+        i18n.changeLanguage(value as string);
       }
       setLocalSettings(prev => ({ ...prev, [key]: value }));
     } catch (error) {
@@ -194,7 +194,7 @@ export default function SettingsPage() {
   const handleOpenDataDir = async () => {
     try {
       await invoke('open_data_dir');
-    } catch (err) {
+    } catch {
       toast.error(t('settings.toasts.openDataDirError'));
     }
   };
