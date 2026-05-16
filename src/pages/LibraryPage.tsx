@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -191,6 +192,15 @@ export default function LibraryPage() {
       return 0;
     });
 
+  // Referência do contentor de scroll para a vista em lista (virtualização)
+  const listParentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: viewMode === 'list' ? filteredAssets.length : 0,
+    getScrollElement: () => listParentRef.current,
+    estimateSize: () => 57,
+    overscan: 8,
+  });
+
   return (
     <div className="flex flex-col h-full space-y-4 animate-in fade-in duration-500">
       {/* TOOLBAR */}
@@ -364,58 +374,69 @@ export default function LibraryPage() {
             ))}
           </div>
         ) : (
-          /* Vista em lista */
-          <div className="bg-bg-secondary border border-border rounded-xl overflow-hidden">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-bg-primary text-[10px] font-bold uppercase text-text-muted border-b border-border">
-                <tr>
-                  <th className="px-6 py-3">{t('library.file')}</th>
-                  <th className="px-6 py-3">{t('common.status')}</th>
-                  <th className="px-6 py-3">{t('library.size')}</th>
-                  <th className="px-6 py-3">{t('library.duration')}</th>
-                  <th className="px-6 py-3">{t('profiles.codec')}</th>
-                  <th className="px-6 py-3 text-right">{t('library.actions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredAssets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-surface/30 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <Film size={16} className="text-text-muted shrink-0" />
-                        <span className="font-bold text-text-primary truncate max-w-[300px]">{asset.filename}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${
-                        asset.status === 'done' ? 'text-green-500' :
-                        asset.status === 'processing' ? 'text-brand' :
-                        asset.status === 'error' ? 'text-red-500' :
-                        'text-text-muted'
-                      }`}>
-                        {asset.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-text-secondary">{formatBytes(asset.size_bytes)}</td>
-                    <td className="px-6 py-4 text-text-secondary">{formatDuration(asset.duration_secs)}</td>
-                    <td className="px-6 py-4 text-text-muted font-mono text-xs">{asset.video_codec ?? '—'}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded">
-                          <ExternalLink size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(asset.id)}
-                          className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/10 rounded"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          /* Vista em lista — virtualizada com TanStack Virtual */
+          <div
+            ref={listParentRef}
+            className="bg-bg-secondary border border-border rounded-xl overflow-auto"
+            style={{ height: '100%' }}
+          >
+            {/* Cabeçalho fixo da tabela */}
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 bg-bg-primary border-b border-border px-6 py-3 text-[10px] font-bold uppercase text-text-muted sticky top-0 z-10">
+              <span>{t('library.file')}</span>
+              <span className="px-6">{t('common.status')}</span>
+              <span className="px-6">{t('library.size')}</span>
+              <span className="px-6">{t('library.duration')}</span>
+              <span className="px-6">{t('profiles.codec')}</span>
+              <span className="px-6 text-right">{t('library.actions')}</span>
+            </div>
+            {/* Contentor de scroll virtual */}
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const asset = filteredAssets[virtualRow.index];
+                return (
+                  <div
+                    key={virtualRow.key}
+                    data-index={virtualRow.index}
+                    ref={rowVirtualizer.measureElement}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                    className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 items-center border-b border-border hover:bg-surface/30 transition-colors group px-6"
+                  >
+                    <div className="flex items-center gap-3 py-4">
+                      <Film size={16} className="text-text-muted shrink-0" />
+                      <span className="font-bold text-text-primary truncate max-w-[300px]">{asset.filename}</span>
+                    </div>
+                    <span className={`px-6 text-[10px] font-black uppercase tracking-widest ${
+                      asset.status === 'done' ? 'text-green-500' :
+                      asset.status === 'processing' ? 'text-brand' :
+                      asset.status === 'error' ? 'text-red-500' :
+                      'text-text-muted'
+                    }`}>
+                      {asset.status}
+                    </span>
+                    <span className="px-6 text-text-secondary text-sm">{formatBytes(asset.size_bytes)}</span>
+                    <span className="px-6 text-text-secondary text-sm">{formatDuration(asset.duration_secs)}</span>
+                    <span className="px-6 text-text-muted font-mono text-xs">{asset.video_codec ?? '—'}</span>
+                    <div className="px-6 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded">
+                        <ExternalLink size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(asset.id)}
+                        className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/10 rounded"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
