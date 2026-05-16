@@ -6,75 +6,111 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-05-16
+
+### Fixed
+
+- Drag-and-drop de ficheiros agora funciona via evento nativo `tauri://drag-drop` (T03/T04)
+- Activos deixam de ficar em estado "pending" — `submit_job` chamado automaticamente após ingest (T04)
+- Sidecar arranca correctamente via `Command::new("node")` com path dinâmico (T05)
+- Versão da aplicação lida dinamicamente via `getVersion()` de `@tauri-apps/api/app` (T06)
+
+### Security
+
+- CSP estrita substituiu `"csp": null` com política granular por directiva (T07)
+- Capabilities reduzidas a permissões explícitas (least-privilege) em vez de `*:default` (T08)
+
+### Changed
+
+- Sidecar agora completamente stateless — `sidecar/db.ts` e `NexoraSimpleQueue.ts` eliminados (T09)
+- Hooks `useJobStatus` e `useDiskSpace` migrados de polling para eventos Tauri (`listen()`) (T10)
+- Settings persistentes via `tauri-plugin-store` em vez de `localStorage` (T11)
+- Logging unificado via `tauri-plugin-log` com targets stdout, ficheiro e webview (T12)
+- Toasts migrados de `react-hot-toast` para `sonner` (T14)
+- `HelpModal` migrado para Radix Dialog com focus trap e ARIA correcto (T15)
+- `LibraryPage` com virtualização via `@tanstack/react-virtual` para listas grandes (T16)
+- Dashboard com gráficos VMAF (BarChart) e métricas CPU/RAM (AreaChart) via recharts (T17)
+
+### Added
+
+- ESLint flat config + Prettier com scripts `lint`, `format`, `build:analyze` (T18)
+- Husky pre-commit hook com lint-staged (T19)
+- Bundle analyzer com `rollup-plugin-visualizer` e manual chunk splitting (T20)
+- Testes de componentes com vitest + jsdom + Testing Library (T21)
+- Dependabot config para npm, cargo e GitHub Actions (T22)
+- Documentação do processo de release e code signing em `docs/RELEASE.md` (T23)
+- Toggle de telemetria opt-in (desactivado por defeito) nas definições (T24)
+
 ## [0.17.0] - 2026-05-14
 
 ### Added
-- feat: Replicar projeto principal Nexora Desktop
 
+- feat: Replicar projeto principal Nexora Desktop
 
 ## [0.16.0] - 2026-05-13
 
 ### Added
-- feat: Versao para teste
 
+- feat: Versao para teste
 
 ## [0.15.0] - 2026-05-13
 
 ### Added
-- feat: AnÃƒÂ¡lise workspace aplicaÃƒÂ§ÃƒÂ£o e regras
 
+- feat: AnÃƒÂ¡lise workspace aplicaÃƒÂ§ÃƒÂ£o e regras
 
 ## [0.14.0] - 2026-05-13
 
 ### Added
-- feat: atualizacoes gerais
 
+- feat: atualizacoes gerais
 
 ## [0.13.0] - 2026-05-13
 
 ### Added
-- feat: Resolving Nexora Desktop Issues
 
+- feat: Resolving Nexora Desktop Issues
 
 ## [0.12.0] - 2026-05-11
 
 ### Added
-- feat: Controlling Automated Development Execution
 
+- feat: Controlling Automated Development Execution
 
 ## [0.11.0] - 2026-05-11
 
 ### Added
-- feat: Validating Antigravity Backend Integration
 
+- feat: Validating Antigravity Backend Integration
 
 ## [0.10.0] - 2026-05-11
 
 ### Added
-- feat: Validating Antigravity Backend Integration
 
+- feat: Validating Antigravity Backend Integration
 
 ## [0.9.0] - 2026-05-11
 
 ### Added
-- feat: Refactoring Nexora Desktop Interface & Fixing Failing Nexora Tests
 
+- feat: Refactoring Nexora Desktop Interface & Fixing Failing Nexora Tests
 
 ## [0.8.0] - 2026-05-11
 
 ### Added
+
 - feat: Refactoring Nexora Desktop Interface & Fixing Failing Nexora Tests
 
-
 ## [0.7.0] - 2026-05-11
 
 ### Added
+
 - feat: Reestruturacao do projecto
 
-
 ## [0.7.0] - 2026-05-11
 
 ### Added
+
 - fix: Race condition na fila ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â claimNextJob() atÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³mico (SELECT+UPDATE numa transacÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o SQLite)
 - feat: Tabela `profiles` no schema para perfis personalizados
 - feat: Tauri command `get_queue_stats` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â estatÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­sticas da fila (queued/processing/done/error hoje)
@@ -87,42 +123,43 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.6.0] - 2026-05-10
 
 ### Added
-- feat: Problemas encontrados e corrigidos durante o teste
 
+- feat: Problemas encontrados e corrigidos durante o teste
 
 ## [0.5.0] - 2026-05-10
 
 ### Added
-- feat: Prompt Desktop Bug fixes + Gap Analysis ConcluÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o
 
+- feat: Prompt Desktop Bug fixes + Gap Analysis ConcluÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o
 
 ## [0.4.1] - 2026-05-10
 
 ### Added
-- 
 
+-
 
 ## [0.4.0] - 2026-05-10
 
 ### Added
-- feat: CorrecÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes para releases
 
+- feat: CorrecÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes para releases
 
 ## [0.3.0] - 2026-05-09
 
 ### Added
-- feat: PROMPT 3 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Frontend React
 
+- feat: PROMPT 3 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Frontend React
 
 ## [0.2.0] - 2026-05-09
 
 ### Added
-- feat: PROMPT 2 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Sidecar + Queue + Workers
 
+- feat: PROMPT 2 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Sidecar + Queue + Workers
 
 ## [0.1.0] - 2026-05-09
 
 ### Added
+
 - Scaffold Tauri 2 + React 19 + TypeScript
 - Configuracao completa do ambiente de desenvolvimento (scripts 01-05)
 - Estrutura Rust: db, migrations, commands, tray, sidecar, state
