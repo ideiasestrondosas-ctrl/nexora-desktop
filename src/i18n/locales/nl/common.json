@@ -334,7 +334,7 @@
     "autoRotate": "Automatische omdraaiing: maximale 2.000 regels"
   },
   "assetDetail": {
-    "backToLibrary": "← Terug naar Bibliotheek",
+    "backToLibrary": "Terug naar Bibliotheek",
     "qualityReport": "Kwaliteitsverslag (QC)",
     "jobHistory": "Opgavenhistoriek",
     "reprocess": "Opnieuw verwerken",

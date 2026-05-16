@@ -330,7 +330,7 @@
     "autoRotate": "자동 회전: 최대 2,000 개 항목"
   },
   "assetDetail": {
-    "backToLibrary": "← 라이브러리로 돌아가기",
+    "backToLibrary": "라이브러리로 돌아가기",
     "qualityReport": "품질 보고서 (QC)",
     "jobHistory": "작업 이력",
     "reprocess": "재프로세스",

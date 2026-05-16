@@ -223,7 +223,7 @@ export default function LibraryPage() {
   });
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 space-y-4 animate-in fade-in duration-500">
+    <div className="flex flex-col flex-1 min-h-0 space-y-4">
       {/* TOOLBAR */}
       <div className="flex flex-wrap items-center gap-3 bg-bg-secondary border border-border rounded-xl p-3 shrink-0">
         {/* Pesquisa */}
@@ -302,9 +302,9 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {/* ZONA DE DROP */}
+      {/* ZONA DE DROP — flex column para garantir altura definida em todos os estados */}
       <div
-        className={`flex-1 overflow-y-auto min-h-0 border-2 border-dashed rounded-2xl transition-all duration-200 ${
+        className={`flex-1 min-h-0 flex flex-col border-2 border-dashed rounded-2xl transition-all duration-200 ${
           isDragging ? 'border-brand bg-brand/5 scale-[0.995]' : 'border-transparent'
         }`}
         onDragOver={(e) => {
@@ -315,12 +315,12 @@ export default function LibraryPage() {
         onDrop={handleHtmlDrop}
       >
         {loading ? (
-          <div className="h-full flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredAssets.length === 0 ? (
           /* Estado vazio */
-          <div className="h-full flex flex-col items-center justify-center text-text-muted p-12">
+          <div className="flex-1 flex flex-col items-center justify-center text-text-muted p-12">
             <Library size={64} className="mb-6 opacity-20" />
             <h2 className="text-xl font-bold text-text-primary mb-2">{t('library.noAssets')}</h2>
             <p className="text-sm max-w-xs text-center mb-6">{t('library.dragHint')}</p>
@@ -332,95 +332,96 @@ export default function LibraryPage() {
             </button>
           </div>
         ) : viewMode === 'grid' ? (
-          /* Vista em grelha */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-1">
-            {filteredAssets.map((asset) => (
-              <div
-                key={asset.id}
-                className="bg-bg-secondary border border-border rounded-xl overflow-hidden group hover:border-brand/50 transition-all"
-              >
-                {/* THUMBNAIL */}
-                <div className="aspect-video bg-bg-primary relative flex items-center justify-center">
-                  {asset.thumbnail_path ? (
-                    <img
-                      src={asset.thumbnail_path}
-                      alt={asset.filename}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Film size={32} className="text-gray-800" />
-                  )}
-
-                  {/* BADGE DE STATUS */}
-                  <div
-                    className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
-                      asset.status === 'done'
-                        ? 'bg-green-500 text-white'
-                        : asset.status === 'processing'
-                          ? 'bg-brand text-white animate-pulse'
-                          : asset.status === 'error'
-                            ? 'bg-red-500 text-white'
-                            : 'bg-gray-700 text-text-secondary'
-                    }`}
-                  >
-                    {asset.status === 'processing'
-                      ? `${t('library.processing')}...`
-                      : asset.status === 'done'
-                        ? t('library.qcOk')
-                        : asset.status === 'pending'
-                          ? t('library.pending')
-                          : asset.status}
-                  </div>
-
-                  {/* VMAF BADGE */}
-                  {asset.vmaf_score !== null && (
-                    <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-[10px] font-bold text-green-400 border border-green-500/30">
-                      VMAF {asset.vmaf_score.toFixed(1)}
-                    </div>
-                  )}
-
-                  {/* ACÇÕES OVERLAY */}
-                  <div className="absolute inset-0 bg-bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                    <button className="p-2 bg-brand text-white rounded-full hover:scale-110 transition-transform">
-                      <ExternalLink size={18} />
-                    </button>
-                    {(asset.status === 'done' || asset.status === 'error') && (
-                      <button className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform">
-                        <Play size={18} />
-                      </button>
+          /* Vista em grelha — scroll próprio, não depende de h-full */
+          <div className="flex-1 overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-1">
+              {filteredAssets.map((asset) => (
+                <div
+                  key={asset.id}
+                  className="bg-bg-secondary border border-border rounded-xl overflow-hidden group hover:border-brand/50 transition-all"
+                >
+                  {/* THUMBNAIL */}
+                  <div className="aspect-video bg-bg-primary relative flex items-center justify-center">
+                    {asset.thumbnail_path ? (
+                      <img
+                        src={asset.thumbnail_path}
+                        alt={asset.filename}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Film size={32} className="text-gray-800" />
                     )}
-                    <button
-                      onClick={() => handleDelete(asset.id)}
-                      className="p-2 bg-red-600 text-white rounded-full hover:scale-110 transition-transform"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
 
-                {/* INFO */}
-                <div className="p-4">
-                  <h3
-                    className="font-bold text-text-primary text-sm truncate mb-2"
-                    title={asset.filename}
-                  >
-                    {asset.filename}
-                  </h3>
-                  <div className="flex items-center justify-between text-[11px] font-bold text-text-muted uppercase tracking-tighter">
-                    <span>{formatBytes(asset.size_bytes)}</span>
-                    <span>{formatDuration(asset.duration_secs)}</span>
-                    <span className="text-text-muted">{asset.video_codec ?? '—'}</span>
+                    {/* BADGE DE STATUS */}
+                    <div
+                      className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
+                        asset.status === 'done'
+                          ? 'bg-green-500 text-white'
+                          : asset.status === 'processing'
+                            ? 'bg-brand text-white animate-pulse'
+                            : asset.status === 'error'
+                              ? 'bg-red-500 text-white'
+                              : 'bg-gray-700 text-text-secondary'
+                      }`}
+                    >
+                      {asset.status === 'processing'
+                        ? `${t('library.processing')}...`
+                        : asset.status === 'done'
+                          ? t('library.qcOk')
+                          : asset.status === 'pending'
+                            ? t('library.pending')
+                            : asset.status}
+                    </div>
+
+                    {/* VMAF BADGE */}
+                    {asset.vmaf_score !== null && (
+                      <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-[10px] font-bold text-green-400 border border-green-500/30">
+                        VMAF {asset.vmaf_score.toFixed(1)}
+                      </div>
+                    )}
+
+                    {/* ACÇÕES OVERLAY */}
+                    <div className="absolute inset-0 bg-bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <button className="p-2 bg-brand text-white rounded-full hover:scale-110 transition-transform">
+                        <ExternalLink size={18} />
+                      </button>
+                      {(asset.status === 'done' || asset.status === 'error') && (
+                        <button className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform">
+                          <Play size={18} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(asset.id)}
+                        className="p-2 bg-red-600 text-white rounded-full hover:scale-110 transition-transform"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* INFO */}
+                  <div className="p-4">
+                    <h3
+                      className="font-bold text-text-primary text-sm truncate mb-2"
+                      title={asset.filename}
+                    >
+                      {asset.filename}
+                    </h3>
+                    <div className="flex items-center justify-between text-[11px] font-bold text-text-muted uppercase tracking-tighter">
+                      <span>{formatBytes(asset.size_bytes)}</span>
+                      <span>{formatDuration(asset.duration_secs)}</span>
+                      <span className="text-text-muted">{asset.video_codec ?? '—'}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : (
           /* Vista em lista — virtualizada com TanStack Virtual */
           <div
             ref={listParentRef}
-            className="bg-bg-secondary border border-border rounded-xl overflow-auto"
-            style={{ height: '100%' }}
+            className="flex-1 bg-bg-secondary border border-border rounded-xl overflow-auto"
           >
             {/* Cabeçalho fixo da tabela */}
             <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 bg-bg-primary border-b border-border px-6 py-3 text-[10px] font-bold uppercase text-text-muted sticky top-0 z-10">

@@ -438,7 +438,7 @@
     "autoRotate": "Auto-Drehung: 2.000 Einträge max"
   },
   "assetDetail": {
-    "backToLibrary": "â† Zurück zur Bibliothek",
+    "backToLibrary": "Zurück zur Bibliothek",
     "qualityReport": "Qualitätsbericht (QC)",
     "jobHistory": "Job-Geschichte",
     "reprocess": "Wiederbearbeiten",
@@ -462,9 +462,9 @@
     "limit": "Limit",
     "codecSupported": "Codec unterstützt",
     "minResolution": "Mindestauflösung",
-    "minResolutionValue": "â‰¥ 720p",
+    "minResolutionValue": "≥ 720p",
     "vmafScore": "VMAF-Bewertung",
-    "vmafMinValue": "â‰¥ 85",
+    "vmafMinValue": "≥ 85",
     "audioLevels": "Lautstärkewerte",
     "audioLevelsValue": "-23 ±1",
     "approvedAt": "Automatisch genehmigt am {{date}}",

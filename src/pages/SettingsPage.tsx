@@ -206,11 +206,11 @@ export default function SettingsPage() {
   const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
     try {
       await invoke('update_settings', { key, value }).catch(console.warn);
-      if (key === 'output_dir') settingsStore.setOutputDir(value);
-      if (key === 'max_concurrent_jobs') settingsStore.setMaxConcurrentJobs(value);
-      if (key === 'gpu_acceleration') settingsStore.setGpuAcceleration(value);
-      if (key === 'notifications_enabled') settingsStore.setNotificationsEnabled(value);
-      if (key === 'theme') settingsStore.setTheme(value);
+      if (key === 'output_dir') settingsStore.setOutputDir(value as string);
+      if (key === 'max_concurrent_jobs') settingsStore.setMaxConcurrentJobs(value as number);
+      if (key === 'gpu_acceleration') settingsStore.setGpuAcceleration(value as boolean);
+      if (key === 'notifications_enabled') settingsStore.setNotificationsEnabled(value as boolean);
+      if (key === 'theme') settingsStore.setTheme(value as 'light' | 'dark' | 'system');
       if (key === 'language') {
         settingsStore.setLanguage(value as string);
         const { default: i18n } = await import('@/i18n');

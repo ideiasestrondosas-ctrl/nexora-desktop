@@ -335,7 +335,7 @@
     "autoRotate": "Otomatik Döndüren: En fazla 2.000 giriş"
   },
   "assetDetail": {
-    "backToLibrary": "← Kütüphane'ye Geri Dön",
+    "backToLibrary": "Kütüphaneye Geri Dön",
     "qualityReport": "Kalite Raporu (QC)",
     "jobHistory": "İş Tarihçesi",
     "reprocess": "Yeniden İşleme",

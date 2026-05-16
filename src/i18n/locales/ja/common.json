@@ -329,7 +329,7 @@
     "autoRotate": "自動回転：最大2,000項目まで"
   },
   "assetDetail": {
-    "backToLibrary": "← ライブラリに戻る",
+    "backToLibrary": "ライブラリに戻る",
     "qualityReport": "質量報告書 (QC)",
     "jobHistory": "ジョブ履歴",
     "reprocess": "重新处理",

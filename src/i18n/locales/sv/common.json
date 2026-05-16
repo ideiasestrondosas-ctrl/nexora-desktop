@@ -329,7 +329,7 @@
     "autoRotate": "Automatisk roterning: Maximale 2 000 poster"
   },
   "assetDetail": {
-    "backToLibrary": "← Tillbaka till bibliotek",
+    "backToLibrary": "Tillbaka till biblioteket",
     "qualityReport": "Kvalitetsrapport (QC)",
     "jobHistory": "Jobb historik",
     "reprocess": "Reproducera",

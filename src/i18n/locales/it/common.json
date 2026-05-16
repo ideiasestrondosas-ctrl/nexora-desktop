@@ -329,7 +329,7 @@
     "autoRotate": "Rotazione automatica: massimo 2.000 elementi"
   },
   "assetDetail": {
-    "backToLibrary": "← Torna alla Libreria",
+    "backToLibrary": "Torna alla Libreria",
     "qualityReport": "Rapporto Qualità (QC)",
     "jobHistory": "Storico Incarichi",
     "reprocess": "Riprocessa",

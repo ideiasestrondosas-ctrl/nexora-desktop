@@ -332,7 +332,7 @@
     "loading": "Loading logs..."
   },
   "assetDetail": {
-    "backToLibrary": "← Back to Library",
+    "backToLibrary": "Back to Library",
     "qualityReport": "Quality Report (QC)",
     "jobHistory": "Job History",
     "reprocess": "Reprocess",

@@ -333,7 +333,7 @@
     "autoRotate": "Automatyczne obracanie: maksymalnie 2000 wpisów"
   },
   "assetDetail": {
-    "backToLibrary": "← Wróć do Biblioteki",
+    "backToLibrary": "Wróć do Biblioteki",
     "qualityReport": "Raport jakościowy (QC)",
     "jobHistory": "Historia zadań",
     "reprocess": "Przetworzyć ponownie",

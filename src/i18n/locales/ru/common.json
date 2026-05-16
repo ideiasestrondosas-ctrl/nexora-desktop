@@ -330,7 +330,7 @@
     "autoRotate": "Автоматическое переключение: максимум 2 000 записей"
   },
   "assetDetail": {
-    "backToLibrary": "← Назад в Библиотеку",
+    "backToLibrary": "Назад в Библиотеку",
     "qualityReport": "Отчет о качестве (QC)",
     "jobHistory": "История задач",
     "reprocess": "Переработать",
