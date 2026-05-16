@@ -145,7 +145,7 @@ function App() {
       <main className="flex-1 flex flex-col min-w-0 bg-bg-primary relative">
         <TopBar activeTab={activeTab} onHelpOpen={() => setHelpOpen(true)} />
 
-        {helpOpen && <HelpOverlay onClose={() => setHelpOpen(false)} />}
+        <HelpOverlay open={helpOpen} onOpenChange={setHelpOpen} />
 
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
           {activeTab === 'dashboard' && (

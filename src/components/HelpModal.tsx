@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
 import { X, HelpCircle, LayoutDashboard, Library, ListVideo, UserCircle, Settings, Terminal, Film, ExternalLink, BookOpen, ChevronRight } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 interface HelpOverlayProps {
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 type ScreenTab = 'dashboard' | 'library' | 'queue' | 'profiles' | 'settings' | 'logs' | 'intro';
@@ -83,38 +85,31 @@ function ScreenCard({ title, icon, children, tips, screenshot, onImageClick }: {
   );
 }
 
-export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
+export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) => {
   const [activeTab, setActiveTab] = useState<ScreenTab>('intro');
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const { t } = useTranslation();
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (lightboxImage) {
-          setLightboxImage(null);
-        } else {
-          onClose();
-        }
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [onClose, lightboxImage]);
 
   const openFullGuide = async () => {
     try {
       await openUrl('https://github.com/ideiasestrondosas-ctrl/nexora-desktop/blob/main/docs/USER_MANUAL.md');
     } catch {
-      // Silently fail if opener is unavailable
+      // falha silenciosa se o opener não estiver disponível
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in" />
+        <Dialog.Content
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 outline-none"
+          onEscapeKeyDown={() => {
+            if (lightboxImage) {
+              setLightboxImage(null);
+            }
+          }}
+        >
       <div className="bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
 
         {/* Header */}
@@ -124,8 +119,12 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
               <HelpCircle className="w-5 h-5 text-brand" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-bold text-text-primary truncate">{t('help.title')}</h2>
-              <p className="text-xs text-text-muted truncate">{t('help.subtitle')}</p>
+              <Dialog.Title asChild>
+                <h2 className="text-lg font-bold text-text-primary truncate">{t('help.title')}</h2>
+              </Dialog.Title>
+              <Dialog.Description asChild>
+                <p className="text-xs text-text-muted truncate">{t('help.subtitle')}</p>
+              </Dialog.Description>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -137,13 +136,14 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
               <ExternalLink className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t('help.openFullGuide')}</span>
             </button>
-            <button
-              onClick={onClose}
-              className="p-2 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-full transition-colors"
-              title={t('common.close')}
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <Dialog.Close asChild>
+              <button
+                className="p-2 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-full transition-colors"
+                title={t('common.close')}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </Dialog.Close>
           </div>
         </div>
 
@@ -370,6 +370,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ onClose }) => {
           </div>
         </div>
       )}
-    </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 };
