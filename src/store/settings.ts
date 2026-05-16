@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
+import { LazyStore } from '@tauri-apps/plugin-store';
 
 interface SettingsState {
   outputDir: string;
@@ -15,6 +16,22 @@ interface SettingsState {
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setLanguage: (lang: string) => void;
 }
+
+// LazyStore abre o ficheiro apenas quando a primeira operação ocorre — sem bloquear o startup
+const store = new LazyStore('settings.json');
+
+const tauriStorage: StateStorage = {
+  getItem: async (name) => {
+    const value = await store.get<string>(name);
+    return value ?? null;
+  },
+  setItem: async (name, value) => {
+    await store.set(name, value);
+  },
+  removeItem: async (name) => {
+    await store.delete(name);
+  },
+};
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
@@ -35,6 +52,7 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: 'nexora-settings',
       version: 2,
-    }
-  )
+      storage: createJSONStorage(() => tauriStorage),
+    },
+  ),
 );
