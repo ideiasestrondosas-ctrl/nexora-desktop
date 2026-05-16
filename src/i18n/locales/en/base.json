@@ -397,7 +397,9 @@
     "dropHere": "Drop videos here",
     "clickToSelect": "Or click to select files (MP4, MKV, MOV, MXF...)",
     "addMedia": "Add Media",
+    "addFolder": "Add Folder",
     "unsupportedFormat": "Unsupported format: {{ext}}",
+    "noSupportedFiles": "No supported video files found.",
     "videoFilter": "Video"
   },
   "jobCard": {
