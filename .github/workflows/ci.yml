@@ -7,7 +7,37 @@ on:
     branches: [main, dev]
 
 jobs:
-  check:
+  lint-and-test:
+    runs-on: ubuntu-22.04
+    name: Lint + Tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check (frontend)
+        run: npx tsc --noEmit
+
+      - name: TypeScript check (sidecar)
+        run: npm run sidecar:check
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: Unit + component tests
+        run: npm test
+
+  rust-check:
     strategy:
       fail-fast: false
       matrix:
@@ -20,15 +50,10 @@ jobs:
             label: Linux
 
     runs-on: ${{ matrix.platform }}
-    name: CI — ${{ matrix.label }}
+    name: Rust — ${{ matrix.label }}
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -49,22 +74,12 @@ jobs:
             patchelf \
             libssl-dev
 
-      - name: Install frontend dependencies
-        run: npm install
-
-      - name: TypeScript check
-        run: npm run typecheck 2>/dev/null || npx tsc --noEmit
-
-      - name: ESLint
-        run: npm run lint 2>/dev/null || echo "lint script nao configurado ainda"
-
       - name: Rust format check
         if: matrix.platform == 'ubuntu-22.04'
         working-directory: src-tauri
         run: cargo fmt --check
 
       - name: Rust clippy
-        if: matrix.platform == 'ubuntu-22.04'
         working-directory: src-tauri
         run: cargo clippy -- -D warnings
 
