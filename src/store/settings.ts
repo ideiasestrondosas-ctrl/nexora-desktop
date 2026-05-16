@@ -9,12 +9,14 @@ interface SettingsState {
   notificationsEnabled: boolean;
   theme: 'light' | 'dark' | 'system';
   language: string;
+  telemetryEnabled: boolean;
   setOutputDir: (dir: string) => void;
   setMaxConcurrentJobs: (count: number) => void;
   setGpuAcceleration: (enabled: boolean) => void;
   setNotificationsEnabled: (enabled: boolean) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setLanguage: (lang: string) => void;
+  setTelemetryEnabled: (enabled: boolean) => void;
 }
 
 // LazyStore abre o ficheiro apenas quando a primeira operação ocorre — sem bloquear o startup
@@ -42,12 +44,14 @@ export const useSettingsStore = create<SettingsState>()(
       notificationsEnabled: true,
       theme: 'system',
       language: 'pt',
+      telemetryEnabled: false,
       setOutputDir: (dir) => set({ outputDir: dir }),
       setMaxConcurrentJobs: (count) => set({ maxConcurrentJobs: count }),
       setGpuAcceleration: (enabled) => set({ gpuAcceleration: enabled }),
       setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
       setTheme: (theme) => set({ theme }),
       setLanguage: (lang) => set({ language: lang }),
+      setTelemetryEnabled: (enabled) => set({ telemetryEnabled: enabled }),
     }),
     {
       name: 'nexora-settings',

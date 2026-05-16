@@ -347,6 +347,8 @@
       "unknownError": "Unknown error"
     },
     "advanced": {
+      "telemetry": "Telemetria anónima",
+      "telemetryHint": "Envia dados de utilização anónimos para melhorar o Nexora. Desactivado por defeito. Nunca inclui conteúdos ou metadados de média.",
       "data": "Dados",
       "export": "Exportar",
       "import": "Importar",
@@ -392,6 +394,7 @@
       "quality": "Quality",
       "hardwareAcceleration": "Hardware Acceleration",
       "notifications": "Notifications",
+      "privacy": "Privacidade",
       "data": "Data",
       "maintenance": "Maintenance"
     },

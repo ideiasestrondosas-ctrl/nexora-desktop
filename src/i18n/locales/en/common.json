@@ -290,6 +290,8 @@
       "retry": "Try again"
     },
     "advanced": {
+      "telemetry": "Anonymous telemetry",
+      "telemetryHint": "Send anonymous usage data to help improve Nexora. Disabled by default. Never includes media content or metadata.",
       "data": "Data",
       "export": "Export",
       "import": "Import",
