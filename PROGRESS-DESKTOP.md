@@ -263,6 +263,7 @@ nexora-desktop/
 | 2026-05-14 | Correcao profiles.rs (removido camelCase), workers.test.ts actualizado para stateless QCPreWorker, aviso dead_code suprimido, build Windows validado (MSI 146MB / NSIS 92MB) | Claude Code (Kimi K2.6) | src-tauri/src/commands/profiles.rs, tests/workers.test.ts, src-tauri/src/sidecar.rs |
 | 2026-05-14 | i18n completo: Base Master EN, 5 idiomas (PT/EN/ES/FR/DE), ~550 chaves, todas as strings hardcoded extraÃ­das, formataÃ§Ã£o de datas dinÃ¢mica, sync de idioma no arranque | Claude Code (Kimi K2.6) | src/i18n/**/*, src/pages/*, src/components/* (15 ficheiros), scripts/translate-i18n.cjs |
 | 2026-05-14 | Traducao ES/FR/DE completadas via Ollama local (qwen2.5:7b-instruct, batches de 8, retry com backoff), script translate-ollama.cjs melhorado, 556 chaves/idioma, tsc/vitest/cargo OK | Claude Code (Kimi K2.6) | scripts/translate-ollama.cjs, src/i18n/locales/es/common.json, src/i18n/locales/fr/common.json, src/i18n/locales/de/common.json |
+| 2026-05-16 | Correcao bloco help duplicado em PT/ES/FR/DE (removido JSON invalido), traducao completa para 10 novos idiomas (AR/IT/JA/KO/NL/PL/RU/SV/TR/ZH) via Ollama local, script translate-all.cjs criado, 618 chaves/idioma, tsc OK | Claude Code (Kimi K2.6) | scripts/translate-all.cjs, src/i18n/locales/*/common.json |
 
 ---
 
@@ -280,7 +281,7 @@ nexora-desktop/
 10. [x] ~~VMAF ativo no QC-Post com thresholds por perfil e modelo VMAF v0.6.1~~
 11. [x] ~~Comandos Rust: get_system_info, get_ffmpeg_info, get_db_info, open_data_dir, approve_job, reject_job~~
 12. [x] ~~Validar build em Windows (tauri build --debug) com binarios~~ (MSI 146MB + NSIS 92MB gerados)
-13. [x] Traduzir ES/FR/DE via Ollama local (556 chaves cada, 0 fallbacks)
+13. [x] Traduzir todos os 15 idiomas via Ollama local (618 chaves cada, 0 fallbacks)
 14. [ ] Testar fluxo real: ingest -> job -> transcode -> done (requer teste manual com GUI)
 15. [ ] Adicionar bs1770gain ao download de binarios (ou tornar opcional)
 16. [ ] Adicionar testes de integracao Tauri (e2e)

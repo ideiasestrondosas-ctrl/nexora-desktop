@@ -5,7 +5,7 @@
 
 ---
 
-Actualizado: 2026-05-15 01:00
+Actualizado: 2026-05-16 14:00
 Agente: Claude Code (Kimi K2.6)
 
 ## O que foi feito
@@ -13,7 +13,7 @@ Agente: Claude Code (Kimi K2.6)
 ### Sessao Anterior — README, docs, HelpOverlay, i18n — CONCLUIDO
 *(Ver SYNC-STATE.md no historico do Git para detalhes)*
 
-### Sessao Actual — Correcoes HelpOverlay + screenshots — CONCLUIDO
+### Sessao Actual — Correcao help duplicado + Traducao 10 idiomas — CONCLUIDO
 
 **1. Correcao das traducoes EN no HelpOverlay (v2)**
 - Causa: as chaves `help.screens.*` foram adicionadas dentro de `help.about.screens` no `base.json`, mas o componente procura `help.screens.*`.
@@ -34,6 +34,19 @@ Agente: Claude Code (Kimi K2.6)
 - Fecha com click fora, botao X, ou tecla Escape.
 - Resultado: screenshots visiveis no card e ampliaveis para analise detalhada.
 
+**4. Correcao bloco help duplicado em PT/ES/FR/DE**
+- Causa: os ficheiros PT/ES/FR/DE tinham um segundo bloco `help` em ingles (duplicado) que sobrescrevia as traducoes novas.
+- Solucao: removido o segundo bloco `help` (e blocos adjacentes duplicados) de cada ficheiro usando scripts de analise de JSON.
+- Corrigido tambem o BOM (Byte Order Mark) que invalidava o JSON apos edicoes com PowerShell.
+- Resultado: JSON valido, sem duplicacao, todas as chaves `help.*` resolvidas correctamente.
+
+**5. Traducao para 10 novos idiomas via Ollama**
+- Idiomas: Arabic (ar), Italian (it), Japanese (ja), Korean (ko), Dutch (nl), Polish (pl), Russian (ru), Swedish (sv), Turkish (tr), Chinese Simplified (zh).
+- Criado script `scripts/translate-all.cjs` (batch size 4, resume automatico).
+- Total: 618 chaves/idioma, 10 idiomas = ~6180 traducoes.
+- Modelo: `qwen2.5:7b-instruct` via Ollama local.
+- Resultado: todos os 15 idiomas da app agora tem `common.json` completo.
+
 ---
 
 ## Estado de compilacao
@@ -42,6 +55,7 @@ Agente: Claude Code (Kimi K2.6)
 - `tsc --noEmit`: **OK** (0 erros)
 - `vitest run`: **OK** (21/21 tests passaram)
 - `tauri build --debug`: **OK** (MSI 146MB + NSIS 92MB)
+- Validacao JSON i18n: **OK** (16 ficheiros, 0 invalidos)
 
 ---
 
@@ -63,12 +77,23 @@ Agente: Claude Code (Kimi K2.6)
 ```
 MODIFICADOS:
 SYNC-STATE.md
-src/components/HelpModal.tsx
-src/i18n/locales/en/base.json
-src/index.css
-docs/screenshots/queue.png (renomeado)
+PROGRESS-DESKTOP.md
+src/i18n/locales/pt/common.json
+src/i18n/locales/es/common.json
+src/i18n/locales/fr/common.json
+src/i18n/locales/de/common.json
 NOVOS:
-public/screenshots/
+scripts/translate-all.cjs
+src/i18n/locales/ar/common.json
+src/i18n/locales/it/common.json
+src/i18n/locales/ja/common.json
+src/i18n/locales/ko/common.json
+src/i18n/locales/nl/common.json
+src/i18n/locales/pl/common.json
+src/i18n/locales/ru/common.json
+src/i18n/locales/sv/common.json
+src/i18n/locales/tr/common.json
+src/i18n/locales/zh/common.json
 ```
 
 ---
