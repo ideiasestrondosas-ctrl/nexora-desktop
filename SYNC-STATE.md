@@ -5,12 +5,36 @@
 
 ---
 
-Actualizado: 2026-05-17 10:55
-Agente: Google Antigravity
+Actualizado: 2026-05-17 15:30
+Agente: Claude Code
 
 ## O que foi feito
 
-### Sessao Actual — Resolucao de Testes Vitest, Erro VMAF no Windows, Redesign de Detalhes e Robustez do Script de Sincronizacao — CONCLUIDO
+### Sessao Actual — v0.19.0 Bump + Bug Fixes Criticos + UX Fila — CONCLUIDO
+
+**Commit:** `38171df` em `dev`
+
+**Bugs corrigidos:**
+
+1. **B1** — QueuePage: botao "Abrir ficheiro processado" agora tem openPath + import correcto
+2. **B2** — proxy-worker.ts: corrigido "width not divisible by 2" com `pad=ceil(iw/2)*2:ceil(ih/2)*2` apos scale
+3. **B3** — Bump versao 0.18.0 → 0.19.0 em package.json, Cargo.toml, tauri.conf.json, version.ts, CHANGELOG.md
+4. **B4** — App.tsx: reset isDragging no evento `tauri://blur` para evitar crash ao alt-tab durante drag
+5. **F1** — DashboardPage: Jobs Recentes agora tem `max-h-[520px] overflow-y-auto`
+6. **F3** — i18n: adicionadas chaves showAll/showLess e outputDirTitle/outputDirDefault em 15 locales
+
+**Funcionalidades novas:**
+
+- **BatchSubmitModal** mostra pasta de output actual e permite mudá-la sem ir às Settings (FolderOpen inline)
+- **QueuePage Concluidos**: tabela mostra agora nome do ficheiro processado (truncado) sob o original, e o erro quando existe
+- **Tooltips** em todos os botões de acção da Fila (Cancelar, Retry, Abrir ficheiro)
+
+**Estado de compilacao:**
+
+- `tsc --noEmit`: OK (0 erros)
+- `cargo check`: OK — v0.19.0 compilado com sucesso
+
+---
 
 **Bugs corrigidos e melhorias nesta sessao:**
 
@@ -56,24 +80,25 @@ Agente: Google Antigravity
 
 ---
 
-## Proximos passos (v0.19.0 — proxima sessao)
+## Proximos passos (v0.20.0 — proxima sessao)
 
-Aguardar validação manual do utilizador antes de comecar v0.19.0.
+Aguardar validação manual do utilizador (tauri dev + drag-drop + processamento).
 
-| Tarefa                                                    | Prioridade |
-| --------------------------------------------------------- | ---------- |
-| Testar fluxo real: tauri dev + drag-drop + processamento  | Critica    |
-| Fazer merge de `chore/audit-v0.18` → `main` (se validado) | Alta       |
-| **v0.19.0-A:** Codecs H.265/HEVC e VP9                    | Media      |
-| **v0.19.0-B:** AnalyzeWorker (FFprobe como MediaInfo)     | Media      |
-| **v0.19.0-C:** Scan recursivo de diretorias               | Media      |
-| **v0.19.0-D:** BatchSubmitModal + estimativas             | Baixa      |
+| Tarefa                                                                                 | Prioridade |
+| -------------------------------------------------------------------------------------- | ---------- |
+| Testar fluxo real: tauri dev + drag-drop + processamento com novos fixes               | Critica    |
+| Verificar se reprocess/retry funciona realmente (o job volta a processar)              | Alta       |
+| **v0.20.0-A:** Default output_dir → Documents/Nexora Output (nao temp)                 | Alta       |
+| **v0.20.0-B:** AssetDetailPage — MediaInfo mais detalhado (GENERAL/VIDEO/AUDIO/SHA256) | Media      |
+| **v0.20.0-C:** Player inline no detalhe — original vs processado side-by-side          | Media      |
+| **v0.20.0-D:** Merge dev → main + GitHub cleanup (branches, PRs, releases)             | Baixa      |
+| **v0.20.0-E:** Videos_Tests/ incluir no GitHub (só se nao existir)                     | Baixa      |
 
 ---
 
 ## Branch actual
 
-`chore/audit-v0.18` — nao merged ainda
+`dev` — v0.19.0 pronto para merge em main apos validacao
 
 ## Ficheiros chave modificados (v0.18.0)
 
