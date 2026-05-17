@@ -97,7 +97,8 @@ describe('QCPreWorker', () => {
 
   it('coloca em quarentena ficheiros com codec não suportado', async () => {
     const worker = new QCPreWorker();
-    await expect(worker.run(makeCtx({ assetVideoCodec: 'hevc' }))).resolves.toBe('QUARANTINE');
+    // hevc é agora suportado como input (v0.19.0); usar prores que continua na blacklist
+    await expect(worker.run(makeCtx({ assetVideoCodec: 'prores' }))).resolves.toBe('QUARANTINE');
     expect(mockEmit).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'job:status', jobId: 'job-1', status: 'qc_quarantined' })
     );
