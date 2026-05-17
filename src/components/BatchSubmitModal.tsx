@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import * as Dialog from '@radix-ui/react-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
@@ -77,12 +78,29 @@ function ProfileDropdown({
   compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties & { zIndex: number }>({
+    zIndex: 9999,
+  });
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const selected = profiles.find((p) => p.id === value);
 
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen((v) => !v)}
+        ref={buttonRef}
+        onClick={() => {
+          if (!open && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setMenuStyle({
+              position: 'fixed',
+              top: rect.bottom + 4,
+              left: rect.left,
+              minWidth: Math.max(rect.width, 180),
+              zIndex: 9999,
+            });
+          }
+          setOpen((v) => !v);
+        }}
         className={cn(
           'flex items-center gap-1.5 border border-border rounded-lg bg-bg-primary hover:border-brand/50 transition-colors',
           compact ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm',
@@ -98,29 +116,38 @@ function ProfileDropdown({
         />
       </button>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 mt-1 bg-bg-secondary border border-border rounded-xl shadow-2xl z-20 min-w-[180px] max-h-56 overflow-y-auto">
-            {profiles.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => {
-                  onChange(p.id);
-                  setOpen(false);
-                }}
-                className={cn(
-                  'w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-bg-hover transition-colors text-sm',
-                  value === p.id && 'bg-brand/10 text-brand',
-                )}
-              >
-                <span className={cn('w-2 h-2 rounded-full shrink-0', getProfileDot(p.name))} />
-                <span className="font-medium">{p.name}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+      {open &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0"
+              style={{ zIndex: 9998 }}
+              onClick={() => setOpen(false)}
+            />
+            <div
+              className="bg-bg-secondary border border-border rounded-xl shadow-2xl max-h-56 overflow-y-auto"
+              style={menuStyle}
+            >
+              {profiles.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    onChange(p.id);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    'w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-bg-hover transition-colors text-sm',
+                    value === p.id && 'bg-brand/10 text-brand',
+                  )}
+                >
+                  <span className={cn('w-2 h-2 rounded-full shrink-0', getProfileDot(p.name))} />
+                  <span className="font-medium">{p.name}</span>
+                </button>
+              ))}
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }

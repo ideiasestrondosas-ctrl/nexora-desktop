@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { invoke, convertFileSrc } from '@tauri-apps/api/core';
-import { openPath } from '@tauri-apps/plugin-opener';
+import { openPath, revealItemInDir } from '@tauri-apps/plugin-opener';
 import {
   ChevronLeft,
   Film,
@@ -15,6 +15,7 @@ import {
   MoreVertical,
   ScanLine,
   Volume2,
+  BarChart2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { MediaInfoPanel } from '@/components/MediaInfoPanel';
@@ -80,7 +81,9 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   const [asset, setAsset] = useState<Asset | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeDetailTab, setActiveDetailTab] = useState<'qc' | 'metadata' | 'history'>('qc');
+  const [activeDetailTab, setActiveDetailTab] = useState<'qc' | 'metadata' | 'media' | 'history'>(
+    'qc',
+  );
   const [heroView, setHeroView] = useState<'orig' | 'out'>('orig');
   const [playerActive, setPlayerActive] = useState(false);
   const { t, i18n } = useTranslation();
@@ -195,7 +198,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
         {/* LEFT: THUMBNAIL + PLAYER */}
         <div className="lg:col-span-5 space-y-3">
           {/* Toggle orig/out quando ambos existem */}
-          {asset.thumbnail_output_path && (
+          {(asset.thumbnail_output_path || asset.output_path || jobs[0]?.output_path) && (
             <div className="flex rounded-lg border border-border overflow-hidden text-xs font-bold w-fit">
               <button
                 onClick={() => {
@@ -226,9 +229,11 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                 autoPlay
                 className="w-full h-full object-contain bg-black"
                 src={convertFileSrc(
-                  heroView === 'out' && asset.output_path ? asset.output_path : asset.path,
+                  heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
+                    ? (asset.output_path ?? jobs[0]?.output_path)!
+                    : asset.path,
                 )}
-                key={heroView + (asset.output_path ?? '')}
+                key={heroView + (asset.output_path ?? jobs[0]?.output_path ?? '')}
               />
             ) : (
               <>
@@ -269,7 +274,13 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
 
           {/* Botão abrir no player do sistema */}
           <button
-            onClick={() => openPath(asset.path).catch(() => {})}
+            onClick={() =>
+              openPath(
+                heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
+                  ? (asset.output_path ?? jobs[0]?.output_path)!
+                  : asset.path,
+              ).catch(() => {})
+            }
             className="flex items-center gap-2 text-xs text-text-muted hover:text-brand transition-colors"
           >
             <Volume2 size={13} /> {t('detail.openInPlayer')}
@@ -363,6 +374,17 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
           {t('mediaInfo.title', 'Metadados Técnicos')}
         </button>
         <button
+          onClick={() => setActiveDetailTab('media')}
+          className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
+            activeDetailTab === 'media'
+              ? 'border-brand text-brand'
+              : 'border-transparent text-text-muted hover:text-text-secondary hover:bg-surface/10'
+          }`}
+        >
+          <BarChart2 size={16} />
+          {t('analysis.title', 'Análise Técnica')}
+        </button>
+        <button
           onClick={() => setActiveDetailTab('history')}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
             activeDetailTab === 'history'
@@ -385,7 +407,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
       </div>
 
       {/* TAB PANELS */}
-      <div className="mt-4 transition-all duration-300">
+      <div className="mt-4 transition-all duration-300 overflow-y-auto">
         {activeDetailTab === 'qc' && (
           <section className="bg-bg-secondary border border-border rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="flex items-center justify-between p-6 border-b border-border bg-surface/10">
@@ -477,7 +499,11 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                 />
               </div>
             </section>
+          </div>
+        )}
 
+        {activeDetailTab === 'media' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-y-auto">
             {/* Comparação técnica antes/depois */}
             <section className="bg-bg-secondary border border-border rounded-2xl overflow-hidden">
               <div className="p-6 border-b border-border bg-surface/10">
@@ -713,7 +739,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
 
                     {job.output_path && (
                       <div className="mt-6 pt-4 border-t border-border flex justify-end">
-                        <button className="flex items-center gap-2 text-[10px] font-black text-brand uppercase tracking-widest hover:underline">
+                        <button
+                          onClick={() => openPath(job.output_path!).catch(() => {})}
+                          className="flex items-center gap-2 text-[10px] font-black text-brand uppercase tracking-widest hover:underline"
+                        >
                           <ExternalLink size={14} /> {t('assetDetail.openProcessedFile')}
                         </button>
                       </div>
@@ -736,7 +765,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
             <Play size={18} /> {t('assetDetail.reprocess')}
           </button>
           <button
-            onClick={() => openPath(asset.path).catch(() => {})}
+            onClick={() => revealItemInDir(asset.path).catch(() => {})}
             className="flex items-center gap-2 px-6 py-2 bg-surface hover:bg-surface-hover text-text-secondary rounded-xl font-bold transition-all"
           >
             <FolderOpen size={18} /> {t('assetDetail.openInExplorer')}
