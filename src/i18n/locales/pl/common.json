@@ -432,7 +432,9 @@
     "viewLicense": "View License",
     "toggleDevTools": "Toggle Developer Tools",
     "name": "Name",
-    "description": "Description"
+    "description": "Description",
+    "showAll": "Pokaż wszystko",
+    "showLess": "Pokaż mniej"
   },
   "dropZone": {
     "dropHere": "Drop videos here",

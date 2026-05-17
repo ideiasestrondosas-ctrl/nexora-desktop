@@ -432,7 +432,9 @@
     "viewLicense": "View License",
     "toggleDevTools": "Toggle Developer Tools",
     "name": "Name",
-    "description": "Description"
+    "description": "Description",
+    "showAll": "显示全部",
+    "showLess": "收起"
   },
   "dropZone": {
     "dropHere": "Drop videos here",

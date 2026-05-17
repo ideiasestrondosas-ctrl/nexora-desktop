@@ -432,7 +432,9 @@
     "viewLicense": "View License",
     "toggleDevTools": "Toggle Developer Tools",
     "name": "Name",
-    "description": "Description"
+    "description": "Description",
+    "showAll": "すべて表示",
+    "showLess": "表示を減らす"
   },
   "dropZone": {
     "dropHere": "Drop videos here",

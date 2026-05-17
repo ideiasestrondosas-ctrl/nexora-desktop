@@ -554,7 +554,9 @@
     "viewLicense": "Ver Licença",
     "toggleDevTools": "Alternar Ferramentas de Developer",
     "name": "Name",
-    "description": "Description"
+    "description": "Description",
+    "showAll": "Ver tudo",
+    "showLess": "Ver menos"
   },
   "jobCard": {
     "cancel": "Cancel Job",

@@ -1,5 +1,16 @@
-import { existsSync } from 'fs';
+import { statSync } from 'fs';
 import { dirname, join } from 'path';
+
+// Valida que o ficheiro existe E tem tamanho suficiente para ser um binário real
+// (os stubs Tauri de placeholder têm 1 byte e não são executáveis)
+function isRealBinary(filePath: string): boolean {
+  try {
+    const s = statSync(filePath);
+    return s.isFile() && s.size > 4096;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Resolve o caminho absoluto do FFmpeg a usar.
@@ -10,7 +21,7 @@ import { dirname, join } from 'path';
  */
 export function getFfmpegPath(): string {
   const envPath = process.env['NEXORA_FFMPEG_PATH'];
-  if (envPath && existsSync(envPath)) {
+  if (envPath && isRealBinary(envPath)) {
     return envPath;
   }
 
@@ -21,7 +32,7 @@ export function getFfmpegPath(): string {
     join(sidecarDir, 'src-tauri', 'target', 'release', 'ffmpeg.exe'),
   ];
   for (const c of candidates) {
-    if (existsSync(c)) return c;
+    if (isRealBinary(c)) return c;
   }
 
   return 'ffmpeg';
@@ -33,7 +44,7 @@ export function getFfmpegPath(): string {
  */
 export function getFfprobePath(): string {
   const envPath = process.env['NEXORA_FFPROBE_PATH'];
-  if (envPath && existsSync(envPath)) {
+  if (envPath && isRealBinary(envPath)) {
     return envPath;
   }
 
@@ -43,7 +54,7 @@ export function getFfprobePath(): string {
     join(sidecarDir, 'src-tauri', 'target', 'release', 'ffprobe.exe'),
   ];
   for (const c of candidates) {
-    if (existsSync(c)) return c;
+    if (isRealBinary(c)) return c;
   }
 
   return 'ffprobe';

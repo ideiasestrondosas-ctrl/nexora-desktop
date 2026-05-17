@@ -4,6 +4,7 @@ import { mkdir } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { getFfmpegPath, getFfprobePath } from '../binaries';
+import { emit } from '../events';
 
 const execFileAsync = promisify(execFile);
 
@@ -123,7 +124,14 @@ export async function extractBasicMetadata(filePath: string): Promise<StreamMeta
       height: video?.height ?? null,
       fps,
     };
-  } catch {
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    emit({
+      type: 'log',
+      level: 'ERROR',
+      source: 'ffprobe',
+      message: `extractBasicMetadata failed (ffprobe="${ffprobePath}", file="${filePath}"): ${msg}`,
+    });
     return {
       duration: null,
       videoCodec: null,
