@@ -529,7 +529,9 @@
     "noFiles": "No video files found",
     "file": "File",
     "status": "Status",
-    "successToast": "{{count}} file(s) submitted successfully"
+    "successToast": "{{count}} file(s) submitted successfully",
+    "outputDirTitle": "Destination folder for processed files",
+    "outputDirDefault": "Temporary Folder"
   },
   "detail": {
     "thumbnailOrig": "Original",

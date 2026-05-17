@@ -529,7 +529,9 @@
     "noFiles": "Keine Videodateien gefunden",
     "file": "Datei",
     "status": "Status",
-    "successToast": "{{count}} Datei(en) erfolgreich übermittelt"
+    "successToast": "{{count}} Datei(en) erfolgreich übermittelt",
+    "outputDirTitle": "Zielordner für verarbeitete Dateien",
+    "outputDirDefault": "Temporärer Ordner"
   },
   "detail": {
     "thumbnailOrig": "Original",

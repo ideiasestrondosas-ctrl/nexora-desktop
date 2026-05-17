@@ -529,7 +529,9 @@
     "noFiles": "Nessun file video trovato",
     "file": "File",
     "status": "Stato",
-    "successToast": "{{count}} file inviati con successo"
+    "successToast": "{{count}} file inviati con successo",
+    "outputDirTitle": "Cartella di destinazione dei file elaborati",
+    "outputDirDefault": "Cartella temporanea"
   },
   "detail": {
     "thumbnailOrig": "Originale",

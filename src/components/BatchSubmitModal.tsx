@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import * as Dialog from '@radix-ui/react-dialog';
 import { invoke } from '@tauri-apps/api/core';
+import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import { useTranslation } from 'react-i18next';
 import {
   X,
@@ -12,6 +13,7 @@ import {
   Loader2,
   Play,
   AlertTriangle,
+  FolderOpen,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -168,6 +170,24 @@ export function BatchSubmitModal({
   const [globalProfileId, setGlobalProfileId] = useState<string>(defaultProfileId);
   const [rows, setRows] = useState<FileRow[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [outputDir, setOutputDir] = useState<string>('');
+
+  useEffect(() => {
+    if (!open) return;
+    invoke<Record<string, string>>('get_settings')
+      .then((s) => {
+        if (s.output_dir) setOutputDir(s.output_dir);
+      })
+      .catch(() => {});
+  }, [open]);
+
+  const handleChangeOutputDir = useCallback(async () => {
+    const selected = await openDialog({ directory: true }).catch(() => null);
+    if (selected && typeof selected === 'string') {
+      await invoke('update_settings', { key: 'output_dir', value: selected }).catch(() => {});
+      setOutputDir(selected);
+    }
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -291,8 +311,8 @@ export function BatchSubmitModal({
             )}
           </div>
 
-          {/* Global profile selector */}
-          <div className="px-6 py-3 border-b border-border bg-bg-primary/50 shrink-0 flex items-center gap-4">
+          {/* Global profile selector + Output dir */}
+          <div className="px-6 py-3 border-b border-border bg-bg-primary/50 shrink-0 flex items-center gap-4 flex-wrap">
             <span className="text-xs font-bold text-text-muted uppercase tracking-widest">
               {t('batch.globalProfile')}
             </span>
@@ -303,7 +323,18 @@ export function BatchSubmitModal({
                 onChange={handleGlobalProfileChange}
               />
             )}
-            <span className="text-xs text-text-muted ml-auto">{t('batch.perFileNote')}</span>
+            <div className="ml-auto flex items-center gap-2 min-w-0">
+              <FolderOpen size={13} className="text-text-muted shrink-0" />
+              <button
+                onClick={handleChangeOutputDir}
+                title={outputDir || t('batch.outputDirTitle')}
+                className="text-xs text-text-muted hover:text-text-primary transition-colors truncate max-w-[200px] text-left"
+              >
+                {outputDir
+                  ? outputDir.split(/[/\\]/).slice(-2).join('/')
+                  : t('batch.outputDirDefault')}
+              </button>
+            </div>
           </div>
 
           {paths.length === 0 ? (

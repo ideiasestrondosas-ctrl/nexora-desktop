@@ -529,7 +529,9 @@
     "noFiles": "Aucun fichier vidéo trouvé",
     "file": "Fichier",
     "status": "Statut",
-    "successToast": "{{count}} fichier(s) soumis avec succès"
+    "successToast": "{{count}} fichier(s) soumis avec succès",
+    "outputDirTitle": "Dossier de destination des fichiers traités",
+    "outputDirDefault": "Dossier temporaire"
   },
   "detail": {
     "thumbnailOrig": "Original",

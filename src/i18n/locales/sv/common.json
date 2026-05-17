@@ -529,7 +529,9 @@
     "noFiles": "Inga videofiler hittades",
     "file": "Fil",
     "status": "Status",
-    "successToast": "{{count}} fil(er) skickades"
+    "successToast": "{{count}} fil(er) skickades",
+    "outputDirTitle": "Målmapp för bearbetade filer",
+    "outputDirDefault": "Tillfällig mapp"
   },
   "detail": {
     "thumbnailOrig": "Original",

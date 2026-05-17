@@ -529,7 +529,9 @@
     "noFiles": "Видеофайлы не найдены",
     "file": "Файл",
     "status": "Статус",
-    "successToast": "{{count}} файл(ов) успешно отправлено"
+    "successToast": "{{count}} файл(ов) успешно отправлено",
+    "outputDirTitle": "Папка назначения обработанных файлов",
+    "outputDirDefault": "Временная папка"
   },
   "detail": {
     "thumbnailOrig": "Оригинал",

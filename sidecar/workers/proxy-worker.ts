@@ -29,28 +29,48 @@ export class ProxyWorker {
       await execFileAsync(
         ffmpegPath,
         [
-          '-i', input,
-          '-c:v', 'libx264',
-          '-preset', 'veryfast',
-          '-profile:v', 'baseline',
-          '-level', '3.1',
-          '-b:v', '800k',
-          '-maxrate', '1000k',
-          '-bufsize', '1600k',
-          '-g', String(gop),
-          '-keyint_min', String(gop),
-          '-sc_threshold', '0',
-          '-flags', '+cgop',
-          '-bf', '0',
-          '-pix_fmt', 'yuv420p',
-          '-movflags', '+faststart',
-          '-vf', 'scale=960:540:force_original_aspect_ratio=decrease',
-          '-c:a', 'aac',
-          '-b:a', '96k',
-          '-ar', '48000',
-          '-y', tmpOutput,
+          '-i',
+          input,
+          '-c:v',
+          'libx264',
+          '-preset',
+          'veryfast',
+          '-profile:v',
+          'baseline',
+          '-level',
+          '3.1',
+          '-b:v',
+          '800k',
+          '-maxrate',
+          '1000k',
+          '-bufsize',
+          '1600k',
+          '-g',
+          String(gop),
+          '-keyint_min',
+          String(gop),
+          '-sc_threshold',
+          '0',
+          '-flags',
+          '+cgop',
+          '-bf',
+          '0',
+          '-pix_fmt',
+          'yuv420p',
+          '-movflags',
+          '+faststart',
+          '-vf',
+          'scale=960:540:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2',
+          '-c:a',
+          'aac',
+          '-b:a',
+          '96k',
+          '-ar',
+          '48000',
+          '-y',
+          tmpOutput,
         ],
-        { timeout: 3_600_000 }
+        { timeout: 3_600_000 },
       );
 
       onProgress(0.9);
@@ -61,7 +81,12 @@ export class ProxyWorker {
 
       ctx.proxyPath = finalPath;
 
-      emit({ type: 'log', level: 'INFO', source: 'proxy-worker', message: `Proxy completed: ${finalPath}` });
+      emit({
+        type: 'log',
+        level: 'INFO',
+        source: 'proxy-worker',
+        message: `Proxy completed: ${finalPath}`,
+      });
       onProgress(1.0);
     } finally {
       await rm(tmpDir, { recursive: true, force: true }).catch(() => {});

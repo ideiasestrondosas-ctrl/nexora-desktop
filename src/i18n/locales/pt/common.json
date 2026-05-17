@@ -704,7 +704,9 @@
     "noFiles": "Nenhum ficheiro de vídeo encontrado",
     "file": "Ficheiro",
     "status": "Estado",
-    "successToast": "{{count}} ficheiro(s) submetidos com sucesso"
+    "successToast": "{{count}} ficheiro(s) submetidos com sucesso",
+    "outputDirTitle": "Pasta de destino dos ficheiros processados",
+    "outputDirDefault": "Pasta Temporária"
   },
   "detail": {
     "thumbnailOrig": "Original",

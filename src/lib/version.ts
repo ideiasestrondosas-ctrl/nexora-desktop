@@ -3,7 +3,7 @@
  * Actualizar aqui em cada release — propaga automaticamente
  * para todos os sítios que mostram a versão.
  */
-export const APP_VERSION = '0.18.0';
+export const APP_VERSION = '0.19.0';
 
 export interface VersionEntry {
   version: string;
@@ -11,6 +11,11 @@ export interface VersionEntry {
 }
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: '0.19.0',
+    description:
+      'v0.19.0: suporte H.265/HEVC e VP9, BatchSubmitModal com estimativas, thumbnails automáticos, player inline na Biblioteca, MediaInfo detalhado no Detalhe de Asset, correcções VMAF Windows, navegação de detalhes clicável.',
+  },
   {
     version: '0.18.0',
     description:

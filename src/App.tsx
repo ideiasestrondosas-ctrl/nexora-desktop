@@ -69,6 +69,9 @@ function App() {
       listen('tauri://drag-enter', () => setIsDragging(true)),
       listen('tauri://drag-over', () => setIsDragging(true)),
       listen('tauri://drag-leave', () => setIsDragging(false)),
+      // Segurança: se o utilizador sai da janela durante um drag (alt-tab, etc.)
+      // o drag-leave pode não disparar — resetar pelo blur da janela
+      listen('tauri://blur', () => setIsDragging(false)),
 
       // Drop real: expandir pastas e abrir BatchSubmitModal
       listen<{ paths: string[] }>('tauri://drag-drop', async (event) => {

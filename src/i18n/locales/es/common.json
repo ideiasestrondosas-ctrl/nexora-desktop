@@ -529,7 +529,9 @@
     "noFiles": "No se encontraron archivos de vídeo",
     "file": "Archivo",
     "status": "Estado",
-    "successToast": "{{count}} archivo(s) enviados correctamente"
+    "successToast": "{{count}} archivo(s) enviados correctamente",
+    "outputDirTitle": "Carpeta de destino de archivos procesados",
+    "outputDirDefault": "Carpeta temporal"
   },
   "detail": {
     "thumbnailOrig": "Original",

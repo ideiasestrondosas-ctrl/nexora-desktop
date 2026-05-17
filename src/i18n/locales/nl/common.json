@@ -529,7 +529,9 @@
     "noFiles": "Geen videobestanden gevonden",
     "file": "Bestand",
     "status": "Status",
-    "successToast": "{{count}} bestand(en) succesvol ingediend"
+    "successToast": "{{count}} bestand(en) succesvol ingediend",
+    "outputDirTitle": "Doelmap voor verwerkte bestanden",
+    "outputDirDefault": "Tijdelijke map"
   },
   "detail": {
     "thumbnailOrig": "Origineel",

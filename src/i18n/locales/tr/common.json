@@ -529,7 +529,9 @@
     "noFiles": "Video dosyası bulunamadı",
     "file": "Dosya",
     "status": "Durum",
-    "successToast": "{{count}} dosya başarıyla gönderildi"
+    "successToast": "{{count}} dosya başarıyla gönderildi",
+    "outputDirTitle": "İşlenen dosyalar için hedef klasör",
+    "outputDirDefault": "Geçici Klasör"
   },
   "detail": {
     "thumbnailOrig": "Orijinal",

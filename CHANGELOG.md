@@ -6,6 +6,26 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-05-17
+
+### Added
+
+- Suporte a codecs H.265/HEVC e VP9 no pipeline de transcodificação
+- BatchSubmitModal com estimativas de tempo e tamanho por ficheiro
+- Thumbnails automáticos gerados pelo worker de thumbnail
+- Player inline na Biblioteca para preview do vídeo original
+- MediaInfo detalhado no ecrã de Detalhe de Asset (GENERAL, VIDEO, AUDIO)
+- Navegação clicável nos cabeçalhos e nomes de vídeo na Biblioteca (Grid e Lista)
+- Ficha técnica do Asset em abas horizontais modernas (Relatório QC, Metadados, Histórico)
+
+### Fixed
+
+- Corrigido parsing e escala VMAF no Windows (paths com `:` no filtergraph substituídos por `\:`)
+- Corrigido loop de loading infinito no ecrã AssetDetailPage
+- Corrigido mock síncrono do módulo nativo `fs` em workers.test.ts (Vitest)
+- Corrigido emit duplicado de `job:started` — gerido agora apenas pelo Orchestrator
+- Corrigido problema de bloqueio de ficheiros no Windows no script sync.ps1
+
 ## [0.18.0] - 2026-05-16
 
 ### Fixed

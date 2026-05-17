@@ -236,7 +236,7 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
           </div>
         </div>
 
-        <div className="bg-bg-secondary border border-border rounded-2xl overflow-hidden">
+        <div className="bg-bg-secondary border border-border rounded-2xl overflow-hidden max-h-[520px] overflow-y-auto custom-scrollbar">
           {recentJobs.length === 0 ? (
             <div className="p-12 text-center text-text-muted flex flex-col items-center">
               <Film size={32} className="mb-4 opacity-20" />

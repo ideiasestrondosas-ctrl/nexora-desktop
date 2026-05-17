@@ -529,7 +529,9 @@
     "noFiles": "لم يتم العثور على ملفات فيديو",
     "file": "ملف",
     "status": "الحالة",
-    "successToast": "تم إرسال {{count}} ملف بنجاح"
+    "successToast": "تم إرسال {{count}} ملف بنجاح",
+    "outputDirTitle": "مجلد ملفات المعالجة",
+    "outputDirDefault": "مجلد مؤقت"
   },
   "detail": {
     "thumbnailOrig": "الأصل",

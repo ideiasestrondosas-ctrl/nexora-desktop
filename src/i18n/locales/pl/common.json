@@ -529,7 +529,9 @@
     "noFiles": "Nie znaleziono plików wideo",
     "file": "Plik",
     "status": "Status",
-    "successToast": "{{count}} plik(ów) przesłany(-ych) pomyślnie"
+    "successToast": "{{count}} plik(ów) przesłany(-ych) pomyślnie",
+    "outputDirTitle": "Folder docelowy przetworzonych plików",
+    "outputDirDefault": "Folder tymczasowy"
   },
   "detail": {
     "thumbnailOrig": "Oryginał",

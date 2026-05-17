@@ -529,7 +529,9 @@
     "noFiles": "動画ファイルが見つかりません",
     "file": "ファイル",
     "status": "ステータス",
-    "successToast": "{{count}} 件のファイルを送信しました"
+    "successToast": "{{count}} 件のファイルを送信しました",
+    "outputDirTitle": "処理済みファイルの保存先フォルダ",
+    "outputDirDefault": "一時フォルダ"
   },
   "detail": {
     "thumbnailOrig": "オリジナル",
