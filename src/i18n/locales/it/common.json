@@ -1,4 +1,4 @@
-{
+﻿{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -165,7 +165,9 @@
     "deleteError": "Error deleting asset",
     "file": "File",
     "duration": "Duration",
-    "actions": "Actions"
+    "actions": "Actions",
+    "gridView": "Vista griglia",
+    "listView": "Vista elenco"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -198,7 +200,13 @@
     "retry": "Retry",
     "cannotCancelState": "Questo job non può essere annullato nel suo stato attuale",
     "cannotRetryState": "Questo job non può essere rielaborato nel suo stato attuale",
-    "retryQueued": "Job accodato di nuovo"
+    "retryQueued": "Job accodato di nuovo",
+    "rejected": "Rifiutato",
+    "step": "{{step}}...",
+    "gpuNvenc": "GPU: NVENC",
+    "rejectedManual": "Rifiutato manualmente",
+    "openProcessedFile": "Apri file elaborato",
+    "viewAsset": "Visualizza asset"
   },
   "profiles": {
     "create": "Create",

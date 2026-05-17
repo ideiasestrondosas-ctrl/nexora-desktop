@@ -117,10 +117,35 @@ pub fn cancel_job(id: String, state: State<AppState>) -> Result<bool, String> {
             rusqlite::params![now, id],
         )
         .map_err(|e| e.to_string())?;
+
     if rows > 0 {
         crate::logger::write("INFO", "jobs", &format!("Job {} cancelado pelo utilizador", id));
+
+        // Matar o processo Node.js se estiver activo
+        if let Ok(mut pids) = state.active_pids.lock() {
+            if let Some(pid) = pids.remove(&id) {
+                kill_process(pid);
+            }
+        }
     }
     Ok(rows > 0)
+}
+
+fn kill_process(pid: u32) {
+    #[cfg(target_os = "windows")]
+    {
+        // No Windows usar taskkill /F /T para matar o processo e os filhos (FFmpeg)
+        let _ = std::process::Command::new("taskkill")
+            .args(["/F", "/T", "/PID", &pid.to_string()])
+            .output();
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        // Unix: SIGTERM ao grupo de processos
+        unsafe {
+            libc::kill(-(pid as i32), libc::SIGTERM);
+        }
+    }
 }
 
 #[tauri::command]

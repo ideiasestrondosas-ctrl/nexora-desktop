@@ -1,4 +1,4 @@
-{
+﻿{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -165,7 +165,9 @@
     "deleteError": "Error deleting asset",
     "file": "File",
     "duration": "Duration",
-    "actions": "Actions"
+    "actions": "Actions",
+    "gridView": "Izgara görünümü",
+    "listView": "Liste görünümü"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -198,7 +200,13 @@
     "retry": "Retry",
     "cannotCancelState": "Bu iş mevcut durumunda iptal edilemez",
     "cannotRetryState": "Bu iş mevcut durumunda yeniden işlenemez",
-    "retryQueued": "İş yeniden kuyruğa alındı"
+    "retryQueued": "İş yeniden kuyruğa alındı",
+    "rejected": "Reddedildi",
+    "step": "{{step}}...",
+    "gpuNvenc": "GPU: NVENC",
+    "rejectedManual": "Manuel olarak reddedildi",
+    "openProcessedFile": "İşlenmiş dosyayı aç",
+    "viewAsset": "Varlığı görüntüle"
   },
   "profiles": {
     "create": "Create",

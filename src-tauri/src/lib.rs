@@ -96,6 +96,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::assets::ingest_asset,
             commands::assets::list_assets,
+            commands::assets::list_assets_slim,
             commands::assets::get_asset,
             commands::assets::delete_asset,
             commands::assets::scan_directory,

@@ -135,19 +135,42 @@ fn poll<R: Runtime>(
         std::thread::spawn(move || {
             if let Err(e) = run_job(&app_clone, &db_path_buf, &job_id, &asset_id, &profile, &asset_path, duration_secs, video_codec, audio_codec, width, height, fps, size_bytes) {
                 error!("Job {} failed: {}", job_id, e);
-                // Marcar como erro
-                if let Ok(db) = app_clone.state::<AppState>().db.lock() {
-                    let now = chrono::Utc::now().to_rfc3339();
-                    let _ = db.execute(
-                        "UPDATE jobs SET status = 'error', finished_at = ?, updated_at = ?, error = ? WHERE id = ?",
-                        [&now, &now, &e.to_string()[..200.min(e.to_string().len())], &job_id],
-                    );
+                // Se o erro é por cancelamento (processo morto), não sobrescrever status
+                let already_cancelled = app_clone
+                    .state::<AppState>()
+                    .db
+                    .lock()
+                    .ok()
+                    .and_then(|db| {
+                        db.query_row(
+                            "SELECT status FROM jobs WHERE id = ?",
+                            [&job_id],
+                            |r| r.get::<_, String>(0),
+                        )
+                        .ok()
+                    })
+                    .map(|s| s == "cancelled")
+                    .unwrap_or(false);
+
+                if !already_cancelled {
+                    if let Ok(db) = app_clone.state::<AppState>().db.lock() {
+                        let now = chrono::Utc::now().to_rfc3339();
+                        let err_str = e.to_string();
+                        let _ = db.execute(
+                            "UPDATE jobs SET status = 'error', finished_at = ?, updated_at = ?, error = ? WHERE id = ?",
+                            [&now, &now, &err_str[..200.min(err_str.len())], &job_id],
+                        );
+                    }
+                    let _ = app_clone.emit("sidecar:event", serde_json::json!({
+                        "type": "job:failed",
+                        "jobId": job_id,
+                        "error": e.to_string(),
+                    }));
                 }
-                let _ = app_clone.emit("sidecar:event", serde_json::json!({
-                    "type": "job:failed",
-                    "jobId": job_id,
-                    "error": e.to_string(),
-                }));
+            }
+            // Remover PID do mapa de activos
+            if let Ok(mut pids) = app_clone.state::<AppState>().active_pids.lock() {
+                pids.remove(&job_id);
             }
             // Decrementar contador
             if let Ok(mut qs) = queue_state_clone.lock() {
@@ -256,7 +279,13 @@ fn run_job<R: Runtime>(
         .spawn()
         .map_err(|e| anyhow::anyhow!("Failed to spawn sidecar: {}", e))?;
 
-    info!("[sidecar] arrancou com PID {} para job {}", child.id(), job_id);
+    let pid = child.id();
+    info!("[sidecar] arrancou com PID {} para job {}", pid, job_id);
+
+    // Registar PID para permitir kill ao cancelar
+    if let Ok(mut pids) = app.state::<AppState>().active_pids.lock() {
+        pids.insert(job_id.to_string(), pid);
+    }
 
     // Enviar job JSON via stdin
     if let Some(mut stdin) = child.stdin.take() {

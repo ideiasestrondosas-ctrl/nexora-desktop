@@ -1,4 +1,4 @@
-{
+﻿{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -165,7 +165,9 @@
     "deleteError": "Error deleting asset",
     "file": "File",
     "duration": "Duration",
-    "actions": "Actions"
+    "actions": "Actions",
+    "gridView": "Rutnätsvy",
+    "listView": "Listvy"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -198,7 +200,13 @@
     "retry": "Retry",
     "cannotCancelState": "Det här jobbet kan inte avbrytas i sitt nuvarande tillstånd",
     "cannotRetryState": "Det här jobbet kan inte bearbetas om i sitt nuvarande tillstånd",
-    "retryQueued": "Jobbet är köat för ombearbetning"
+    "retryQueued": "Jobbet är köat för ombearbetning",
+    "rejected": "Avvisad",
+    "step": "{{step}}...",
+    "gpuNvenc": "GPU: NVENC",
+    "rejectedManual": "Avvisad manuellt",
+    "openProcessedFile": "Öppna bearbetad fil",
+    "viewAsset": "Visa tillgång"
   },
   "profiles": {
     "create": "Create",

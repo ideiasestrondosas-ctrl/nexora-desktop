@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke, convertFileSrc } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import {
   Archive,
   Activity,
@@ -88,7 +89,9 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
       const [statsData, jobsData, assetsData] = await Promise.all([
         invoke<AppStats>('get_stats'),
         invoke<Job[]>('list_jobs'),
-        invoke<{ id: string; filename: string; thumbnail_path: string | null }[]>('list_assets'),
+        invoke<{ id: string; filename: string; thumbnail_path: string | null }[]>(
+          'list_assets_slim',
+        ),
       ]);
       setStats(statsData);
       setAllJobs(jobsData);
@@ -106,8 +109,19 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 10000);
+    // Fallback polling a 30s; actualizações em tempo real via evento sidecar:event
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
+  }, [fetchData]);
+
+  // Actualizar em tempo real quando o sidecar emite eventos de job
+  useEffect(() => {
+    const unlisten = listen('sidecar:event', () => {
+      fetchData();
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, [fetchData]);
 
   // Manter histórico de 60 amostras (1 min a 1 sample/2s)

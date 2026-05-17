@@ -1,4 +1,4 @@
-{
+﻿{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -165,7 +165,9 @@
     "deleteError": "Error deleting asset",
     "file": "File",
     "duration": "Duration",
-    "actions": "Actions"
+    "actions": "Actions",
+    "gridView": "网格视图",
+    "listView": "列表视图"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -198,7 +200,13 @@
     "retry": "Retry",
     "cannotCancelState": "该任务在当前状态下无法取消",
     "cannotRetryState": "该任务在当前状态下无法重新处理",
-    "retryQueued": "任务已重新加入队列"
+    "retryQueued": "任务已重新加入队列",
+    "rejected": "已拒绝",
+    "step": "{{step}}...",
+    "gpuNvenc": "GPU: NVENC",
+    "rejectedManual": "手动拒绝",
+    "openProcessedFile": "打开已处理文件",
+    "viewAsset": "查看资源"
   },
   "profiles": {
     "create": "Create",

@@ -5,71 +5,67 @@
 
 ---
 
-Actualizado: 2026-05-17 17:00
-Agente: Claude Code
+Actualizado: 2026-05-17 18:15
+Agente: Claude Code (Sonnet 4.6)
 
 ## O que foi feito
 
-### Sessao Actual — v0.20.0 Melhorias + GitHub Cleanup — CONCLUIDO
+### Sessao 2 — v0.21.0 Bug Fixes + Performance + UX — CONCLUIDO
 
-**Commit mais recente:** `457fb6f` em `dev` (Videos_Tests)
+**Sessao 1 (anterior):**
 
-**v0.20.0 completo — tudo concluido:**
+- B1: Migração `output_dir` de %TEMP% → `Videos/Nexora Output`
+- B2: `max_concurrent_jobs` lido dinamicamente da BD (era hardcoded 2)
+- B3: `cancel_job` mata processo Node.js via `active_pids` HashMap (taskkill no Windows)
+- B4: `list_jobs` inclui LEFT JOIN `a.filename` — filenames visiveis na QueuePage
+- B5: Logging de acções em cancel/retry/approve/reject/submit
+- B7: Race condition na fila corrigida (UPDATE status antes de drop(db))
+- B8: version.ts actualizado para 0.21.0
+- F4: Retry/cancel dão feedback via toast quando retornam false
+- P2: Novo comando `list_assets_slim` sem campo metadata pesado
+- i18n: Adicionadas chaves `cannotCancelState`, `cannotRetryState`, `retryQueued` (15 linguas)
 
-1. **v0.20.0-A** — settings.rs: `default_output_dir()` aponta para `Videos/Nexora Output` (Windows/macOS/Linux) em vez de temp
-2. **v0.20.0-B** — AssetDetailPage: toggle Original/Processado na aba Metadados com banner de caminho; MediaInfoPanel mostra metadata do ficheiro activo
-3. **v0.20.0-C** — Player inline: caminho do ficheiro visivel sob o toggle (path completo truncado)
-4. **v0.20.0-D** — GitHub cleanup COMPLETO:
-   - Merge dev → main (fast-forward, commit `30d968a`)
-   - Branch `chore/audit-v0.18` eliminada (local + remoto)
-   - 11 PRs Dependabot encerrados (#1–#11)
-   - 6 releases draft eliminadas (v0.17.0, v0.16.0, v0.15.0, v0.14.0, v0.3.5, v0.3.4)
-   - Repositorio limpo: apenas branches `main` e `dev`, sem releases nem PRs abertos
-5. **v0.20.0-E** — Videos_Tests/ adicionado ao git (18 samples: 5s/10s/15s/20s/30s em 360p/720p/1080p/2160p/H265/VP9)
+**Sessao 2 (esta sessao):**
 
-**Correcoes adicionais no AssetDetailPage:**
-
-- Duracao dos jobs calculada de `started_at`/`finished_at` (era hardcoded "2m 04s")
-- Data de inicio mostra `started_at` com hora (era `created_at` sem hora)
-- `output_path` no historico: path completo + botao ExternalLink
-
-**MediaInfoPanel — Copy All:**
-
-- Adicionados TAGS e SHA-256 na funcao `generateTextReport()`
-
-**Versao bumped:** 0.19.0 → 0.20.0 em package.json, Cargo.toml, tauri.conf.json, version.ts, CHANGELOG.md
+- P1: QueuePage passa de polling 2s para 30s + `listen('sidecar:event', fetchData)` (push events)
+- P1: DashboardPage idem — 30s polling + push events
+- F3: QueuePage recebe `onSelectAsset` prop — filenames clicaveis navegam para AssetDetail
+- F3: App.tsx passa `onSelectAsset={handleSelectAsset}` a QueuePage
+- F5: Tooltips em LibraryPage (grid/list toggles, ExternalLink, Play, Trash2)
+- F5: Tooltip no botao Play overlay em AssetDetailPage
+- i18n: Adicionadas chaves em falta em 15 linguas: `rejected`, `step`, `gpuNvenc`, `rejectedManual`, `openProcessedFile`, `viewAsset`, `gridView`, `listView`
+- Corrigidos valores errados (inglês) no locale `pt` para `rejected`/`rejectedManual`
 
 ---
 
 ## Estado de compilacao
 
-- `tsc --noEmit`: **OK** (0 erros — verificar apos as alteracoes de hoje)
-- `cargo check`: **OK** (0 erros — v0.20.0)
-- `npm run lint`: **OK** (0 warnings)
-- `npm run sidecar:build`: **OK** (31.7kb)
-- `vitest run`: **OK** (15 testes)
+- `tsc --noEmit`: **OK** (0 erros)
+- `cargo check`: **OK** (0 erros — v0.21.0)
+- `vitest run`: **OK** (24 testes)
 - Validacao JSON i18n: **OK** (15 linguas completas)
 
 ---
 
 ## Estado das branches
 
-- `dev`: commit `457fb6f` — v0.20.0 completo (ainda nao pushed — fazer `git push origin dev`)
-- `main`: commit `30d968a` — v0.20.0 merged
+- `dev`: changes not yet committed — fazer commit + push
+- `main`: commit anterior (v0.20.0 area)
 - Remote: apenas `main` e `dev`
 
 ---
 
-## Proximos passos (v0.21.0 ou validacao manual)
+## Proximos passos (Sessao 3 — UX + Performance)
 
-| Tarefa                                                                   | Prioridade |
-| ------------------------------------------------------------------------ | ---------- |
-| Fazer `git push origin dev` para sincronizar Videos_Tests + version bump | Critica    |
-| Testar fluxo real: tauri dev + drag-drop + processamento                 | Critica    |
-| Verificar se retry/reprocess funciona (job volta a processing)           | Alta       |
-| Actualizar screenshots e manual do utilizador (15 linguas)               | Media      |
-| Verificar que o main tem builds Windows/macOS/Linux para v0.19.0         | Media      |
-| Criar release v0.20.0 no GitHub com notas e binarios                     | Baixa      |
+| Tarefa                                                              | Prioridade | Plan item |
+| ------------------------------------------------------------------- | ---------- | --------- |
+| Empty state Dashboard quando totalAssets === 0                      | Alta       | UX3       |
+| Mensagens startup mais amigaveis para utilizadores normais          | Media      | UX1       |
+| Perfis com `label_friendly` (broadcast-hd → Alta Qualidade, etc.)   | Media      | UX2       |
+| Pipeline: 3 fases visuais em vez de 8 passos tecnicos               | Media      | UX4       |
+| Lazy loading com React.lazy (DashboardPage, LogsPage, ProfilesPage) | Baixa      | P3        |
+| Actualizar screenshots (Sessao 4)                                   | Baixa      | -         |
+| Auditoria i18n 15 linguas (Sessao 4)                                | Baixa      | -         |
 
 ---
 
@@ -79,7 +75,8 @@ Agente: Claude Code
 - **15 linguas i18n completas** — ao adicionar texto novo, traduzir SEMPRE todos os 15 locales em `src/i18n/locales/`
 - **FFmpeg execFile** — NUNCA usar `exec` com string; sempre `execFile` com array de argumentos
 - **VMAF model escaping no Windows** — no filtergraph `-lavfi`, os caminhos absolutos como `C:/path` no Windows geram erro. Substituir sempre por `C\:/path` no `libvmaf=model='path=...'`.
-- **QCPreWorker** — lanca erro se `!ctx.assetVideoCodec` (null/undefined); o IngestWorker garante que esta preenchido apos o passo 0
+- **active_pids** — `AppState` tem `active_pids: Mutex<HashMap<String, u32>>` para matar processos Node.js ao cancelar
+- **list_assets_slim** — usar em listagens (Dashboard, LibraryPage) em vez de `list_assets` para evitar metadata JSON pesado
+- **sidecar:event** — QueuePage e DashboardPage ouvem este evento para actualizacoes em tempo real; polling e fallback a 30s
 - **tauri-plugin-store** — settings persistem em ficheiro nativo; nao usar localStorage
-- **INSERT OR IGNORE em settings** — o `ensure_defaults()` so insere se a chave nao existir; utilizadores existentes MANTEM o output_dir anterior
-- **Videos_Tests/** — ja no git; nao ignorado; 18 samples de video de teste
+- **Videos_Tests/** — ja no git; 18 samples de video de teste

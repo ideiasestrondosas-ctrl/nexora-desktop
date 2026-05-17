@@ -259,6 +259,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                 {/* Botão Play overlay */}
                 <button
                   onClick={() => setPlayerActive(true)}
+                  title={t('detail.playerOriginal')}
                   className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30"
                 >
                   <div className="w-16 h-16 rounded-full bg-brand/90 flex items-center justify-center shadow-xl">

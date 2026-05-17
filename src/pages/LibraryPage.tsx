@@ -295,12 +295,14 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
         <div className="flex bg-bg-primary border border-border rounded-lg p-1">
           <button
             onClick={() => setViewMode('grid')}
+            title={t('library.gridView')}
             className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-surface text-brand' : 'text-text-muted hover:text-text-secondary'}`}
           >
             <Grid2X2 size={16} />
           </button>
           <button
             onClick={() => setViewMode('list')}
+            title={t('library.listView')}
             className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-surface text-brand' : 'text-text-muted hover:text-text-secondary'}`}
           >
             <List size={16} />
@@ -432,17 +434,22 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                     <div className="absolute inset-0 bg-bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                       <button
                         onClick={() => onSelectAsset?.(asset.id)}
+                        title={t('queue.viewAsset')}
                         className="p-2 bg-brand text-white rounded-full hover:scale-110 transition-transform"
                       >
                         <ExternalLink size={18} />
                       </button>
                       {(asset.status === 'done' || asset.status === 'error') && (
-                        <button className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform">
+                        <button
+                          title={t('detail.playerOriginal')}
+                          className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform"
+                        >
                           <Play size={18} />
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(asset.id)}
+                        title={t('common.delete')}
                         className="p-2 bg-red-600 text-white rounded-full hover:scale-110 transition-transform"
                       >
                         <Trash2 size={16} />
@@ -552,12 +559,14 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                     <div className="px-6 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => onSelectAsset?.(asset.id)}
+                        title={t('queue.viewAsset')}
                         className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded"
                       >
                         <ExternalLink size={14} />
                       </button>
                       <button
                         onClick={() => handleDelete(asset.id)}
+                        title={t('common.delete')}
                         className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/10 rounded"
                       >
                         <Trash2 size={14} />

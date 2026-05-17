@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { openPath } from '@tauri-apps/plugin-opener';
 import { toast } from 'sonner';
 import {
@@ -63,7 +64,11 @@ const PIPELINE_STEPS = [
   { key: 'delivery' },
 ];
 
-export default function QueuePage() {
+export default function QueuePage({
+  onSelectAsset,
+}: {
+  onSelectAsset?: (assetId: string) => void;
+}) {
   const { t, i18n } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<QueueStats>({
@@ -89,8 +94,17 @@ export default function QueuePage() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 2000);
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
+  }, [fetchData]);
+
+  useEffect(() => {
+    const unlisten = listen('sidecar:event', () => {
+      fetchData();
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, [fetchData]);
 
   const handleCancel = async (jobId: string) => {
@@ -287,9 +301,20 @@ export default function QueuePage() {
                       <Film className="text-text-muted" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-text-primary leading-tight mb-1">
-                        {job.filename}
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-bold text-text-primary leading-tight">
+                          {job.filename}
+                        </h3>
+                        {onSelectAsset && (
+                          <button
+                            onClick={() => onSelectAsset(job.asset_id)}
+                            title={t('queue.viewAsset')}
+                            className="text-text-muted hover:text-brand transition-colors shrink-0"
+                          >
+                            <ExternalLink size={14} />
+                          </button>
+                        )}
+                      </div>
                       <span className="px-2 py-0.5 bg-surface text-[10px] font-bold uppercase text-purple-400 rounded">
                         {job.profile}
                       </span>
@@ -400,7 +425,15 @@ export default function QueuePage() {
                 {queuedJobs.map((job, idx) => (
                   <tr key={job.id} className="hover:bg-surface/30 transition-colors">
                     <td className="px-6 py-4 font-mono text-text-muted">{idx + 1}</td>
-                    <td className="px-6 py-4 font-bold text-text-primary">{job.filename}</td>
+                    <td className="px-6 py-4 font-bold text-text-primary">
+                      <button
+                        onClick={() => onSelectAsset?.(job.asset_id)}
+                        title={t('queue.viewAsset')}
+                        className="text-left hover:text-brand transition-colors"
+                      >
+                        {job.filename}
+                      </button>
+                    </td>
                     <td className="px-6 py-4">
                       <span className="px-2 py-0.5 bg-surface text-[10px] font-bold uppercase text-blue-400 rounded">
                         {job.profile}
@@ -460,8 +493,9 @@ export default function QueuePage() {
                   <tr key={job.id} className="hover:bg-surface/30 transition-colors">
                     <td className="px-6 py-4">
                       <div
-                        className="font-bold text-text-primary truncate max-w-[200px]"
+                        className="font-bold text-text-primary truncate max-w-[200px] cursor-pointer hover:text-brand transition-colors"
                         title={job.filename ?? undefined}
+                        onClick={() => onSelectAsset?.(job.asset_id)}
                       >
                         {job.filename ?? job.asset_id.slice(0, 8)}
                       </div>

@@ -199,6 +199,45 @@ pub fn list_assets(status: Option<String>, state: State<AppState>) -> Result<Vec
     }
 }
 
+/// Versão leve de list_assets sem o campo metadata (JSON ffprobe grande).
+/// Usar em listagens onde só é necessário filename/thumbnail/status/dimensões.
+#[derive(Debug, Serialize)]
+pub struct AssetSlim {
+    pub id: String,
+    pub filename: String,
+    pub status: String,
+    pub thumbnail_path: Option<String>,
+    pub duration_secs: Option<f64>,
+    pub width: Option<i64>,
+    pub height: Option<i64>,
+}
+
+#[tauri::command]
+pub fn list_assets_slim(state: State<AppState>) -> Result<Vec<AssetSlim>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let mut stmt = db
+        .prepare(
+            "SELECT id, filename, status, thumbnail_path, duration_secs, width, height \
+             FROM assets ORDER BY created_at DESC",
+        )
+        .map_err(|e| e.to_string())?;
+    let iter = stmt
+        .query_map([], |row| {
+            Ok(AssetSlim {
+                id: row.get(0)?,
+                filename: row.get(1)?,
+                status: row.get(2)?,
+                thumbnail_path: row.get(3)?,
+                duration_secs: row.get(4)?,
+                width: row.get(5)?,
+                height: row.get(6)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    let collected: rusqlite::Result<Vec<_>> = iter.collect();
+    collected.map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 pub fn delete_asset(id: String, state: State<AppState>) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;

@@ -329,7 +329,7 @@ function App() {
           {activeTab === 'library' && (
             <LibraryPage onImportRequest={handleImportRequest} onSelectAsset={handleSelectAsset} />
           )}
-          {activeTab === 'queue' && <QueuePage />}
+          {activeTab === 'queue' && <QueuePage onSelectAsset={handleSelectAsset} />}
           {activeTab === 'profiles' && <ProfilesPage />}
           {activeTab === 'settings' && <SettingsPage />}
           {activeTab === 'logs' && <LogsPage />}
