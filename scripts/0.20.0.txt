@@ -1,0 +1,532 @@
+
+98.97.150.0/23
+
+kachiza pais de andrade mulenza
+
+cria uma forma de ter logs contantes, e tudo que faças dentro da aplicação cancelado ou executado e qualquer coisa devera ser registado, e forma de optimizar os logs para não ocupar espaço, e deves negar os log para ir ao GitHub.
+quando estava com drag and drop e depois sai para outra aplicação fora, o programa fechou e sair, não pode fazer isso
+no dashboard na zona jobs recentes, deves criar um scroll vertical para poder navegar entre os jobs se os mesmo não caberem nessa zona
+no detalhe de cada vídeo, na zona hsitorico de jobs, so devem aparecer os históricos desse jobs e não de todos, e quando falo desses jobs e tudo que nele for relativo incluindo reprocessar
+no detalhe de cada vídeo, no histórico jobs, quando clico abrir ficheiro processado, não faz nada
+no player deveras ter o original (correcto), e no processado mostrar o caminho path onde ele esta
+de salientar que os ficheiro processado e temporários devem ter uma pasta própria e devem estar identificado no settings e podem ou não ser alterado o path do processado no drag and drop se o utilizador quiser
+no detalhe na informação de media, deveres ter em separado o original e o processado, e dentro de cada em tab todas as áreas bem especificas e informações, ex: 
+
+GENERAL
+========
+Format: QuickTime / MOV
+File Size: 2.45 MB
+Duration: 00:00:05.758
+Overall Bitrate: 3.57 Mbps
+Streams: 2
+
+VIDEO #0
+========
+Codec: H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10
+Profile: High@L31
+Resolution: 1280x720
+Frame Rate: 30 fps
+Bitrate: 3.49 Mbps
+Pixel Format: yuv420p
+Bit Depth: 8 bits
+Color Space: —
+Scan Type: Progressive
+
+AUDIO #0
+========
+Codec: AAC (Advanced Audio Coding)
+Sample Rate: 44 100 Hz
+Channels: 2 ch (stereo)
+Bitrate: 113 kbps
+Language: eng
+
+etiquetas
+=========
+
+SHA-256
+=======
+
+no detalhe a função copiar tudo deve fazer o que faz agora, + etiquetas, sha-256, e deve estar em original e processado
+no menu fila, em cada fila, deve existir uma forma de saber quais os jobs processado e não processado e o problema que cada um teve, e dai possibilidade de ir para esse jobs diretamente.
+no menu fila, Concluídos e Histórico, deve mostrar o nome do ficheiro original e processado, na opção acções não consigo ir ao ficheiro quando clico, e a função de reprocessamento também não faz nada.
+deves em todos os icons e opção que possa ser activo, deves criar um pop help com breve descrição do que faz
+actualizar e completar os screenshots de toda a aplicação
+actualizar todas as línguas com tudo a funcionar, menus, funções, opções, e manual de ajuda para estar em conformidade
+
+quando processei ficheiro, e com diversos perfis, deu estas mensagens existe algo a ajustar:
+     Running `target\debug\nexora-desktop.exe`
+[INFO] nexora_desktop_lib — Nexora Desktop v0.18.0 a arrancar
+[INFO] nexora_desktop_lib — [startup] Node.js: OK
+[INFO] nexora_desktop_lib — [startup] Sidecar: OK ("C:\\Dev\\nexora-desktop\\sidecar\\dist\\nexora-sidecar.cjs")
+[INFO] nexora_desktop_lib — [startup] FFprobe: OK
+[INFO] nexora_desktop_lib — [startup] FFmpeg: OK
+[INFO] nexora_desktop_lib::queue — Queue worker started — polling every 2s
+[INFO] nexora_desktop_lib::queue — [queue] output_dir: C:\Users\arnal\AppData\Local\Temp\nexora-output
+[INFO] nexora_desktop_lib::queue — [queue] output_dir: C:\Users\arnal\AppData\Local\Temp\nexora-output
+[INFO] nexora_desktop_lib::queue — [sidecar] arrancou com PID 29212 para job 8261a6fd-0daf-4580-a86d-22e8edbe4070
+[INFO] nexora_desktop_lib::queue — [sidecar] arrancou com PID 12824 para job 60409041-11cf-4df7-94d9-dda08fc23200
+[INFO] nexora_desktop_lib::queue — Job started: 8261a6fd-0daf-4580-a86d-22e8edbe4070
+[INFO] nexora_desktop_lib::queue — Job started: 60409041-11cf-4df7-94d9-dda08fc23200
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 78cb9640-db8b-4088-8d51-652ff221d0a5
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 51e6f647-06ca-4659-ba31-d2e4112aa94a
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 78cb9640-db8b-4088-8d51-652ff221d0a5
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 51e6f647-06ca-4659-ba31-d2e4112aa94a
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 78cb9640-db8b-4088-8d51-652ff221d0a5
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 51e6f647-06ca-4659-ba31-d2e4112aa94a
+[INFO] nexora_desktop_lib::queue — [queue] output_dir: C:\Users\arnal\AppData\Local\Temp\nexora-output
+[INFO] nexora_desktop_lib::queue — [queue] output_dir: C:\Users\arnal\AppData\Local\Temp\nexora-output
+[INFO] nexora_desktop_lib::queue — [sidecar] arrancou com PID 32368 para job ba5a02ac-cec1-451c-801a-bb4b3eecb13a
+[INFO] nexora_desktop_lib::queue — [sidecar] arrancou com PID 33508 para job a35f409c-5766-49b5-8f86-8bc92cccfe3c
+[INFO] nexora_desktop_lib::queue — Job started: ba5a02ac-cec1-451c-801a-bb4b3eecb13a
+[INFO] nexora_desktop_lib::queue — Job started: a35f409c-5766-49b5-8f86-8bc92cccfe3c
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 8069afb2-f012-439a-b73e-8c912e7aa7f2
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — b08e6d21-6ea5-404e-8be0-290b5b2477b9
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — b08e6d21-6ea5-404e-8be0-290b5b2477b9
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 8069afb2-f012-439a-b73e-8c912e7aa7f2
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — b08e6d21-6ea5-404e-8be0-290b5b2477b9
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 8069afb2-f012-439a-b73e-8c912e7aa7f2
+[INFO] nexora_desktop_lib::queue — [queue] output_dir: C:\Users\arnal\AppData\Local\Temp\nexora-output
+[INFO] nexora_desktop_lib::queue — [queue] output_dir: C:\Users\arnal\AppData\Local\Temp\nexora-output
+[INFO] nexora_desktop_lib::queue — [sidecar] arrancou com PID 32024 para job 34e6d9af-3fe1-42b7-99e7-5ac3c71d5a66
+[INFO] nexora_desktop_lib::queue — [sidecar] arrancou com PID 33840 para job 46b1a98e-fff3-4d1f-81b0-b5a22825bb91
+[INFO] nexora_desktop_lib::queue — Job started: 34e6d9af-3fe1-42b7-99e7-5ac3c71d5a66
+[INFO] nexora_desktop_lib::queue — Job started: 46b1a98e-fff3-4d1f-81b0-b5a22825bb91
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — ee21a47c-d5f8-44c1-b308-3a7d1fa32c18
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 38b62f25-c936-4b79-b514-959c3bcdab82
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — ee21a47c-d5f8-44c1-b308-3a7d1fa32c18
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 38b62f25-c936-4b79-b514-959c3bcdab82
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — ee21a47c-d5f8-44c1-b308-3a7d1fa32c18
+[INFO] nexora_desktop_lib::queue — [queue] output_dir: C:\Users\arnal\AppData\Local\Temp\nexora-output
+[INFO] nexora_desktop_lib::queue — [sidecar] arrancou com PID 15288 para job 5f8c2928-199b-4aec-b41d-cfe2e09ab7a8
+[INFO] nexora_desktop_lib::queue — Job started: 5f8c2928-199b-4aec-b41d-cfe2e09ab7a8
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — cfaca41a-3c73-4261-aa27-db220cf2d705
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 38b62f25-c936-4b79-b514-959c3bcdab82
+[INFO] nexora_desktop_lib::queue — [queue] output_dir: C:\Users\arnal\AppData\Local\Temp\nexora-output
+[INFO] nexora_desktop_lib::queue — [sidecar] arrancou com PID 18112 para job 9e8d0e47-6733-4c95-b7b5-541af302735f
+[INFO] nexora_desktop_lib::queue — Job started: 9e8d0e47-6733-4c95-b7b5-541af302735f
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — cfaca41a-3c73-4261-aa27-db220cf2d705
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — ea6ffb0e-00b3-4513-a191-b3b73bd01cc2
+Proxy falhou (não-crítico): Command failed: C:\Dev\nexora-desktop\src-tauri\target\debug\ffmpeg.exe -i C:\Users\arnal\AppData\Local\Temp\nexora-output\sample-5s-720p_broadcast-sd.mp4 -c:v libx264 -preset veryfast -profile:v baseline -level 3.1 -b:v 800k -maxrate 1000k -bufsize 1600k -g 60 -keyint_min 60 -sc_threshold 0 -flags +cgop -bf 0 -pix_fmt yuv420p -movflags +faststart -vf scale=960:540:force_original_aspect_ratio=decrease -c:a aac -b:a 96k -ar 48000 -y C:\Users\arnal\AppData\Local\Temp\nexora-proxy-5h2ZgJ\proxy.mp4
+ffmpeg version N-124496-gdc74fe70b2-20260516 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 15.2.0 (crosstool-NG 1.28.0.23_185f348)
+  configuration: --prefix=/ffbuild/prefix --pkg-config-flags=--static --pkg-config=pkg-config --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 --enable-gpl --enable-version3 --disable-debug --disable-w32threads --enable-pthreads --enable-iconv --enable-zlib --enable-libxml2 --enable-libvmaf --enable-fontconfig --enable-libharfbuzz --enable-libfreetype --enable-libfribidi --enable-vulkan --enable-libshaderc --enable-libvorbis --disable-libxcb --disable-xlib --disable-libpulse --enable-opencl --enable-gmp --enable-lzma --enable-liblcevc-dec --enable-amf --enable-libaom --enable-libaribb24 --enable-avisynth --enable-chromaprint --enable-libdav1d --enable-libdavs2 --enable-libdvdread --enable-libdvdnav --disable-libfdk-aac --enable-ffnvcodec --enable-cuda-llvm --enable-frei0r --enable-libgme --enable-libkvazaar --enable-libaribcaption --enable-libass --enable-libbluray --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librist --enable-libssh --enable-libtheora --enable-libvpx --enable-libwebp --enable-libzmq --enable-lv2 --enable-libvpl --enable-openal --enable-liboapv --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopenmpt --enable-librav1e --enable-librubberband --enable-schannel --enable-sdl2 --enable-libsnappy --enable-libsoxr --enable-libsrt --enable-libsvtav1 --enable-libtwolame --enable-libuavs3d --disable-libdrm --enable-vaapi --enable-libvidstab --enable-libvvenc --enable-whisper --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxvid --enable-libzimg --enable-libzvbi --extra-cflags=-DLIBTWOLAME_STATIC --extra-cxxflags= --extra-libs=-lgomp --extra-ldflags=-pthread --extra-ldexeflags= --cc=x86_64-w64-mingw32-gcc --cxx=x86_64-w64-mingw32-g++ --ar=x86_64-w64-mingw32-gcc-ar --ranlib=x86_64-w64-mingw32-gcc-ranlib --nm=x86_64-w64-mingw32-gcc-nm --extra-version=20260516
+  libavutil      60. 31.100 / 60. 31.100
+  libavcodec     62. 32.100 / 62. 32.100
+  libavformat    62. 15.101 / 62. 15.101
+  libavdevice    62.  4.100 / 62.  4.100
+  libavfilter    11. 17.100 / 11. 17.100
+  libswscale      9.  7.100 /  9.  7.100
+  libswresample   6.  4.100 /  6.  4.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\arnal\AppData\Local\Temp\nexora-output\sample-5s-720p_broadcast-sd.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf62.15.101
+  Duration: 00:00:05.76, start: 0.000000, bitrate: 3251 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 720x576 [SAR 64:45 DAR 16:9], 3104 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : ISO Media file produced by Google Inc. Created on: 08/17/2020.
+      encoder         : Lavc62.32.100 h264_qsv
+  Stream #0:1[0x2](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 168 kb/s (default)
+    Metadata:
+      handler_name    : ISO Media file produced by Google Inc. Created on: 08/17/2020.
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> h264 (libx264))
+  Stream #0:1 -> #0:1 (aac (native) -> aac (native))
+Press [q] to stop, [?] for help
+[libx264 @ 0000013ff874c980] width not divisible by 2 (675x540)
+[vost#0:0/libx264 @ 0000013ff874c700] [enc:libx264 @ 0000013ff668f600] Error while opening encoder - maybe incorrect parameters such as bit_rate, rate, width or height.
+[vf#0:0 @ 0000013ff6637c40] Error sending frames to consumers: Generic error in an external library
+[vf#0:0 @ 0000013ff6637c40] Task finished with error code: -542398533 (Generic error in an external library)
+[vf#0:0 @ 0000013ff6637c40] Terminating thread with return code -542398533 (Generic error in an external library)
+[vost#0:0/libx264 @ 0000013ff874c700] [enc:libx264 @ 0000013ff668f600] Could not open encoder before EOF
+[vost#0:0/libx264 @ 0000013ff874c700] Task finished with error code: -22 (Invalid argument)
+[vost#0:0/libx264 @ 0000013ff874c700] Terminating thread with return code -22 (Invalid argument)
+[out#0/mp4 @ 0000013ff669ae80] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=00:00:00.32 bitrate=   0.0kbits/s speed=7.96x elapsed=0:00:00.04
+[aac @ 0000013ff88f7b40] Qavg: 64807.723
+Conversion failed!
+
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — ea6ffb0e-00b3-4513-a191-b3b73bd01cc2
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — cfaca41a-3c73-4261-aa27-db220cf2d705
+[INFO] nexora_desktop_lib::queue — [queue] output_dir: C:\Users\arnal\AppData\Local\Temp\nexora-output
+[INFO] nexora_desktop_lib::queue — [sidecar] arrancou com PID 31348 para job ce863535-d969-45c4-99bf-d270d9965ad9
+[INFO] nexora_desktop_lib::queue — Job started: ce863535-d969-45c4-99bf-d270d9965ad9
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 47603617-8558-4fbd-8c47-60f9219e34fa
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — ea6ffb0e-00b3-4513-a191-b3b73bd01cc2
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 47603617-8558-4fbd-8c47-60f9219e34fa
+[INFO] nexora_desktop_lib::queue — [queue] asset:updated — 47603617-8558-4fbd-8c47-60f9219e34fa
+[DEBUG] tao::platform_impl::platform::event_loop::runner — NewEvents emitted without explicit RedrawEventsCleared
+[DEBUG] tao::platform_impl::platform::event_loop::runner — RedrawEventsCleared emitted without explicit MainEventsCleared
+incluir no GitHub a directoria de Videos_Tests, carregar primeira vez, e so o fazer de novo se não existir no GitHub, quando executar o script sync-ps1 e ou actualizar tanto pelo opencode, antigravity e claude code
+verificar se no GitHub existem branches adicionais ao main e dev, se sim e se os mesmo já foram integrados no dev, devem ser eliminados, bem como eliminar todos os pull requests, actions, e ter so a ultima releases / tags.
+verificar a ultima versão no main, tem os build feito para Windows/macos e Linux correcto.
+
+cria me um plano da tua analise detalhada e completa desta aplicação, e diz-me o que se pode melhorar, e optimizar a nivel de velocidade e processamento, e melhorar interface grafica e fui forma de utilizar para um utilizador normal e leigo. NAO ALTERAR NADA, NAO AVANÇAR EM NADA SO FAZER O PLANO E MOSTRAR.
+
+Da pergunta anterior estas foram as contribuições de opencode:
+
+Agora tenho uma visão completa do projeto. Vou apresentar-te o **plano de análise detalhada** com todas as áreas de melhoria identificadas.
+
+---
+
+# Plano de Análise — Nexora Desktop v0.18.0
+
+## 1. Visão Geral da Aplicação
+
+A aplicação está num estado **muito maduro** para uma v0.18.0:
+- **Arquitetura sólida**: Tauri 2.x + React 19 + Sidecar Node.js, SQLite local, IPC nativo
+- **Pipeline completo**: 8 workers (ingest → QC → transcode → audio → proxy → thumbnail → QC pós → delivery)
+- **Multi-plataforma**: Windows/macOS/Linux com builds funcionais
+- **Qualidade de código**: TypeScript strict, testes, i18n (15 idiomas), lint/format
+
+No entanto, existem **oportunidades claras** nas três áreas que pediste: **velocidade/processamento**, **interface gráfica**, e **usabilidade para leigos**.
+
+---
+
+## 2. Performance & Velocidade de Processamento
+
+### Problemas Identificados
+
+| # | Problema | Impacto | Severidade |
+|---|---|---|---|
+| P1 | **Polling IPC agressivo** — Dashboard 10s, Queue 2s, Library 5s, System metrics 2s. Milhares de chamadas Rust↔JS por hora. | CPU/bateria desnecessárias, possível "jank" na UI | Alta |
+| P2 | **TopBar GPU gauge é fake** — sempre mostra 15% ou 0%, não lê utilização real da GPU | Métrica enganosa, desperdício de render | Média |
+| P3 | **Transcode sem paralelização real** — o sidecar parece processar 1 job de cada vez; o `max_concurrent_jobs` (1-4) não está a ser respeitado no pipeline | Velocidade total limitada a 1 FFmpeg mesmo com CPU/RAM disponíveis | Alta |
+| P4 | **SHA-256 no ingest sem progresso** — ficheiros de 10GB+ bloqueiam o worker sem feedback | Experiência de "app congelada" | Média |
+| P5 | **Mutex único na BD Rust** — `Mutex<Connection>` serializa TODAS as queries SQLite; sem pool de conexões | Contenção sob carga, queries bloqueiam umas às outras | Média |
+| P6 | **Recharts carregado globalmente** — biblioteca de gráficos pesada (~70kB gzip) só usada no Dashboard, mas presente no bundle principal | Bundle maior, parse mais lento | Baixa |
+| P7 | **Library grid sem virtualização** — vista em grelha renderiza TODOS os assets de uma vez (só a lista é virtualizada) | Lag com +100 assets, memória excessiva | Média |
+
+### Recomendações de Otimização
+
+1. **Substituir polling por eventos push (Tauri `Emitter`)**
+   - O Rust já emite `system-metrics` e `disk-space`. Estender o mesmo padrão para `jobs:updated`, `assets:updated`, `queue:changed`.
+   - Eliminar `setInterval(fetchData, ...)` no Dashboard, Library e Queue. Só fazer fetch quando o Rust notificar.
+
+2. **Paralelização de jobs no sidecar**
+   - Implementar worker pool no sidecar (ex: `p-limit` ou `worker_threads`) para respeitar `max_concurrent_jobs`.
+   - Cada job independente pode correr o seu FFmpeg em paralelo — a única limitação deve ser CPU/RAM/disco.
+
+3. **Pool de conexões SQLite no Rust**
+   - Substituir `Mutex<Connection>` por `r2d2_sqlite` ou `deadpool-sqlite` para queries concorrentes.
+   - Ou, alternativamente, usar `tokio::sync::RwLock` se manter a arquitetura síncrona.
+
+4. **Lazy-loading do Recharts**
+   - `React.lazy(() => import('recharts'))` no Dashboard para split do bundle de gráficos.
+
+5. **Virtualização da grelha da Library**
+   - Usar `@tanstack/react-virtual` também para a vista em grelha (grid virtualization), não só para lista.
+
+6. **GPU gauge real ou remoção**
+   - Se não for possível ler utilização real da GPU (especialmente em macOS/Linux), substituir por um simples indicador "GPU ativa/inativa" ou remover o gauge.
+
+---
+
+## 3. Interface Gráfica (UI/UX)
+
+### Problemas Identificados
+
+| # | Problema | Impacto |
+|---|---|---|
+| U1 | **Terminologia excessivamente técnica** em toda a UI: "VMAF", "LUFS", "QC", "NVENC", "libx264", "True Peak (dBTP)", "Container" | Interface intimidadora para não-técnicos |
+| U2 | **Pipeline de 8 passos visível** — mostra "ingest → qc-pre → transcode → audio → proxy → thumbnail → qc-post → delivery" com nomes em inglês misturados | Informação em excesso; o utilizador comum só quer saber "a processar..." |
+| U3 | **SettingsPage é uma "painel de controlo de avião"** — 5 tabs, 20+ opções técnicas, sliders de VMAF/LUFS que um leigo não entende | Ansiedade cognitiva, medo de mexer |
+| U4 | **Badge VMAF no library card** — "VMAF 93.2" não comunica nada a quem não sabe o que é VMAF | Informação inútil para 90% dos utilizadores |
+| U5 | **TopBar com 4 gauges circulares** ocupa ~40% da largura com métricas de sistema | Poluição visual; o utilizador comum não precisa de ver CPU/RAM em tempo real |
+| U6 | **Botão "Play" na Library não funciona** — `<button className="..."><Play /></button>` sem `onClick` | UI quebrada, frustração |
+| U7 | **Paginação da Library está mockada** — botões "Anterior/Próximo" sempre desabilitados/habilitados sem funcionalidade real | Indicador de funcionalidade incompleta |
+| U8 | **Cores e contrastes** — em dark mode, o fundo `#0a0d14` com texto `#f3f4f6` é bom, mas alguns elementos `text-text-muted` (`#6b7280`) em dark podem não passar WCAG AA em monitores com brilho baixo | Acessibilidade |
+
+### Recomendações de UI
+
+1. **Modo Simples vs Modo Avançado**
+   - Introduzir um toggle global (ou detecção automática baseada no primeiro uso) que filtra a UI:
+     - **Simples**: esconde gauges de sistema, esconde pipeline detalhado, mostra só "A preparar → A converter → A finalizar", esconde VMAF/LUFS nas cards, esconde tabs técnicas nas Settings.
+     - **Avançado**: UI actual para profissionais de vídeo.
+
+2. **Redesenhar o QueuePage para leigos**
+   - Em vez de 8 passos com nomes técnicos, mostrar **3 fases visuais** com ícones grandes:
+     1. "A analisar o vídeo" (ícone de lupa)
+     2. "A converter" (ícone de engrenagem giratória)
+     3. "A guardar" (ícone de check)
+   - O pipeline técnico de 8 passos pode ficar num tooltip ou modo expandido.
+
+3. **Simplificar SettingsPage**
+   - **Modo Simples** só mostra:
+     - Pasta de saída
+     - Tema / Idioma
+     - "Usar aceleração GPU" (toggle)
+     - "Número de vídeos ao mesmo tempo" (1-4)
+   - Esconder: VMAF threshold, LUFS, True Peak, CPU preset, H.264 profile, telemetria.
+
+4. **Substituir badges técnicos por indicadores visuais**
+   - Em vez de "VMAF 93.2", mostrar um **selo de qualidade**: "Qualidade Excelente" + ícone verde.
+   - Em vez de "codec: h264", mostrar um ícone de compatibilidade: "Compatível com tudo".
+
+5. **Compactar a TopBar**
+   - Remover os 4 gauges circulares. Substituir por:
+     - Nome do ecrã + descrição
+     - Um indicador discreto: "1 vídeo a processar" (quando ativo)
+     - Botões de ajuda e saída
+
+6. **Corrigir funcionalidade quebrada**
+   - Implementar `onClick` no botão Play da Library (abrir no player nativo do SO via Tauri `opener`).
+   - Implementar paginação real ou remover os botões mockados.
+
+---
+
+## 4. Usabilidade para Utilizador Normal/Leigo
+
+### Problemas Identificados
+
+| # | Problema | Impacto |
+|---|---|---|
+| L1 | **Onboarding inexistente** — ao abrir a app pela 1ª vez, o utilizador vê um Dashboard vazio e uma sidebar com 5 opções. Não sabe por onde começar. | Abandonamento imediato |
+| L2 | **Nomes de perfis técnicos** — "broadcast-hd", "web-hd", "proxy", "social" não dizem ao leigo o que vão fazer ao vídeo | Escolha difícil no BatchSubmitModal |
+| L3 | **Quarentena QC sem explicação humana** — "Este asset foi colocado em quarentena durante o QC Pré" — o que é QC Pré? Porquê? O que devo fazer? | Medo e confusão |
+| L4 | **BatchSubmitModal mostra tabela** com colunas "Perfil", "Estimativa" (sempre a mesma), "Estado" | Parece uma folha Excel, não um assistente |
+| L5 | **Não há preview de vídeo** — só thumbnails estáticas. O utilizador não pode ver o que está a processar | Desconfiança, erros de ficheiro errado |
+| L6 | **DropZone/Modal não explicam o que vai acontecer** — "Processar Todos" não diz quanto tempo leva nem quanto espaço em disco vai usar | Falta de expectativas claras |
+| L7 | **Erros técnicos expostos ao utilizador** — mensagens de erro do FFmpeg aparecem cruas no modal | Pânico do utilizador |
+
+### Recomendações de UX para Leigos
+
+1. **Wizard de Primeira Vez (Onboarding)**
+   - Overlay de 3 passos ao abrir a app sem assets:
+     1. "Bem-vindo! Arraste um vídeo para aqui" (seta animada apontando para a zona central)
+     2. "Escolha como quer o resultado" (mostrar cards visuais em vez de dropdown técnico)
+     3. "Acompanhe o progresso e receba o ficheiro pronto" (mostrar mock do QueuePage simplificado)
+
+2. **Cards de Perfil com linguagem de intenção**
+   - Em vez de dropdown "broadcast-hd", mostrar **cards visuais**:
+     - "Ver na TV / YouTube" → broadcast-hd
+     - "Partilhar nas redes sociais" → social
+     - "Ver no telemóvel / site" → web-hd
+     - "Editar no meu programa" → proxy
+     - "Máxima qualidade 4K" → web-4k
+   - Cada card com: ícone grande, título humano, subtítulo explicativo, estimativa de tempo REAL baseada no ficheiro.
+
+3. **Quarentena com linguagem humana**
+   - Em vez de "QC Pré Quarentena", mostrar:
+     - "⚠️ Este vídeo precisa da tua atenção"
+     - "Detetámos que o vídeo usa um formato especial (HEVC). Quer continuar mesmo assim?"
+     - Botões: "Sim, continuar" / "Não, cancelar"
+
+4. **Transformar BatchSubmitModal num assistente**
+   - Em vez de tabela, mostrar **cards de ficheiro** com:
+     - Thumbnail do vídeo (FFmpeg pode gerar em ~200ms)
+     - Nome + duração
+     - Um card de "Como quer este vídeo?" por ficheiro (ou global)
+     - Botão grande "Começar a converter" com estimativa total e espaço necessário
+
+5. **Preview rápido na Library**
+   - Ao clicar num asset, mostrar um **player inline** ou modal com o vídeo original (via `<video>` tag com `convertFileSrc`).
+   - No Detalhe, mostrar side-by-side: vídeo original vs. vídeo processado (se existir).
+
+6. **Mensagens de erro amigáveis**
+   - Criar um mapa de tradução de erros FFmpeg → mensagens humanas:
+     - `Error code 1` → "Ocorreu um problema ao converter o vídeo. Tente reiniciar a aplicação."
+     - `codec not found` → "Este formato de vídeo não é suportado."
+
+---
+
+## 5. Resumo das Melhorias Prioritárias
+
+### Alta Prioridade (Impacto imediato)
+1. **Modo Simples vs Avançado** — filtro de UI que esconde 80% da terminologia técnica
+2. **Parar o polling agressivo** — usar eventos push do Tauri para todas as actualizações
+3. **Cards de perfil com linguagem humana** — substituir dropdowns técnicos por intenções
+4. **Wizard de primeiro uso** — onboarding de 3 passos
+5. **Corrigir botão Play e paginação** — funcionalidade quebrada
+
+### Média Prioridade (Melhoria significativa)
+6. **Paralelização de jobs no sidecar** — respeitar `max_concurrent_jobs`
+7. **Simplificar QueuePage** — 3 fases visuais em vez de 8 passos técnicos
+8. **Compactar TopBar** — remover gauges fake/Desnecessários
+9. **Pool de conexões SQLite** — menos contenção na BD
+10. **Preview de vídeo** — player inline na Library/Detalhe
+
+### Baixa Prioridade (Polimento)
+11. **Virtualização da grelha** — performance com muitos assets
+12. **Lazy load Recharts** — bundle menor
+13. **Mensagens de erro amigáveis** — mapa FFmpeg → humano
+14. **Melhorar contraste WCAG** — acessibilidade
+
+---
+
+## 6. Perguntas para Decisões de Arquitetura
+
+Antes de avançar, gostava da tua opinião em alguns pontos:
+
+1. **Modo Simples/Avançado**: Preferes um toggle manual (ex: "Modo Expert" nas Settings) ou detecção automática (ex: se o utilizador nunca abriu Settings, mostra Simples)?
+
+2. **Paralelização de jobs**: O `max_concurrent_jobs` actual é só uma setting visual. Queres que eu implemente de facto o processamento paralelo no sidecar (vai aumentar uso de CPU/RAM mas processa múltiplos vídeos ao mesmo tempo)?
+
+3. **Preview de vídeo**: Queres que o player seja **dentro da app** (via `<video>`) ou que **abra no player do sistema** (VLC, Media Player, etc.)?
+
+4. **TopBar**: Prefiro remover totalmente os gauges de sistema e substituir por um indicador discreto, ou mantê-los só no Dashboard?
+
+5. **Prioridade de implementação**: Queres que eu comece pela **performance** (eventos push, paralelização) ou pela **usabilidade** (modo simples, wizard, cards de perfil)?
+
+---
+
+**Assim que me deres o "Pode prosseguir" e responderes às perguntas acima, elaboro o plano técnico de implementação ficheiro a ficheiro.**
+
+OpenAI - Codex:
+
+Não alterei nada. Fiz só leitura da estrutura e dos pontos principais da app.
+
+**Resumo Atual**
+A aplicação é uma desktop app Tauri 2 com React/Vite no frontend, Rust no backend, SQLite local e um sidecar Node.js para o pipeline de vídeo: ingest, QC, transcode, áudio, proxy, thumbnail, VMAF e delivery.
+
+**Plano De Análise**
+1. **Levantamento técnico completo**
+   - Mapear fluxos principais: importar vídeo, criar job, processar, acompanhar fila, rever resultado.
+   - Documentar chamadas entre React, Tauri/Rust, SQLite e sidecar Node.
+   - Identificar pontos lentos por página: Dashboard, Biblioteca, Fila, Perfis, Detalhe e Logs.
+
+2. **Performance e velocidade**
+   - Medir tempo de arranque da app.
+   - Medir tempo de importação de ficheiros grandes e pastas.
+   - Medir tempo de resposta de `list_assets`, `list_jobs`, logs e dashboard.
+   - Avaliar polling repetido: Biblioteca a cada 5s, Fila a cada 2s, Dashboard a cada 10s, Logs a cada 5s.
+   - Trocar onde fizer sentido para atualizações por eventos, com polling apenas como fallback.
+
+3. **Processamento de vídeo**
+   - Rever o limite fixo `MAX_CONCURRENT = 2`.
+   - Tornar concorrência configurável conforme CPU, GPU, RAM e disco.
+   - Cachear deteção de GPU em vez de correr `nvidia-smi` por job.
+   - Verificar duplicação de `ffprobe`: há metadata extraída no ingest e novamente no pipeline.
+   - Melhorar progresso do FFmpeg usando saída estruturada em vez de regex sobre stderr.
+   - Rever cancelamento: hoje cancelar marca o job como cancelado, mas o processo em execução pode precisar de terminação real.
+   - Reduzir I/O desnecessário: outputs temporários, cópias finais, proxy, thumbnail e áudio intermédio.
+
+4. **Base de dados**
+   - Adicionar paginação para assets/jobs/logs.
+   - Evitar carregar metadata JSON completa em listagens simples.
+   - Criar queries específicas para cada ecrã em vez de sempre carregar tudo.
+   - Rever índices compostos para `status`, `created_at`, `priority`, `asset_id`.
+   - Avaliar WAL mode e transações em operações batch.
+
+5. **Frontend**
+   - Memoizar filtros e ordenações na Biblioteca.
+   - Virtualizar também a grelha, não só a lista.
+   - Separar componentes grandes em partes menores.
+   - Lazy load de páginas pesadas como Dashboard, Logs e Detalhe.
+   - Avaliar peso de Recharts e bundle com `npm run build:analyze`.
+   - Reduzir renders provocados por métricas do sistema e polling.
+
+6. **Interface para utilizador leigo**
+   - Criar modo simples/profissional.
+   - Tornar o primeiro uso guiado: escolher pasta de saída, testar FFmpeg, escolher perfil recomendado.
+   - Trocar termos técnicos por linguagem humana: “Qualidade alta”, “Ficheiro leve”, “Para TV”, “Para YouTube”.
+   - Mostrar recomendações automáticas de perfil com base no vídeo.
+   - Melhorar mensagens de erro: dizer o que aconteceu, o que fazer e se é seguro tentar novamente.
+   - Tornar a Fila mais clara: “A preparar”, “A converter”, “A finalizar”, “Concluído”.
+   - Melhorar estados vazios e ações principais visíveis.
+
+7. **Acessibilidade e polimento visual**
+   - Rever contraste em dark/light mode.
+   - Garantir foco por teclado em botões, modais e tabelas.
+   - Adicionar labels/tooltips a botões só com ícone.
+   - Rever textos que ainda aparecem em inglês nas traduções PT.
+   - Reduzir excesso visual em ecrãs densos, especialmente Fila e Detalhe.
+   - Melhorar responsividade, porque a janela mínima é 900px mas vários blocos têm layouts largos.
+
+8. **Fiabilidade**
+   - Testar falhas reais: FFmpeg ausente, Node ausente, ficheiro apagado durante processamento, output sem espaço.
+   - Garantir recuperação de jobs interrompidos.
+   - Melhorar logs para separar erro técnico de mensagem para utilizador.
+   - Rever permissões do asset protocol, atualmente muito amplo com `scope: ["**"]`.
+
+**Prioridade Recomendada**
+Primeiro eu atacaria: polling excessivo, paginação/listagens, cancelamento real de jobs, cache de GPU/ffprobe e simplificação da experiência inicial. Isso deve dar ganhos visíveis tanto em velocidade como em sensação de app mais “fácil” para utilizador normal.
+
+Antigravity - gemini:
+
+# Plano de Análise Detalhada e Completa — Nexora Desktop
+
+Este documento apresenta uma análise profunda do estado atual da aplicação **Nexora Desktop** (arquitetura Tauri + React + Node.js Sidecar), focando-se em três pilares fundamentais solicitados: **Melhorias Gerais**, **Otimização de Velocidade/Processamento** e **Reformulação de Interface/UX para Utilizadores Leigos**.
+
+> [!IMPORTANT]
+> **Nenhuma alteração no código foi realizada.** Este é exclusivamente o plano de análise e ação. Aguardo a sua aprovação ou feedback sobre os pontos levantados antes de avançar para qualquer modificação.
+
+---
+
+## 1. Análise Arquitetural e Estado Atual
+
+A aplicação utiliza uma stack moderna e robusta:
+*   **Frontend**: React 19, Vite, TailwindCSS v4, Zustand (estado), componentes Radix UI e ícones Lucide.
+*   **Backend (Tauri/Rust)**: Gere o ciclo de vida da app, base de dados (SQLite), métricas de sistema (CPU/RAM/Rede) e a fila de processamento (queue).
+*   **Processamento de Vídeo (Sidecar Node.js)**: Executa tarefas (jobs) delegando para o FFmpeg/FFprobe de forma "stateless" (um processo por tarefa).
+
+---
+
+## 2. Otimizações de Velocidade e Processamento
+
+### Backend (Rust / Tauri)
+*   **Concorrência Assíncrona**: Atualmente, métricas de disco e sistema utilizam `std::thread::spawn` com bloqueios `std::thread::sleep`. 
+    *   *Proposta*: Migrar para **Tokio** (`tokio::spawn` e `tokio::time::sleep`), o que reduz o consumo de recursos (overhead de threads do SO) e torna a execução em background mais leve e eficiente.
+*   **Otimização da Base de Dados (SQLite)**: 
+    *   *Proposta*: Ativar o modo **WAL (Write-Ahead Logging)** e `PRAGMA synchronous = NORMAL` no `db.rs`. Isto vai acelerar substancialmente as leituras e escritas simultâneas (muito frequentes com logs e progresso de jobs).
+
+### Motor de Processamento (Sidecar Node.js / FFmpeg)
+*   **Aceleração de Hardware (GPU)**: O processamento de vídeo pode ser brutalmente lento no CPU.
+    *   *Proposta*: Integrar deteção automática de GPU (NVENC para NVIDIA, QSV para Intel, VideoToolbox para Mac) e ajustar dinamicamente os argumentos do FFmpeg para usar a placa gráfica, reduzindo os tempos de processamento de horas para minutos.
+*   **Gestão de Recursos do Sidecar**: O Node.js tem um tempo de arranque (startup time) associado.
+    *   *Proposta*: Para processamento em lote (batch), otimizar o sidecar para não ter de iniciar o ambiente Node para cada pequeno vídeo, reduzindo a sobrecarga em batch jobs de muitos ficheiros pequenos.
+*   **Processamento Paralelo**: Permitir ao utilizador configurar (ou auto-ajustar baseado nos cores do CPU) o processamento de X vídeos em simultâneo na fila (Queue).
+
+### Frontend (React)
+*   **Lazy Loading e Code Splitting**: O `App.tsx` carrega todas as páginas (Dashboard, Library, Settings, etc.) de uma só vez.
+    *   *Proposta*: Usar `React.lazy` e `Suspense` para carregar as tabs da interface apenas quando o utilizador clica nelas. Isto reduz drasticamente o tempo de arranque (First Contentful Paint) da UI.
+*   **Virtualização de Listas**: Se a "Library" e os "Logs" tiverem centenas de itens, a interface vai engasgar.
+    *   *Proposta*: Assegurar que componentes de lista longa usam virtualização (já vi que existe o `@tanstack/react-virtual` no `package.json`, precisamos garantir que está implementado corretamente nas páginas de listagem).
+
+---
+
+## 3. Melhoria da Interface Gráfica (UI) e Experiência do Utilizador (UX) para Leigos
+
+O maior desafio atual da aplicação é a sua "linguagem técnica". Para um utilizador normal/leigo, a aplicação deve ser o mais simples, limpa e guiada possível.
+
+### Simplificação de Terminologia
+*   **"Ingest Asset"** $\rightarrow$ **"Adicionar Vídeo"** ou **"Importar"**. A palavra "Ingest" (Ingerir) é jargão técnico de broadcast/IT.
+*   **"Profiles"** $\rightarrow$ **"Predefinições de Qualidade"** ou **"Formatos"**.
+*   Em vez de perguntar por *Codecs* e *Bitrates* logo de início, oferecer opções baseadas em intenção:
+    *   *"Alta Qualidade (Ideal para arquivo)"*
+    *   *"Poupar Espaço (Reduzir tamanho para WhatsApp/Email)"*
+    *   *"Formato Web (Otimizado para YouTube/Tiktok)"*
+    *   *(E esconder as definições avançadas de codec/resolução num botão "Avançado")*
+
+### Reformulação do Fluxo Principal (Onboarding & Ações)
+1.  **Empty States (Ecrãs Vazios Amigáveis)**: Quando o utilizador abre a app e não há vídeos, mostrar um ícone grande, acolhedor, com uma mensagem simples: "Arraste os seus vídeos para aqui para começar" em vez de apenas uma lista vazia ou métricas a zero.
+2.  **Redução de Alertas Técnicos Intimidantes**:
+    *   *Atualmente*: No arranque, se o Node.js ou FFmpeg falharem, o utilizador recebe um aviso: *"Instale o Node.js 20+ no PATH"*. Um leigo **não sabe** o que é Node.js nem o que é PATH.
+    *   *Proposta UX*: A aplicação deve tentar fazer download automático das dependências (binários do FFmpeg e Node estático) de forma invisível. Caso não consiga, o alerta deve ser um ecrã de boas vindas que diz *"Estamos a preparar as ferramentas necessárias..."* com um botão de "Reparar Automático".
+3.  **Progresso Humano**:
+    *   Em vez de apenas mostrar percentagens e "ETA" ou logs técnicos, mostrar mensagens como: *"A preparar o vídeo...", "A reduzir o tamanho...", "Quase pronto!"*.
+    *   Mostrar o tempo restante de forma orgânica: *"Cerca de 2 minutos restantes"*.
+
+### Melhorias Visuais (UI Estética)
+*   **Cores e Contraste**: O tema atual já tem fundos neutros (`#f8fafc`, `#0a0d14`), mas podemos aplicar um design mais moderno (tipo Apple/Vercel) com "Glassmorphism" (transparências subtis e blur) nos modais e na TopBar.
+*   **Micro-interações e Animações**: Adicionar transições suaves entre tabs e ao adicionar vídeos à lista (usando bibliotecas como `framer-motion` ou CSS nativo otimizado). Isto dá à app um aspeto "Premium" e responsivo.
+*   **Sidebar Simplificada**: O menu lateral pode ser colapsável ou apenas de ícones (com tooltips) para dar mais espaço de ecrã ao conteúdo de vídeo, que é o foco principal.
+
+---
+
+## 4. Perguntas Abertas para o Utilizador
+
+Antes de prosseguirmos para qualquer tipo de implementação, gostaria de saber a sua opinião:
+
+> [!WARNING]
+> **Questões para Decisão:**
+> 1. **Foco Prioritário**: Qual destas frentes quer que ataque primeiro? Otimização de Performance (Rust/Backend/Velocidade) ou Melhorias Visuais e de UX (Frontend/Nomenclaturas/Design)?
+> 2. **Instalação Automática**: Aprova a ideia de tentar automatizar a instalação/download do FFmpeg e Node.js no fundo, para evitar que o utilizador leigo tenha de instalar essas ferramentas manualmente no sistema operativo?
+> 3. **Design Visual**: Pretende um visual mais escuro e "Pro" (tipo Adobe Premiere) ou um visual mais leve, limpo e "Minimalista" (tipo Mac/Apple)?
+
+Aguardarei o seu feedback para avançar consoante a sua preferência!
+
+
+e quero do teu lado caude code, que me analises tudo tira o que achas e surpreende-me do teu lado, e mostra que es melhor que os outros todos.
