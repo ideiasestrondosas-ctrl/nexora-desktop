@@ -253,7 +253,6 @@
       "showProfileModal": "Show profile modal on drop",
       "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
-
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -512,5 +511,52 @@
     "done": "Done",
     "error": "Error",
     "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "Обработать {{count}} файл(а)",
+    "globalProfile": "Глобальный профиль",
+    "perFile": "Профиль",
+    "perFileNote": "Можно изменить профиль для каждого файла",
+    "estimate": "Оценка времени",
+    "processAll": "Обработать все ({{count}})",
+    "cancel": "Отмена",
+    "processing": "Обработка...",
+    "done": "Готово",
+    "error": "Ошибка",
+    "pending": "Ожидание",
+    "noFiles": "Видеофайлы не найдены",
+    "file": "Файл",
+    "status": "Статус",
+    "successToast": "{{count}} файл(ов) успешно отправлено"
+  },
+  "detail": {
+    "thumbnailOrig": "Оригинал",
+    "thumbnailOut": "Обработано",
+    "thumbnailNotYet": "Доступно после обработки",
+    "playerOriginal": "Воспроизвести оригинал",
+    "playerProcessed": "Воспроизвести обработанный файл",
+    "openInPlayer": "Открыть в системном плеере",
+    "original": "Оригинал",
+    "processed": "Обработано",
+    "notProcessedYet": "Ещё не обработано",
+    "comparison": "Техническое сравнение"
+  },
+  "analysis": {
+    "title": "Технический анализ",
+    "bitDepth": "Глубина цвета",
+    "hdr": "HDR",
+    "colorSpace": "Цветовое пространство",
+    "interlace": "Тип развёртки",
+    "progressive": "Прогрессивная",
+    "interlaced": "Чересстрочная",
+    "frames": "Кадры",
+    "container": "Контейнер",
+    "audioChannels": "Аудиоканалы",
+    "chapters": "Главы",
+    "checksum": "SHA-256",
+    "codec": "Кодек",
+    "resolution": "Разрешение",
+    "fps": "FPS",
+    "size": "Размер"
   }
 }

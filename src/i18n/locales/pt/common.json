@@ -282,7 +282,6 @@
       "showProfileModal": "Mostrar janela de perfis",
       "showProfileModalHint": "Ao arrastar ficheiros, pergunta qual perfil usar. Se desligado, usa o Perfil padrão.",
       "defaultProfile": "Perfil padrão",
-
       "vmafMin": "VMAF Mínimo",
       "vmafHint": "Jobs abaixo deste valor são marcados com aviso.",
       "targetLufs": "LUFS Alvo",
@@ -557,7 +556,6 @@
     "name": "Name",
     "description": "Description"
   },
-
   "jobCard": {
     "cancel": "Cancel Job",
     "processing": "Processing...",
@@ -688,5 +686,52 @@
     "videoFilter": "Vídeo",
     "unsupportedFormat": "Formato não suportado: {{ext}}",
     "noSupportedFiles": "Nenhum ficheiro de vídeo suportado"
+  },
+  "batch": {
+    "title": "Processar {{count}} ficheiro(s)",
+    "globalProfile": "Perfil global",
+    "perFile": "Perfil",
+    "perFileNote": "Podes alterar o perfil por ficheiro",
+    "estimate": "Estimativa",
+    "processAll": "Processar Todos ({{count}})",
+    "cancel": "Cancelar",
+    "processing": "A processar...",
+    "done": "Concluído",
+    "error": "Erro",
+    "pending": "Pendente",
+    "noFiles": "Nenhum ficheiro de vídeo encontrado",
+    "file": "Ficheiro",
+    "status": "Estado",
+    "successToast": "{{count}} ficheiro(s) submetidos com sucesso"
+  },
+  "detail": {
+    "thumbnailOrig": "Original",
+    "thumbnailOut": "Processado",
+    "thumbnailNotYet": "Disponível após processamento",
+    "playerOriginal": "Reproduzir original",
+    "playerProcessed": "Reproduzir ficheiro processado",
+    "openInPlayer": "Abrir no player do sistema",
+    "original": "Original",
+    "processed": "Processado",
+    "notProcessedYet": "Ainda não processado",
+    "comparison": "Comparação Técnica"
+  },
+  "analysis": {
+    "title": "Análise Técnica",
+    "bitDepth": "Profundidade de Bit",
+    "hdr": "HDR",
+    "colorSpace": "Espaço de Cor",
+    "interlace": "Varrimento",
+    "progressive": "Progressivo",
+    "interlaced": "Entrelaçado",
+    "frames": "Frames",
+    "container": "Container",
+    "audioChannels": "Canais Áudio",
+    "chapters": "Capítulos",
+    "checksum": "SHA-256",
+    "codec": "Codec",
+    "resolution": "Resolução",
+    "fps": "FPS",
+    "size": "Tamanho"
   }
 }

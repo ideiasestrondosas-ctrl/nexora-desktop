@@ -39,8 +39,7 @@ interface TranscodeProfile {
 }
 
 // Codecs que o QCPreWorker manda para quarentena — avisamos o utilizador
-const QUARANTINE_CODECS = ['hevc', 'h265', 'prores', 'dnxhd', 'av1'];
-
+const QUARANTINE_CODECS = ['prores', 'dnxhd', 'av1'];
 
 function formatBytes(bytes: number): string {
   if (!bytes) return '0 B';
@@ -98,22 +97,32 @@ export function IngestProfileModal({
   const [submitting, setSubmitting] = useState(false);
   const [showAllFiles, setShowAllFiles] = useState(false);
 
-  const { hasSupportedExtension, detectPossibleQuarantine } = useMemo(() => ({
-    hasSupportedExtension: (p: string) => {
-      const ext = p.split('.').pop()?.toLowerCase();
-      return ['mp4', 'mkv', 'mov', 'mxf', 'avi', 'm4v', 'ts', 'webm'].includes(ext || '');
-    },
-    detectPossibleQuarantine: (name: string) => {
-      const n = name.toLowerCase();
-      return QUARANTINE_CODECS.some((c) => n.includes(c));
-    }
-  }), []);
+  const { hasSupportedExtension, detectPossibleQuarantine } = useMemo(
+    () => ({
+      hasSupportedExtension: (p: string) => {
+        const ext = p.split('.').pop()?.toLowerCase();
+        return ['mp4', 'mkv', 'mov', 'mxf', 'avi', 'm4v', 'ts', 'webm'].includes(ext || '');
+      },
+      detectPossibleQuarantine: (name: string) => {
+        const n = name.toLowerCase();
+        return QUARANTINE_CODECS.some((c) => n.includes(c));
+      },
+    }),
+    [],
+  );
 
-  const validPaths = useMemo(() => paths?.filter(hasSupportedExtension) ?? [], [paths, hasSupportedExtension]);
-  const invalidPaths = useMemo(() => paths?.filter((p) => !hasSupportedExtension(p)) ?? [], [paths, hasSupportedExtension]);
-  const hasQuarantineRisk = useMemo(() => validPaths.some((p) =>
-    detectPossibleQuarantine(p.split(/[/\\]/).pop() ?? ''),
-  ), [validPaths, detectPossibleQuarantine]);
+  const validPaths = useMemo(
+    () => paths?.filter(hasSupportedExtension) ?? [],
+    [paths, hasSupportedExtension],
+  );
+  const invalidPaths = useMemo(
+    () => paths?.filter((p) => !hasSupportedExtension(p)) ?? [],
+    [paths, hasSupportedExtension],
+  );
+  const hasQuarantineRisk = useMemo(
+    () => validPaths.some((p) => detectPossibleQuarantine(p.split(/[/\\]/).pop() ?? '')),
+    [validPaths, detectPossibleQuarantine],
+  );
 
   // Carregar perfis disponíveis
   useEffect(() => {
@@ -171,9 +180,10 @@ export function IngestProfileModal({
         toast.error(t('library.addError', { message: errors[0] }));
       }
       if (ingested > 0) {
-        const msg = withProcessing && !analyzeOnly
-          ? t('ingestModal.successProcess', { count: ingested })
-          : t('ingestModal.successImport', { count: ingested });
+        const msg =
+          withProcessing && !analyzeOnly
+            ? t('ingestModal.successProcess', { count: ingested })
+            : t('ingestModal.successImport', { count: ingested });
         toast.success(msg);
         onComplete(ingested);
       }
@@ -225,7 +235,6 @@ export function IngestProfileModal({
 
           {/* Body — scrollable */}
           <div className="flex-1 overflow-y-auto p-6 space-y-5">
-
             {/* Ficheiros inválidos */}
             {invalidPaths.length > 0 && (
               <div className="flex items-start gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-sm text-yellow-400">
@@ -298,7 +307,12 @@ export function IngestProfileModal({
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     {selectedProfile && (
-                      <span className={cn('w-2.5 h-2.5 rounded-full shrink-0', getProfileDot(selectedProfile.name))} />
+                      <span
+                        className={cn(
+                          'w-2.5 h-2.5 rounded-full shrink-0',
+                          getProfileDot(selectedProfile.name),
+                        )}
+                      />
                     )}
                     <div className="text-left min-w-0">
                       <div className="text-sm font-bold text-text-primary truncate">
@@ -313,58 +327,92 @@ export function IngestProfileModal({
                   </div>
                   <ChevronDown
                     size={16}
-                    className={cn('text-text-muted shrink-0 transition-transform', profileDropdownOpen && 'rotate-180')}
+                    className={cn(
+                      'text-text-muted shrink-0 transition-transform',
+                      profileDropdownOpen && 'rotate-180',
+                    )}
                   />
                 </button>
 
                 {profileDropdownOpen && (
                   <>
-                    <div className="fixed inset-0 z-10" onClick={() => setProfileDropdownOpen(false)} />
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setProfileDropdownOpen(false)}
+                    />
                     <div className="absolute top-full left-0 right-0 mt-2 bg-bg-secondary border border-border rounded-xl shadow-2xl z-20 max-h-56 overflow-y-auto">
                       {/* Predefinidos */}
                       <div className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-text-muted">
                         {t('profiles.predefined')}
                       </div>
-                      {profiles.filter((p) => p.is_system).map((p) => (
-                        <button
-                          key={p.id}
-                          onClick={() => { setSelectedProfileId(p.id); setProfileDropdownOpen(false); }}
-                          className={cn(
-                            'w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-bg-hover transition-colors',
-                            selectedProfileId === p.id && 'bg-brand/10',
-                          )}
-                        >
-                          <span className={cn('w-2 h-2 rounded-full shrink-0', getProfileDot(p.name))} />
-                          <div className="min-w-0">
-                            <div className="text-sm font-bold text-text-primary truncate">{p.name}</div>
-                            <div className="text-[10px] text-text-muted truncate">{p.description}</div>
-                          </div>
-                          <Lock size={10} className="text-text-muted shrink-0 ml-auto" />
-                        </button>
-                      ))}
+                      {profiles
+                        .filter((p) => p.is_system)
+                        .map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => {
+                              setSelectedProfileId(p.id);
+                              setProfileDropdownOpen(false);
+                            }}
+                            className={cn(
+                              'w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-bg-hover transition-colors',
+                              selectedProfileId === p.id && 'bg-brand/10',
+                            )}
+                          >
+                            <span
+                              className={cn('w-2 h-2 rounded-full shrink-0', getProfileDot(p.name))}
+                            />
+                            <div className="min-w-0">
+                              <div className="text-sm font-bold text-text-primary truncate">
+                                {p.name}
+                              </div>
+                              <div className="text-[10px] text-text-muted truncate">
+                                {p.description}
+                              </div>
+                            </div>
+                            <Lock size={10} className="text-text-muted shrink-0 ml-auto" />
+                          </button>
+                        ))}
                       {/* Personalizados */}
                       {profiles.some((p) => !p.is_system) && (
                         <>
                           <div className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-text-muted border-t border-border">
                             {t('profiles.custom')}
                           </div>
-                          {profiles.filter((p) => !p.is_system).map((p) => (
-                            <button
-                              key={p.id}
-                              onClick={() => { setSelectedProfileId(p.id); setProfileDropdownOpen(false); }}
-                              className={cn(
-                                'w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-bg-hover transition-colors',
-                                selectedProfileId === p.id && 'bg-brand/10',
-                              )}
-                            >
-                              <span className={cn('w-2 h-2 rounded-full shrink-0', getProfileDot(p.name))} />
-                              <div className="min-w-0">
-                                <div className="text-sm font-bold text-text-primary truncate">{p.name}</div>
-                                <div className="text-[10px] text-text-muted truncate">{p.description}</div>
-                              </div>
-                              <CheckCircle2 size={10} className="text-teal-500 shrink-0 ml-auto" />
-                            </button>
-                          ))}
+                          {profiles
+                            .filter((p) => !p.is_system)
+                            .map((p) => (
+                              <button
+                                key={p.id}
+                                onClick={() => {
+                                  setSelectedProfileId(p.id);
+                                  setProfileDropdownOpen(false);
+                                }}
+                                className={cn(
+                                  'w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-bg-hover transition-colors',
+                                  selectedProfileId === p.id && 'bg-brand/10',
+                                )}
+                              >
+                                <span
+                                  className={cn(
+                                    'w-2 h-2 rounded-full shrink-0',
+                                    getProfileDot(p.name),
+                                  )}
+                                />
+                                <div className="min-w-0">
+                                  <div className="text-sm font-bold text-text-primary truncate">
+                                    {p.name}
+                                  </div>
+                                  <div className="text-[10px] text-text-muted truncate">
+                                    {p.description}
+                                  </div>
+                                </div>
+                                <CheckCircle2
+                                  size={10}
+                                  className="text-teal-500 shrink-0 ml-auto"
+                                />
+                              </button>
+                            ))}
                         </>
                       )}
                     </div>
@@ -376,7 +424,10 @@ export function IngestProfileModal({
               {selectedProfile && (
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   {[
-                    { label: t('profiles.codec'), value: selectedProfile.video_codec.toUpperCase() },
+                    {
+                      label: t('profiles.codec'),
+                      value: selectedProfile.video_codec.toUpperCase(),
+                    },
                     { label: t('profiles.resolution'), value: selectedProfile.resolution },
                     {
                       label: t('profiles.bitrate'),
@@ -385,11 +436,22 @@ export function IngestProfileModal({
                         : t('profiles.auto'),
                     },
                     { label: 'VMAF ≥', value: String(selectedProfile.vmaf_threshold) },
-                    { label: 'FPS', value: selectedProfile.fps ? `${selectedProfile.fps}` : 'Source' },
-                    { label: t('profiles.container'), value: selectedProfile.container.toUpperCase() },
+                    {
+                      label: 'FPS',
+                      value: selectedProfile.fps ? `${selectedProfile.fps}` : 'Source',
+                    },
+                    {
+                      label: t('profiles.container'),
+                      value: selectedProfile.container.toUpperCase(),
+                    },
                   ].map(({ label, value }) => (
-                    <div key={label} className="bg-bg-primary border border-border rounded-lg px-3 py-2">
-                      <div className="text-[9px] font-black uppercase tracking-widest text-text-muted">{label}</div>
+                    <div
+                      key={label}
+                      className="bg-bg-primary border border-border rounded-lg px-3 py-2"
+                    >
+                      <div className="text-[9px] font-black uppercase tracking-widest text-text-muted">
+                        {label}
+                      </div>
                       <div className="text-xs font-bold text-text-primary mt-0.5">{value}</div>
                     </div>
                   ))}
@@ -406,17 +468,22 @@ export function IngestProfileModal({
                   analyzeOnly ? 'bg-brand' : 'bg-border',
                 )}
               >
-                <div className={cn(
-                  'absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform',
-                  analyzeOnly ? 'translate-x-5' : 'translate-x-0.5',
-                )} />
+                <div
+                  className={cn(
+                    'absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform',
+                    analyzeOnly ? 'translate-x-5' : 'translate-x-0.5',
+                  )}
+                />
               </div>
               <div>
-                <div className="text-sm font-bold text-text-primary">{t('ingestModal.analyzeOnly')}</div>
-                <div className="text-[10px] text-text-muted">{t('ingestModal.analyzeOnlyHint')}</div>
+                <div className="text-sm font-bold text-text-primary">
+                  {t('ingestModal.analyzeOnly')}
+                </div>
+                <div className="text-[10px] text-text-muted">
+                  {t('ingestModal.analyzeOnlyHint')}
+                </div>
               </div>
             </label>
-
           </div>
 
           {/* Footer */}

@@ -253,7 +253,6 @@
       "showProfileModal": "Show profile modal on drop",
       "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
-
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -512,5 +511,52 @@
     "done": "Done",
     "error": "Error",
     "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "{{count}} bestand(en) verwerken",
+    "globalProfile": "Globaal profiel",
+    "perFile": "Profiel",
+    "perFileNote": "U kunt het profiel per bestand aanpassen",
+    "estimate": "Schatting",
+    "processAll": "Alles verwerken ({{count}})",
+    "cancel": "Annuleren",
+    "processing": "Verwerken...",
+    "done": "Klaar",
+    "error": "Fout",
+    "pending": "In behandeling",
+    "noFiles": "Geen videobestanden gevonden",
+    "file": "Bestand",
+    "status": "Status",
+    "successToast": "{{count}} bestand(en) succesvol ingediend"
+  },
+  "detail": {
+    "thumbnailOrig": "Origineel",
+    "thumbnailOut": "Verwerkt",
+    "thumbnailNotYet": "Beschikbaar na verwerking",
+    "playerOriginal": "Origineel afspelen",
+    "playerProcessed": "Verwerkt bestand afspelen",
+    "openInPlayer": "Openen in systeemspeler",
+    "original": "Origineel",
+    "processed": "Verwerkt",
+    "notProcessedYet": "Nog niet verwerkt",
+    "comparison": "Technische vergelijking"
+  },
+  "analysis": {
+    "title": "Technische analyse",
+    "bitDepth": "Bitdiepte",
+    "hdr": "HDR",
+    "colorSpace": "Kleurruimte",
+    "interlace": "Scanmethode",
+    "progressive": "Progressief",
+    "interlaced": "Geïnterlinieerd",
+    "frames": "Frames",
+    "container": "Container",
+    "audioChannels": "Audiokanalen",
+    "chapters": "Hoofdstukken",
+    "checksum": "SHA-256",
+    "codec": "Codec",
+    "resolution": "Resolutie",
+    "fps": "FPS",
+    "size": "Grootte"
   }
 }

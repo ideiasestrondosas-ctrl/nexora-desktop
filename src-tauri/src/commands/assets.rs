@@ -20,10 +20,15 @@ pub struct Asset {
     pub created_at: String,
     pub updated_at: String,
     pub metadata: Option<serde_json::Value>,
+    pub thumbnail_path: Option<String>,
+    pub thumbnail_output_path: Option<String>,
+    pub output_metadata: Option<serde_json::Value>,
+    pub output_path: Option<String>,
 }
 
 fn row_to_asset(row: &Row) -> rusqlite::Result<Asset> {
     let metadata_str: Option<String> = row.get(13)?;
+    let output_metadata_str: Option<String> = row.get(16)?;
     Ok(Asset {
         id: row.get(0)?,
         path: row.get(1)?,
@@ -39,12 +44,17 @@ fn row_to_asset(row: &Row) -> rusqlite::Result<Asset> {
         created_at: row.get(11)?,
         updated_at: row.get(12)?,
         metadata: metadata_str.and_then(|s| serde_json::from_str(&s).ok()),
+        thumbnail_path: row.get(14)?,
+        thumbnail_output_path: row.get(15)?,
+        output_metadata: output_metadata_str.and_then(|s| serde_json::from_str(&s).ok()),
+        output_path: row.get(17)?,
     })
 }
 
 const COLS: &str = "id, path, filename, status, size_bytes, duration_secs,
                     video_codec, audio_codec, width, height, fps,
-                    created_at, updated_at, metadata";
+                    created_at, updated_at, metadata,
+                    thumbnail_path, thumbnail_output_path, output_metadata, output_path";
 
 fn collect_assets(
     db: &rusqlite::Connection,
@@ -142,6 +152,10 @@ pub fn ingest_asset(
         created_at: now.clone(),
         updated_at: now,
         metadata: metadata_val,
+        thumbnail_path: None,
+        thumbnail_output_path: None,
+        output_metadata: None,
+        output_path: None,
     })
 }
 
@@ -252,4 +266,28 @@ pub fn get_asset(id: String, state: State<AppState>) -> Result<Option<Asset>, St
     let collected: rusqlite::Result<Vec<_>> = iter.collect();
     let mut rows = collected.map_err(|e| e.to_string())?;
     Ok(rows.pop())
+}
+
+#[tauri::command]
+pub async fn scan_directory(path: String) -> Result<Vec<String>, String> {
+    use walkdir::WalkDir;
+    const VIDEO_EXTS: &[&str] = &["mp4", "mov", "mxf", "avi", "mkv", "webm", "ts", "m2ts", "m4v"];
+
+    let mut paths: Vec<String> = WalkDir::new(&path)
+        .follow_links(true)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file())
+        .filter(|e| {
+            e.path()
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .map(|ext| VIDEO_EXTS.contains(&ext.to_lowercase().as_str()))
+                .unwrap_or(false)
+        })
+        .map(|e| e.path().to_string_lossy().into_owned())
+        .collect();
+
+    paths.sort();
+    Ok(paths)
 }

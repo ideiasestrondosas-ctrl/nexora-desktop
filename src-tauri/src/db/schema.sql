@@ -10,9 +10,13 @@ CREATE TABLE IF NOT EXISTS assets (
     width         INTEGER,
     height        INTEGER,
     fps           REAL,
-    created_at    TEXT NOT NULL,
-    updated_at    TEXT NOT NULL,
-    metadata      TEXT
+    created_at              TEXT NOT NULL,
+    updated_at              TEXT NOT NULL,
+    metadata                TEXT,
+    thumbnail_path          TEXT,
+    thumbnail_output_path   TEXT,
+    output_metadata         TEXT,
+    output_path             TEXT
 );
 
 CREATE TABLE IF NOT EXISTS jobs (

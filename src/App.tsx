@@ -25,7 +25,9 @@ import AssetDetailPage from '@/pages/AssetDetailPage';
 import TopBar from '@/components/TopBar';
 import { HelpOverlay } from '@/components/HelpModal';
 import { IngestProfileModal } from '@/components/IngestProfileModal';
+import { BatchSubmitModal } from '@/components/BatchSubmitModal';
 import { hasSupportedExtension } from '@/components/DropZone';
+import { resolveVideoPaths } from '@/lib/scan';
 
 import { useSettingsStore } from '@/store/settings';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
@@ -41,9 +43,11 @@ function App() {
   const [appVersion, setAppVersion] = useState('—');
   const [helpOpen, setHelpOpen] = useState(false);
 
-  // ── IngestProfileModal state ────────────────────────────────────────────────
-  /** paths pendentes para o modal — null = modal fechado */
+  // ── IngestProfileModal state (fallback — mantido para file dialog interno) ──
   const [ingestPaths, setIngestPaths] = useState<string[] | null>(null);
+  // ── BatchSubmitModal state ─────────────────────────────────────────────────
+  const [batchPaths, setBatchPaths] = useState<string[]>([]);
+  const [batchOpen, setBatchOpen] = useState(false);
   /** overlay visual de "a arrastar" sobre o conteúdo */
   const [isDragging, setIsDragging] = useState(false);
 
@@ -52,7 +56,9 @@ function App() {
 
   // Refs para aceder ao tab activo e à função t sem re-registar listeners
   const activeTabRef = useRef<Tab>(activeTab);
-  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
 
   // ── Drag-drop global centralizado ──────────────────────────────────────────
   // Um único listener tauri://drag-drop — intercepta drops em QUALQUER página
@@ -64,18 +70,19 @@ function App() {
       listen('tauri://drag-over', () => setIsDragging(true)),
       listen('tauri://drag-leave', () => setIsDragging(false)),
 
-      // Drop real: filtrar por extensão e abrir modal
-      listen<{ paths: string[] }>('tauri://drag-drop', (event) => {
+      // Drop real: expandir pastas e abrir BatchSubmitModal
+      listen<{ paths: string[] }>('tauri://drag-drop', async (event) => {
         setIsDragging(false);
-        const valid = event.payload.paths.filter(hasSupportedExtension);
-        if (valid.length > 0) {
-          setIngestPaths(valid);
-        }
-        // Ficheiros inválidos são ignorados silenciosamente —
-        // o modal mostra avisos para extensões não suportadas se inclurmos paths brutos
-        else if (event.payload.paths.length > 0) {
-          // Mostrar o modal mesmo assim para dar feedback ao utilizador
-          setIngestPaths(event.payload.paths);
+        const resolved = await resolveVideoPaths(event.payload.paths);
+        if (resolved.length > 0) {
+          setBatchPaths(resolved);
+          setBatchOpen(true);
+        } else if (event.payload.paths.length > 0) {
+          // Nenhum vídeo encontrado — ainda assim abre o modal antigo para feedback
+          const valid = event.payload.paths.filter(hasSupportedExtension);
+          if (valid.length > 0 || event.payload.paths.length > 0) {
+            setIngestPaths(event.payload.paths);
+          }
         }
       }),
     ];
@@ -86,7 +93,17 @@ function App() {
 
   // Callback chamado pelos botões Add File/Folder da LibraryPage
   const handleImportRequest = useCallback((paths: string[]) => {
-    setIngestPaths(paths);
+    // Usar BatchSubmitModal para consistência
+    resolveVideoPaths(paths)
+      .then((resolved) => {
+        if (resolved.length > 0) {
+          setBatchPaths(resolved);
+          setBatchOpen(true);
+        } else {
+          setIngestPaths(paths);
+        }
+      })
+      .catch(() => setIngestPaths(paths));
   }, []);
 
   // Callback quando ingest+jobs foram submetidos com sucesso
@@ -119,16 +136,40 @@ function App() {
       );
 
     // Verificar pré-requisitos no arranque
-    invoke<{ nodeOk: boolean; sidecarOk: boolean; ffprobeOk: boolean; ffmpegOk: boolean; allOk: boolean }>('get_startup_status')
+    invoke<{
+      nodeOk: boolean;
+      sidecarOk: boolean;
+      ffprobeOk: boolean;
+      ffmpegOk: boolean;
+      allOk: boolean;
+    }>('get_startup_status')
       .then((status) => {
         if (!status.nodeOk) {
-          toast.error(t('startup.nodeMissing', 'Node.js não encontrado no PATH. Instale o Node.js 20+ para o processamento de vídeo funcionar.'), { duration: Number.POSITIVE_INFINITY });
+          toast.error(
+            t(
+              'startup.nodeMissing',
+              'Node.js não encontrado no PATH. Instale o Node.js 20+ para o processamento de vídeo funcionar.',
+            ),
+            { duration: Number.POSITIVE_INFINITY },
+          );
         }
         if (!status.ffmpegOk || !status.ffprobeOk) {
-          toast.error(t('startup.ffmpegMissing', 'FFmpeg/FFprobe não encontrados. Instale o FFmpeg e adicione ao PATH para ingerir vídeos.'), { duration: Number.POSITIVE_INFINITY });
+          toast.error(
+            t(
+              'startup.ffmpegMissing',
+              'FFmpeg/FFprobe não encontrados. Instale o FFmpeg e adicione ao PATH para ingerir vídeos.',
+            ),
+            { duration: Number.POSITIVE_INFINITY },
+          );
         }
         if (!status.sidecarOk) {
-          toast.warning(t('startup.sidecarMissing', 'Script do Sidecar não encontrado. Execute npm run sidecar:build se estiver em desenvolvimento.'), { duration: Number.POSITIVE_INFINITY });
+          toast.warning(
+            t(
+              'startup.sidecarMissing',
+              'Script do Sidecar não encontrado. Execute npm run sidecar:build se estiver em desenvolvimento.',
+            ),
+            { duration: Number.POSITIVE_INFINITY },
+          );
         }
       })
       .catch(console.error);
@@ -157,12 +198,25 @@ function App() {
     <div className="flex h-screen bg-bg-primary text-text-primary overflow-hidden font-sans selection:bg-brand/30">
       <Toaster position="bottom-right" richColors closeButton />
 
-      {/* ── Modal de Selecção de Perfil (global) ── */}
+      {/* ── IngestProfileModal (fallback para extensões inválidas) ── */}
       <IngestProfileModal
         paths={ingestPaths}
         defaultProfileId={defaultProfile}
         onClose={() => setIngestPaths(null)}
         onComplete={handleIngestComplete}
+      />
+
+      {/* ── BatchSubmitModal (drag-drop + Add File/Folder) ── */}
+      <BatchSubmitModal
+        open={batchOpen}
+        paths={batchPaths}
+        defaultProfileId={defaultProfile}
+        onClose={() => setBatchOpen(false)}
+        onComplete={(count) => {
+          setBatchOpen(false);
+          setActiveTab('library');
+          toast.success(t('library.filesAdded', { count }));
+        }}
       />
 
       {/* SIDEBAR */}

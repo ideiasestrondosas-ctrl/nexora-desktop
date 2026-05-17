@@ -253,7 +253,6 @@
       "showProfileModal": "Show profile modal on drop",
       "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
-
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -512,5 +511,52 @@
     "done": "Done",
     "error": "Error",
     "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "Procesar {{count}} archivo(s)",
+    "globalProfile": "Perfil global",
+    "perFile": "Perfil",
+    "perFileNote": "Puede personalizar el perfil por archivo",
+    "estimate": "Estimación",
+    "processAll": "Procesar todo ({{count}})",
+    "cancel": "Cancelar",
+    "processing": "Procesando...",
+    "done": "Completado",
+    "error": "Error",
+    "pending": "Pendiente",
+    "noFiles": "No se encontraron archivos de vídeo",
+    "file": "Archivo",
+    "status": "Estado",
+    "successToast": "{{count}} archivo(s) enviados correctamente"
+  },
+  "detail": {
+    "thumbnailOrig": "Original",
+    "thumbnailOut": "Procesado",
+    "thumbnailNotYet": "Disponible tras el procesamiento",
+    "playerOriginal": "Reproducir original",
+    "playerProcessed": "Reproducir archivo procesado",
+    "openInPlayer": "Abrir en el reproductor del sistema",
+    "original": "Original",
+    "processed": "Procesado",
+    "notProcessedYet": "Aún no procesado",
+    "comparison": "Comparación técnica"
+  },
+  "analysis": {
+    "title": "Análisis técnico",
+    "bitDepth": "Profundidad de bits",
+    "hdr": "HDR",
+    "colorSpace": "Espacio de color",
+    "interlace": "Tipo de escaneo",
+    "progressive": "Progresivo",
+    "interlaced": "Entrelazado",
+    "frames": "Frames",
+    "container": "Contenedor",
+    "audioChannels": "Canales de audio",
+    "chapters": "Capítulos",
+    "checksum": "SHA-256",
+    "codec": "Codec",
+    "resolution": "Resolución",
+    "fps": "FPS",
+    "size": "Tamaño"
   }
 }

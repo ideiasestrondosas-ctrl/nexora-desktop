@@ -253,7 +253,6 @@
       "showProfileModal": "Show profile modal on drop",
       "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
-
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -512,5 +511,52 @@
     "done": "Done",
     "error": "Error",
     "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "{{count}} 件のファイルを処理",
+    "globalProfile": "グローバルプロファイル",
+    "perFile": "プロファイル",
+    "perFileNote": "ファイルごとにプロファイルを変更可能",
+    "estimate": "推定時間",
+    "processAll": "すべて処理 ({{count}})",
+    "cancel": "キャンセル",
+    "processing": "処理中...",
+    "done": "完了",
+    "error": "エラー",
+    "pending": "保留中",
+    "noFiles": "動画ファイルが見つかりません",
+    "file": "ファイル",
+    "status": "ステータス",
+    "successToast": "{{count}} 件のファイルを送信しました"
+  },
+  "detail": {
+    "thumbnailOrig": "オリジナル",
+    "thumbnailOut": "処理済み",
+    "thumbnailNotYet": "処理後に利用可能",
+    "playerOriginal": "オリジナルを再生",
+    "playerProcessed": "処理済みファイルを再生",
+    "openInPlayer": "システムプレーヤーで開く",
+    "original": "オリジナル",
+    "processed": "処理済み",
+    "notProcessedYet": "未処理",
+    "comparison": "技術比較"
+  },
+  "analysis": {
+    "title": "技術解析",
+    "bitDepth": "ビット深度",
+    "hdr": "HDR",
+    "colorSpace": "色空間",
+    "interlace": "走査方式",
+    "progressive": "プログレッシブ",
+    "interlaced": "インターレース",
+    "frames": "フレーム数",
+    "container": "コンテナ",
+    "audioChannels": "オーディオチャンネル",
+    "chapters": "チャプター",
+    "checksum": "SHA-256",
+    "codec": "コーデック",
+    "resolution": "解像度",
+    "fps": "FPS",
+    "size": "サイズ"
   }
 }

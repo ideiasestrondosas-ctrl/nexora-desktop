@@ -98,6 +98,7 @@ pub fn run() {
             commands::assets::list_assets,
             commands::assets::get_asset,
             commands::assets::delete_asset,
+            commands::assets::scan_directory,
             commands::jobs::submit_job,
             commands::jobs::cancel_job,
             commands::jobs::get_job_status,

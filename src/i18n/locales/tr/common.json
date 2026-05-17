@@ -253,7 +253,6 @@
       "showProfileModal": "Show profile modal on drop",
       "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
-
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -512,5 +511,52 @@
     "done": "Done",
     "error": "Error",
     "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "{{count}} dosya işle",
+    "globalProfile": "Genel Profil",
+    "perFile": "Profil",
+    "perFileNote": "Her dosya için profili özelleştirebilirsiniz",
+    "estimate": "Tahmini Süre",
+    "processAll": "Tümünü İşle ({{count}})",
+    "cancel": "İptal",
+    "processing": "İşleniyor...",
+    "done": "Tamamlandı",
+    "error": "Hata",
+    "pending": "Bekliyor",
+    "noFiles": "Video dosyası bulunamadı",
+    "file": "Dosya",
+    "status": "Durum",
+    "successToast": "{{count}} dosya başarıyla gönderildi"
+  },
+  "detail": {
+    "thumbnailOrig": "Orijinal",
+    "thumbnailOut": "İşlenmiş",
+    "thumbnailNotYet": "İşlemden sonra kullanılabilir",
+    "playerOriginal": "Orijinali oynat",
+    "playerProcessed": "İşlenmiş dosyayı oynat",
+    "openInPlayer": "Sistem oynatıcısında aç",
+    "original": "Orijinal",
+    "processed": "İşlenmiş",
+    "notProcessedYet": "Henüz işlenmedi",
+    "comparison": "Teknik Karşılaştırma"
+  },
+  "analysis": {
+    "title": "Teknik Analiz",
+    "bitDepth": "Bit Derinliği",
+    "hdr": "HDR",
+    "colorSpace": "Renk Uzayı",
+    "interlace": "Tarama Türü",
+    "progressive": "Aşamalı",
+    "interlaced": "İç içe Geçmiş",
+    "frames": "Kareler",
+    "container": "Kapsayıcı",
+    "audioChannels": "Ses Kanalları",
+    "chapters": "Bölümler",
+    "checksum": "SHA-256",
+    "codec": "Codec",
+    "resolution": "Çözünürlük",
+    "fps": "FPS",
+    "size": "Boyut"
   }
 }

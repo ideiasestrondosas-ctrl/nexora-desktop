@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, convertFileSrc } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
 import { toast } from 'sonner';
@@ -134,7 +134,6 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
     }
   };
 
-
   // Fallback HTML drop — ficheiros do SO chegam via 'tauri://drag-drop'; este handler
   // apenas previne o comportamento padrão do browser e repõe o estado visual
   const handleHtmlDrop = (e: React.DragEvent) => {
@@ -156,19 +155,25 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
     try {
       if (deleteConfirm.multi) {
         // Multi-delete
-        await Promise.all(Array.from(selectedIds).map(id => invoke('delete_asset', { id })));
+        await Promise.all(Array.from(selectedIds).map((id) => invoke('delete_asset', { id })));
         // Remover do store local imediatamente
-        Array.from(selectedIds).forEach(id => removeJobsByAsset(id));
-        setAssets(prev => prev.filter(a => !selectedIds.has(a.id)));
+        Array.from(selectedIds).forEach((id) => removeJobsByAsset(id));
+        setAssets((prev) => prev.filter((a) => !selectedIds.has(a.id)));
         setSelectedIds(new Set());
-        toast.success(t('library.deletedSuccessMultiple', { defaultValue: 'Assets apagados com sucesso!' }));
+        toast.success(
+          t('library.deletedSuccessMultiple', { defaultValue: 'Assets apagados com sucesso!' }),
+        );
       } else if (deleteConfirm.id) {
         const id = deleteConfirm.id;
         await invoke('delete_asset', { id });
         // Remover do store local imediatamente
         removeJobsByAsset(id);
-        setAssets(prev => prev.filter(a => a.id !== id));
-        setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+        setAssets((prev) => prev.filter((a) => a.id !== id));
+        setSelectedIds((prev) => {
+          const n = new Set(prev);
+          n.delete(id);
+          return n;
+        });
       }
     } catch (error) {
       console.error('Failed to delete asset:', error);
@@ -180,7 +185,7 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
   };
 
   const handleSelect = (id: string, checked: boolean) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (checked) next.add(id);
       else next.delete(id);
@@ -190,7 +195,7 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(filteredAssets.map(a => a.id)));
+      setSelectedIds(new Set(filteredAssets.map((a) => a.id)));
     } else {
       setSelectedIds(new Set());
     }
@@ -384,9 +389,12 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
 
                     {asset.thumbnail_path ? (
                       <img
-                        src={asset.thumbnail_path}
+                        src={convertFileSrc(asset.thumbnail_path)}
                         alt={asset.filename}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
                       />
                     ) : (
                       <Film size={32} className="text-gray-800" />
@@ -583,11 +591,22 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
 
       <ConfirmDialog
         open={deleteConfirm.open}
-        onOpenChange={(open) => !loading && setDeleteConfirm(prev => ({ ...prev, open }))}
-        title={deleteConfirm.multi ? t('library.deleteConfirmMultiple', 'Apagar assets selecionados?') : t('library.deleteConfirm', 'Apagar asset?')}
-        description={deleteConfirm.multi 
-          ? t('library.deleteConfirmMultipleDesc', 'Esta ação é irreversível. Os ficheiros gerados serão apagados do disco.')
-          : t('library.deleteConfirmDesc', 'Esta ação é irreversível. Os ficheiros gerados serão apagados do disco.')
+        onOpenChange={(open) => !loading && setDeleteConfirm((prev) => ({ ...prev, open }))}
+        title={
+          deleteConfirm.multi
+            ? t('library.deleteConfirmMultiple', 'Apagar assets selecionados?')
+            : t('library.deleteConfirm', 'Apagar asset?')
+        }
+        description={
+          deleteConfirm.multi
+            ? t(
+                'library.deleteConfirmMultipleDesc',
+                'Esta ação é irreversível. Os ficheiros gerados serão apagados do disco.',
+              )
+            : t(
+                'library.deleteConfirmDesc',
+                'Esta ação é irreversível. Os ficheiros gerados serão apagados do disco.',
+              )
         }
         confirmLabel={t('common.delete', 'Apagar')}
         cancelLabel={t('common.cancel', 'Cancelar')}

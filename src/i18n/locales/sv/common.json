@@ -253,7 +253,6 @@
       "showProfileModal": "Show profile modal on drop",
       "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
-
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -512,5 +511,52 @@
     "done": "Done",
     "error": "Error",
     "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "Bearbeta {{count}} fil(er)",
+    "globalProfile": "Globalt profil",
+    "perFile": "Profil",
+    "perFileNote": "Du kan anpassa profilen per fil",
+    "estimate": "Uppskattning",
+    "processAll": "Bearbeta alla ({{count}})",
+    "cancel": "Avbryt",
+    "processing": "Bearbetar...",
+    "done": "Klar",
+    "error": "Fel",
+    "pending": "Väntande",
+    "noFiles": "Inga videofiler hittades",
+    "file": "Fil",
+    "status": "Status",
+    "successToast": "{{count}} fil(er) skickades"
+  },
+  "detail": {
+    "thumbnailOrig": "Original",
+    "thumbnailOut": "Bearbetad",
+    "thumbnailNotYet": "Tillgänglig efter bearbetning",
+    "playerOriginal": "Spela upp original",
+    "playerProcessed": "Spela upp bearbetad fil",
+    "openInPlayer": "Öppna i systemspelaren",
+    "original": "Original",
+    "processed": "Bearbetad",
+    "notProcessedYet": "Ej bearbetad ännu",
+    "comparison": "Teknisk jämförelse"
+  },
+  "analysis": {
+    "title": "Teknisk analys",
+    "bitDepth": "Bitdjup",
+    "hdr": "HDR",
+    "colorSpace": "Färgrymd",
+    "interlace": "Avsökningstyp",
+    "progressive": "Progressiv",
+    "interlaced": "Interlinjerad",
+    "frames": "Bildrutor",
+    "container": "Container",
+    "audioChannels": "Ljudkanaler",
+    "chapters": "Kapitel",
+    "checksum": "SHA-256",
+    "codec": "Codec",
+    "resolution": "Upplösning",
+    "fps": "FPS",
+    "size": "Storlek"
   }
 }

@@ -325,7 +325,6 @@ fn run_job<R: Runtime>(
                                         ) {
                                             if let Ok(db) = app_handle.state::<AppState>().db.lock() {
                                                 let now = chrono::Utc::now().to_rfc3339();
-                                                // Usar NULL para campos opcionais sem valor (evitar strings vazias)
                                                 let duration_secs = data.get("duration_secs").and_then(|v| v.as_f64());
                                                 let video_codec = data.get("video_codec").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
                                                 let audio_codec = data.get("audio_codec").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
@@ -333,9 +332,28 @@ fn run_job<R: Runtime>(
                                                 let height = data.get("height").and_then(|v| v.as_i64());
                                                 let fps = data.get("fps").and_then(|v| v.as_f64());
                                                 let metadata = data.get("metadata").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
-                                                let status = data.get("status").and_then(|v| v.as_str()).unwrap_or("ingested");
+                                                let status = data.get("status").and_then(|v| v.as_str());
+                                                let thumbnail_path = data.get("thumbnail_path").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let thumbnail_output_path = data.get("thumbnail_output_path").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let output_metadata = data.get("output_metadata").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let output_path = data.get("output_path").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                // COALESCE preserva o valor existente quando o novo valor é NULL
                                                 let _ = db.execute(
-                                                    "UPDATE assets SET duration_secs = ?, video_codec = ?, audio_codec = ?, width = ?, height = ?, fps = ?, metadata = ?, status = ?, updated_at = ? WHERE id = ?",
+                                                    "UPDATE assets SET \
+                                                     duration_secs = COALESCE(?, duration_secs), \
+                                                     video_codec = COALESCE(?, video_codec), \
+                                                     audio_codec = COALESCE(?, audio_codec), \
+                                                     width = COALESCE(?, width), \
+                                                     height = COALESCE(?, height), \
+                                                     fps = COALESCE(?, fps), \
+                                                     metadata = COALESCE(?, metadata), \
+                                                     status = COALESCE(?, status), \
+                                                     thumbnail_path = COALESCE(?, thumbnail_path), \
+                                                     thumbnail_output_path = COALESCE(?, thumbnail_output_path), \
+                                                     output_metadata = COALESCE(?, output_metadata), \
+                                                     output_path = COALESCE(?, output_path), \
+                                                     updated_at = ? \
+                                                     WHERE id = ?",
                                                     rusqlite::params![
                                                         duration_secs,
                                                         video_codec,
@@ -345,11 +363,15 @@ fn run_job<R: Runtime>(
                                                         fps,
                                                         metadata,
                                                         status,
+                                                        thumbnail_path,
+                                                        thumbnail_output_path,
+                                                        output_metadata,
+                                                        output_path,
                                                         now,
                                                         asset_id,
                                                     ],
                                                 );
-                                                info!("[queue] asset:updated — {asset_id} codec={:?} {}x{:?}", video_codec, width.unwrap_or(0), height);
+                                                info!("[queue] asset:updated — {asset_id}");
                                             }
                                         }
                                     }

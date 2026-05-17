@@ -17,8 +17,8 @@ const VMAF_THRESHOLDS: Record<string, number> = {
   'broadcast-sd': 90,
   'web-4k': 85,
   'web-hd': 85,
-  'proxy': 70,
-  'social': 85,
+  proxy: 70,
+  social: 85,
 };
 
 export class QCPostWorker {
@@ -50,12 +50,21 @@ export class QCPostWorker {
 
     onProgress(0.9);
 
-    emit({ type: 'log', level: 'INFO', source: 'qc-post-worker', message: `QC Post passed: VMAF ${vmafScore ?? 'N/A'}, passed=${vmafPassed}, sha256=${sha256}` });
+    emit({
+      type: 'log',
+      level: 'INFO',
+      source: 'qc-post-worker',
+      message: `QC Post passed: VMAF ${vmafScore ?? 'N/A'}, passed=${vmafPassed}, sha256=${sha256}`,
+    });
 
     onProgress(1.0);
   }
 
-  private async calculateVMAF(reference: string, distorted: string, profile: string): Promise<{
+  private async calculateVMAF(
+    reference: string,
+    distorted: string,
+    profile: string,
+  ): Promise<{
     mean: number;
     min: number;
     max: number;
@@ -74,14 +83,14 @@ export class QCPostWorker {
       resolve(__dirname, '..', '..', 'src-tauri', 'resources', 'vmaf_models', 'vmaf_v0.6.1.json'),
       resolve(__dirname, '..', '..', 'resources', 'vmaf_models', 'vmaf_v0.6.1.json'),
     ];
-    const modelPath = modelCandidates.find(p => p && existsSync(p)) ?? '';
+    const modelPath = modelCandidates.find((p) => p && existsSync(p)) ?? '';
 
     // Converter para caminho relativo de forma a evitar os problemas de escaping
     // com a letra do disco (ex: C:) que partem o parser do FFmpeg.
     const relModelPath = modelPath ? relative(process.cwd(), modelPath) : '';
     const safeModelPath = relModelPath.replace(/\\/g, '/');
     const hasModel = !!modelPath;
-    
+
     const tempLogFile = distorted + '.vmaf.json';
     const relLogPath = relative(process.cwd(), tempLogFile).replace(/\\/g, '/');
 
@@ -90,14 +99,12 @@ export class QCPostWorker {
       : `[0:v]scale=1920:1080:flags=bicubic[dist];[1:v]scale=1920:1080:flags=bicubic[ref];[dist][ref]libvmaf=log_path=${relLogPath}:log_fmt=json:n_subsample=5`;
 
     try {
-      await execFileAsync(ffmpeg, [
-        '-i', distorted,
-        '-i', reference,
-        '-lavfi', filter,
-        '-f', 'null',
-        '-',
-      ], { timeout: 3600_000, maxBuffer: 50 * 1024 * 1024 });
-    } catch (e) {
+      await execFileAsync(
+        ffmpeg,
+        ['-i', distorted, '-i', reference, '-lavfi', filter, '-f', 'null', '-'],
+        { timeout: 3600_000, maxBuffer: 50 * 1024 * 1024 },
+      );
+    } catch {
       // Ignora erro de exit code, vmaf pode ter escrito o json antes de falhar ou
       // o null muxer causar EOF error
     }
@@ -110,7 +117,9 @@ export class QCPostWorker {
     await unlink(tempLogFile).catch(() => {});
 
     const vmafData = JSON.parse(jsonContent) as {
-      pooled_metrics?: { vmaf?: { mean?: number; min?: number; max?: number; harmonic_mean?: number } };
+      pooled_metrics?: {
+        vmaf?: { mean?: number; min?: number; max?: number; harmonic_mean?: number };
+      };
       frames?: Array<{ metrics?: { vmaf?: number } }>;
     };
     const pooled = vmafData.pooled_metrics ?? {};
@@ -123,8 +132,10 @@ export class QCPostWorker {
     // Calcular percentis a partir dos frames se disponíveis
     const frames = vmafData.frames ?? [];
     const scores = frames.map((f) => f.metrics?.vmaf ?? 0).sort((a, b) => a - b);
-    const percentile1 = scores.length > 0 ? scores[Math.floor(scores.length * 0.01)] ?? scores[0] : 0;
-    const percentile5 = scores.length > 0 ? scores[Math.floor(scores.length * 0.05)] ?? scores[0] : 0;
+    const percentile1 =
+      scores.length > 0 ? (scores[Math.floor(scores.length * 0.01)] ?? scores[0]) : 0;
+    const percentile5 =
+      scores.length > 0 ? (scores[Math.floor(scores.length * 0.05)] ?? scores[0]) : 0;
 
     const threshold = VMAF_THRESHOLDS[profile] ?? 85;
     const passed = mean >= threshold && percentile1 >= threshold - 5;
@@ -137,7 +148,9 @@ export class QCPostWorker {
       percentile5,
       harmonicMean,
       passed,
-      failureReason: passed ? undefined : `VMAF médio ${mean.toFixed(1)} abaixo do threshold ${threshold}`,
+      failureReason: passed
+        ? undefined
+        : `VMAF médio ${mean.toFixed(1)} abaixo do threshold ${threshold}`,
     };
   }
 }

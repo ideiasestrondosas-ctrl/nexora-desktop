@@ -253,7 +253,6 @@
       "showProfileModal": "Show profile modal on drop",
       "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
-
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -512,5 +511,52 @@
     "done": "Done",
     "error": "Error",
     "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "{{count}} Datei(en) verarbeiten",
+    "globalProfile": "Globales Profil",
+    "perFile": "Profil",
+    "perFileNote": "Profil pro Datei anpassbar",
+    "estimate": "Schätzung",
+    "processAll": "Alle verarbeiten ({{count}})",
+    "cancel": "Abbrechen",
+    "processing": "Wird verarbeitet...",
+    "done": "Fertig",
+    "error": "Fehler",
+    "pending": "Ausstehend",
+    "noFiles": "Keine Videodateien gefunden",
+    "file": "Datei",
+    "status": "Status",
+    "successToast": "{{count}} Datei(en) erfolgreich übermittelt"
+  },
+  "detail": {
+    "thumbnailOrig": "Original",
+    "thumbnailOut": "Verarbeitet",
+    "thumbnailNotYet": "Verfügbar nach der Verarbeitung",
+    "playerOriginal": "Original abspielen",
+    "playerProcessed": "Verarbeitete Datei abspielen",
+    "openInPlayer": "Im Systemplayer öffnen",
+    "original": "Original",
+    "processed": "Verarbeitet",
+    "notProcessedYet": "Noch nicht verarbeitet",
+    "comparison": "Technischer Vergleich"
+  },
+  "analysis": {
+    "title": "Technische Analyse",
+    "bitDepth": "Bittiefe",
+    "hdr": "HDR",
+    "colorSpace": "Farbraum",
+    "interlace": "Abtastung",
+    "progressive": "Progressiv",
+    "interlaced": "Zeilensprung",
+    "frames": "Frames",
+    "container": "Container",
+    "audioChannels": "Audiokanäle",
+    "chapters": "Kapitel",
+    "checksum": "SHA-256",
+    "codec": "Codec",
+    "resolution": "Auflösung",
+    "fps": "FPS",
+    "size": "Größe"
   }
 }

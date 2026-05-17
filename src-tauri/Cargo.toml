@@ -29,3 +29,4 @@ chrono = { version = "0.4", features = ["serde"] }
 num_cpus = "1"
 sysinfo = { version = "0.32", default-features = false, features = ["system", "network"] }
 tokio = { version = "1", features = ["time", "sync"] }
+walkdir = "2"

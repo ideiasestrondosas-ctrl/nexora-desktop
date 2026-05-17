@@ -253,7 +253,6 @@
       "showProfileModal": "Show profile modal on drop",
       "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
-
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -512,5 +511,52 @@
     "done": "Done",
     "error": "Error",
     "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "معالجة {{count}} ملف",
+    "globalProfile": "الملف الشخصي العام",
+    "perFile": "الملف الشخصي",
+    "perFileNote": "يمكنك تخصيص الملف الشخصي لكل ملف",
+    "estimate": "الوقت المقدر",
+    "processAll": "معالجة الكل ({{count}})",
+    "cancel": "إلغاء",
+    "processing": "جارٍ المعالجة...",
+    "done": "تم",
+    "error": "خطأ",
+    "pending": "معلق",
+    "noFiles": "لم يتم العثور على ملفات فيديو",
+    "file": "ملف",
+    "status": "الحالة",
+    "successToast": "تم إرسال {{count}} ملف بنجاح"
+  },
+  "detail": {
+    "thumbnailOrig": "الأصل",
+    "thumbnailOut": "تمت المعالجة",
+    "thumbnailNotYet": "متاح بعد المعالجة",
+    "playerOriginal": "تشغيل الأصل",
+    "playerProcessed": "تشغيل الملف المعالج",
+    "openInPlayer": "فتح في مشغّل النظام",
+    "original": "الأصل",
+    "processed": "تمت المعالجة",
+    "notProcessedYet": "لم تتم المعالجة بعد",
+    "comparison": "مقارنة تقنية"
+  },
+  "analysis": {
+    "title": "التحليل التقني",
+    "bitDepth": "عمق البت",
+    "hdr": "HDR",
+    "colorSpace": "فضاء الألوان",
+    "interlace": "نوع المسح الضوئي",
+    "progressive": "تدريجي",
+    "interlaced": "متشابك",
+    "frames": "الإطارات",
+    "container": "الحاوية",
+    "audioChannels": "قنوات الصوت",
+    "chapters": "الفصول",
+    "checksum": "SHA-256",
+    "codec": "الترميز",
+    "resolution": "الدقة",
+    "fps": "إطار في الثانية",
+    "size": "الحجم"
   }
 }

@@ -253,7 +253,6 @@
       "showProfileModal": "Show profile modal on drop",
       "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
-
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -512,5 +511,52 @@
     "done": "Done",
     "error": "Error",
     "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "处理 {{count}} 个文件",
+    "globalProfile": "全局配置文件",
+    "perFile": "配置文件",
+    "perFileNote": "可为每个文件单独设置配置文件",
+    "estimate": "预计时间",
+    "processAll": "全部处理 ({{count}})",
+    "cancel": "取消",
+    "processing": "处理中...",
+    "done": "完成",
+    "error": "错误",
+    "pending": "待处理",
+    "noFiles": "未找到视频文件",
+    "file": "文件",
+    "status": "状态",
+    "successToast": "已成功提交 {{count}} 个文件"
+  },
+  "detail": {
+    "thumbnailOrig": "原始",
+    "thumbnailOut": "已处理",
+    "thumbnailNotYet": "处理后可用",
+    "playerOriginal": "播放原始文件",
+    "playerProcessed": "播放处理后文件",
+    "openInPlayer": "在系统播放器中打开",
+    "original": "原始",
+    "processed": "已处理",
+    "notProcessedYet": "尚未处理",
+    "comparison": "技术比较"
+  },
+  "analysis": {
+    "title": "技术分析",
+    "bitDepth": "位深度",
+    "hdr": "HDR",
+    "colorSpace": "色彩空间",
+    "interlace": "扫描类型",
+    "progressive": "逐行扫描",
+    "interlaced": "隔行扫描",
+    "frames": "帧数",
+    "container": "容器",
+    "audioChannels": "音频声道",
+    "chapters": "章节",
+    "checksum": "SHA-256",
+    "codec": "编解码器",
+    "resolution": "分辨率",
+    "fps": "帧率",
+    "size": "大小"
   }
 }

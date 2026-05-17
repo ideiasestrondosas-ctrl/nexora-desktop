@@ -6,7 +6,28 @@ const SCHEMA: &str = include_str!("schema.sql");
 pub fn run(conn: &Connection) -> Result<()> {
     conn.execute_batch(SCHEMA)?;
     migrate_jobs_status_check(conn)?;
+    migrate_assets_v2(conn)?;
     Ok(())
+}
+
+/// Migração v2: adiciona colunas de thumbnail e output ao assets
+fn migrate_assets_v2(conn: &Connection) -> Result<()> {
+    let existing_cols = get_column_names(conn, "assets")?;
+    for col in ["thumbnail_path", "thumbnail_output_path", "output_metadata", "output_path"] {
+        if !existing_cols.contains(&col.to_string()) {
+            conn.execute_batch(&format!("ALTER TABLE assets ADD COLUMN {} TEXT;", col))?;
+        }
+    }
+    Ok(())
+}
+
+fn get_column_names(conn: &Connection, table: &str) -> Result<Vec<String>> {
+    let mut stmt = conn.prepare(&format!("PRAGMA table_info({})", table))?;
+    let names: Vec<String> = stmt
+        .query_map([], |row| row.get::<_, String>(1))?
+        .filter_map(|r| r.ok())
+        .collect();
+    Ok(names)
 }
 
 /// Migração: adiciona suporte para estados 'qc_quarantined' e 'qc_rejected'
