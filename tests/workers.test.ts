@@ -3,11 +3,13 @@ import type { Mock } from 'vitest';
 
 // QCPreWorker — stateless, lê metadados do ctx (não da BD)
 
-vi.mock('fs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('fs')>();
+vi.mock('fs', () => {
+  const statSyncMock = vi.fn();
   return {
-    ...actual,
-    statSync: vi.fn(),
+    statSync: statSyncMock,
+    default: {
+      statSync: statSyncMock,
+    },
   };
 });
 
@@ -95,7 +97,8 @@ describe('QCPreWorker', () => {
 
   it('coloca em quarentena ficheiros com codec não suportado', async () => {
     const worker = new QCPreWorker();
-    await expect(worker.run(makeCtx({ assetVideoCodec: 'hevc' }))).resolves.toBe('QUARANTINE');
+    // hevc é agora suportado como input (v0.19.0); usar prores que continua na blacklist
+    await expect(worker.run(makeCtx({ assetVideoCodec: 'prores' }))).resolves.toBe('QUARANTINE');
     expect(mockEmit).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'job:status', jobId: 'job-1', status: 'qc_quarantined' })
     );

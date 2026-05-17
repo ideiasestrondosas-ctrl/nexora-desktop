@@ -1,37 +1,94 @@
-import { execFile } from 'child_process';
-import { promisify } from 'util';
 import { createReadStream } from 'fs';
 import { createHash } from 'crypto';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
-import { getFfprobePath } from '../binaries';
 import { emit } from '../events';
+import {
+  extractBasicMetadata,
+  extractDetailedMetadata,
+  extractExtendedMetadata,
+  generateThumbnail,
+} from '../lib/ffprobe';
 
-const execFileAsync = promisify(execFile);
-
-interface StreamMetadata {
-  duration: number | null;
-  videoCodec: string | null;
-  audioCodec: string | null;
-  width: number | null;
-  height: number | null;
-  fps: number | null;
-}
+// ── Worker ─────────────────────────────────────────────────────────────────────
 
 export class IngestWorker {
   async run(ctx: JobContext): Promise<void> {
-    const { assetId, assetPath, jobId } = ctx;
+    const { assetId, assetPath } = ctx;
 
-    // Calcular SHA-256 via stream (sem carregar em memória)
     const sha256 = await computeSHA256(assetPath);
 
-    // Extrair metadata com ffprobe
-    const meta = await extractMetadata(assetPath);
+    const meta = await extractBasicMetadata(assetPath);
 
-    emit({ type: 'asset:updated', assetId, data: { duration_secs: meta.duration, video_codec: meta.videoCodec, audio_codec: meta.audioCodec, width: meta.width, height: meta.height, fps: meta.fps, metadata: JSON.stringify({ ...meta, sha256 }), status: 'ingested' } });
+    ctx.assetDurationSecs = meta.duration;
+    ctx.assetVideoCodec = meta.videoCodec;
+    ctx.assetAudioCodec = meta.audioCodec;
+    ctx.assetWidth = meta.width;
+    ctx.assetHeight = meta.height;
+    ctx.assetFps = meta.fps;
 
-    emit({ type: 'log', level: 'INFO', source: 'ingest-worker', message: 'Ingest completed' });
+    // Análise alargada (HDR, bit depth, interlace, etc.) — não bloqueia se falhar
+    let extended: Awaited<ReturnType<typeof extractExtendedMetadata>> | null = null;
+    try {
+      extended = await extractExtendedMetadata(assetPath);
+    } catch {
+      // Não fatal
+    }
+
+    const detailed = await extractDetailedMetadata(assetPath);
+
+    const fullMetadata = {
+      ...detailed,
+      sha256,
+      duration: meta.duration,
+      videoCodec: meta.videoCodec,
+      audioCodec: meta.audioCodec,
+      width: meta.width,
+      height: meta.height,
+      fps: meta.fps,
+      // Campos alargados
+      bitDepth: extended?.bitDepth ?? null,
+      hdrType: extended?.hdrType ?? null,
+      colorSpace: extended?.colorSpace ?? null,
+      colorTransfer: extended?.colorTransfer ?? null,
+      colorPrimaries: extended?.colorPrimaries ?? null,
+      isInterlaced: extended?.isInterlaced ?? null,
+      frameCount: extended?.frameCount ?? null,
+      audioChannels: extended?.audioChannels ?? null,
+      channelLayout: extended?.channelLayout ?? null,
+      formatName: extended?.formatName ?? null,
+      chapterCount: extended?.chapterCount ?? 0,
+      tags: extended?.tags ?? {},
+    };
+
+    // Thumbnail do ficheiro original (não fatal)
+    const thumbnailPath = await generateThumbnail(assetPath, assetId, 'orig', meta.duration);
+
+    emit({
+      type: 'asset:updated',
+      assetId,
+      data: {
+        duration_secs: meta.duration,
+        video_codec: meta.videoCodec,
+        audio_codec: meta.audioCodec,
+        width: meta.width,
+        height: meta.height,
+        fps: meta.fps,
+        metadata: JSON.stringify(fullMetadata),
+        status: 'ingested',
+        thumbnail_path: thumbnailPath ?? undefined,
+      },
+    });
+
+    emit({
+      type: 'log',
+      level: 'INFO',
+      source: 'ingest-worker',
+      message: `Ingest completed — ${meta.videoCodec ?? '?'} ${meta.width}x${meta.height} @ ${meta.fps}fps, ${meta.duration?.toFixed(1)}s`,
+    });
   }
 }
+
+// ── SHA-256 ────────────────────────────────────────────────────────────────────
 
 async function computeSHA256(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -41,48 +98,4 @@ async function computeSHA256(filePath: string): Promise<string> {
     stream.on('end', () => resolve(hash.digest('hex')));
     stream.on('error', reject);
   });
-}
-
-async function extractMetadata(filePath: string): Promise<StreamMetadata> {
-    const ffprobePath = getFfprobePath();
-  try {
-    const { stdout } = await execFileAsync(
-      ffprobePath,
-      ['-v', 'quiet', '-print_format', 'json', '-show_streams', '-show_format', filePath],
-      { timeout: 30_000 }
-    );
-
-    const data = JSON.parse(stdout) as {
-      streams?: Array<{
-        codec_type: string;
-        codec_name?: string;
-        width?: number;
-        height?: number;
-        r_frame_rate?: string;
-        avg_frame_rate?: string;
-      }>;
-      format?: { duration?: string };
-    };
-
-    const video = data.streams?.find((s) => s.codec_type === 'video');
-    const audio = data.streams?.find((s) => s.codec_type === 'audio');
-
-    let fps: number | null = null;
-    const fpsStr = video?.r_frame_rate ?? video?.avg_frame_rate;
-    if (fpsStr?.includes('/')) {
-      const [n, d] = fpsStr.split('/').map(Number);
-      if (d && d > 0) fps = Math.round((n / d) * 100) / 100;
-    }
-
-    return {
-      duration: data.format?.duration ? Number(data.format.duration) : null,
-      videoCodec: video?.codec_name ?? null,
-      audioCodec: audio?.codec_name ?? null,
-      width: video?.width ?? null,
-      height: video?.height ?? null,
-      fps,
-    };
-  } catch {
-    return { duration: null, videoCodec: null, audioCodec: null, width: null, height: null, fps: null };
-  }
 }

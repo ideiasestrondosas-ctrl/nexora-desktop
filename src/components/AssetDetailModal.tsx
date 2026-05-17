@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useTauriCommand } from '@/hooks/useTauriCommand';
 import { X, FileVideo, Activity, RefreshCw } from 'lucide-react';
 import { Job } from '@/store/jobs';
+import { MediaInfoPanel } from '@/components/MediaInfoPanel';
+import type { DetailedMediaInfo } from '@/components/MediaInfoPanel';
 
 interface Asset {
   id: string;
@@ -26,51 +28,36 @@ interface AssetDetailModalProps {
   onReprocess: (assetId: string) => void;
 }
 
-export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClose, onReprocess }) => {
+export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
+  asset,
+  onClose,
+  onReprocess,
+}) => {
   const { t } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const { execute: listJobs, loading } = useTauriCommand('list_jobs');
 
   useEffect(() => {
     // Assuming list_jobs backend accepts asset_id parameter
-    listJobs({ asset_id: asset.id }).then(data => {
-      if (data && Array.isArray(data)) {
-        setJobs(data);
-      }
-    }).catch(err => console.error("Error fetching jobs for asset", err));
+    listJobs({ asset_id: asset.id })
+      .then((data) => {
+        if (data && Array.isArray(data)) {
+          setJobs(data);
+        }
+      })
+      .catch((err) => console.error('Error fetching jobs for asset', err));
   }, [asset.id, listJobs]);
 
-  const formatSize = (bytes: number | null) => {
-    if (!bytes) return t('assetDetail.notAvailable');
-    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    let size = bytes;
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
-  };
-
-  const formatDuration = (seconds: number | null) => {
-    if (!seconds) return t('assetDetail.notAvailable');
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
-  };
-
-  let parsedMetadata: any = null;
+  let parsedMetadata: Record<string, unknown> | null = null;
   try {
-    if (asset.metadata) parsedMetadata = JSON.parse(asset.metadata);
-  } catch (e) {
-    // ignore
+    if (asset.metadata) parsedMetadata = JSON.parse(asset.metadata) as Record<string, unknown>;
+  } catch {
+    // metadados invalidos — ignorar
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-200 dark:border-gray-800">
-        
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
           <div className="flex items-center gap-4">
@@ -86,7 +73,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
               </span>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
@@ -96,37 +83,15 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          
-          {/* File Details */}
+          {/* MediaInfo Panel — substitui a grelha básica de file details */}
           <section>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4" /> {t('assetDetailModal.originalFileDetails')}
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-500 mb-1">{t('assetDetailModal.size')}</p>
-                <p className="font-semibold text-gray-900 dark:text-white">{formatSize(asset.size_bytes)}</p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-500 mb-1">{t('assetDetailModal.duration')}</p>
-                <p className="font-semibold text-gray-900 dark:text-white">{formatDuration(asset.duration_secs)}</p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-500 mb-1">{t('assetDetailModal.video')}</p>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {asset.video_codec ? asset.video_codec.toUpperCase() : t('assetDetail.notAvailable')}
-                </p>
-                <p className="text-[10px] text-gray-400 mt-0.5">
-                  {asset.width && asset.height ? `${asset.width}x${asset.height} @ ${asset.fps}fps` : ''}
-                </p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-500 mb-1">{t('assetDetailModal.audio')}</p>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {asset.audio_codec ? asset.audio_codec.toUpperCase() : t('assetDetail.notAvailable')}
-                </p>
-              </div>
-            </div>
+            <MediaInfoPanel
+              metadata={parsedMetadata as DetailedMediaInfo | null}
+              compact={true}
+            />
           </section>
 
           {/* Jobs History */}
@@ -138,20 +103,38 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">{t('assetDetailModal.profile')}</th>
-                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">{t('assetDetailModal.status')}</th>
-                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">{t('assetDetailModal.vmaf')}</th>
-                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">{t('assetDetailModal.lufs')}</th>
-                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400 text-right">{t('assetDetailModal.date')}</th>
+                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">
+                      {t('assetDetailModal.profile')}
+                    </th>
+                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">
+                      {t('assetDetailModal.status')}
+                    </th>
+                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">
+                      {t('assetDetailModal.vmaf')}
+                    </th>
+                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">
+                      {t('assetDetailModal.lufs')}
+                    </th>
+                    <th className="px-4 py-3 font-semibold text-gray-600 dark:text-gray-400 text-right">
+                      {t('assetDetailModal.date')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                   {loading && jobs.length === 0 ? (
-                    <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">{t('assetDetailModal.loadingJobs')}</td></tr>
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                        {t('assetDetailModal.loadingJobs')}
+                      </td>
+                    </tr>
                   ) : jobs.length === 0 ? (
-                    <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">{t('assetDetailModal.noJobs')}</td></tr>
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                        {t('assetDetailModal.noJobs')}
+                      </td>
+                    </tr>
                   ) : (
-                    jobs.map(job => (
+                    jobs.map((job) => (
                       <tr key={job.id} className="bg-white dark:bg-gray-900">
                         <td className="px-4 py-3 font-medium">{job.profile}</td>
                         <td className="px-4 py-3">
@@ -159,7 +142,9 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
                             {job.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3">{job.vmaf_score ? job.vmaf_score.toFixed(1) : '-'}</td>
+                        <td className="px-4 py-3">
+                          {job.vmaf_score ? job.vmaf_score.toFixed(1) : '-'}
+                        </td>
                         <td className="px-4 py-3">{job.lufs ? job.lufs.toFixed(1) : '-'}</td>
                         <td className="px-4 py-3 text-right text-xs text-gray-500">
                           {new Date(job.created_at).toLocaleDateString()}
@@ -183,18 +168,17 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
               </div>
             </section>
           )}
-
         </div>
 
         {/* Footer */}
         <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 flex justify-end gap-3">
-          <button 
+          <button
             onClick={onClose}
             className="px-5 py-2 rounded-lg font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
           >
             {t('assetDetailModal.close')}
           </button>
-          <button 
+          <button
             onClick={() => {
               onClose();
               onReprocess(asset.id);

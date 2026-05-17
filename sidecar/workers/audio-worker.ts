@@ -13,7 +13,7 @@ const execFileAsync = promisify(execFile);
 
 export class AudioWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
-    const { assetId, assetPath, jobId, profile: profileName, outputDir } = ctx;
+    const { assetPath, profile: profileName, outputDir } = ctx;
 
     const profile = loadProfile(profileName);
     const targetLufs = profile.targetLufs;
@@ -40,10 +40,8 @@ export class AudioWorker {
       const after = await loudnessAnalysis(ffmpegPath, normalized);
 
       // Verificar BS1770GAIN se disponível
-      let verifiedByBs1770 = false;
       try {
         await execFileAsync('bs1770gain', ['--ebu', '-i', normalized], { timeout: 60_000 });
-        verifiedByBs1770 = true;
       } catch { /* bs1770gain não instalado — não crítico */ }
 
       if (Math.abs(after.integratedLufs - targetLufs) > 1.5) {

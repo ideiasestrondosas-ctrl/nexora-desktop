@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { open } from '@tauri-apps/plugin-dialog';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { Upload, Plus } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { listen } from '@tauri-apps/api/event';
+import { Upload, Plus, FolderOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DropZoneProps {
@@ -11,7 +10,21 @@ interface DropZoneProps {
   className?: string;
 }
 
-const VALID_EXTENSIONS = ['.mp4', '.mkv', '.mov', '.mxf', '.avi', '.webm'];
+export const SUPPORTED_EXTENSIONS = [
+  '.mp4',
+  '.mkv',
+  '.mov',
+  '.mxf',
+  '.avi',
+  '.webm',
+  '.ts',
+  '.m2ts',
+] as const;
+
+export function hasSupportedExtension(path: string): boolean {
+  const lower = path.toLowerCase();
+  return SUPPORTED_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
 
 export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }) => {
   const { t } = useTranslation();
@@ -23,54 +36,31 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
     onFilesSelectedRef.current = onFilesSelected;
   });
 
-  // Listener registado UMA VEZ — evita acumulação de handlers com polling
+  // Apenas estado visual (enter/leave/over/drop) — o ingest real é gerido centralmente
+  // no App.tsx via IngestProfileModal. Nenhum listener tauri://drag-drop processa ficheiros aqui.
   useEffect(() => {
-    let unlistenFn: (() => void) | null = null;
-    let cancelled = false;
-
-    getCurrentWebviewWindow()
-      .onDragDropEvent((event) => {
-        const { type } = event.payload;
-        if (type === 'enter' || type === 'over') {
-          setIsDragging(true);
-        } else if (type === 'leave') {
-          setIsDragging(false);
-        } else if (type === 'drop') {
-          setIsDragging(false);
-          const paths: string[] = (event.payload as { paths?: string[] }).paths ?? [];
-          const validPaths = paths.filter((p) => {
-            const ext = p.slice(p.lastIndexOf('.')).toLowerCase();
-            if (!VALID_EXTENSIONS.includes(ext)) {
-              toast.error(t('dropZone.unsupportedFormat', { ext }));
-              return false;
-            }
-            return true;
-          });
-          if (validPaths.length > 0) {
-            onFilesSelectedRef.current(validPaths);
-          }
-        }
-      })
-      .then((fn) => {
-        if (cancelled) {
-          fn();
-        } else {
-          unlistenFn = fn;
-        }
-      })
-      .catch(() => {});
+    const unlisteners: Array<Promise<() => void>> = [
+      listen('tauri://drag-enter', () => setIsDragging(true)),
+      listen('tauri://drag-over', () => setIsDragging(true)),
+      listen('tauri://drag-leave', () => setIsDragging(false)),
+      listen('tauri://drag-drop', () => setIsDragging(false)),
+    ];
 
     return () => {
-      cancelled = true;
-      unlistenFn?.();
+      unlisteners.forEach((p) => p.then((fn) => fn()));
     };
-  }, []); // deps vazias — regista exactamente uma vez
+  }, []);
 
-  const handleOpenDialog = async () => {
+  const handleOpenFileDialog = async () => {
     try {
       const selected = await open({
         multiple: true,
-        filters: [{ name: t('dropZone.videoFilter'), extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm'] }],
+        filters: [
+          {
+            name: t('dropZone.videoFilter'),
+            extensions: ['mp4', 'mkv', 'mov', 'avi', 'mxf', 'webm', 'ts', 'm2ts'],
+          },
+        ],
       });
       if (Array.isArray(selected)) {
         onFilesSelectedRef.current(selected);
@@ -82,35 +72,57 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
     }
   };
 
+  const handleOpenFolderDialog = async () => {
+    try {
+      const selected = await open({ directory: true, multiple: true });
+      if (!selected) return;
+      const dirs = Array.isArray(selected) ? selected : [selected];
+      onFilesSelectedRef.current(dirs);
+    } catch (err) {
+      console.error('Failed to open folder dialog:', err);
+    }
+  };
+
   return (
     <div
       className={cn(
-        'relative group cursor-pointer border-2 border-dashed rounded-xl p-12 transition-all duration-200 flex flex-col items-center justify-center gap-4',
+        'relative group border-2 border-dashed rounded-xl p-12 transition-all duration-200 flex flex-col items-center justify-center gap-4',
         isDragging
-          ? 'border-nexora-green bg-nexora-green/5'
-          : 'border-gray-300 dark:border-gray-700 hover:border-nexora-blue hover:bg-nexora-blue/5',
-        className
+          ? 'border-brand bg-brand/5'
+          : 'border-border hover:border-brand hover:bg-brand/5',
+        className,
       )}
-      onClick={handleOpenDialog}
       onDragOver={(e) => e.preventDefault()}
     >
-      <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-        <Upload className="w-8 h-8 text-gray-500 group-hover:text-nexora-blue" />
+      <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+        <Upload className="w-8 h-8 text-text-muted group-hover:text-brand" />
       </div>
 
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-text-primary">
           {t('dropZone.dropHere')}
         </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-sm text-text-muted mt-1">
           {t('dropZone.clickToSelect')}
         </p>
       </div>
 
-      <button className="mt-2 flex items-center gap-2 bg-nexora-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
-        <Plus className="w-4 h-4" />
-        {t('dropZone.addMedia')}
-      </button>
+      <div className="flex items-center gap-3 mt-2">
+        <button
+          onClick={handleOpenFileDialog}
+          className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          {t('dropZone.addMedia')}
+        </button>
+        <button
+          onClick={handleOpenFolderDialog}
+          className="flex items-center gap-2 bg-bg-secondary border border-border text-text-secondary px-4 py-2 rounded-lg font-medium hover:border-brand hover:text-brand transition-colors"
+        >
+          <FolderOpen className="w-4 h-4" />
+          {t('dropZone.addFolder')}
+        </button>
+      </div>
     </div>
   );
 };

@@ -40,6 +40,9 @@ export function useLogs(level?: string, search?: string) {
 
   useEffect(() => {
     fetchLogs();
+    // Fallback polling a cada 5s para garantir que não perdemos logs se os eventos falharem
+    const interval = setInterval(fetchLogs, 5000);
+    return () => clearInterval(interval);
   }, [fetchLogs]);
 
   // Insere novas entradas em tempo real via evento Tauri

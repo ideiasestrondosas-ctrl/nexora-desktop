@@ -1,6 +1,6 @@
 [package]
 name = "nexora-desktop"
-version = "0.17.0"
+version = "0.18.0"
 description = "Nexora Media Processing - Desktop Native"
 authors = ["Nexora"]
 edition = "2021"
@@ -13,11 +13,12 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["tray-icon"] }
+tauri = { version = "2", features = ["tray-icon", "protocol-asset"] }
 tauri-plugin-opener = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-updater = "2"
+tauri-plugin-store = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 rusqlite = { version = "0.32", features = ["bundled"] }
@@ -28,3 +29,4 @@ chrono = { version = "0.4", features = ["serde"] }
 num_cpus = "1"
 sysinfo = { version = "0.32", default-features = false, features = ["system", "network"] }
 tokio = { version = "1", features = ["time", "sync"] }
+walkdir = "2"

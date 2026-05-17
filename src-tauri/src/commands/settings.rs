@@ -2,15 +2,18 @@ use crate::state::AppState;
 use std::collections::HashMap;
 use tauri::State;
 
-fn default_settings() -> HashMap<&'static str, &'static str> {
-    HashMap::from([
-        ("max_concurrent_jobs", "2"),
-        ("output_dir", ""),
-        ("watch_dir", ""),
-        ("auto_ingest", "false"),
-        ("notifications_enabled", "true"),
-        ("theme", "system"),
-    ])
+fn default_settings() -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    map.insert("max_concurrent_jobs".to_string(), "2".to_string());
+    map.insert(
+        "output_dir".to_string(),
+        std::env::temp_dir().join("nexora-output").to_string_lossy().into_owned(),
+    );
+    map.insert("watch_dir".to_string(), "".to_string());
+    map.insert("auto_ingest".to_string(), "false".to_string());
+    map.insert("notifications_enabled".to_string(), "true".to_string());
+    map.insert("theme".to_string(), "system".to_string());
+    map
 }
 
 fn ensure_defaults(db: &rusqlite::Connection) -> rusqlite::Result<()> {

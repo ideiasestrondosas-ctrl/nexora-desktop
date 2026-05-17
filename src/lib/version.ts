@@ -3,7 +3,7 @@
  * Actualizar aqui em cada release — propaga automaticamente
  * para todos os sítios que mostram a versão.
  */
-export const APP_VERSION = '0.16.0';
+export const APP_VERSION = '0.18.0';
 
 export interface VersionEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface VersionEntry {
 }
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: '0.18.0',
+    description:
+      'Auditoria v0.18.0: drag-drop corrigido, sidecar stateless, CSP estrita, least-privilege, ESLint+Prettier, Husky, testes de componentes, recharts, Radix Dialog, sonner, tauri-plugin-store, telemetria opt-in.',
+  },
+  {
+    version: '0.17.0',
+    description:
+      'Estabilização e documentação: README completo, manual do utilizador, guia de ecrãs, HelpOverlay integrado.',
+  },
   {
     version: '0.16.0',
     description:
@@ -38,12 +48,10 @@ export const VERSION_HISTORY: VersionEntry[] = [
   },
   {
     version: '0.11.0',
-    description:
-      'Tauri 2.x setup, IPC commands, CI/CD GitHub Actions, builds Windows/macOS/Linux.',
+    description: 'Tauri 2.x setup, IPC commands, CI/CD GitHub Actions, builds Windows/macOS/Linux.',
   },
   {
     version: '0.10.0',
-    description:
-      'Protótipo inicial: shell Tauri, esqueleto React, estrutura de projecto desktop.',
+    description: 'Protótipo inicial: shell Tauri, esqueleto React, estrutura de projecto desktop.',
   },
 ];

@@ -38,6 +38,16 @@ fn poll<R: Runtime>(
     let app_state = app.state::<AppState>();
     let db = app_state.db.lock().map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
 
+    // Recuperar jobs presos em 'processing' há mais de 10 minutos
+    // (o sidecar pode ter crashado sem emitir job:failed)
+    let _ = db.execute(
+        "UPDATE jobs SET status='error', error='Timeout: processo interrompido inesperadamente', \
+         finished_at=datetime('now'), updated_at=datetime('now') \
+         WHERE status='processing' AND \
+         (julianday('now') - julianday(COALESCE(started_at, updated_at))) * 24 * 60 > 15",
+        [],
+    );
+
     // Contar jobs em processamento
     let running_count: i64 = db
         .query_row(
@@ -160,7 +170,7 @@ fn run_job<R: Runtime>(
     let ffprobe_path = super::sidecar::resolve_media_binary_path(app, "ffprobe");
     let resource_dir = app.path().resource_dir().ok();
 
-    // Settings
+    // Settings — output_dir
     let output_dir: String = {
         let state = app.state::<AppState>();
         let db = state.db.lock().map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
@@ -168,11 +178,25 @@ fn run_job<R: Runtime>(
             .query_row("SELECT value FROM settings WHERE key = 'output_dir'", [], |row| {
                 row.get::<_, String>(0)
             })
-            .unwrap_or_else(|_| {
-                std::env::temp_dir().join("nexora-output").to_string_lossy().into_owned()
-            });
-        row
+            .unwrap_or_default();
+            
+        if row.trim().is_empty() {
+            std::env::temp_dir().join("nexora-output").to_string_lossy().into_owned()
+        } else {
+            row
+        }
     };
+
+    // Garantir que o directório de saída existe antes de arrancar o sidecar
+    if let Err(e) = std::fs::create_dir_all(&output_dir) {
+        return Err(anyhow::anyhow!("Falha ao criar output_dir '{output_dir}': {e}"));
+    }
+    info!("[queue] output_dir: {}", output_dir);
+
+    // Verificar que o asset ainda existe no disco
+    if !std::path::Path::new(asset_path).exists() {
+        return Err(anyhow::anyhow!("Asset não encontrado no disco: {asset_path}"));
+    }
 
     let job_input = serde_json::json!({
         "jobId": job_id,
@@ -189,8 +213,8 @@ fn run_job<R: Runtime>(
         "assetSizeBytes": size_bytes,
     });
 
-    let mut child = Command::new("node")
-        .arg(&script_path)
+    let mut cmd = Command::new("node");
+    cmd.arg(&script_path)
         .env("NEXORA_DB_PATH", db_path)
         .env("NEXORA_FFMPEG_PATH", &ffmpeg_path)
         .env("NEXORA_FFPROBE_PATH", &ffprobe_path)
@@ -198,9 +222,21 @@ fn run_job<R: Runtime>(
         .env("NEXORA_OUTPUT_DIR", &output_dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    // Esconder a janela de console Node.js no Windows
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    let mut child = cmd
         .spawn()
         .map_err(|e| anyhow::anyhow!("Failed to spawn sidecar: {}", e))?;
+
+    info!("[sidecar] arrancou com PID {} para job {}", child.id(), job_id);
 
     // Enviar job JSON via stdin
     if let Some(mut stdin) = child.stdin.take() {
@@ -231,6 +267,7 @@ fn run_job<R: Runtime>(
                                     }
                                     "job:started" => {
                                         info!("Job started: {}", job_id_owned);
+                                        let _ = app_handle.emit("sidecar:event", &json);
                                     }
                                     "job:progress" => {
                                         if let (Some(progress), Some(step)) = (
@@ -245,6 +282,7 @@ fn run_job<R: Runtime>(
                                                 );
                                             }
                                         }
+                                        let _ = app_handle.emit("sidecar:event", &json);
                                     }
                                     "job:completed" => {
                                         let output_path = json.get("data").and_then(|d| d.get("outputPath")).and_then(|v| v.as_str());
@@ -287,21 +325,53 @@ fn run_job<R: Runtime>(
                                         ) {
                                             if let Ok(db) = app_handle.state::<AppState>().db.lock() {
                                                 let now = chrono::Utc::now().to_rfc3339();
+                                                let duration_secs = data.get("duration_secs").and_then(|v| v.as_f64());
+                                                let video_codec = data.get("video_codec").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let audio_codec = data.get("audio_codec").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let width = data.get("width").and_then(|v| v.as_i64());
+                                                let height = data.get("height").and_then(|v| v.as_i64());
+                                                let fps = data.get("fps").and_then(|v| v.as_f64());
+                                                let metadata = data.get("metadata").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let status = data.get("status").and_then(|v| v.as_str());
+                                                let thumbnail_path = data.get("thumbnail_path").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let thumbnail_output_path = data.get("thumbnail_output_path").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let output_metadata = data.get("output_metadata").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let output_path = data.get("output_path").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                // COALESCE preserva o valor existente quando o novo valor é NULL
                                                 let _ = db.execute(
-                                                    "UPDATE assets SET duration_secs = ?, video_codec = ?, audio_codec = ?, width = ?, height = ?, fps = ?, metadata = ?, status = ?, updated_at = ? WHERE id = ?",
-                                                    [
-                                                        data.get("duration_secs").and_then(|v| v.as_f64()).map(|v| v.to_string()).unwrap_or_default().as_str(),
-                                                        data.get("video_codec").and_then(|v| v.as_str()).unwrap_or(""),
-                                                        data.get("audio_codec").and_then(|v| v.as_str()).unwrap_or(""),
-                                                        data.get("width").and_then(|v| v.as_i64()).map(|v| v.to_string()).unwrap_or_default().as_str(),
-                                                        data.get("height").and_then(|v| v.as_i64()).map(|v| v.to_string()).unwrap_or_default().as_str(),
-                                                        data.get("fps").and_then(|v| v.as_f64()).map(|v| v.to_string()).unwrap_or_default().as_str(),
-                                                        data.get("metadata").and_then(|v| v.as_str()).unwrap_or(""),
-                                                        data.get("status").and_then(|v| v.as_str()).unwrap_or(""),
-                                                        &now,
+                                                    "UPDATE assets SET \
+                                                     duration_secs = COALESCE(?, duration_secs), \
+                                                     video_codec = COALESCE(?, video_codec), \
+                                                     audio_codec = COALESCE(?, audio_codec), \
+                                                     width = COALESCE(?, width), \
+                                                     height = COALESCE(?, height), \
+                                                     fps = COALESCE(?, fps), \
+                                                     metadata = COALESCE(?, metadata), \
+                                                     status = COALESCE(?, status), \
+                                                     thumbnail_path = COALESCE(?, thumbnail_path), \
+                                                     thumbnail_output_path = COALESCE(?, thumbnail_output_path), \
+                                                     output_metadata = COALESCE(?, output_metadata), \
+                                                     output_path = COALESCE(?, output_path), \
+                                                     updated_at = ? \
+                                                     WHERE id = ?",
+                                                    rusqlite::params![
+                                                        duration_secs,
+                                                        video_codec,
+                                                        audio_codec,
+                                                        width,
+                                                        height,
+                                                        fps,
+                                                        metadata,
+                                                        status,
+                                                        thumbnail_path,
+                                                        thumbnail_output_path,
+                                                        output_metadata,
+                                                        output_path,
+                                                        now,
                                                         asset_id,
                                                     ],
                                                 );
+                                                info!("[queue] asset:updated — {asset_id}");
                                             }
                                         }
                                     }

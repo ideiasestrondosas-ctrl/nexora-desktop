@@ -24,7 +24,106 @@
     "ram": "RAM",
     "gpu": "GPU",
     "disk": "Disk",
-    "exit": "Exit"
+    "exit": "Exit",
+    "help": "Help"
+  },
+  "help": {
+    "title": "User Manual",
+    "subtitle": "Quick reference for all screens and features",
+    "openFullGuide": "Open Full Guide",
+    "tabs": {
+      "intro": "Introduction",
+      "dashboard": "Dashboard",
+      "library": "Library",
+      "queue": "Queue",
+      "profiles": "Profiles",
+      "settings": "Settings",
+      "logs": "Logs"
+    },
+    "intro": {
+      "whatIs": "What is Nexora Desktop?",
+      "description": "Nexora Desktop is a native multiplatform application for professional video processing. It provides GPU-accelerated transcoding, broadcast-standard audio normalization (EBU R128), perceptual quality scoring (VMAF), and a complete 8-stage quality control pipeline.",
+      "quickStart": "Quick Start:",
+      "quickStartDesc": "Go to Library → drag a video file → click Reprocess → select a profile → monitor in Queue → review results in Asset Detail.",
+      "features": {
+        "transcoding": "GPU Transcoding",
+        "transcodingDesc": "Auto-detects NVIDIA NVENC, AMD AMF, Intel QSV, or CPU fallback for optimal encoding speed.",
+        "vmafAnalysis": "VMAF Quality",
+        "vmafDesc": "Perceptual quality measurement comparing source vs. output. Scores above 90 are broadcast-grade.",
+        "profiles": "Profiles",
+        "profilesDesc": "6 built-in presets (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus a full custom profile editor.",
+        "gpuAuto": "Auto-Detection",
+        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup."
+      }
+    },
+    "screens": {
+      "dashboard": {
+        "title": "Dashboard — System Overview",
+        "desc": "The Dashboard shows your system health at a glance: total assets, jobs completed today, and average VMAF score.",
+        "stat1": "Total Assets — all media files in your library",
+        "stat2": "Jobs Today — completed jobs in the last 24 hours",
+        "stat3": "Average VMAF — mean quality score of recent outputs",
+        "recentJobs": "Recent Jobs — click any job to open its Asset Detail",
+        "tip1": "The Dashboard auto-refreshes every 10 seconds.",
+        "tip2": "Click any job in the Recent Jobs list to jump to Asset Detail.",
+        "tip3": "The VMAF Distribution bar shows quality tiers at a glance."
+      },
+      "library": {
+        "title": "Library — Asset Management",
+        "desc": "The Library is your media repository. Ingest files via drag-and-drop or file dialog, then manage, preview, and reprocess them.",
+        "dragDrop": "Drag & drop files from anywhere on your OS",
+        "gridList": "Toggle between Grid and List views",
+        "searchFilter": "Search by filename and filter by status",
+        "reprocess": "Click any asset to reprocess with a different profile",
+        "tip1": "Supported formats: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Hover over a grid card to reveal Open and Play buttons.",
+        "tip3": "The view mode (Grid/List) is remembered between sessions."
+      },
+      "queue": {
+        "title": "Queue — Job Monitoring",
+        "desc": "The Queue shows all jobs in real time. Watch the 8-stage pipeline visualizer, approve quarantined jobs, and retry failures.",
+        "pipeline": "8-stage pipeline visualizer with colour-coded steps",
+        "quarantine": "Quarantined jobs appear in Pending Approvals",
+        "approveReject": "Approve to continue, or Reject to cancel",
+        "retry": "Failed jobs can be retried with one click",
+        "tip1": "The Queue auto-refreshes every 2 seconds.",
+        "tip2": "Green check = done, Blue pulse = active, Yellow shield = quarantined, Red = error.",
+        "tip3": "Hover over any pipeline step to see its name and description."
+      },
+      "profiles": {
+        "title": "Profiles — Transcode Configuration",
+        "desc": "Profiles define how media is transcoded. Use built-in presets for common workflows, or create custom profiles with specific codec, resolution, and quality settings.",
+        "presets": "6 system presets: Broadcast HD/SD, Web 4K/HD, Proxy, Social",
+        "custom": "Create custom profiles with the editor sidebar",
+        "duplicate": "Duplicate any profile as a starting point",
+        "settings": "Set video codec, resolution, bitrate, audio LUFS, and VMAF threshold",
+        "tip1": "System presets are read-only. Duplicate them to make changes.",
+        "tip2": "Lower CPU preset = better quality but slower encoding.",
+        "tip3": "The VMAF threshold determines the minimum acceptable quality score."
+      },
+      "settings": {
+        "title": "Settings — Configuration",
+        "desc": "Configure output directory, concurrent jobs, GPU acceleration, notifications, theme, language, and more.",
+        "general": "General — output folder, concurrent jobs, GPU, notifications",
+        "interface": "Interface — theme (System/Light/Dark) and language",
+        "system": "System — OS/hardware info, FFmpeg version, DB stats",
+        "advanced": "Advanced — export/import settings, factory reset",
+        "tip1": "Set your Output Directory first — this is where all processed files go.",
+        "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
+        "tip3": "Factory Reset wipes everything. Export your settings first if unsure."
+      },
+      "logs": {
+        "title": "Logs — Diagnostics",
+        "desc": "View structured application logs with filtering by level, source, and time range. Export logs for troubleshooting.",
+        "filter": "Filter by level (DEBUG/INFO/WARN/ERROR), source, or time",
+        "export": "Export all logs to a text file for sharing",
+        "levels": "Red border = ERROR, Yellow border = WARN",
+        "autoScroll": "Auto-scroll keeps the view at the newest entries",
+        "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
+        "tip2": "Search for specific error messages to find patterns.",
+        "tip3": "Clearing logs does not affect the database or jobs."
+      }
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Assets",
@@ -59,7 +158,14 @@
     "addVideos": "Add Videos",
     "showing": "Showing {{count}} of {{total}} assets",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "filesAdded": "{{count}} file(s) added successfully",
+    "addError": "Error adding files: {{message}}",
+    "deleteConfirm": "Are you sure you want to delete this asset?",
+    "deleteError": "Error deleting asset",
+    "file": "File",
+    "duration": "Duration",
+    "actions": "Actions"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -122,6 +228,9 @@
     "cancel": "Cancel",
     "save": "Save",
     "newProfile": "New Profile",
+    "predefined": "Built-in Presets",
+    "custom": "Custom Profiles",
+    "selectProfile": "Select a profile...",
     "systemPresetWarning": "This is a system preset and cannot be modified. Duplicate it if you want to make changes."
   },
   "settings": {
@@ -139,6 +248,10 @@
       "jobsLabel": "{{count}} job",
       "jobsLabel_plural": "{{count}} jobs",
       "moreJobsCpuRam": "More jobs = more CPU/RAM",
+      "autoAnalyze": "Automatically analyze files",
+      "autoAnalyzeHint": "Runs ffprobe on import without needing to click Analyze",
+      "showProfileModal": "Show profile modal on drop",
+      "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
@@ -191,6 +304,8 @@
       "retry": "Try again"
     },
     "advanced": {
+      "telemetry": "Anonymous telemetry",
+      "telemetryHint": "Send anonymous usage data to help improve Nexora. Disabled by default. Never includes media content or metadata.",
       "data": "Data",
       "export": "Export",
       "import": "Import",
@@ -210,6 +325,16 @@
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "openData": "Open Data",
       "versionHistory": "Version History"
+    },
+    "sections": {
+      "importation": "Importation",
+      "processing": "Processing",
+      "quality": "Quality",
+      "hardwareAcceleration": "Hardware Acceleration",
+      "notifications": "Notifications",
+      "privacy": "Privacy",
+      "data": "Data",
+      "maintenance": "Maintenance"
     }
   },
   "logs": {
@@ -231,7 +356,7 @@
     "loading": "Loading logs..."
   },
   "assetDetail": {
-    "backToLibrary": "← Back to Library",
+    "backToLibrary": "Back to Library",
     "qualityReport": "Quality Report (QC)",
     "jobHistory": "Job History",
     "reprocess": "Reprocess",
@@ -305,6 +430,135 @@
     "reportIssue": "Report Issue",
     "checkUpdates": "Check for Updates",
     "viewLicense": "View License",
-    "toggleDevTools": "Toggle Developer Tools"
+    "toggleDevTools": "Toggle Developer Tools",
+    "name": "Name",
+    "description": "Description",
+    "showAll": "Show all",
+    "showLess": "Show less"
+  },
+  "dropZone": {
+    "dropHere": "Drop videos here",
+    "clickToSelect": "Or click to select files (MP4, MKV, MOV, MXF...)",
+    "addMedia": "Add Media",
+    "addFolder": "Add Folder",
+    "videoFilter": "Video",
+    "unsupportedFormat": "Unsupported format: {{ext}}",
+    "noSupportedFiles": "No supported video files"
+  },
+  "ingestModal": {
+    "title": "Import Videos",
+    "filesSelected": "{{count}} file(s) selected",
+    "invalidFiles": "{{count}} file(s) with unsupported format will be ignored",
+    "quarantineWarning": "One or more files use codecs (HEVC, ProRes, DNxHD, AV1) that may be quarantined during QC. You can approve them manually in the Queue.",
+    "fileList": "Files to import",
+    "showMore": "Show {{count}} more file(s)...",
+    "selectProfile": "Processing profile",
+    "analyzeOnly": "Analyze only (no processing)",
+    "analyzeOnlyHint": "Extracts detailed metadata without transcoding",
+    "analyzeBtn": "Analyze",
+    "importOnly": "Import Without Processing",
+    "importProcess": "Import & Process",
+    "successProcess": "{{count}} file(s) imported and added to queue",
+    "successImport": "{{count}} file(s) imported (no processing)"
+  },
+  "mediaInfo": {
+    "title": "Media Information",
+    "noData": "No analysis data",
+    "noDataHint": "Run an analysis to see technical details",
+    "basicOnly": "Basic data — no full analysis available",
+    "copyAll": "Copy All",
+    "copied": "Copied!",
+    "general": "General",
+    "video": "Video",
+    "audio": "Audio",
+    "subtitles": "Subtitles",
+    "tags": "Tags",
+    "hdr": "HDR",
+    "format": "Format",
+    "fileSize": "File Size",
+    "duration": "Duration",
+    "overallBitrate": "Overall Bitrate",
+    "streams": "Streams",
+    "encoder": "Encoder",
+    "creationTime": "Creation Time",
+    "codec": "Codec",
+    "bitRate": "Bit Rate",
+    "resolution": "Resolution",
+    "aspectRatio": "Aspect Ratio",
+    "frameRate": "Frame Rate",
+    "avgFrameRate": "Avg Frame Rate",
+    "pixelFormat": "Pixel Format",
+    "bitDepth": "Bit Depth",
+    "colorSpace": "Color Space",
+    "colorRange": "Color Range",
+    "chromaLocation": "Chroma Location",
+    "scanType": "Scan Type",
+    "bFrames": "B-Frames",
+    "refFrames": "Ref Frames",
+    "totalFrames": "Total Frames",
+    "language": "Language",
+    "title_field": "Title",
+    "sampleRate": "Sample Rate",
+    "channels": "Channels",
+    "channelLayout": "Channel Layout",
+    "sampleFormat": "Sample Format",
+    "masteringDisplay": "Mastering Display",
+    "analyze": "Analyze",
+    "reanalyze": "Re-analyze"
+  },
+  "status": {
+    "pending": "Pending",
+    "queued": "In Queue",
+    "processing": "Processing",
+    "done": "Done",
+    "error": "Error",
+    "cancelled": "Cancelled"
+  },
+  "batch": {
+    "title": "Process {{count}} file(s)",
+    "globalProfile": "Global Profile",
+    "perFile": "Profile",
+    "perFileNote": "You can override the profile per file",
+    "estimate": "Estimate",
+    "processAll": "Process All ({{count}})",
+    "cancel": "Cancel",
+    "processing": "Processing...",
+    "done": "Done",
+    "error": "Error",
+    "pending": "Pending",
+    "noFiles": "No video files found",
+    "file": "File",
+    "status": "Status",
+    "successToast": "{{count}} file(s) submitted successfully"
+  },
+  "detail": {
+    "thumbnailOrig": "Original",
+    "thumbnailOut": "Processed",
+    "thumbnailNotYet": "Available after processing",
+    "playerOriginal": "Play original",
+    "playerProcessed": "Play processed file",
+    "openInPlayer": "Open in system player",
+    "original": "Original",
+    "processed": "Processed",
+    "notProcessedYet": "Not yet processed",
+    "comparison": "Technical Comparison"
+  },
+  "analysis": {
+    "title": "Technical Analysis",
+    "bitDepth": "Bit Depth",
+    "hdr": "HDR",
+    "colorSpace": "Color Space",
+    "interlace": "Scan Type",
+    "progressive": "Progressive",
+    "interlaced": "Interlaced",
+    "frames": "Frames",
+    "container": "Container",
+    "audioChannels": "Audio Channels",
+    "chapters": "Chapters",
+    "checksum": "SHA-256",
+    "codec": "Codec",
+    "resolution": "Resolution",
+    "fps": "FPS",
+    "size": "Size"
   }
 }

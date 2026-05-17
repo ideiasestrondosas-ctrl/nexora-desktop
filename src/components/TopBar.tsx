@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 import { useGPU } from '@/hooks/useGPU';
 import { useDiskSpace } from '@/hooks/useDiskSpace';
-import { LogOut, Cpu, MemoryStick, HardDrive, Monitor } from 'lucide-react';
+import { LogOut, Cpu, MemoryStick, HardDrive, Monitor, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ScreenInfo {
@@ -68,9 +68,10 @@ function CircularGauge({ value, label, icon: Icon, colorClass }: {
 
 interface TopBarProps {
   activeTab: string;
+  onHelpOpen?: () => void;
 }
 
-export default function TopBar({ activeTab }: TopBarProps) {
+export default function TopBar({ activeTab, onHelpOpen }: TopBarProps) {
   const { t } = useTranslation();
   const metrics = useSystemMetrics();
   const { gpu } = useGPU();
@@ -103,6 +104,17 @@ export default function TopBar({ activeTab }: TopBarProps) {
         <CircularGauge value={gpuPercent} label={t('topbar.gpu')} icon={Monitor} colorClass="text-purple-500" />
         <CircularGauge value={diskPercent} label={t('topbar.disk')} icon={HardDrive} colorClass="text-yellow-500" />
       </div>
+
+      {/* Botão Ajuda */}
+      {onHelpOpen && (
+        <button
+          onClick={onHelpOpen}
+          className="p-2.5 rounded-lg text-text-muted hover:text-brand hover:bg-brand/10 transition-colors mr-1"
+          title={t('topbar.help')}
+        >
+          <HelpCircle size={20} />
+        </button>
+      )}
 
       {/* Botão Sair */}
       <button

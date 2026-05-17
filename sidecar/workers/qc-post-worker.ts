@@ -1,8 +1,9 @@
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
+import { readFile, unlink } from 'fs/promises';
 import { createHash } from 'crypto';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import { resolve } from 'path';
+import { resolve, relative } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { emit } from '../events';
 import { getFfmpegPath } from '../binaries';
@@ -16,20 +17,17 @@ const VMAF_THRESHOLDS: Record<string, number> = {
   'broadcast-sd': 90,
   'web-4k': 85,
   'web-hd': 85,
-  'proxy': 70,
-  'social': 85,
+  proxy: 70,
+  social: 85,
 };
 
 export class QCPostWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
-    const { assetId, jobId } = ctx;
-
     const distorted = ctx.transcodedPath;
     if (!distorted) throw new Error('QC Post: transcodedPath em falta');
 
     onProgress(0.2);
 
-    // SHA-256 do ficheiro final para integridade
     const sha256 = await computeSHA256(distorted);
 
     onProgress(0.5);
@@ -52,12 +50,21 @@ export class QCPostWorker {
 
     onProgress(0.9);
 
-    emit({ type: 'log', level: 'INFO', source: 'qc-post-worker', message: `QC Post passed: VMAF ${vmafScore ?? 'N/A'}, passed=${vmafPassed}` });
+    emit({
+      type: 'log',
+      level: 'INFO',
+      source: 'qc-post-worker',
+      message: `QC Post passed: VMAF ${vmafScore ?? 'N/A'}, passed=${vmafPassed}, sha256=${sha256}`,
+    });
 
     onProgress(1.0);
   }
 
-  private async calculateVMAF(reference: string, distorted: string, profile: string): Promise<{
+  private async calculateVMAF(
+    reference: string,
+    distorted: string,
+    profile: string,
+  ): Promise<{
     mean: number;
     min: number;
     max: number;
@@ -76,29 +83,45 @@ export class QCPostWorker {
       resolve(__dirname, '..', '..', 'src-tauri', 'resources', 'vmaf_models', 'vmaf_v0.6.1.json'),
       resolve(__dirname, '..', '..', 'resources', 'vmaf_models', 'vmaf_v0.6.1.json'),
     ];
-    const modelPath = modelCandidates.find(p => p && require('fs').existsSync(p)) ?? '';
+    const modelPath = modelCandidates.find((p) => p && existsSync(p)) ?? '';
 
-    // Verificar se o modelo existe; se não, usar modelo embutido do FFmpeg (se disponível)
+    // Converter para caminho relativo de forma a evitar os problemas de escaping
+    // com a letra do disco (ex: C:) que partem o parser do FFmpeg.
+    const relModelPath = modelPath ? relative(process.cwd(), modelPath) : '';
+    const safeModelPath = relModelPath.replace(/\\/g, '/');
     const hasModel = !!modelPath;
+
+    const tempLogFile = distorted + '.vmaf.json';
+    const relLogPath = relative(process.cwd(), tempLogFile).replace(/\\/g, '/');
+
     const filter = hasModel
-      ? `libvmaf=model='path=${modelPath}':log_path='-':log_fmt=json:n_subsample=5`
-      : `libvmaf=log_path='-':log_fmt=json:n_subsample=5`;
+      ? `[0:v]scale=1920:1080:flags=bicubic[dist];[1:v]scale=1920:1080:flags=bicubic[ref];[dist][ref]libvmaf=model=path=${safeModelPath}:log_path=${relLogPath}:log_fmt=json:n_subsample=5`
+      : `[0:v]scale=1920:1080:flags=bicubic[dist];[1:v]scale=1920:1080:flags=bicubic[ref];[dist][ref]libvmaf=log_path=${relLogPath}:log_fmt=json:n_subsample=5`;
 
-    const { stdout } = await execFileAsync(ffmpeg, [
-      '-i', distorted,
-      '-i', reference,
-      '-lavfi', filter,
-      '-f', 'null',
-      '-',
-    ], { timeout: 3600_000, maxBuffer: 50 * 1024 * 1024 });
-
-    // Procurar JSON no stdout
-    const jsonMatch = stdout.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('VMAF: JSON de resultado não encontrado no stdout');
+    try {
+      await execFileAsync(
+        ffmpeg,
+        ['-i', distorted, '-i', reference, '-lavfi', filter, '-f', 'null', '-'],
+        { timeout: 3600_000, maxBuffer: 50 * 1024 * 1024 },
+      );
+    } catch {
+      // Ignora erro de exit code, vmaf pode ter escrito o json antes de falhar ou
+      // o null muxer causar EOF error
     }
 
-    const vmafData = JSON.parse(jsonMatch[0]);
+    if (!existsSync(tempLogFile)) {
+      throw new Error('VMAF: ficheiro de log não foi gerado pelo FFmpeg');
+    }
+
+    const jsonContent = await readFile(tempLogFile, 'utf8');
+    await unlink(tempLogFile).catch(() => {});
+
+    const vmafData = JSON.parse(jsonContent) as {
+      pooled_metrics?: {
+        vmaf?: { mean?: number; min?: number; max?: number; harmonic_mean?: number };
+      };
+      frames?: Array<{ metrics?: { vmaf?: number } }>;
+    };
     const pooled = vmafData.pooled_metrics ?? {};
 
     const mean = pooled.vmaf?.mean ?? 0;
@@ -108,9 +131,11 @@ export class QCPostWorker {
 
     // Calcular percentis a partir dos frames se disponíveis
     const frames = vmafData.frames ?? [];
-    const scores = frames.map((f: any) => f.metrics?.vmaf ?? 0).sort((a: number, b: number) => a - b);
-    const percentile1 = scores.length > 0 ? scores[Math.floor(scores.length * 0.01)] ?? scores[0] : 0;
-    const percentile5 = scores.length > 0 ? scores[Math.floor(scores.length * 0.05)] ?? scores[0] : 0;
+    const scores = frames.map((f) => f.metrics?.vmaf ?? 0).sort((a, b) => a - b);
+    const percentile1 =
+      scores.length > 0 ? (scores[Math.floor(scores.length * 0.01)] ?? scores[0]) : 0;
+    const percentile5 =
+      scores.length > 0 ? (scores[Math.floor(scores.length * 0.05)] ?? scores[0]) : 0;
 
     const threshold = VMAF_THRESHOLDS[profile] ?? 85;
     const passed = mean >= threshold && percentile1 >= threshold - 5;
@@ -123,7 +148,9 @@ export class QCPostWorker {
       percentile5,
       harmonicMean,
       passed,
-      failureReason: passed ? undefined : `VMAF médio ${mean.toFixed(1)} abaixo do threshold ${threshold}`,
+      failureReason: passed
+        ? undefined
+        : `VMAF médio ${mean.toFixed(1)} abaixo do threshold ${threshold}`,
     };
   }
 }

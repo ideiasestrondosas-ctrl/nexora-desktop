@@ -367,6 +367,30 @@ if ($largeFiles.Count -gt 0) {
     Write-Success "Nenhum ficheiro grande detectado"
 }
 
+# 3. Detectar ficheiros processados / media (Nao devem ir para o github)
+$processedFiles = @()
+try {
+    $processedFiles = Get-ChildItem -Path $WORKSPACE -Recurse -File -ErrorAction SilentlyContinue |
+        Where-Object {
+            $p = $_.FullName
+            $p -notmatch [regex]::Escape("\\.git\\") -and
+            $p -notmatch [regex]::Escape("\\node_modules\\") -and
+            $p -notmatch [regex]::Escape("\\src\\assets\\") -and
+            $p -notmatch [regex]::Escape("\\src-tauri\\icons\\") -and
+            ($p -match "\.(mp4|mkv|mov|avi|webm|wav|mp3|flac)$" -or $p -match "_(proxy|thumb|normalized)\.(jpg|png|mp4|wav)$" -or $p -match "sample.*\.(mp4|wav|jpg|png)$")
+        }
+} catch {}
+
+if ($processedFiles.Count -gt 0) {
+    Write-Warn "$($processedFiles.Count) ficheiro(s) de media/processados detectados -- serao excluidos do commit:"
+    $processedFiles | ForEach-Object {
+        $rel  = $_.FullName.Substring($WORKSPACE.Length + 1)
+        Write-Info "  $rel"
+    }
+} else {
+    Write-Success "Nenhum ficheiro processado/media detectado"
+}
+
 # ---------------------------------------------------------
 # COMMIT DE CODIGO
 # ---------------------------------------------------------
@@ -396,6 +420,26 @@ if ($status) {
 
     Write-Step "Realizando commit: '$commitMsg'..."
 
+    # OPÇÃO A: Limpar atributos de "Somente Leitura" (Read-Only) automaticamente para evitar erros de bloqueio
+    Write-Step "Limpando atributos de Somente Leitura (Read-Only) nos ficheiros do workspace..."
+    try {
+        Get-ChildItem -Path $WORKSPACE -File -Recurse -ErrorAction SilentlyContinue |
+            Where-Object {
+                $p = $_.FullName
+                $p -notmatch [regex]::Escape("\\.git\\") -and
+                $p -notmatch [regex]::Escape("\\node_modules\\") -and
+                $p -notmatch [regex]::Escape("\\src-tauri\\target\\") -and
+                $p -notmatch [regex]::Escape("\\dist\\")
+            } | ForEach-Object {
+                if ($_.IsReadOnly) {
+                    $_.IsReadOnly = $false
+                }
+            }
+        Write-Success "Atributos Read-Only limpos com sucesso!"
+    } catch {
+        Write-Warn "Nao foi possivel limpar alguns atributos de ficheiros: $_"
+    }
+
     # Staging seguro: adiciona tudo e depois remove ficheiros grandes e runtime
     git add --all
 
@@ -405,6 +449,15 @@ if ($status) {
             $relPath = $_.FullName.Substring($WORKSPACE.Length + 1)
             git restore --staged $relPath 2>$null | Out-Null
             Write-Info "Excluido do staging: $relPath"
+        }
+    }
+
+    # Unstage ficheiros processados detectados
+    if ($processedFiles.Count -gt 0) {
+        $processedFiles | ForEach-Object {
+            $relPath = $_.FullName.Substring($WORKSPACE.Length + 1)
+            git restore --staged $relPath 2>$null | Out-Null
+            Write-Info "Excluido do staging (media/processado): $relPath"
         }
     }
 
@@ -424,8 +477,22 @@ if ($status) {
     git commit -m $commitMsg
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Err "Falha ao realizar o commit."
-        Pop-Location; exit 1
+        Write-Warn "O commit com validacao falhou (devido a bloqueio de ficheiros ou erro de linter/formatter)."
+        Write-Host ""
+        Write-Host "Desejas tentar a OPÇÃO B (forcar o commit ignorando Prettier/ESLint com --no-verify)? [S/N]" -ForegroundColor Yellow
+        $ans = Read-Host "Escolha [S/N] (Padrao: N)"
+        if ($ans -match '^[Ss]$') {
+            Write-Step "A forcar commit sem ganchos (--no-verify)..."
+            git commit -m $commitMsg --no-verify
+            if ($LASTEXITCODE -ne 0) {
+                Write-Err "Falha critica ao realizar o commit forcado."
+                Pop-Location; exit 1
+            }
+            Write-Success "Commit forcado realizado com sucesso!"
+        } else {
+            Write-Err "Commit cancelado pelo utilizador."
+            Pop-Location; exit 1
+        }
     }
 
     # Graphify auto-commit (se existir grafo gerado automaticamente)
@@ -439,7 +506,24 @@ if ($status) {
                 git restore --staged $relPath 2>$null | Out-Null
             }
         }
-        git commit -m "docs: atualizar grafo e relatorios (auto)" --no-verify
+        # Garantir que ficheiros processados nao entram neste commit tambem
+        if ($processedFiles.Count -gt 0) {
+            $processedFiles | ForEach-Object {
+                $relPath = $_.FullName.Substring($WORKSPACE.Length + 1)
+                git restore --staged $relPath 2>$null | Out-Null
+            }
+        }
+        foreach ($rf in $runtimeFiles) {
+            $rfFull = Join-Path $WORKSPACE $rf
+            if (Test-Path $rfFull) {
+                git restore --staged $rf 2>$null | Out-Null
+            }
+        }
+        
+        $stagedChanges = git diff --staged --name-only
+        if ($stagedChanges) {
+            git commit -m "docs: atualizar grafo e relatorios (auto)" --no-verify
+        }
     }
 }
 

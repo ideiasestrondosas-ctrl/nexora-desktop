@@ -24,7 +24,106 @@
     "ram": "RAM",
     "gpu": "GPU",
     "disk": "Disco",
-    "exit": "Sair do programa"
+    "exit": "Sair do programa",
+    "help": "Ajuda"
+  },
+  "help": {
+    "title": "Manual do Utilizador",
+    "subtitle": "Referência rápida para todos os ecrãs e funcionalidades",
+    "openFullGuide": "Abrir Guia Completo",
+    "tabs": {
+      "intro": "Introdução",
+      "dashboard": "Dashboard",
+      "library": "Biblioteca",
+      "queue": "Fila",
+      "profiles": "Perfis",
+      "settings": "Definições",
+      "logs": "Registos"
+    },
+    "intro": {
+      "whatIs": "O que é o Nexora Desktop?",
+      "description": "O Nexora Desktop é uma aplicação nativa multiplataforma para processamento profissional de vídeo. Fornece transcodificação acelerada por GPU, normalização de áudio em conformidade com a norma EBU R128, avaliação de qualidade perceptual (VMAF) e um pipeline completo de controlo de qualidade com 8 etapas.",
+      "quickStart": "Início Rápido:",
+      "quickStartDesc": "Vá a Biblioteca → arraste um ficheiro de vídeo → clique em Reprocessar → selecione um perfil → monitorize na Fila → reveja os resultados em Detalhe do Asset.",
+      "features": {
+        "transcoding": "Transcodificação GPU",
+        "transcodingDesc": "Deteta automaticamente NVIDIA NVENC, AMD AMF, Intel QSV ou recuo para CPU para velocidade de codificação ótima.",
+        "vmafAnalysis": "Qualidade VMAF",
+        "vmafDesc": "Medição de qualidade perceptual comparando origem vs. resultado. Pontuações acima de 90 são de qualidade broadcast.",
+        "profiles": "Perfis",
+        "profilesDesc": "6 predefinições integradas (Broadcast HD/SD, Web 4K/HD, Proxy, Social) mais um editor completo de perfis personalizados.",
+        "gpuAuto": "Deteção Automática",
+        "gpuAutoDesc": "Métricas do sistema, deteção de GPU e estado dos binários são verificados automaticamente no arranque."
+      }
+    },
+    "screens": {
+      "dashboard": {
+        "title": "Dashboard — Visão Geral do Sistema",
+        "desc": "O Dashboard mostra a saúde do sistema de relance: assets totais, jobs concluídos hoje e pontuação VMAF média.",
+        "stat1": "Assets Totais — todos os ficheiros multimédia na biblioteca",
+        "stat2": "Jobs Hoje — jobs concluídos nas últimas 24 horas",
+        "stat3": "VMAF Médio — pontuação de qualidade média dos outputs recentes",
+        "recentJobs": "Jobs Recentes — clique em qualquer job para abrir o Detalhe do Asset",
+        "tip1": "O Dashboard atualiza automaticamente a cada 10 segundos.",
+        "tip2": "Clique em qualquer job na lista de Jobs Recentes para saltar para o Detalhe do Asset.",
+        "tip3": "A barra de Distribuição VMAF mostra os níveis de qualidade de relance."
+      },
+      "library": {
+        "title": "Biblioteca — Gestão de Assets",
+        "desc": "A Biblioteca é o repositório de multimédia. Ingestione ficheiros via drag-and-drop ou diálogo de ficheiros, depois gerencie, pré-visualize e reprocesse-os.",
+        "dragDrop": "Arraste e largue ficheiros de qualquer lugar do seu sistema operativo",
+        "gridList": "Alterne entre vistas de Grelha e Lista",
+        "searchFilter": "Pesquise por nome de ficheiro e filtre por estado",
+        "reprocess": "Clique em qualquer asset para reprocessar com um perfil diferente",
+        "tip1": "Formatos suportados: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Passe o rato sobre um cartão da grelha para revelar os botões Abrir e Reproduzir.",
+        "tip3": "O modo de vista (Grelha/Lista) é memorizado entre sessões."
+      },
+      "queue": {
+        "title": "Fila — Monitorização de Jobs",
+        "desc": "A Fila mostra todos os jobs em tempo real. Veja o visualizador do pipeline de 8 etapas, aprove jobs em quarentena e tente novamente falhas.",
+        "pipeline": "Visualizador do pipeline de 8 etapas com passos codificados por cor",
+        "quarantine": "Jobs em quarentena aparecem em Aprovações Pendentes",
+        "approveReject": "Aprove para continuar, ou Rejeite para cancelar",
+        "retry": "Jobs falhados podem ser tentados novamente com um clique",
+        "tip1": "A Fila atualiza automaticamente a cada 2 segundos.",
+        "tip2": "Visto verde = concluído, Ponto azul = ativo, Escudo amarelo = quarentena, Vermelho = erro.",
+        "tip3": "Passe o rato sobre qualquer passo do pipeline para ver o seu nome e descrição."
+      },
+      "profiles": {
+        "title": "Perfis — Configuração de Transcodificação",
+        "desc": "Os perfis definem como o multimédia é transcodificado. Use predefinições integradas para fluxos de trabalho comuns, ou crie perfis personalizados com codec, resolução e definições de qualidade específicas.",
+        "presets": "6 predefinições de sistema: Broadcast HD/SD, Web 4K/HD, Proxy, Social",
+        "custom": "Crie perfis personalizados com o editor lateral",
+        "duplicate": "Duplique qualquer perfil como ponto de partida",
+        "settings": "Defina codec de vídeo, resolução, bitrate, LUFS de áudio e limiar VMAF",
+        "tip1": "As predefinições de sistema são só de leitura. Duplique-as para fazer alterações.",
+        "tip2": "CPU preset mais baixo = melhor qualidade mas codificação mais lenta.",
+        "tip3": "O limiar VMAF determina a pontuação mínima de qualidade aceitável."
+      },
+      "settings": {
+        "title": "Definições — Configuração",
+        "desc": "Configure a pasta de saída, jobs simultâneos, aceleração GPU, notificações, tema, idioma e mais.",
+        "general": "Geral — pasta de saída, jobs simultâneos, GPU, notificações",
+        "interface": "Interface — tema (Sistema/Claro/Escuro) e idioma",
+        "system": "Sistema — info do SO/hardware, versão FFmpeg, estatísticas BD",
+        "advanced": "Avançado — exportar/importar definições, reset de fábrica",
+        "tip1": "Defina primeiro a Pasta de Saída — é aqui que todos os ficheiros processados vão.",
+        "tip2": "Mais jobs simultâneos = mais uso de CPU/RAM. Comece com 2.",
+        "tip3": "O Reset de Fábrica apaga tudo. Exporte as suas definições primeiro se tiver dúvidas."
+      },
+      "logs": {
+        "title": "Registos — Diagnóstico",
+        "desc": "Veja registos estruturados da aplicação com filtragem por nível, fonte e intervalo de tempo. Exporte registos para resolução de problemas.",
+        "filter": "Filtre por nível (DEBUG/INFO/WARN/ERROR), fonte ou tempo",
+        "export": "Exporte todos os registos para um ficheiro de texto para partilha",
+        "levels": "Borda vermelha = ERROR, Borda amarela = WARN",
+        "autoScroll": "O scroll automático mantém a vista nas entradas mais recentes",
+        "tip1": "Use Ctrl+Shift+E como atalho para exportar registos.",
+        "tip2": "Pesquise mensagens de erro específicas para encontrar padrões.",
+        "tip3": "Limpar registos não afeta a base de dados ou os jobs."
+      }
+    }
   },
   "dashboard": {
     "assetsTotal": "Assets Totais",
@@ -67,10 +166,13 @@
     "showing": "Mostrar {{count}} de {{total}} assets",
     "previous": "Anterior",
     "next": "Próximo",
-    "addError": "Error adding files: {{message}}",
-    "file": "File",
-    "duration": "Duration",
-    "actions": "Actions"
+    "addError": "Erro ao adicionar ficheiros: {{message}}",
+    "filesAdded": "{{count}} ficheiro(s) adicionados com sucesso",
+    "deleteConfirm": "Tens a certeza que queres apagar este asset?",
+    "deleteError": "Erro ao apagar asset",
+    "file": "Ficheiro",
+    "duration": "Duração",
+    "actions": "Acções"
   },
   "queue": {
     "pipelineSummary": "Resumo do Pipeline",
@@ -175,6 +277,10 @@
       "jobsLabel": "{{count}} job",
       "jobsLabel_plural": "{{count}} jobs",
       "moreJobsCpuRam": "Mais jobs = mais CPU/RAM",
+      "autoAnalyze": "Analisar ficheiros automaticamente",
+      "autoAnalyzeHint": "Executa ffprobe na importação sem precisar de clicar em Analisar",
+      "showProfileModal": "Mostrar janela de perfis",
+      "showProfileModalHint": "Ao arrastar ficheiros, pergunta qual perfil usar. Se desligado, usa o Perfil padrão.",
       "defaultProfile": "Perfil padrão",
       "vmafMin": "VMAF Mínimo",
       "vmafHint": "Jobs abaixo deste valor são marcados com aviso.",
@@ -200,7 +306,17 @@
       "en": "English",
       "es": "Spanish",
       "fr": "French",
-      "de": "German"
+      "de": "German",
+      "ar": "Arabic",
+      "it": "Italian",
+      "ja": "Japanese",
+      "ko": "Korean",
+      "nl": "Dutch",
+      "pl": "Polish",
+      "ru": "Russian",
+      "sv": "Swedish",
+      "tr": "Turkish",
+      "zh": "Chinese (Simplified)"
     },
     "system": {
       "systemInfo": "Informação do Sistema",
@@ -238,6 +354,8 @@
       "unknownError": "Unknown error"
     },
     "advanced": {
+      "telemetry": "Telemetria anónima",
+      "telemetryHint": "Envia dados de utilização anónimos para melhorar o Nexora. Desactivado por defeito. Nunca inclui conteúdos ou metadados de média.",
       "data": "Dados",
       "export": "Exportar",
       "import": "Importar",
@@ -259,7 +377,7 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\n• All asset library\n• Job and log history\n• All custom profiles\n• All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
     },
     "about": {
       "releaseNotes": "Notas de Lançamento",
@@ -279,12 +397,14 @@
       "year": "Year"
     },
     "sections": {
-      "processing": "Processing",
-      "quality": "Quality",
-      "hardwareAcceleration": "Hardware Acceleration",
-      "notifications": "Notifications",
-      "data": "Data",
-      "maintenance": "Maintenance"
+      "importation": "Importação",
+      "processing": "Processamento",
+      "quality": "Qualidade",
+      "hardwareAcceleration": "Aceleração de Hardware",
+      "notifications": "Notificações",
+      "privacy": "Privacidade",
+      "data": "Dados",
+      "maintenance": "Manutenção"
     },
     "toasts": {
       "openDataDirError": "Error opening data folder",
@@ -333,7 +453,7 @@
     "autoRotate": "Auto-rotation: 2,000 entries max"
   },
   "assetDetail": {
-    "backToLibrary": "← Voltar à Biblioteca",
+    "backToLibrary": "Voltar à Biblioteca",
     "qualityReport": "Relatório de Qualidade (QC)",
     "jobHistory": "Histórico de Jobs",
     "reprocess": "Processar Novamente",
@@ -343,31 +463,31 @@
     "rawMetadata": "Metadados Brutos",
     "close": "Fechar",
     "viewDetails": "Ver Detalhes",
-    "loading": "Loading asset details...",
-    "deleteConfirm": "Are you sure you want to delete this asset? This action cannot be undone.",
-    "size": "Size",
-    "duration": "Duration",
-    "video": "Video",
-    "audio": "Audio",
-    "notAvailable": "N/A",
-    "bestQuality": "Best Quality (VMAF)",
-    "verification": "Verification",
-    "result": "Result",
-    "value": "Value",
-    "limit": "Limit",
-    "codecSupported": "Codec supported",
-    "minResolution": "Min resolution",
+    "loading": "A carregar detalhes do asset...",
+    "deleteConfirm": "Tem a certeza que deseja apagar este asset? Esta acção não pode ser desfeita.",
+    "size": "Tamanho",
+    "duration": "Duração",
+    "video": "Vídeo",
+    "audio": "Áudio",
+    "notAvailable": "N/D",
+    "bestQuality": "Melhor Qualidade (VMAF)",
+    "verification": "Verificação",
+    "result": "Resultado",
+    "value": "Valor",
+    "limit": "Limite",
+    "codecSupported": "Codec suportado",
+    "minResolution": "Resolução mínima",
     "minResolutionValue": "≥ 720p",
-    "vmafScore": "VMAF Score",
+    "vmafScore": "Pontuação VMAF",
     "vmafMinValue": "≥ 85",
-    "audioLevels": "Audio levels",
+    "audioLevels": "Níveis de áudio",
     "audioLevelsValue": "-23 ±1",
-    "approvedAt": "Automatically approved at {{date}}",
-    "noJobs": "No jobs processed for this asset.",
-    "started": "Started",
-    "jobDuration": "Duration",
-    "openProcessedFile": "Open Processed File",
-    "openInExplorer": "Open in Explorer"
+    "approvedAt": "Aprovado automaticamente em {{date}}",
+    "noJobs": "Nenhum job processado para este asset.",
+    "started": "Iniciado",
+    "jobDuration": "Duração",
+    "openProcessedFile": "Abrir Ficheiro Processado",
+    "openInExplorer": "Abrir no Explorador"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -434,14 +554,9 @@
     "viewLicense": "Ver Licença",
     "toggleDevTools": "Alternar Ferramentas de Developer",
     "name": "Name",
-    "description": "Description"
-  },
-  "dropZone": {
-    "dropHere": "Drop videos here",
-    "clickToSelect": "Or click to select files (MP4, MKV, MOV, MXF...)",
-    "addMedia": "Add Media",
-    "unsupportedFormat": "Unsupported format: {{ext}}",
-    "videoFilter": "Video"
+    "description": "Description",
+    "showAll": "Ver tudo",
+    "showLess": "Ver menos"
   },
   "jobCard": {
     "cancel": "Cancel Job",
@@ -451,159 +566,6 @@
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
-  },
-  "help": {
-    "title": "Nexora Desktop Manual",
-    "subtitle": "Quick reference guide",
-    "tabs": {
-      "intro": "Introduction",
-      "usage": "How to use",
-      "profiles": "Profiles",
-      "metrics": "Metrics",
-      "system": "System",
-      "support": "Support",
-      "about": "About"
-    },
-    "intro": {
-      "whatIs": "What is Nexora Desktop?",
-      "description": "Nexora Desktop is a native multiplatform application for professional media processing. It brings the power of the Nexora server pipeline directly to your workstation, with zero cloud dependencies.",
-      "features": {
-        "offline": "Fully offline processing — no internet required",
-        "broadcast": "Broadcast-compliant profiles (BBC, Netflix, DPP)",
-        "gpu": "GPU acceleration (NVENC, AMF, QSV)",
-        "vmaf": "Active VMAF quality scoring with per-profile thresholds",
-        "transcoding": "Transcoding",
-        "transcodingDesc": "FFmpeg with GPU acceleration (NVENC, AMF, QSV) or CPU (libx264)",
-        "vmafAnalysis": "VMAF Analysis",
-        "vmafDesc": "Perceptual quality score 0-100 for each job",
-        "profiles": "6 Profiles",
-        "profilesDesc": "Broadcast HD/SD, Web HD/4K, Social, Proxy",
-        "gpuAuto": "Auto GPU",
-        "gpuAutoDesc": "Automatic detection of NVIDIA, AMD and Intel"
-      },
-      "architecture": "Built with Tauri 2.x (Rust) for the native shell, React 19 for the UI, and a Node.js sidecar for media orchestration. SQLite stores all metadata locally."
-    },
-    "usage": {
-      "workflow": "Workflow",
-      "steps": {
-        "1": "Add media via drag & drop or file dialog",
-        "2": "Select a transcode profile (broadcast-hd, web-4k, etc.)",
-        "3": "Submit to the queue — jobs process automatically",
-        "4": "Review QC reports and approve/reject quarantined items",
-        "5": "Access processed files in the output folder"
-      },
-      "tips": "Tips",
-      "tipsList": {
-        "1": "Use GPU acceleration for 5-10x faster transcodes",
-        "2": "Enable notifications to get alerts when jobs finish",
-        "3": "Check the Logs page for detailed FFmpeg output",
-        "4": "Factory Reset wipes everything — use with caution"
-      },
-      "step1Title": "Open the \"Process\" tab",
-      "step1Desc": "Click the rocket icon in the navigation bar to access the processing page.",
-      "step2Title": "Drag the video file",
-      "step2Desc": "Drag an MP4, MXF, MOV or any FFmpeg-supported format to the drop zone. You can also click to open the file picker.",
-      "step3Title": "Select the encoding profile",
-      "step3Desc": "Choose the profile appropriate for the final destination (broadcast, web, social). Each profile has pre-configured parameters for compliance and optimal quality.",
-      "step4Title": "Start processing",
-      "step4Desc": "Click Process. The job is added to the queue and processed in the background. The app remains responsive during processing.",
-      "step5Title": "Monitor in the \"Dashboard\"",
-      "step5Desc": "The Dashboard shows active jobs, average VMAF score and disk space. The progress bar updates in real time.",
-      "step6Title": "Check results in \"History\"",
-      "step6Desc": "After completion, the asset appears in History with codec, duration, size and VMAF score. Use the details button to see all metadata.",
-      "tip1": "Enable GPU in Settings for 5-10x faster transcoding",
-      "tip2": "The Proxy profile is ideal for creating editing versions — never for final delivery",
-      "tip3": "Save logs in Settings → Logs for troubleshooting",
-      "tip4": "The output directory can be set globally or per profile in Settings"
-    },
-    "profiles": {
-      "title": "Available encoding profiles",
-      "broadcastHd": {
-        "name": "Broadcast HD",
-        "desc": "Full broadcast compliance — H.264 High 4.1, 50 Mbps, -23 LUFS"
-      },
-      "broadcastSd": {
-        "name": "Broadcast SD",
-        "desc": "Standard definition — H.264 Main 3.0, 15 Mbps"
-      },
-      "web4k": {
-        "name": "Web 4K",
-        "desc": "Streaming 4K UHD — H.265, 25 Mbps, VMAF ≥ 93"
-      },
-      "webHd": {
-        "name": "Web HD",
-        "desc": "Optimized for web and streaming — H.264, 8 Mbps"
-      },
-      "proxy": {
-        "name": "Proxy",
-        "desc": "Fast offline editing — 720p, 2 Mbps, low latency"
-      },
-      "social": {
-        "name": "Social",
-        "desc": "Social media — vertical and square formats"
-      },
-      "note": "System profiles cannot be edited. Duplicate them to create custom variants.",
-      "broadcastNote": "All broadcast profiles use:"
-    },
-    "metrics": {
-      "title": "Quality metrics",
-      "vmaf": "VMAF (Video Multi-Method Assessment Fusion) scores perceptual quality from 0-100. Thresholds: 85 (web), 90 (broadcast SD), 93 (broadcast HD/4K).",
-      "lufs": "LUFS (Loudness Units Full Scale) measures audio loudness. Target: -23 LUFS for broadcast, -14 LUFS for web/social.",
-      "truePeak": "True Peak (dBTP) prevents digital clipping. Limit: -1 dBTP for all profiles.",
-      "realtime": "Real-time metrics update every 2 seconds during active jobs.",
-      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
-      "vmafDescription": "Perceptual video quality metric developed by Netflix. Simulates human perception by comparing the processed video with the original.",
-      "vmafUnacceptable": "Unacceptable",
-      "vmafAcceptable": "Acceptable",
-      "vmafGood": "Good",
-      "vmafBroadcast": "Broadcast",
-      "lufsTitle": "LUFS — Loudness Units Full Scale",
-      "lufsDescription": "Integrated loudness measure according to EBU R128 standard. The standard target for European broadcast is −23 LUFS ±1 LU. For streaming (Spotify, YouTube) the target is typically −14 LUFS.",
-      "realtimeTitle": "Real-time metrics (top bar)",
-      "cpuDesc": "CPU % — global processor utilization (updated every 2s)",
-      "ramDesc": "RAM — memory used / total in GB",
-      "networkDesc": "Network ↓↑ — aggregated download and upload throughput of all interfaces"
-    },
-    "system": {
-      "components": "Installed components",
-      "stack": "Technology stack",
-      "loading": "Loading system information...",
-      "database": "Database",
-      "techStack": "Technology stack",
-      "stackShell": "Native shell: Tauri 2.x (Rust stable)",
-      "stackFrontend": "Frontend: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
-      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
-      "stackDb": "DB: SQLite (rusqlite bundled)",
-      "stackCodec": "Codec: FFmpeg with auto-detected GPU"
-    },
-    "support": {
-      "troubleshooting": "Troubleshooting",
-      "factoryResetTitle": "Factory Reset (Total Wipe)",
-      "factoryResetWarning": "This will delete ALL data, settings, and history. The app will restart. This action cannot be undone.",
-      "commonProblems": "Common Problems",
-      "problems": {
-        "1": "No GPU detected — Install latest graphics drivers",
-        "2": "Jobs failing at transcode — Verify FFmpeg binary is bundled"
-      },
-      "factoryResetDescription": "If the app shows inconsistent behavior, data that won't clear, or database errors, you can perform a Total Reset in Settings → Advanced.",
-      "factoryResetAssets": "Deletes all assets and history",
-      "factoryResetProfiles": "Removes custom profiles and settings",
-      "factoryResetTemp": "Clears sidecar temporary files",
-      "factoryResetRestart": "Restarts the application from scratch",
-      "problem1Title": "Processing won't start?",
-      "problem1Desc": "Check if FFmpeg is correctly detected in the System tab.",
-      "problem2Title": "Output folder permission error?",
-      "problem2Desc": "Make sure Nexora has write permissions to the configured folder."
-    },
-    "about": {
-      "appName": "Nexora Desktop",
-      "version": "Version",
-      "license": "License",
-      "platforms": "Platforms",
-      "year": "Year",
-      "footer": "Nexora Media Processing — Professional media pipeline for broadcast and web.",
-      "reportIssues": "To report problems or suggestions, check the system logs and include the relevant output in your report."
-    }
   },
   "assetDetailModal": {
     "originalFileDetails": "Original File Details",
@@ -653,8 +615,125 @@
     "notAvailable": "N/A"
   },
   "confirmations": {
-    "yes": "Yes",
-    "no": "No",
-    "cancel": "Cancel"
+    "yes": "Sim",
+    "no": "Não",
+    "cancel": "Cancelar"
+  },
+  "ingestModal": {
+    "title": "Importar Vídeos",
+    "filesSelected": "{{count}} ficheiro(s) seleccionado(s)",
+    "invalidFiles": "{{count}} ficheiro(s) com formato não suportado serão ignorados",
+    "quarantineWarning": "Um ou mais ficheiros usam codecs (HEVC, ProRes, DNxHD, AV1) que podem entrar em quarentena no QC. Poderás aprovä-los manualmente na Fila.",
+    "fileList": "Ficheiros a importar",
+    "showMore": "Ver mais {{count}} ficheiro(s)...",
+    "selectProfile": "Perfil de processamento",
+    "analyzeOnly": "Apenas analisar (não processar)",
+    "analyzeOnlyHint": "Extrai metadados detalhados sem transcodificar",
+    "analyzeBtn": "Analisar",
+    "importOnly": "Importar Sem Processar",
+    "importProcess": "Importar & Processar",
+    "successProcess": "{{count}} ficheiro(s) importados e adicionados à fila",
+    "successImport": "{{count}} ficheiro(s) importados (sem processamento)"
+  },
+  "mediaInfo": {
+    "title": "Informação de Média",
+    "noData": "Sem dados de análise",
+    "noDataHint": "Execute uma análise para ver os detalhes técnicos",
+    "basicOnly": "Dados básicos — sem análise completa",
+    "copyAll": "Copiar Tudo",
+    "copied": "Copiado!",
+    "general": "Geral",
+    "video": "Vídeo",
+    "audio": "Áudio",
+    "subtitles": "Legendas",
+    "tags": "Etiquetas",
+    "hdr": "HDR",
+    "format": "Formato",
+    "fileSize": "Tamanho do Ficheiro",
+    "duration": "Duração",
+    "overallBitrate": "Bitrate Total",
+    "streams": "Streams",
+    "encoder": "Encoder",
+    "creationTime": "Data de Criação",
+    "codec": "Codec",
+    "bitRate": "Bitrate",
+    "resolution": "Resolução",
+    "aspectRatio": "Proporção",
+    "frameRate": "Frame Rate",
+    "avgFrameRate": "Frame Rate Médio",
+    "pixelFormat": "Formato de Pixel",
+    "bitDepth": "Profundidade de Cor",
+    "colorSpace": "Espaço de Cor",
+    "colorRange": "Gama de Cor",
+    "chromaLocation": "Chroma Location",
+    "scanType": "Tipo de Varrimento",
+    "bFrames": "B-Frames",
+    "refFrames": "Frames de Referência",
+    "totalFrames": "Total de Frames",
+    "language": "Idioma",
+    "title_field": "Título",
+    "sampleRate": "Taxa de Amostragem",
+    "channels": "Canais",
+    "channelLayout": "Layout de Canais",
+    "sampleFormat": "Formato de Sample",
+    "masteringDisplay": "Mastering Display",
+    "analyze": "Analisar",
+    "reanalyze": "Re-analisar"
+  },
+  "dropZone": {
+    "dropHere": "Largue vídeos aqui",
+    "clickToSelect": "Ou clique para seleccionar ficheiros (MP4, MKV, MOV, MXF...)",
+    "addMedia": "Adicionar Média",
+    "addFolder": "Adicionar Pasta",
+    "videoFilter": "Vídeo",
+    "unsupportedFormat": "Formato não suportado: {{ext}}",
+    "noSupportedFiles": "Nenhum ficheiro de vídeo suportado"
+  },
+  "batch": {
+    "title": "Processar {{count}} ficheiro(s)",
+    "globalProfile": "Perfil global",
+    "perFile": "Perfil",
+    "perFileNote": "Podes alterar o perfil por ficheiro",
+    "estimate": "Estimativa",
+    "processAll": "Processar Todos ({{count}})",
+    "cancel": "Cancelar",
+    "processing": "A processar...",
+    "done": "Concluído",
+    "error": "Erro",
+    "pending": "Pendente",
+    "noFiles": "Nenhum ficheiro de vídeo encontrado",
+    "file": "Ficheiro",
+    "status": "Estado",
+    "successToast": "{{count}} ficheiro(s) submetidos com sucesso"
+  },
+  "detail": {
+    "thumbnailOrig": "Original",
+    "thumbnailOut": "Processado",
+    "thumbnailNotYet": "Disponível após processamento",
+    "playerOriginal": "Reproduzir original",
+    "playerProcessed": "Reproduzir ficheiro processado",
+    "openInPlayer": "Abrir no player do sistema",
+    "original": "Original",
+    "processed": "Processado",
+    "notProcessedYet": "Ainda não processado",
+    "comparison": "Comparação Técnica"
+  },
+  "analysis": {
+    "title": "Análise Técnica",
+    "bitDepth": "Profundidade de Bit",
+    "hdr": "HDR",
+    "colorSpace": "Espaço de Cor",
+    "interlace": "Varrimento",
+    "progressive": "Progressivo",
+    "interlaced": "Entrelaçado",
+    "frames": "Frames",
+    "container": "Container",
+    "audioChannels": "Canais Áudio",
+    "chapters": "Capítulos",
+    "checksum": "SHA-256",
+    "codec": "Codec",
+    "resolution": "Resolução",
+    "fps": "FPS",
+    "size": "Tamanho"
   }
 }

@@ -1,49 +1,33 @@
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import { join, basename, extname } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { emit } from '../events';
 import type { ProgressCallback } from './types';
-import { getFfmpegPath } from '../binaries';
-
-const execFileAsync = promisify(execFile);
-
-const THUMB_OFFSET_SECS = 5;
-const THUMB_WIDTH = 640;
+import { generateThumbnail } from '../lib/ffprobe';
 
 export class ThumbnailWorker {
   async run(ctx: JobContext, onProgress: ProgressCallback): Promise<void> {
-    const { assetId, assetPath, jobId, outputDir } = ctx;
+    const { assetId, assetPath } = ctx;
 
     const input = ctx.transcodedPath ?? assetPath;
-    const ext = extname(input);
-      const ffmpegPath = getFfmpegPath();
-
-    // Usar offset seguro: mínimo entre 5s e metade da duração
-    const duration = ctx.assetDurationSecs ?? 10;
-    const offset = Math.min(THUMB_OFFSET_SECS, duration / 2);
 
     onProgress(0.2);
 
-    const thumbName = `${basename(input, ext)}_thumb.jpg`;
-    const thumbPath = join(outputDir, thumbName);
+    const thumbPath = await generateThumbnail(input, assetId, 'out', ctx.assetDurationSecs ?? null);
 
-    await execFileAsync(
-      ffmpegPath,
-      [
-        '-ss', String(offset),
-        '-i', input,
-        '-vframes', '1',
-        '-vf', `scale=${THUMB_WIDTH}:-1`,
-        '-q:v', '3',
-        '-y', thumbPath,
-      ],
-      { timeout: 60_000 }
-    );
+    if (thumbPath) {
+      ctx.thumbnailPath = thumbPath;
+      emit({
+        type: 'asset:updated',
+        assetId,
+        data: { thumbnail_output_path: thumbPath },
+      });
+    }
 
-    ctx.thumbnailPath = thumbPath;
-
-    emit({ type: 'log', level: 'INFO', source: 'thumbnail-worker', message: `Thumbnail completed: ${thumbPath} @ ${offset}s` });
+    emit({
+      type: 'log',
+      level: 'INFO',
+      source: 'thumbnail-worker',
+      message: `Thumbnail output: ${thumbPath ?? 'n/a'}`,
+    });
     onProgress(1.0);
   }
 }
