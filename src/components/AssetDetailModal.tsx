@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useTauriCommand } from '@/hooks/useTauriCommand';
 import { X, FileVideo, Activity, RefreshCw } from 'lucide-react';
 import { Job } from '@/store/jobs';
+import { MediaInfoPanel } from '@/components/MediaInfoPanel';
+import type { DetailedMediaInfo } from '@/components/MediaInfoPanel';
 
 interface Asset {
   id: string;
@@ -46,26 +48,6 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
       .catch((err) => console.error('Error fetching jobs for asset', err));
   }, [asset.id, listJobs]);
 
-  const formatSize = (bytes: number | null) => {
-    if (!bytes) return t('assetDetail.notAvailable');
-    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    let size = bytes;
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
-  };
-
-  const formatDuration = (seconds: number | null) => {
-    if (!seconds) return t('assetDetail.notAvailable');
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    return [h, m, s].map((v) => v.toString().padStart(2, '0')).join(':');
-  };
-
   let parsedMetadata: Record<string, unknown> | null = null;
   try {
     if (asset.metadata) parsedMetadata = JSON.parse(asset.metadata) as Record<string, unknown>;
@@ -101,46 +83,15 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          {/* File Details */}
+          {/* MediaInfo Panel — substitui a grelha básica de file details */}
           <section>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4" /> {t('assetDetailModal.originalFileDetails')}
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-500 mb-1">{t('assetDetailModal.size')}</p>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {formatSize(asset.size_bytes)}
-                </p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-500 mb-1">{t('assetDetailModal.duration')}</p>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {formatDuration(asset.duration_secs)}
-                </p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-500 mb-1">{t('assetDetailModal.video')}</p>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {asset.video_codec
-                    ? asset.video_codec.toUpperCase()
-                    : t('assetDetail.notAvailable')}
-                </p>
-                <p className="text-[10px] text-gray-400 mt-0.5">
-                  {asset.width && asset.height
-                    ? `${asset.width}x${asset.height} @ ${asset.fps}fps`
-                    : ''}
-                </p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-500 mb-1">{t('assetDetailModal.audio')}</p>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {asset.audio_codec
-                    ? asset.audio_codec.toUpperCase()
-                    : t('assetDetail.notAvailable')}
-                </p>
-              </div>
-            </div>
+            <MediaInfoPanel
+              metadata={parsedMetadata as DetailedMediaInfo | null}
+              compact={true}
+            />
           </section>
 
           {/* Jobs History */}

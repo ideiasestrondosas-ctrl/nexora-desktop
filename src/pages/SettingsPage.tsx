@@ -372,6 +372,74 @@ export default function SettingsPage() {
       {/* TAB: GENERAL */}
       {activeTab === 'general' && (
         <div className="space-y-6">
+          {/* SECÇÃO IMPORTAÇÃO */}
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+            <SectionTitle>{t('settings.sections.importation')}</SectionTitle>
+            <div className="space-y-6">
+              {/* Default Profile */}
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  {t('settings.general.defaultProfile')}
+                </label>
+                <select
+                  value={localSettings.default_profile}
+                  onChange={(e) => handleUpdateSetting('default_profile', e.target.value)}
+                  className="w-full bg-bg-primary border border-border rounded-lg px-4 py-2 text-text-primary outline-none text-sm"
+                >
+                  <option value="broadcast-hd">broadcast-hd</option>
+                  <option value="broadcast-sd">broadcast-sd</option>
+                  <option value="web-4k">web-4k</option>
+                  <option value="web-hd">web-hd</option>
+                  <option value="proxy">proxy</option>
+                  <option value="social">social</option>
+                </select>
+              </div>
+
+              {/* Mostrar Modal de Perfil */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="text-sm font-medium text-text-primary mb-1">
+                    {t('settings.general.showProfileModal')}
+                  </div>
+                  <div className="text-xs text-text-secondary">
+                    {t('settings.general.showProfileModalHint')}
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={settingsStore.showProfileModal}
+                    onChange={(e) => settingsStore.setShowProfileModal(e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-surface rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
+                </label>
+              </div>
+
+              {/* Analisar Automaticamente */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="text-sm font-medium text-text-primary mb-1">
+                    {t('settings.general.autoAnalyze')}
+                  </div>
+                  <div className="text-xs text-text-secondary">
+                    {t('settings.general.autoAnalyzeHint')}
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={settingsStore.autoAnalyze}
+                    onChange={(e) => settingsStore.setAutoAnalyze(e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-surface rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
+                </label>
+              </div>
+            </div>
+          </section>
+
+          {/* SECÇÃO PROCESSAMENTO */}
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>{t('settings.sections.processing')}</SectionTitle>
             <div className="space-y-4">
@@ -420,23 +488,6 @@ export default function SettingsPage() {
                   </span>
                   <span>{t('settings.general.moreJobsCpuRam')}</span>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  {t('settings.general.defaultProfile')}
-                </label>
-                <select
-                  value={localSettings.default_profile}
-                  onChange={(e) => handleUpdateSetting('default_profile', e.target.value)}
-                  className="w-full bg-bg-primary border border-border rounded-lg px-4 py-2 text-text-primary outline-none text-sm"
-                >
-                  <option value="broadcast-hd">broadcast-hd</option>
-                  <option value="broadcast-sd">broadcast-sd</option>
-                  <option value="web-4k">web-4k</option>
-                  <option value="web-hd">web-hd</option>
-                  <option value="proxy">proxy</option>
-                  <option value="social">social</option>
-                </select>
               </div>
             </div>
           </section>

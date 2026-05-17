@@ -22,6 +22,7 @@ interface AssetsState {
   setAssets: (assets: Asset[]) => void;
   addAsset: (asset: Asset) => void;
   updateAsset: (assetId: string, updates: Partial<Asset>) => void;
+  removeAsset: (assetId: string) => void;
 }
 
 export const useAssetsStore = create<AssetsState>((set) => ({
@@ -31,5 +32,9 @@ export const useAssetsStore = create<AssetsState>((set) => ({
   updateAsset: (assetId, updates) =>
     set((state) => ({
       assets: state.assets.map((a) => (a.id === assetId ? { ...a, ...updates } : a)),
+    })),
+  removeAsset: (assetId) =>
+    set((state) => ({
+      assets: state.assets.filter((a) => a.id !== assetId),
     })),
 }));

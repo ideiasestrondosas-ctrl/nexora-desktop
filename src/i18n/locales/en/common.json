@@ -158,7 +158,14 @@
     "addVideos": "Add Videos",
     "showing": "Showing {{count}} of {{total}} assets",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "filesAdded": "{{count}} file(s) added successfully",
+    "addError": "Error adding files: {{message}}",
+    "deleteConfirm": "Are you sure you want to delete this asset?",
+    "deleteError": "Error deleting asset",
+    "file": "File",
+    "duration": "Duration",
+    "actions": "Actions"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -221,6 +228,9 @@
     "cancel": "Cancel",
     "save": "Save",
     "newProfile": "New Profile",
+    "predefined": "Built-in Presets",
+    "custom": "Custom Profiles",
+    "selectProfile": "Select a profile...",
     "systemPresetWarning": "This is a system preset and cannot be modified. Duplicate it if you want to make changes."
   },
   "settings": {
@@ -238,7 +248,12 @@
       "jobsLabel": "{{count}} job",
       "jobsLabel_plural": "{{count}} jobs",
       "moreJobsCpuRam": "More jobs = more CPU/RAM",
+      "autoAnalyze": "Automatically analyze files",
+      "autoAnalyzeHint": "Runs ffprobe on import without needing to click Analyze",
+      "showProfileModal": "Show profile modal on drop",
+      "showProfileModalHint": "Asks which profile to use when dragging files. If off, uses the Default profile.",
       "defaultProfile": "Default profile",
+
       "vmafMin": "Min VMAF",
       "vmafHint": "Jobs below this value are flagged with a warning.",
       "targetLufs": "Target LUFS",
@@ -311,6 +326,16 @@
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "openData": "Open Data",
       "versionHistory": "Version History"
+    },
+    "sections": {
+      "importation": "Importation",
+      "processing": "Processing",
+      "quality": "Quality",
+      "hardwareAcceleration": "Hardware Acceleration",
+      "notifications": "Notifications",
+      "privacy": "Privacy",
+      "data": "Data",
+      "maintenance": "Maintenance"
     }
   },
   "logs": {
@@ -406,6 +431,86 @@
     "reportIssue": "Report Issue",
     "checkUpdates": "Check for Updates",
     "viewLicense": "View License",
-    "toggleDevTools": "Toggle Developer Tools"
+    "toggleDevTools": "Toggle Developer Tools",
+    "name": "Name",
+    "description": "Description"
+  },
+  "dropZone": {
+    "dropHere": "Drop videos here",
+    "clickToSelect": "Or click to select files (MP4, MKV, MOV, MXF...)",
+    "addMedia": "Add Media",
+    "addFolder": "Add Folder",
+    "videoFilter": "Video",
+    "unsupportedFormat": "Unsupported format: {{ext}}",
+    "noSupportedFiles": "No supported video files"
+  },
+  "ingestModal": {
+    "title": "Import Videos",
+    "filesSelected": "{{count}} file(s) selected",
+    "invalidFiles": "{{count}} file(s) with unsupported format will be ignored",
+    "quarantineWarning": "One or more files use codecs (HEVC, ProRes, DNxHD, AV1) that may be quarantined during QC. You can approve them manually in the Queue.",
+    "fileList": "Files to import",
+    "showMore": "Show {{count}} more file(s)...",
+    "selectProfile": "Processing profile",
+    "analyzeOnly": "Analyze only (no processing)",
+    "analyzeOnlyHint": "Extracts detailed metadata without transcoding",
+    "analyzeBtn": "Analyze",
+    "importOnly": "Import Without Processing",
+    "importProcess": "Import & Process",
+    "successProcess": "{{count}} file(s) imported and added to queue",
+    "successImport": "{{count}} file(s) imported (no processing)"
+  },
+  "mediaInfo": {
+    "title": "Media Information",
+    "noData": "No analysis data",
+    "noDataHint": "Run an analysis to see technical details",
+    "basicOnly": "Basic data — no full analysis available",
+    "copyAll": "Copy All",
+    "copied": "Copied!",
+    "general": "General",
+    "video": "Video",
+    "audio": "Audio",
+    "subtitles": "Subtitles",
+    "tags": "Tags",
+    "hdr": "HDR",
+    "format": "Format",
+    "fileSize": "File Size",
+    "duration": "Duration",
+    "overallBitrate": "Overall Bitrate",
+    "streams": "Streams",
+    "encoder": "Encoder",
+    "creationTime": "Creation Time",
+    "codec": "Codec",
+    "bitRate": "Bit Rate",
+    "resolution": "Resolution",
+    "aspectRatio": "Aspect Ratio",
+    "frameRate": "Frame Rate",
+    "avgFrameRate": "Avg Frame Rate",
+    "pixelFormat": "Pixel Format",
+    "bitDepth": "Bit Depth",
+    "colorSpace": "Color Space",
+    "colorRange": "Color Range",
+    "chromaLocation": "Chroma Location",
+    "scanType": "Scan Type",
+    "bFrames": "B-Frames",
+    "refFrames": "Ref Frames",
+    "totalFrames": "Total Frames",
+    "language": "Language",
+    "title_field": "Title",
+    "sampleRate": "Sample Rate",
+    "channels": "Channels",
+    "channelLayout": "Channel Layout",
+    "sampleFormat": "Sample Format",
+    "masteringDisplay": "Mastering Display",
+    "analyze": "Analyze",
+    "reanalyze": "Re-analyze"
+  },
+  "status": {
+    "pending": "Pending",
+    "queued": "In Queue",
+    "processing": "Processing",
+    "done": "Done",
+    "error": "Error",
+    "cancelled": "Cancelled"
   }
 }

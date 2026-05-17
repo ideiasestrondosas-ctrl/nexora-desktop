@@ -18,7 +18,8 @@ import {
   Plus,
   FolderOpen,
 } from 'lucide-react';
-import { hasSupportedExtension } from '@/components/DropZone';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { useJobsStore } from '@/store/jobs';
 
 interface Asset {
   id: string;
@@ -35,9 +36,13 @@ interface Asset {
   vmaf_score: number | null;
 }
 
-const DEFAULT_PROFILE = 'web-hd';
+interface LibraryPageProps {
+  /** Chamado quando o utilizador quer importar ficheiros — abre o IngestProfileModal no App.tsx */
+  onImportRequest?: (paths: string[]) => void;
+  onSelectAsset?: (id: string) => void;
+}
 
-export default function LibraryPage() {
+export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryPageProps) {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
     return (localStorage.getItem('library-view-mode') as 'grid' | 'list') || 'grid';
@@ -47,8 +52,19 @@ export default function LibraryPage() {
   const [sortOrder, setSortOrder] = useState('newest');
   const [loading, setLoading] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
-  const [isIngesting, setIsIngesting] = useState(false);
+  const [isIngesting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { t } = useTranslation();
+
+  // Estado do modal de confirmação de delete
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    open: boolean;
+    id: string | null;
+    multi: boolean;
+  }>({ open: false, id: null, multi: false });
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const removeJobsByAsset = useJobsStore((s) => s.removeJobsByAsset);
 
   const fetchAssets = useCallback(async () => {
     try {
@@ -61,60 +77,18 @@ export default function LibraryPage() {
     }
   }, []);
 
-  // Ingerir lista de paths e submeter jobs automaticamente
-  const ingestPaths = useCallback(
-    async (paths: string[]) => {
-      const validPaths = paths.filter(hasSupportedExtension);
-      if (validPaths.length === 0) {
-        toast.error(t('dropZone.noSupportedFiles'));
-        return;
-      }
-
-      setIsIngesting(true);
-      let ingested = 0;
-      const errors: string[] = [];
-
-      for (const path of validPaths) {
-        try {
-          const asset = await invoke<Asset>('ingest_asset', { path });
-          // Submeter job automaticamente com o perfil por defeito
-          await invoke('submit_job', { assetId: asset.id, profile: DEFAULT_PROFILE, priority: 0 });
-          ingested++;
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : String(err);
-          errors.push(msg);
-          console.error('Ingest/submit failed:', msg);
-        }
-      }
-
-      setIsIngesting(false);
-
-      if (ingested > 0) {
-        toast.success(t('library.filesAdded', { count: ingested }));
-        await fetchAssets();
-      }
-      if (errors.length > 0) {
-        toast.error(t('library.addError', { message: errors[0] }));
-      }
-    },
-    [fetchAssets, t],
-  );
-
-  // Listeners Tauri para drag-and-drop nativo (registados uma vez)
+  // Listeners Tauri apenas para estado visual de drag — o ingest é gerido pelo App.tsx
   useEffect(() => {
     const unlisteners: Array<Promise<() => void>> = [
-      listen<{ paths: string[] }>('tauri://drag-drop', (event) => {
-        setIsDragging(false);
-        ingestPaths(event.payload.paths);
-      }),
       listen('tauri://drag-enter', () => setIsDragging(true)),
       listen('tauri://drag-over', () => setIsDragging(true)),
       listen('tauri://drag-leave', () => setIsDragging(false)),
+      listen('tauri://drag-drop', () => setIsDragging(false)),
     ];
     return () => {
       unlisteners.forEach((p) => p.then((fn) => fn()));
     };
-  }, [ingestPaths]);
+  }, []);
 
   useEffect(() => {
     fetchAssets();
@@ -139,7 +113,9 @@ export default function LibraryPage() {
       });
       if (!selected) return;
       const paths = Array.isArray(selected) ? selected : [selected];
-      await ingestPaths(paths);
+      if (onImportRequest) {
+        onImportRequest(paths);
+      }
     } catch (err) {
       console.error('Failed to open file dialog:', err);
     }
@@ -150,12 +126,14 @@ export default function LibraryPage() {
       const selected = await open({ directory: true, multiple: true });
       if (!selected) return;
       const dirs = Array.isArray(selected) ? selected : [selected];
-      // Passa as directórias para ingestPaths — o suporte a scan recursivo virá na v0.19.0
-      await ingestPaths(dirs);
+      if (onImportRequest) {
+        onImportRequest(dirs);
+      }
     } catch (err) {
       console.error('Failed to open folder dialog:', err);
     }
   };
+
 
   // Fallback HTML drop — ficheiros do SO chegam via 'tauri://drag-drop'; este handler
   // apenas previne o comportamento padrão do browser e repõe o estado visual
@@ -164,14 +142,57 @@ export default function LibraryPage() {
     setIsDragging(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t('library.deleteConfirm'))) return;
+  const handleDelete = (id: string) => {
+    setDeleteConfirm({ open: true, id, multi: false });
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    setDeleteConfirm({ open: true, id: null, multi: true });
+  };
+
+  const executeDelete = async () => {
+    setDeleteLoading(true);
     try {
-      await invoke('delete_asset', { id });
-      await fetchAssets();
+      if (deleteConfirm.multi) {
+        // Multi-delete
+        await Promise.all(Array.from(selectedIds).map(id => invoke('delete_asset', { id })));
+        // Remover do store local imediatamente
+        Array.from(selectedIds).forEach(id => removeJobsByAsset(id));
+        setAssets(prev => prev.filter(a => !selectedIds.has(a.id)));
+        setSelectedIds(new Set());
+        toast.success(t('library.deletedSuccessMultiple', { defaultValue: 'Assets apagados com sucesso!' }));
+      } else if (deleteConfirm.id) {
+        const id = deleteConfirm.id;
+        await invoke('delete_asset', { id });
+        // Remover do store local imediatamente
+        removeJobsByAsset(id);
+        setAssets(prev => prev.filter(a => a.id !== id));
+        setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+      }
     } catch (error) {
       console.error('Failed to delete asset:', error);
       toast.error(t('library.deleteError'));
+    } finally {
+      setDeleteLoading(false);
+      setDeleteConfirm({ open: false, id: null, multi: false });
+    }
+  };
+
+  const handleSelect = (id: string, checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredAssets.map(a => a.id)));
+    } else {
+      setSelectedIds(new Set());
     }
   };
 
@@ -283,6 +304,15 @@ export default function LibraryPage() {
 
         {/* Botões de adicionar — sempre visíveis */}
         <div className="flex items-center gap-2 ml-auto">
+          {selectedIds.size > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg text-xs font-bold hover:bg-red-500 hover:text-white transition-colors"
+            >
+              <Trash2 size={14} />
+              {t('library.deleteSelected', { defaultValue: `Apagar ${selectedIds.size}` })}
+            </button>
+          )}
           <button
             onClick={handleAddFolderDialog}
             disabled={isIngesting}
@@ -342,6 +372,16 @@ export default function LibraryPage() {
                 >
                   {/* THUMBNAIL */}
                   <div className="aspect-video bg-bg-primary relative flex items-center justify-center">
+                    {/* Checkbox de Seleção */}
+                    <div className="absolute top-2 left-2 z-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(asset.id)}
+                        onChange={(e) => handleSelect(asset.id, e.target.checked)}
+                        className="w-4 h-4 rounded border-border bg-bg-secondary text-brand focus:ring-brand cursor-pointer"
+                      />
+                    </div>
+
                     {asset.thumbnail_path ? (
                       <img
                         src={asset.thumbnail_path}
@@ -374,15 +414,18 @@ export default function LibraryPage() {
                     </div>
 
                     {/* VMAF BADGE */}
-                    {asset.vmaf_score !== null && (
+                    {asset.vmaf_score != null && (
                       <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-[10px] font-bold text-green-400 border border-green-500/30">
-                        VMAF {asset.vmaf_score.toFixed(1)}
+                        VMAF {Number(asset.vmaf_score).toFixed(1)}
                       </div>
                     )}
 
                     {/* ACÇÕES OVERLAY */}
                     <div className="absolute inset-0 bg-bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                      <button className="p-2 bg-brand text-white rounded-full hover:scale-110 transition-transform">
+                      <button
+                        onClick={() => onSelectAsset?.(asset.id)}
+                        className="p-2 bg-brand text-white rounded-full hover:scale-110 transition-transform"
+                      >
                         <ExternalLink size={18} />
                       </button>
                       {(asset.status === 'done' || asset.status === 'error') && (
@@ -402,8 +445,9 @@ export default function LibraryPage() {
                   {/* INFO */}
                   <div className="p-4">
                     <h3
-                      className="font-bold text-text-primary text-sm truncate mb-2"
+                      className="font-bold text-text-primary text-sm truncate mb-2 cursor-pointer hover:text-brand transition-colors"
                       title={asset.filename}
+                      onClick={() => onSelectAsset?.(asset.id)}
                     >
                       {asset.filename}
                     </h3>
@@ -424,7 +468,15 @@ export default function LibraryPage() {
             className="flex-1 bg-bg-secondary border border-border rounded-xl overflow-auto"
           >
             {/* Cabeçalho fixo da tabela */}
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 bg-bg-primary border-b border-border px-6 py-3 text-[10px] font-bold uppercase text-text-muted sticky top-0 z-10">
+            <div className="grid grid-cols-[40px_1fr_auto_auto_auto_auto_auto] gap-0 bg-bg-primary border-b border-border px-6 py-3 text-[10px] font-bold uppercase text-text-muted sticky top-0 z-10 items-center">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={filteredAssets.length > 0 && selectedIds.size === filteredAssets.length}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  className="w-4 h-4 rounded border-border bg-bg-secondary text-brand focus:ring-brand cursor-pointer"
+                />
+              </div>
               <span>{t('library.file')}</span>
               <span className="px-6">{t('common.status')}</span>
               <span className="px-6">{t('library.size')}</span>
@@ -448,11 +500,22 @@ export default function LibraryPage() {
                       width: '100%',
                       transform: `translateY(${virtualRow.start}px)`,
                     }}
-                    className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 items-center border-b border-border hover:bg-surface/30 transition-colors group px-6"
+                    className="grid grid-cols-[40px_1fr_auto_auto_auto_auto_auto] gap-0 items-center border-b border-border hover:bg-surface/30 transition-colors group px-6"
                   >
-                    <div className="flex items-center gap-3 py-4">
-                      <Film size={16} className="text-text-muted shrink-0" />
-                      <span className="font-bold text-text-primary truncate max-w-[300px]">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(asset.id)}
+                        onChange={(e) => handleSelect(asset.id, e.target.checked)}
+                        className="w-4 h-4 rounded border-border bg-bg-secondary text-brand focus:ring-brand cursor-pointer"
+                      />
+                    </div>
+                    <div
+                      className="flex items-center gap-3 py-4 cursor-pointer group-hover:text-brand transition-colors"
+                      onClick={() => onSelectAsset?.(asset.id)}
+                    >
+                      <Film size={16} className="text-text-muted shrink-0 group-hover:text-brand" />
+                      <span className="font-bold text-text-primary truncate max-w-[300px] group-hover:text-brand">
                         {asset.filename}
                       </span>
                     </div>
@@ -479,7 +542,10 @@ export default function LibraryPage() {
                       {asset.video_codec ?? '—'}
                     </span>
                     <div className="px-6 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded">
+                      <button
+                        onClick={() => onSelectAsset?.(asset.id)}
+                        className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded"
+                      >
                         <ExternalLink size={14} />
                       </button>
                       <button
@@ -514,6 +580,20 @@ export default function LibraryPage() {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => !loading && setDeleteConfirm(prev => ({ ...prev, open }))}
+        title={deleteConfirm.multi ? t('library.deleteConfirmMultiple', 'Apagar assets selecionados?') : t('library.deleteConfirm', 'Apagar asset?')}
+        description={deleteConfirm.multi 
+          ? t('library.deleteConfirmMultipleDesc', 'Esta ação é irreversível. Os ficheiros gerados serão apagados do disco.')
+          : t('library.deleteConfirmDesc', 'Esta ação é irreversível. Os ficheiros gerados serão apagados do disco.')
+        }
+        confirmLabel={t('common.delete', 'Apagar')}
+        cancelLabel={t('common.cancel', 'Cancelar')}
+        onConfirm={executeDelete}
+        loading={deleteLoading}
+      />
     </div>
   );
 }

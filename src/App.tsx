@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { listen } from '@tauri-apps/api/event';
@@ -12,6 +12,7 @@ import {
   Terminal,
   UserCircle,
   ShieldCheck,
+  Upload,
 } from 'lucide-react';
 
 import DashboardPage from '@/pages/DashboardPage';
@@ -23,11 +24,12 @@ import LogsPage from '@/pages/LogsPage';
 import AssetDetailPage from '@/pages/AssetDetailPage';
 import TopBar from '@/components/TopBar';
 import { HelpOverlay } from '@/components/HelpModal';
+import { IngestProfileModal } from '@/components/IngestProfileModal';
+import { hasSupportedExtension } from '@/components/DropZone';
 
 import { useSettingsStore } from '@/store/settings';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { cn } from '@/lib/utils';
-import { hasSupportedExtension } from '@/components/DropZone';
 
 type Tab = 'dashboard' | 'library' | 'queue' | 'profiles' | 'settings' | 'logs' | 'detail';
 
@@ -39,55 +41,60 @@ function App() {
   const [appVersion, setAppVersion] = useState('—');
   const [helpOpen, setHelpOpen] = useState(false);
 
+  // ── IngestProfileModal state ────────────────────────────────────────────────
+  /** paths pendentes para o modal — null = modal fechado */
+  const [ingestPaths, setIngestPaths] = useState<string[] | null>(null);
+  /** overlay visual de "a arrastar" sobre o conteúdo */
+  const [isDragging, setIsDragging] = useState(false);
+
   const theme = useSettingsStore((state) => state.theme);
+  const defaultProfile = useSettingsStore((state) => state.defaultProfile ?? 'web-hd');
 
-  // Refs para aceder ao tab activo e à função t sem re-registar o listener
+  // Refs para aceder ao tab activo e à função t sem re-registar listeners
   const activeTabRef = useRef<Tab>(activeTab);
-  useEffect(() => {
-    activeTabRef.current = activeTab;
-  }, [activeTab]);
-  const tRef = useRef(t);
-  useEffect(() => {
-    tRef.current = t;
-  }, [t]);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
 
-  // Listener global de drag-drop — trata drops em qualquer página excepto Biblioteca
-  // (a LibraryPage tem o seu próprio listener para refresh imediato da lista)
+  // ── Drag-drop global centralizado ──────────────────────────────────────────
+  // Um único listener tauri://drag-drop — intercepta drops em QUALQUER página
+  // e abre o IngestProfileModal em vez de ingerir silenciosamente.
   useEffect(() => {
-    const DEFAULT_PROFILE = 'web-hd';
-    const unsub = listen<{ paths: string[] }>('tauri://drag-drop', async (event) => {
-      if (activeTabRef.current === 'library') return;
+    const unlisteners: Array<Promise<() => void>> = [
+      // Visual: mostrar overlay de "drop zone" quando ficheiros entram na janela
+      listen('tauri://drag-enter', () => setIsDragging(true)),
+      listen('tauri://drag-over', () => setIsDragging(true)),
+      listen('tauri://drag-leave', () => setIsDragging(false)),
 
-      const paths = event.payload.paths.filter(hasSupportedExtension);
-      if (paths.length === 0) {
-        toast.error(tRef.current('dropZone.noSupportedFiles'));
-        return;
-      }
-
-      let ingested = 0;
-      for (const path of paths) {
-        try {
-          const asset = await invoke<{ id: string }>('ingest_asset', { path });
-          await invoke('submit_job', { assetId: asset.id, profile: DEFAULT_PROFILE, priority: 0 });
-          ingested++;
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.error('Ingest global falhou:', msg);
-          toast.error(tRef.current('library.addError', { message: msg }));
+      // Drop real: filtrar por extensão e abrir modal
+      listen<{ paths: string[] }>('tauri://drag-drop', (event) => {
+        setIsDragging(false);
+        const valid = event.payload.paths.filter(hasSupportedExtension);
+        if (valid.length > 0) {
+          setIngestPaths(valid);
         }
-      }
-
-      if (ingested > 0) {
-        setActiveTab('library');
-        toast.success(tRef.current('library.filesAdded', { count: ingested }));
-      }
-    });
+        // Ficheiros inválidos são ignorados silenciosamente —
+        // o modal mostra avisos para extensões não suportadas se inclurmos paths brutos
+        else if (event.payload.paths.length > 0) {
+          // Mostrar o modal mesmo assim para dar feedback ao utilizador
+          setIngestPaths(event.payload.paths);
+        }
+      }),
+    ];
     return () => {
-      unsub.then((fn) => fn());
+      unlisteners.forEach((p) => p.then((fn) => fn()));
     };
-  }, []); // registado uma vez — activeTab e t lidos via ref
+  }, []); // registado uma vez — state gerido via setters
 
-  // Handle theme changes
+  // Callback chamado pelos botões Add File/Folder da LibraryPage
+  const handleImportRequest = useCallback((paths: string[]) => {
+    setIngestPaths(paths);
+  }, []);
+
+  // Callback quando ingest+jobs foram submetidos com sucesso
+  const handleIngestComplete = useCallback((_count: number) => {
+    setActiveTab('library');
+  }, []);
+
+  // ── Theme ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
@@ -101,7 +108,7 @@ function App() {
     }
   }, [theme]);
 
-  // Carregar versão real do binário Tauri
+  // ── App version & Startup checks ──────────────────────────────────────────
   useEffect(() => {
     getVersion()
       .then(setAppVersion)
@@ -110,8 +117,24 @@ function App() {
           .then(setAppVersion)
           .catch(() => setAppVersion('?')),
       );
-  }, []);
 
+    // Verificar pré-requisitos no arranque
+    invoke<{ nodeOk: boolean; sidecarOk: boolean; ffprobeOk: boolean; ffmpegOk: boolean; allOk: boolean }>('get_startup_status')
+      .then((status) => {
+        if (!status.nodeOk) {
+          toast.error(t('startup.nodeMissing', 'Node.js não encontrado no PATH. Instale o Node.js 20+ para o processamento de vídeo funcionar.'), { duration: Number.POSITIVE_INFINITY });
+        }
+        if (!status.ffmpegOk || !status.ffprobeOk) {
+          toast.error(t('startup.ffmpegMissing', 'FFmpeg/FFprobe não encontrados. Instale o FFmpeg e adicione ao PATH para ingerir vídeos.'), { duration: Number.POSITIVE_INFINITY });
+        }
+        if (!status.sidecarOk) {
+          toast.warning(t('startup.sidecarMissing', 'Script do Sidecar não encontrado. Execute npm run sidecar:build se estiver em desenvolvimento.'), { duration: Number.POSITIVE_INFINITY });
+        }
+      })
+      .catch(console.error);
+  }, [t]);
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
   const navItems = [
     { id: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
     { id: 'library', label: t('nav.library'), icon: LibraryIcon },
@@ -133,6 +156,14 @@ function App() {
   return (
     <div className="flex h-screen bg-bg-primary text-text-primary overflow-hidden font-sans selection:bg-brand/30">
       <Toaster position="bottom-right" richColors closeButton />
+
+      {/* ── Modal de Selecção de Perfil (global) ── */}
+      <IngestProfileModal
+        paths={ingestPaths}
+        defaultProfileId={defaultProfile}
+        onClose={() => setIngestPaths(null)}
+        onComplete={handleIngestComplete}
+      />
 
       {/* SIDEBAR */}
       <aside className="w-64 bg-bg-primary border-r border-border flex flex-col shrink-0 z-50">
@@ -180,7 +211,7 @@ function App() {
                 />
                 <span className="text-sm">{item.label}</span>
                 {isActive && (
-                  <div className="absolute left-0 w-1 h-6 bg-[#1A6FD4] rounded-r-full"></div>
+                  <div className="absolute left-0 w-1 h-6 bg-brand rounded-r-full"></div>
                 )}
               </button>
             );
@@ -214,8 +245,20 @@ function App() {
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 bg-bg-primary relative">
         <TopBar activeTab={activeTab} onHelpOpen={() => setHelpOpen(true)} />
-
         <HelpOverlay open={helpOpen} onOpenChange={setHelpOpen} />
+
+        {/* Drag overlay visual — cobre o conteúdo enquanto se arrasta sobre a janela */}
+        {isDragging && (
+          <div className="absolute inset-0 z-40 pointer-events-none">
+            <div className="absolute inset-4 border-2 border-dashed border-brand/60 rounded-2xl bg-brand/5 backdrop-blur-[1px] flex flex-col items-center justify-center gap-3 animate-in fade-in duration-150">
+              <div className="w-16 h-16 bg-brand/20 rounded-full flex items-center justify-center">
+                <Upload size={28} className="text-brand" />
+              </div>
+              <p className="text-base font-black text-brand">{t('dropZone.dropHere')}</p>
+              <p className="text-xs text-brand/60">{t('dropZone.clickToSelect')}</p>
+            </div>
+          </div>
+        )}
 
         <div
           className={cn(
@@ -226,7 +269,9 @@ function App() {
           {activeTab === 'dashboard' && (
             <DashboardPage onNavigate={handleNavigate} onSelectAsset={handleSelectAsset} />
           )}
-          {activeTab === 'library' && <LibraryPage />}
+          {activeTab === 'library' && (
+            <LibraryPage onImportRequest={handleImportRequest} onSelectAsset={handleSelectAsset} />
+          )}
           {activeTab === 'queue' && <QueuePage />}
           {activeTab === 'profiles' && <ProfilesPage />}
           {activeTab === 'settings' && <SettingsPage />}

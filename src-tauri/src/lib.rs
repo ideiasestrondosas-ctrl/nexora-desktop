@@ -13,19 +13,6 @@ use tauri::{Emitter, Manager};
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(
-            tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Info)
-                .targets([
-                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
-                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir {
-                        file_name: Some("nexora-desktop".into()),
-                    }),
-                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview),
-                ])
-                .max_file_size(10_000_000)
-                .build(),
-        )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init())
@@ -46,6 +33,9 @@ pub fn run() {
             );
 
             tray::setup(app)?;
+
+            // Verificações de pré-requisitos no arranque
+            startup_checks(app.handle());
 
             queue::start(app.handle().clone(), &db_path);
 
@@ -141,7 +131,101 @@ pub fn run() {
             commands::logs::write_log,
             commands::logs::export_logs,
             commands::metrics::get_system_metrics,
+            get_startup_status,
         ])
         .run(tauri::generate_context!())
         .expect("Erro ao iniciar a aplicação Nexora");
+}
+
+/// Verifica os pré-requisitos do sistema no arranque e loga o resultado.
+fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
+    use std::process::Command;
+
+    // 1. Node.js
+    let node_ok = Command::new("node")
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+
+    if node_ok {
+        log::info!("[startup] Node.js: OK");
+    } else {
+        log::warn!("[startup] Node.js NÃO encontrado no PATH — o processamento de vídeos não vai funcionar. Instala Node.js 20+ em https://nodejs.org");
+    }
+
+    // 2. Sidecar script
+    let script_path = sidecar::resolve_script_path(app);
+    if script_path.exists() {
+        log::info!("[startup] Sidecar: OK ({:?})", script_path);
+    } else {
+        log::warn!("[startup] Sidecar script NÃO encontrado em {:?} — executa 'npm run sidecar:build'", script_path);
+    }
+
+    // 3. FFprobe
+    let ffprobe_path = sidecar::resolve_media_binary_path(app, "ffprobe");
+    let ffprobe_ok = if ffprobe_path.exists() {
+        true
+    } else {
+        Command::new("ffprobe")
+            .arg("-version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    };
+
+    if ffprobe_ok {
+        log::info!("[startup] FFprobe: OK");
+    } else {
+        log::warn!("[startup] FFprobe NÃO encontrado — instala FFmpeg (inclui ffprobe) e adiciona ao PATH");
+    }
+
+    // 4. FFmpeg
+    let ffmpeg_path = sidecar::resolve_media_binary_path(app, "ffmpeg");
+    let ffmpeg_ok = if ffmpeg_path.exists() {
+        true
+    } else {
+        Command::new("ffmpeg")
+            .arg("-version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    };
+
+    if ffmpeg_ok {
+        log::info!("[startup] FFmpeg: OK");
+    } else {
+        log::warn!("[startup] FFmpeg NÃO encontrado — o processamento de vídeos vai falhar");
+    }
+}
+
+/// Retorna o estado dos pré-requisitos para o frontend mostrar alertas.
+#[tauri::command]
+fn get_startup_status(app: tauri::AppHandle) -> serde_json::Value {
+    use std::process::Command;
+
+    let node_ok = Command::new("node")
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+
+    let script_path = sidecar::resolve_script_path(&app);
+    let sidecar_ok = script_path.exists();
+
+    let ffprobe_path = sidecar::resolve_media_binary_path(&app, "ffprobe");
+    let ffprobe_ok = ffprobe_path.exists() || Command::new("ffprobe")
+        .arg("-version").output().map(|o| o.status.success()).unwrap_or(false);
+
+    let ffmpeg_path = sidecar::resolve_media_binary_path(&app, "ffmpeg");
+    let ffmpeg_ok = ffmpeg_path.exists() || Command::new("ffmpeg")
+        .arg("-version").output().map(|o| o.status.success()).unwrap_or(false);
+
+    serde_json::json!({
+        "nodeOk": node_ok,
+        "sidecarOk": sidecar_ok,
+        "ffprobeOk": ffprobe_ok,
+        "ffmpegOk": ffmpeg_ok,
+        "allOk": node_ok && sidecar_ok && ffprobe_ok && ffmpeg_ok,
+    })
 }

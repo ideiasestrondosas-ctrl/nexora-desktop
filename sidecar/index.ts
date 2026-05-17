@@ -58,7 +58,6 @@ async function main(): Promise<void> {
   }
 
   nxInfo('sidecar', `Starting job ${job.jobId} — asset: ${job.assetId}, profile: ${job.profile}`);
-  emit({ type: 'job:started', jobId: job.jobId, assetId: job.assetId });
 
   const ctx: JobContext = {
     jobId: job.jobId,
@@ -79,21 +78,10 @@ async function main(): Promise<void> {
   try {
     await new NexoraDesktopOrchestrator().run(ctx);
     nxInfo('sidecar', `Job ${job.jobId} completed`);
-    emit({
-      type: 'job:completed',
-      jobId: job.jobId,
-      assetId: job.assetId,
-      data: {
-        outputPath: ctx.transcodedPath ?? null,
-        vmafScore: ctx.vmafScore ?? null,
-        lufs: ctx.lufs ?? null,
-      },
-    });
     process.exit(0);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     nxError('sidecar', `Job ${job.jobId} failed: ${message}`);
-    emit({ type: 'job:failed', jobId: job.jobId, error: message });
     process.exit(1);
   }
 }

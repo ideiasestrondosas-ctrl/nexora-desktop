@@ -396,6 +396,26 @@ if ($status) {
 
     Write-Step "Realizando commit: '$commitMsg'..."
 
+    # OPÇÃO A: Limpar atributos de "Somente Leitura" (Read-Only) automaticamente para evitar erros de bloqueio
+    Write-Step "Limpando atributos de Somente Leitura (Read-Only) nos ficheiros do workspace..."
+    try {
+        Get-ChildItem -Path $WORKSPACE -File -Recurse -ErrorAction SilentlyContinue |
+            Where-Object {
+                $p = $_.FullName
+                $p -notmatch [regex]::Escape("\\.git\\") -and
+                $p -notmatch [regex]::Escape("\\node_modules\\") -and
+                $p -notmatch [regex]::Escape("\\src-tauri\\target\\") -and
+                $p -notmatch [regex]::Escape("\\dist\\")
+            } | ForEach-Object {
+                if ($_.IsReadOnly) {
+                    $_.IsReadOnly = $false
+                }
+            }
+        Write-Success "Atributos Read-Only limpos com sucesso!"
+    } catch {
+        Write-Warn "Nao foi possivel limpar alguns atributos de ficheiros: $_"
+    }
+
     # Staging seguro: adiciona tudo e depois remove ficheiros grandes e runtime
     git add --all
 
@@ -424,8 +444,22 @@ if ($status) {
     git commit -m $commitMsg
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Err "Falha ao realizar o commit."
-        Pop-Location; exit 1
+        Write-Warn "O commit com validacao falhou (devido a bloqueio de ficheiros ou erro de linter/formatter)."
+        Write-Host ""
+        Write-Host "Desejas tentar a OPÇÃO B (forcar o commit ignorando Prettier/ESLint com --no-verify)? [S/N]" -ForegroundColor Yellow
+        $ans = Read-Host "Escolha [S/N] (Padrao: N)"
+        if ($ans -match '^[Ss]$') {
+            Write-Step "A forcar commit sem ganchos (--no-verify)..."
+            git commit -m $commitMsg --no-verify
+            if ($LASTEXITCODE -ne 0) {
+                Write-Err "Falha critica ao realizar o commit forcado."
+                Pop-Location; exit 1
+            }
+            Write-Success "Commit forcado realizado com sucesso!"
+        } else {
+            Write-Err "Commit cancelado pelo utilizador."
+            Pop-Location; exit 1
+        }
     }
 
     # Graphify auto-commit (se existir grafo gerado automaticamente)

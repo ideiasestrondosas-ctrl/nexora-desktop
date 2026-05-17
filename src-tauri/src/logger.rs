@@ -30,8 +30,10 @@ pub fn init(handle: tauri::AppHandle, db_path: &std::path::Path) {
         LOGGER_DB.set(Mutex::new(conn)).ok();
     }
     APP_HANDLE.set(handle).ok();
+    // NexoraLogger é o único logger global — captura info, warn, error do crate Rust
+    // tauri-plugin-log foi removido para evitar conflito (só um logger global é permitido)
     log::set_logger(&LOGGER).ok();
-    log::set_max_level(log::LevelFilter::Info);
+    log::set_max_level(log::LevelFilter::Debug);
 }
 
 pub fn write(level: &str, source: &str, message: &str) {
@@ -70,7 +72,7 @@ pub fn write(level: &str, source: &str, message: &str) {
 
 impl Log for NexoraLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= Level::Info
+        metadata.level() <= Level::Debug
     }
 
     fn log(&self, record: &Record) {

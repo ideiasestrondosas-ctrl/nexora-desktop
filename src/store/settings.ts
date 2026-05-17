@@ -10,6 +10,10 @@ interface SettingsState {
   theme: 'light' | 'dark' | 'system';
   language: string;
   telemetryEnabled: boolean;
+  // Importação
+  defaultProfile: string;
+  autoAnalyze: boolean;
+  showProfileModal: boolean;
   setOutputDir: (dir: string) => void;
   setMaxConcurrentJobs: (count: number) => void;
   setGpuAcceleration: (enabled: boolean) => void;
@@ -17,6 +21,9 @@ interface SettingsState {
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setLanguage: (lang: string) => void;
   setTelemetryEnabled: (enabled: boolean) => void;
+  setDefaultProfile: (profile: string) => void;
+  setAutoAnalyze: (enabled: boolean) => void;
+  setShowProfileModal: (show: boolean) => void;
 }
 
 // LazyStore abre o ficheiro apenas quando a primeira operação ocorre — sem bloquear o startup
@@ -45,6 +52,10 @@ export const useSettingsStore = create<SettingsState>()(
       theme: 'system',
       language: 'pt',
       telemetryEnabled: false,
+      // Importação
+      defaultProfile: 'web-hd',
+      autoAnalyze: true,
+      showProfileModal: true,
       setOutputDir: (dir) => set({ outputDir: dir }),
       setMaxConcurrentJobs: (count) => set({ maxConcurrentJobs: count }),
       setGpuAcceleration: (enabled) => set({ gpuAcceleration: enabled }),
@@ -52,10 +63,13 @@ export const useSettingsStore = create<SettingsState>()(
       setTheme: (theme) => set({ theme }),
       setLanguage: (lang) => set({ language: lang }),
       setTelemetryEnabled: (enabled) => set({ telemetryEnabled: enabled }),
+      setDefaultProfile: (profile) => set({ defaultProfile: profile }),
+      setAutoAnalyze: (enabled) => set({ autoAnalyze: enabled }),
+      setShowProfileModal: (show) => set({ showProfileModal: show }),
     }),
     {
       name: 'nexora-settings',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => tauriStorage),
     },
   ),

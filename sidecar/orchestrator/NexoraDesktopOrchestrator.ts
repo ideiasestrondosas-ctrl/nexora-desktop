@@ -43,7 +43,7 @@ const STEPS: Array<{ name: string; weight: number }> = [
 
 export class NexoraDesktopOrchestrator {
   async run(ctx: JobContext): Promise<void> {
-    // Nota: job:started já foi emitido por index.ts — não repetir aqui
+    emit({ type: 'job:started', jobId: ctx.jobId, assetId: ctx.assetId });
 
     let globalProgress = 0;
     const stepOffsets = STEPS.map((_, i) =>

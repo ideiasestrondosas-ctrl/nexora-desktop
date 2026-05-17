@@ -23,6 +23,7 @@ interface JobsState {
   setJobs: (jobs: Job[]) => void;
   updateJob: (jobId: string, updates: Partial<Job>) => void;
   addJob: (job: Job) => void;
+  removeJobsByAsset: (assetId: string) => void;
 }
 
 export const useJobsStore = create<JobsState>((set) => ({
@@ -33,4 +34,8 @@ export const useJobsStore = create<JobsState>((set) => ({
       jobs: state.jobs.map((j) => (j.id === jobId ? { ...j, ...updates } : j)),
     })),
   addJob: (job) => set((state) => ({ jobs: [job, ...state.jobs] })),
+  removeJobsByAsset: (assetId) =>
+    set((state) => ({
+      jobs: state.jobs.filter((j) => j.asset_id !== assetId),
+    })),
 }));

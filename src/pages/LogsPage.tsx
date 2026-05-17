@@ -162,7 +162,7 @@ export default function LogsPage() {
               )}
             </div>
           ) : (
-            filteredLogs.map(log => {
+            [...filteredLogs].reverse().map(log => {
               const time = new Date(log.ts).toLocaleTimeString(i18n.language, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '.' + new Date(log.ts).getMilliseconds().toString().padStart(3, '0');
               const isExpandable = log.level === 'error';
               const expanded = expandedErrors[log.id];

@@ -38,6 +38,16 @@ fn poll<R: Runtime>(
     let app_state = app.state::<AppState>();
     let db = app_state.db.lock().map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
 
+    // Recuperar jobs presos em 'processing' há mais de 10 minutos
+    // (o sidecar pode ter crashado sem emitir job:failed)
+    let _ = db.execute(
+        "UPDATE jobs SET status='error', error='Timeout: processo interrompido inesperadamente', \
+         finished_at=datetime('now'), updated_at=datetime('now') \
+         WHERE status='processing' AND \
+         (julianday('now') - julianday(COALESCE(started_at, updated_at))) * 24 * 60 > 15",
+        [],
+    );
+
     // Contar jobs em processamento
     let running_count: i64 = db
         .query_row(
@@ -160,7 +170,7 @@ fn run_job<R: Runtime>(
     let ffprobe_path = super::sidecar::resolve_media_binary_path(app, "ffprobe");
     let resource_dir = app.path().resource_dir().ok();
 
-    // Settings
+    // Settings — output_dir
     let output_dir: String = {
         let state = app.state::<AppState>();
         let db = state.db.lock().map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
@@ -168,11 +178,25 @@ fn run_job<R: Runtime>(
             .query_row("SELECT value FROM settings WHERE key = 'output_dir'", [], |row| {
                 row.get::<_, String>(0)
             })
-            .unwrap_or_else(|_| {
-                std::env::temp_dir().join("nexora-output").to_string_lossy().into_owned()
-            });
-        row
+            .unwrap_or_default();
+            
+        if row.trim().is_empty() {
+            std::env::temp_dir().join("nexora-output").to_string_lossy().into_owned()
+        } else {
+            row
+        }
     };
+
+    // Garantir que o directório de saída existe antes de arrancar o sidecar
+    if let Err(e) = std::fs::create_dir_all(&output_dir) {
+        return Err(anyhow::anyhow!("Falha ao criar output_dir '{output_dir}': {e}"));
+    }
+    info!("[queue] output_dir: {}", output_dir);
+
+    // Verificar que o asset ainda existe no disco
+    if !std::path::Path::new(asset_path).exists() {
+        return Err(anyhow::anyhow!("Asset não encontrado no disco: {asset_path}"));
+    }
 
     let job_input = serde_json::json!({
         "jobId": job_id,
@@ -243,6 +267,7 @@ fn run_job<R: Runtime>(
                                     }
                                     "job:started" => {
                                         info!("Job started: {}", job_id_owned);
+                                        let _ = app_handle.emit("sidecar:event", &json);
                                     }
                                     "job:progress" => {
                                         if let (Some(progress), Some(step)) = (
@@ -257,6 +282,7 @@ fn run_job<R: Runtime>(
                                                 );
                                             }
                                         }
+                                        let _ = app_handle.emit("sidecar:event", &json);
                                     }
                                     "job:completed" => {
                                         let output_path = json.get("data").and_then(|d| d.get("outputPath")).and_then(|v| v.as_str());
@@ -299,21 +325,31 @@ fn run_job<R: Runtime>(
                                         ) {
                                             if let Ok(db) = app_handle.state::<AppState>().db.lock() {
                                                 let now = chrono::Utc::now().to_rfc3339();
+                                                // Usar NULL para campos opcionais sem valor (evitar strings vazias)
+                                                let duration_secs = data.get("duration_secs").and_then(|v| v.as_f64());
+                                                let video_codec = data.get("video_codec").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let audio_codec = data.get("audio_codec").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let width = data.get("width").and_then(|v| v.as_i64());
+                                                let height = data.get("height").and_then(|v| v.as_i64());
+                                                let fps = data.get("fps").and_then(|v| v.as_f64());
+                                                let metadata = data.get("metadata").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let status = data.get("status").and_then(|v| v.as_str()).unwrap_or("ingested");
                                                 let _ = db.execute(
                                                     "UPDATE assets SET duration_secs = ?, video_codec = ?, audio_codec = ?, width = ?, height = ?, fps = ?, metadata = ?, status = ?, updated_at = ? WHERE id = ?",
-                                                    [
-                                                        data.get("duration_secs").and_then(|v| v.as_f64()).map(|v| v.to_string()).unwrap_or_default().as_str(),
-                                                        data.get("video_codec").and_then(|v| v.as_str()).unwrap_or(""),
-                                                        data.get("audio_codec").and_then(|v| v.as_str()).unwrap_or(""),
-                                                        data.get("width").and_then(|v| v.as_i64()).map(|v| v.to_string()).unwrap_or_default().as_str(),
-                                                        data.get("height").and_then(|v| v.as_i64()).map(|v| v.to_string()).unwrap_or_default().as_str(),
-                                                        data.get("fps").and_then(|v| v.as_f64()).map(|v| v.to_string()).unwrap_or_default().as_str(),
-                                                        data.get("metadata").and_then(|v| v.as_str()).unwrap_or(""),
-                                                        data.get("status").and_then(|v| v.as_str()).unwrap_or(""),
-                                                        &now,
+                                                    rusqlite::params![
+                                                        duration_secs,
+                                                        video_codec,
+                                                        audio_codec,
+                                                        width,
+                                                        height,
+                                                        fps,
+                                                        metadata,
+                                                        status,
+                                                        now,
                                                         asset_id,
                                                     ],
                                                 );
+                                                info!("[queue] asset:updated — {asset_id} codec={:?} {}x{:?}", video_codec, width.unwrap_or(0), height);
                                             }
                                         }
                                     }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import {
   Plus,
@@ -68,7 +68,7 @@ export default function ProfilesPage() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { t } = useTranslation();
 
-  const fetchProfiles = async () => {
+  const fetchProfiles = useCallback(async () => {
     try {
       const data = await invoke<TranscodeProfile[]>('list_profiles');
       const sorted = data.sort((a, b) => {
@@ -106,7 +106,7 @@ export default function ProfilesPage() {
           id: 'web-4k',
           name: 'web-4k',
           is_system: true,
-          description: 'Streaming 4K UHD',
+          description: t('profiles.fallback.web4k'),
           resolution: '3840x2160',
           video_bitrate_k: 25000,
         },
@@ -125,7 +125,7 @@ export default function ProfilesPage() {
           name: 'proxy',
           is_system: true,
           description: t('profiles.fallback.proxy'),
-          resolution: '1280x720',
+          resolution: '960x540',
           video_bitrate_k: 2000,
         },
         {
@@ -141,12 +141,11 @@ export default function ProfilesPage() {
       setProfiles(fallback);
       if (!selectedProfileId) setSelectedProfileId(fallback[0].id);
     }
-  };
+  }, [selectedProfileId, t]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchProfiles();
-  }, []); // fetchProfiles e useCallback — executa apenas na montagem
+  }, [fetchProfiles]);
 
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) || null;
 

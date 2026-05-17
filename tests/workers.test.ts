@@ -3,11 +3,13 @@ import type { Mock } from 'vitest';
 
 // QCPreWorker — stateless, lê metadados do ctx (não da BD)
 
-vi.mock('fs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('fs')>();
+vi.mock('fs', () => {
+  const statSyncMock = vi.fn();
   return {
-    ...actual,
-    statSync: vi.fn(),
+    statSync: statSyncMock,
+    default: {
+      statSync: statSyncMock,
+    },
   };
 });
 

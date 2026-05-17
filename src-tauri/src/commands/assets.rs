@@ -1,5 +1,4 @@
 use crate::state::AppState;
-use chrono::Utc;
 use rusqlite::Row;
 use serde::{Deserialize, Serialize};
 use tauri::State;
@@ -63,10 +62,14 @@ fn collect_assets(
 }
 
 #[tauri::command]
-pub fn ingest_asset(path: String, state: State<AppState>) -> Result<Asset, String> {
+pub fn ingest_asset(
+    path: String,
+    app: tauri::AppHandle,
+    state: State<AppState>,
+) -> Result<Asset, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let id = Uuid::new_v4().to_string();
-    let now = Utc::now().to_rfc3339();
+    let now = chrono::Utc::now().to_rfc3339();
     let filename = std::path::Path::new(&path)
         .file_name()
         .and_then(|n| n.to_str())
@@ -74,12 +77,55 @@ pub fn ingest_asset(path: String, state: State<AppState>) -> Result<Asset, Strin
         .to_string();
     let size_bytes = std::fs::metadata(&path).ok().map(|m| m.len() as i64);
 
+    // Extrair metadata com FFprobe imediatamente (não espera pelo sidecar)
+    let probe = run_ffprobe(&app, &path);
+    let duration_secs = probe.as_ref().ok().and_then(|p| {
+        p.get("format")?.get("duration")?.as_str()?.parse::<f64>().ok()
+    });
+    let video_stream = probe.as_ref().ok().and_then(|p| {
+        p.get("streams")?.as_array()?.iter()
+            .find(|s| s.get("codec_type").and_then(|v| v.as_str()) == Some("video"))
+            .cloned()
+    });
+    let audio_stream = probe.as_ref().ok().and_then(|p| {
+        p.get("streams")?.as_array()?.iter()
+            .find(|s| s.get("codec_type").and_then(|v| v.as_str()) == Some("audio"))
+            .cloned()
+    });
+    let video_codec = video_stream.as_ref()
+        .and_then(|v| v.get("codec_name")?.as_str().map(str::to_string));
+    let audio_codec = audio_stream.as_ref()
+        .and_then(|a| a.get("codec_name")?.as_str().map(str::to_string));
+    let width = video_stream.as_ref()
+        .and_then(|v| v.get("width")?.as_i64());
+    let height = video_stream.as_ref()
+        .and_then(|v| v.get("height")?.as_i64());
+    let fps: Option<f64> = video_stream.as_ref().and_then(|v| {
+        let fr = v.get("r_frame_rate")?.as_str()?;
+        if let Some((n, d)) = fr.split_once('/') {
+            let n: f64 = n.parse().ok()?;
+            let d: f64 = d.parse().ok()?;
+            if d > 0.0 { Some((n / d * 100.0).round() / 100.0) } else { None }
+        } else {
+            fr.parse().ok()
+        }
+    });
+    let metadata_json = probe.ok().map(|p| serde_json::to_string(&p).unwrap_or_default());
+
     db.execute(
-        "INSERT INTO assets (id, path, filename, status, size_bytes, created_at, updated_at)
-         VALUES (?1, ?2, ?3, 'pending', ?4, ?5, ?5)",
-        rusqlite::params![id, path, filename, size_bytes, now],
+        "INSERT INTO assets (id, path, filename, status, size_bytes, duration_secs, \
+         video_codec, audio_codec, width, height, fps, metadata, created_at, updated_at) \
+         VALUES (?1, ?2, ?3, 'pending', ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?12)",
+        rusqlite::params![
+            id, path, filename, size_bytes, duration_secs,
+            video_codec, audio_codec, width, height, fps,
+            metadata_json, now
+        ],
     )
     .map_err(|e| e.to_string())?;
+
+    let metadata_val = metadata_json.as_deref()
+        .and_then(|s| serde_json::from_str(s).ok());
 
     Ok(Asset {
         id,
@@ -87,17 +133,39 @@ pub fn ingest_asset(path: String, state: State<AppState>) -> Result<Asset, Strin
         filename,
         status: "pending".to_string(),
         size_bytes,
-        duration_secs: None,
-        video_codec: None,
-        audio_codec: None,
-        width: None,
-        height: None,
-        fps: None,
+        duration_secs,
+        video_codec,
+        audio_codec,
+        width,
+        height,
+        fps,
         created_at: now.clone(),
         updated_at: now,
-        metadata: None,
+        metadata: metadata_val,
     })
 }
+
+/// Executa ffprobe e retorna o JSON completo como Value
+fn run_ffprobe(app: &tauri::AppHandle, path: &str) -> Result<serde_json::Value, String> {
+    let ffprobe = crate::sidecar::resolve_media_binary_path(app, "ffprobe");
+    let output = std::process::Command::new(&ffprobe)
+        .args([
+            "-v", "quiet",
+            "-print_format", "json",
+            "-show_streams",
+            "-show_format",
+            path,
+        ])
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if !output.status.success() {
+        return Err(format!("ffprobe exit code: {:?}", output.status.code()));
+    }
+
+    serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())
+}
+
 
 #[tauri::command]
 pub fn list_assets(status: Option<String>, state: State<AppState>) -> Result<Vec<Asset>, String> {
@@ -111,9 +179,7 @@ pub fn list_assets(status: Option<String>, state: State<AppState>) -> Result<Vec
         ),
         None => collect_assets(
             &db,
-            &format!(
-                "SELECT {COLS} FROM assets WHERE status != 'deleted' ORDER BY created_at DESC"
-            ),
+            &format!("SELECT {COLS} FROM assets ORDER BY created_at DESC"),
             None,
         ),
     }
@@ -122,16 +188,55 @@ pub fn list_assets(status: Option<String>, state: State<AppState>) -> Result<Vec
 #[tauri::command]
 pub fn delete_asset(id: String, state: State<AppState>) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let now = Utc::now().to_rfc3339();
-    let affected = db
-        .execute(
-            "UPDATE assets SET status = 'deleted', updated_at = ?1 WHERE id = ?2",
-            rusqlite::params![now, id],
-        )
+
+    // 1. Recolher caminhos de output dos jobs para apagar ficheiros gerados
+    let mut stmt = db
+        .prepare("SELECT output_path FROM jobs WHERE asset_id = ?1 AND output_path IS NOT NULL")
         .map_err(|e| e.to_string())?;
+    let output_paths: Vec<String> = stmt
+        .query_map([&id], |row| row.get::<_, String>(0))
+        .map_err(|e| e.to_string())?
+        .filter_map(|r| r.ok())
+        .collect();
+
+    // 2. Cancelar jobs queued/processing deste asset (o queue poller vai ignorá-los)
+    let now = chrono::Utc::now().to_rfc3339();
+    let _ = db.execute(
+        "UPDATE jobs SET status='cancelled', updated_at=?1 \
+         WHERE asset_id=?2 AND status IN ('queued','processing')",
+        rusqlite::params![now, id],
+    );
+
+    // 3. Apagar entradas de audit_log associadas aos jobs deste asset
+    let _ = db.execute(
+        "DELETE FROM audit_log WHERE job_id IN \
+         (SELECT id FROM jobs WHERE asset_id=?1)",
+        rusqlite::params![id],
+    );
+
+    // 4. Apagar todos os jobs deste asset
+    db.execute(
+        "DELETE FROM jobs WHERE asset_id=?1",
+        rusqlite::params![id],
+    )
+    .map_err(|e| e.to_string())?;
+
+    // 5. Hard delete do asset
+    let affected = db
+        .execute("DELETE FROM assets WHERE id=?1", rusqlite::params![id])
+        .map_err(|e| e.to_string())?;
+
     if affected == 0 {
         return Err(format!("Asset '{}' não encontrado", id));
     }
+
+    // 6. Apagar ficheiros gerados do disco (não crítico — falhas são ignoradas)
+    for path in output_paths {
+        if !path.is_empty() {
+            let _ = std::fs::remove_file(&path);
+        }
+    }
+
     Ok(())
 }
 

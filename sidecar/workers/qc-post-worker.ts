@@ -1,8 +1,9 @@
 import { createReadStream, existsSync } from 'fs';
+import { readFile, unlink } from 'fs/promises';
 import { createHash } from 'crypto';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import { resolve } from 'path';
+import { resolve, relative } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { emit } from '../events';
 import { getFfmpegPath } from '../binaries';
@@ -75,27 +76,40 @@ export class QCPostWorker {
     ];
     const modelPath = modelCandidates.find(p => p && existsSync(p)) ?? '';
 
-    // Verificar se o modelo existe; se não, usar modelo embutido do FFmpeg (se disponível)
+    // Converter para caminho relativo de forma a evitar os problemas de escaping
+    // com a letra do disco (ex: C:) que partem o parser do FFmpeg.
+    const relModelPath = modelPath ? relative(process.cwd(), modelPath) : '';
+    const safeModelPath = relModelPath.replace(/\\/g, '/');
     const hasModel = !!modelPath;
+    
+    const tempLogFile = distorted + '.vmaf.json';
+    const relLogPath = relative(process.cwd(), tempLogFile).replace(/\\/g, '/');
+
     const filter = hasModel
-      ? `libvmaf=model='path=${modelPath}':log_path='-':log_fmt=json:n_subsample=5`
-      : `libvmaf=log_path='-':log_fmt=json:n_subsample=5`;
+      ? `[0:v]scale=1920:1080:flags=bicubic[dist];[1:v]scale=1920:1080:flags=bicubic[ref];[dist][ref]libvmaf=model=path=${safeModelPath}:log_path=${relLogPath}:log_fmt=json:n_subsample=5`
+      : `[0:v]scale=1920:1080:flags=bicubic[dist];[1:v]scale=1920:1080:flags=bicubic[ref];[dist][ref]libvmaf=log_path=${relLogPath}:log_fmt=json:n_subsample=5`;
 
-    const { stdout } = await execFileAsync(ffmpeg, [
-      '-i', distorted,
-      '-i', reference,
-      '-lavfi', filter,
-      '-f', 'null',
-      '-',
-    ], { timeout: 3600_000, maxBuffer: 50 * 1024 * 1024 });
-
-    // Procurar JSON no stdout
-    const jsonMatch = stdout.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('VMAF: JSON de resultado não encontrado no stdout');
+    try {
+      await execFileAsync(ffmpeg, [
+        '-i', distorted,
+        '-i', reference,
+        '-lavfi', filter,
+        '-f', 'null',
+        '-',
+      ], { timeout: 3600_000, maxBuffer: 50 * 1024 * 1024 });
+    } catch (e) {
+      // Ignora erro de exit code, vmaf pode ter escrito o json antes de falhar ou
+      // o null muxer causar EOF error
     }
 
-    const vmafData = JSON.parse(jsonMatch[0]) as {
+    if (!existsSync(tempLogFile)) {
+      throw new Error('VMAF: ficheiro de log não foi gerado pelo FFmpeg');
+    }
+
+    const jsonContent = await readFile(tempLogFile, 'utf8');
+    await unlink(tempLogFile).catch(() => {});
+
+    const vmafData = JSON.parse(jsonContent) as {
       pooled_metrics?: { vmaf?: { mean?: number; min?: number; max?: number; harmonic_mean?: number } };
       frames?: Array<{ metrics?: { vmaf?: number } }>;
     };

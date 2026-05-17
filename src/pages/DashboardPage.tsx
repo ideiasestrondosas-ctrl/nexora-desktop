@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { Archive, Activity, Gauge, Clock, Loader2, Film, ChevronRight } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 
 // Backend retorna camelCase via serde(rename_all = "camelCase")
@@ -250,7 +250,7 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
                   { fill: '#ef4444' }, { fill: '#eab308' },
                   { fill: '#22c55e' }, { fill: '#1A6FD4' },
                 ].map((entry, i) => (
-                  <rect key={i} fill={entry.fill} />
+                  <Cell key={i} fill={entry.fill} />
                 ))}
               </Bar>
             </BarChart>
