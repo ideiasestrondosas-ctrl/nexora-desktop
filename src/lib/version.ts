@@ -3,7 +3,7 @@
  * Actualizar aqui em cada release — propaga automaticamente
  * para todos os sítios que mostram a versão.
  */
-export const APP_VERSION = '0.19.0';
+export const APP_VERSION = '0.20.0';
 
 export interface VersionEntry {
   version: string;
@@ -11,6 +11,11 @@ export interface VersionEntry {
 }
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: '0.20.0',
+    description:
+      'v0.20.0: output_dir padrão para Videos/Nexora Output, MediaInfo original vs processado com toggle, caminho do ficheiro visível no player, SHA-256 e TAGS no Copy All, limpeza GitHub, Videos_Tests incluídos.',
+  },
   {
     version: '0.19.0',
     description:

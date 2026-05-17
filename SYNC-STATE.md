@@ -5,127 +5,71 @@
 
 ---
 
-Actualizado: 2026-05-17 15:30
+Actualizado: 2026-05-17 17:00
 Agente: Claude Code
 
 ## O que foi feito
 
-### Sessao Actual — v0.19.0 Bump + Bug Fixes Criticos + UX Fila — CONCLUIDO
+### Sessao Actual — v0.20.0 Melhorias + GitHub Cleanup — CONCLUIDO
 
-**Commit:** `38171df` em `dev`
+**Commit mais recente:** `457fb6f` em `dev` (Videos_Tests)
 
-**Bugs corrigidos:**
+**v0.20.0 completo — tudo concluido:**
 
-1. **B1** — QueuePage: botao "Abrir ficheiro processado" agora tem openPath + import correcto
-2. **B2** — proxy-worker.ts: corrigido "width not divisible by 2" com `pad=ceil(iw/2)*2:ceil(ih/2)*2` apos scale
-3. **B3** — Bump versao 0.18.0 → 0.19.0 em package.json, Cargo.toml, tauri.conf.json, version.ts, CHANGELOG.md
-4. **B4** — App.tsx: reset isDragging no evento `tauri://blur` para evitar crash ao alt-tab durante drag
-5. **F1** — DashboardPage: Jobs Recentes agora tem `max-h-[520px] overflow-y-auto`
-6. **F3** — i18n: adicionadas chaves showAll/showLess e outputDirTitle/outputDirDefault em 15 locales
+1. **v0.20.0-A** — settings.rs: `default_output_dir()` aponta para `Videos/Nexora Output` (Windows/macOS/Linux) em vez de temp
+2. **v0.20.0-B** — AssetDetailPage: toggle Original/Processado na aba Metadados com banner de caminho; MediaInfoPanel mostra metadata do ficheiro activo
+3. **v0.20.0-C** — Player inline: caminho do ficheiro visivel sob o toggle (path completo truncado)
+4. **v0.20.0-D** — GitHub cleanup COMPLETO:
+   - Merge dev → main (fast-forward, commit `30d968a`)
+   - Branch `chore/audit-v0.18` eliminada (local + remoto)
+   - 11 PRs Dependabot encerrados (#1–#11)
+   - 6 releases draft eliminadas (v0.17.0, v0.16.0, v0.15.0, v0.14.0, v0.3.5, v0.3.4)
+   - Repositorio limpo: apenas branches `main` e `dev`, sem releases nem PRs abertos
+5. **v0.20.0-E** — Videos_Tests/ adicionado ao git (18 samples: 5s/10s/15s/20s/30s em 360p/720p/1080p/2160p/H265/VP9)
 
-**Funcionalidades novas:**
+**Correcoes adicionais no AssetDetailPage:**
 
-- **BatchSubmitModal** mostra pasta de output actual e permite mudá-la sem ir às Settings (FolderOpen inline)
-- **QueuePage Concluidos**: tabela mostra agora nome do ficheiro processado (truncado) sob o original, e o erro quando existe
-- **Tooltips** em todos os botões de acção da Fila (Cancelar, Retry, Abrir ficheiro)
+- Duracao dos jobs calculada de `started_at`/`finished_at` (era hardcoded "2m 04s")
+- Data de inicio mostra `started_at` com hora (era `created_at` sem hora)
+- `output_path` no historico: path completo + botao ExternalLink
 
-**Estado de compilacao:**
+**MediaInfoPanel — Copy All:**
 
-- `tsc --noEmit`: OK (0 erros)
-- `cargo check`: OK — v0.19.0 compilado com sucesso
+- Adicionados TAGS e SHA-256 na funcao `generateTextReport()`
 
----
-
-**Bugs corrigidos e melhorias nesta sessao:**
-
-1. **Vitest 15/15 Passando:**
-   - Corrigido o mock do módulo nativo `fs` em `tests/workers.test.ts` utilizando uma exportação síncrona com `default` e named exports. Isto resolveu de vez o erro `No "default" export is defined` e problemas de hoisting/ReferenceError no Vitest.
-   - Resolvido o erro do teste do orchestrator (`tests/orchestrator.test.ts`) movendo a emissão do evento `job:started` diretamente para a classe `NexoraDesktopOrchestrator.ts`.
-   - Limpeza das emissões duplicadas dos eventos de ciclo de vida do job em `sidecar/index.ts` (started, completed, failed são agora geridos apenas pelo orchestrator).
-   - Resolvido o erro de importação do arquivo de testes da fila (`tests/queue.test.ts`) substituindo-o por um teste documentado explicativo, uma vez que a fila síncrona local foi removida na migração para o sidecar stateless.
-2. **Correção VMAF no Windows (Definitiva):** Resolvido completamente o problema de parsing e escala do VMAF no FFmpeg. O libvmaf exige inputs com a mesma resolução que o modelo (1080p), pelo que se adicionou filtros de scale bicubic antes do cálculo. Para evitar problemas de stdout corrompido, o worker agora grava os logs JSON do VMAF num ficheiro temporário gerado através de um caminho relativo.
-   2.1. **Correção UI "A carregar detalhes":** Corrigido o loop de loading infinito no ecrã de AssetDetailPage.tsx. Separou-se a lógica de loading da lógica de asset não encontrado.
-3. **Navegação de Detalhes na Biblioteca:** Passado o callback `onSelectAsset` do `App.tsx` para o `LibraryPage.tsx`. Agora os botões de abrir detalhes (`ExternalLink`) e os cabeçalhos/nomes de vídeos em vista Grid e Lista são clicáveis e abrem a ficha de detalhes.
-4. **Redesign de Detalhes em Tabs Modernas:** Remodelada a ficha técnica no `AssetDetailPage.tsx` para apresentar as informações em abas horizontais modernas (Relatório QC, Metadados Técnicos, Histórico de Processamento), otimizando drasticamente a legibilidade e o espaço útil.
-5. **Robustez no Script de Sincronização (`sync.ps1`):** Resolvido o problema de bloqueio de ficheiros no Windows (File Locking). O script agora remove automaticamente os atributos de "Somente Leitura" (Read-Only) nos ficheiros do workspace antes de commitar (Opção A) e, caso o commit standard falhe por bloqueio ou erros do linter/formatter, oferece um fallback interativo para forçar o commit usando `--no-verify` (Opção B).
-6. **Exclusão de Media do Repositório:** Atualizado o `sync.ps1` e `.gitignore` para detetar e bloquear explicitamente a sincronização de ficheiros gerados de processamento e vídeos de sample (mp4, mkv, wav, thumbs, proxies) prevenindo uploads desnecessários para o GitHub.
-
----
-
-**Auditoria completa T01–T25 (`chore/audit-v0.18`):**
-
-1. **T01–T06 (Bugs criticos):** drag-drop config, handler DropZone, spawn sidecar, versao dinamica
-2. **T07–T08 (Seguranca):** CSP granular, capabilities least-privilege
-3. **T09–T12 (Arquitectura):** SQLite unico no Rust, eventos vs polling, settings via tauri-plugin-store, logging unificado
-4. **T13–T14 (Dependencias):** sonner, Radix, recharts; migrar toasts
-5. **T15–T17 (UX):** HelpModal Radix Dialog, virtualizacao LibraryPage, graficos recharts
-6. **T18–T19 (Qualidade):** ESLint flat config, Prettier, Husky + lint-staged
-7. **T20 (Bundle):** rollup-plugin-visualizer
-8. **T21 (Testes):** vitest + Testing Library, DropZone.test.tsx (8 testes)
-9. **T22 (CI):** GitHub Actions lint+test+rust-check + Dependabot
-10. **T23 (Docs):** docs/RELEASE.md (code signing)
-11. **T24 (Telemetria):** opt-in Sentry desactivado por defeito
-12. **T25 (Release):** bump v0.18.0 em package.json, Cargo.toml, tauri.conf.json, CHANGELOG.md
+**Versao bumped:** 0.19.0 → 0.20.0 em package.json, Cargo.toml, tauri.conf.json, version.ts, CHANGELOG.md
 
 ---
 
 ## Estado de compilacao
 
-- `tsc --noEmit`: **OK** (0 erros)
-- `cargo check`: **OK** (0 erros)
+- `tsc --noEmit`: **OK** (0 erros — verificar apos as alteracoes de hoje)
+- `cargo check`: **OK** (0 erros — v0.20.0)
 - `npm run lint`: **OK** (0 warnings)
 - `npm run sidecar:build`: **OK** (31.7kb)
-- `vitest run`: **OK** (15 testes a passar em 4 suites de testes)
+- `vitest run`: **OK** (15 testes)
 - Validacao JSON i18n: **OK** (15 linguas completas)
 
 ---
 
-## Proximos passos (v0.20.0 — proxima sessao)
+## Estado das branches
 
-Aguardar validação manual do utilizador (tauri dev + drag-drop + processamento).
-
-| Tarefa                                                                                 | Prioridade |
-| -------------------------------------------------------------------------------------- | ---------- |
-| Testar fluxo real: tauri dev + drag-drop + processamento com novos fixes               | Critica    |
-| Verificar se reprocess/retry funciona realmente (o job volta a processar)              | Alta       |
-| **v0.20.0-A:** Default output_dir → Documents/Nexora Output (nao temp)                 | Alta       |
-| **v0.20.0-B:** AssetDetailPage — MediaInfo mais detalhado (GENERAL/VIDEO/AUDIO/SHA256) | Media      |
-| **v0.20.0-C:** Player inline no detalhe — original vs processado side-by-side          | Media      |
-| **v0.20.0-D:** Merge dev → main + GitHub cleanup (branches, PRs, releases)             | Baixa      |
-| **v0.20.0-E:** Videos_Tests/ incluir no GitHub (só se nao existir)                     | Baixa      |
+- `dev`: commit `457fb6f` — v0.20.0 completo (ainda nao pushed — fazer `git push origin dev`)
+- `main`: commit `30d968a` — v0.20.0 merged
+- Remote: apenas `main` e `dev`
 
 ---
 
-## Branch actual
+## Proximos passos (v0.21.0 ou validacao manual)
 
-`dev` — v0.19.0 pronto para merge em main apos validacao
-
-## Ficheiros chave modificados (v0.18.0)
-
-```
-MODIFICADOS NESTA SESSÃO:
-sidecar/workers/qc-post-worker.ts — correção de caminhos VMAF no Windows
-src/App.tsx                     — propagação de onSelectAsset à LibraryPage
-src/pages/LibraryPage.tsx       — conectividade de detalhes de vídeos e links clicáveis
-src/pages/AssetDetailPage.tsx   — ecrã em tabs horizontais premium (QC, Metadados, Jobs)
-tests/workers.test.ts           — mock síncrono completo do fs para testes Vitest
-tests/queue.test.ts             — bypass amigável com explicação de migração stateless
-sidecar/orchestrator/NexoraDesktopOrchestrator.ts — emissão de job:started em run()
-sidecar/index.ts                — remoção de emits duplicados
-scripts/sync.ps1                — automatização e exclusão de media (Read-Only reset, fallback, exclude proxy/thumbs)
-.gitignore                      — exclusão explícita de samples e media gerada
-
-MODIFICADOS (auditoria anterior):
-src-tauri/tauri.conf.json       — dragDrop, CSP, versao 0.18.0
-src-tauri/capabilities/default.json — drag-drop + least-privilege
-src-tauri/Cargo.toml            — versao 0.18.0
-src/store/settings.ts           — telemetry opt-in + tauri-plugin-store
-src/pages/SettingsPage.tsx      — toggle telemetria
-src/lib/version.ts              — APP_VERSION 0.18.0
-package.json                    — v0.18.0, husky, lint-staged, deps
-vite.config.ts                  — visualizer, manual chunks
-CHANGELOG.md                    — entrada v0.18.0
-```
+| Tarefa                                                                   | Prioridade |
+| ------------------------------------------------------------------------ | ---------- |
+| Fazer `git push origin dev` para sincronizar Videos_Tests + version bump | Critica    |
+| Testar fluxo real: tauri dev + drag-drop + processamento                 | Critica    |
+| Verificar se retry/reprocess funciona (job volta a processing)           | Alta       |
+| Actualizar screenshots e manual do utilizador (15 linguas)               | Media      |
+| Verificar que o main tem builds Windows/macOS/Linux para v0.19.0         | Media      |
+| Criar release v0.20.0 no GitHub com notas e binarios                     | Baixa      |
 
 ---
 
@@ -134,7 +78,8 @@ CHANGELOG.md                    — entrada v0.18.0
 - **Sidecar dist nao esta no git** — correr `npm run sidecar:build` antes de cada `tauri dev`
 - **15 linguas i18n completas** — ao adicionar texto novo, traduzir SEMPRE todos os 15 locales em `src/i18n/locales/`
 - **FFmpeg execFile** — NUNCA usar `exec` com string; sempre `execFile` com array de argumentos
-- **VMAF model escaping no Windows** — no filtergraph `-lavfi`, os caminhos absolutos como `C:/path` no Windows geram erro por causa dos dois pontos `:`. Substituir sempre por `C\:/path` no `libvmaf=model='path=...'`.
+- **VMAF model escaping no Windows** — no filtergraph `-lavfi`, os caminhos absolutos como `C:/path` no Windows geram erro. Substituir sempre por `C\:/path` no `libvmaf=model='path=...'`.
 - **QCPreWorker** — lanca erro se `!ctx.assetVideoCodec` (null/undefined); o IngestWorker garante que esta preenchido apos o passo 0
 - **tauri-plugin-store** — settings persistem em ficheiro nativo; nao usar localStorage
-- **Ollama para traducoes** — script `scripts/translate-all.cjs` suporta resume automatico
+- **INSERT OR IGNORE em settings** — o `ensure_defaults()` so insere se a chave nao existir; utilizadores existentes MANTEM o output_dir anterior
+- **Videos_Tests/** — ja no git; nao ignorado; 18 samples de video de teste

@@ -6,6 +6,27 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-05-17
+
+### Added
+
+- MediaInfo no Detalhe de Asset com toggle Original/Processado e banner de caminho do ficheiro processado
+- Caminho do ficheiro visível sob o toggle do player (original e processado)
+- SHA-256 e TAGS incluídos na função "Copiar Tudo" do MediaInfoPanel
+- Videos_Tests/ com 18 samples de vídeo (5s/10s/15s/20s/30s em 360p/720p/1080p/2160p/H265/VP9)
+
+### Fixed
+
+- output_dir padrão aponta para Videos/Nexora Output (não para pasta temp do sistema)
+- Duração dos jobs no histórico calculada a partir de started_at/finished_at (não hardcoded)
+- Data de início no histórico mostra hora real (não só a data de criação)
+- Caminho do ficheiro processado no histórico de jobs mostra o path completo com botão abrir
+
+### Changed
+
+- Limpeza GitHub: eliminação de branches auxiliares, encerramento de 11 PRs Dependabot, remoção de 6 releases draft antigas
+- Repositório limpo com apenas branches main e dev
+
 ## [0.19.0] - 2026-05-17
 
 ### Added
