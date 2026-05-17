@@ -1,5 +1,6 @@
 {
   "name": "social",
+  "labelFriendly": "Redes Sociais (Instagram / TikTok)",
   "description": "Redes sociais — Instagram / YouTube / TikTok",
   "videoCodec": "libx264",
   "videoBitrateK": 4000,

@@ -5,12 +5,12 @@
 
 ---
 
-Actualizado: 2026-05-17 18:15
+Actualizado: 2026-05-17 18:35
 Agente: Claude Code (Sonnet 4.6)
 
 ## O que foi feito
 
-### Sessao 2 — v0.21.0 Bug Fixes + Performance + UX — CONCLUIDO
+### Sessao 3 — v0.21.0 UX + Performance — CONCLUIDO
 
 **Sessao 1 (anterior):**
 
@@ -25,7 +25,7 @@ Agente: Claude Code (Sonnet 4.6)
 - P2: Novo comando `list_assets_slim` sem campo metadata pesado
 - i18n: Adicionadas chaves `cannotCancelState`, `cannotRetryState`, `retryQueued` (15 linguas)
 
-**Sessao 2 (esta sessao):**
+**Sessao 2 (anterior):**
 
 - P1: QueuePage passa de polling 2s para 30s + `listen('sidecar:event', fetchData)` (push events)
 - P1: DashboardPage idem — 30s polling + push events
@@ -33,8 +33,15 @@ Agente: Claude Code (Sonnet 4.6)
 - F3: App.tsx passa `onSelectAsset={handleSelectAsset}` a QueuePage
 - F5: Tooltips em LibraryPage (grid/list toggles, ExternalLink, Play, Trash2)
 - F5: Tooltip no botao Play overlay em AssetDetailPage
-- i18n: Adicionadas chaves em falta em 15 linguas: `rejected`, `step`, `gpuNvenc`, `rejectedManual`, `openProcessedFile`, `viewAsset`, `gridView`, `listView`
-- Corrigidos valores errados (inglês) no locale `pt` para `rejected`/`rejectedManual`
+- i18n: Adicionadas chaves em falta em 15 linguas
+
+**Sessao 3 (esta sessao):**
+
+- UX1: Mensagens de startup amigaveis — sem referencias a PATH/npm; i18n `startup.*` em 15 linguas
+- UX2: Campo `labelFriendly` em todos os 8 profiles JSON; `TranscodeProfile` interface actualizada; Rust `Profile` struct com `label_friendly: Option<String>`; ProfilesPage mostra label amigavel como titulo principal
+- UX3: Empty state no Dashboard quando `totalAssets === 0` — Upload icon, mensagem, botao "Adicionar Video"; i18n `dashboard.emptyTitle/emptyHint/addFirstVideo` em 15 linguas
+- UX4: Pipeline 3 fases visuais (`PIPELINE_PHASES`) em vez de 8 passos independentes — "A analisar", "A converter", "A verificar e guardar"; StepIcon removido; i18n `queue.phaseAnalyse/phaseConvert/phaseVerify` em 15 linguas
+- P3: React.lazy + Suspense para DashboardPage, LogsPage, ProfilesPage em App.tsx
 
 ---
 
@@ -49,23 +56,19 @@ Agente: Claude Code (Sonnet 4.6)
 
 ## Estado das branches
 
-- `dev`: changes not yet committed — fazer commit + push
+- `dev`: Sessoes 1+2+3 nao committed — fazer commit + push
 - `main`: commit anterior (v0.20.0 area)
 - Remote: apenas `main` e `dev`
 
 ---
 
-## Proximos passos (Sessao 3 — UX + Performance)
+## Proximos passos (Sessao 4 — Validacao + Screenshots)
 
-| Tarefa                                                              | Prioridade | Plan item |
-| ------------------------------------------------------------------- | ---------- | --------- |
-| Empty state Dashboard quando totalAssets === 0                      | Alta       | UX3       |
-| Mensagens startup mais amigaveis para utilizadores normais          | Media      | UX1       |
-| Perfis com `label_friendly` (broadcast-hd → Alta Qualidade, etc.)   | Media      | UX2       |
-| Pipeline: 3 fases visuais em vez de 8 passos tecnicos               | Media      | UX4       |
-| Lazy loading com React.lazy (DashboardPage, LogsPage, ProfilesPage) | Baixa      | P3        |
-| Actualizar screenshots (Sessao 4)                                   | Baixa      | -         |
-| Auditoria i18n 15 linguas (Sessao 4)                                | Baixa      | -         |
+| Tarefa                                                 | Prioridade | Plan item |
+| ------------------------------------------------------ | ---------- | --------- |
+| Actualizar screenshots / documentacao visual           | Media      | -         |
+| Auditoria i18n 15 linguas (chaves orfas / em falta)    | Media      | -         |
+| npm run sidecar:build + tauri dev — testar golden path | Alta       | -         |
 
 ---
 

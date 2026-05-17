@@ -9,6 +9,7 @@ use uuid::Uuid;
 pub struct Profile {
     pub id: String,
     pub name: String,
+    pub label_friendly: Option<String>,
     pub description: String,
     pub container: String,
     pub video_codec: String,
@@ -37,6 +38,7 @@ fn system_profiles() -> Vec<Profile> {
             Some(Profile {
                 id: id.to_string(),
                 name: v["name"].as_str().unwrap_or(id).to_string(),
+                label_friendly: v["labelFriendly"].as_str().map(|s| s.to_string()),
                 description: v["description"].as_str().unwrap_or("").to_string(),
                 container: "mp4".to_string(),
                 video_codec: v["videoCodec"].as_str().unwrap_or("libx264").to_string(),
@@ -54,6 +56,7 @@ fn row_to_profile(row: &rusqlite::Row) -> rusqlite::Result<Profile> {
     Ok(Profile {
         id: row.get(0)?,
         name: row.get(1)?,
+        label_friendly: None,
         description: row.get(2)?,
         container: row.get(3)?,
         video_codec: row.get(4)?,
@@ -120,6 +123,7 @@ pub fn create_profile(profile: ProfileInput, state: State<AppState>) -> Result<P
     Ok(Profile {
         id,
         name: profile.name,
+        label_friendly: None,
         description,
         container,
         video_codec: profile.video_codec,

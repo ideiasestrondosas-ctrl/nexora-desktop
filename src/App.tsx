@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { listen } from '@tauri-apps/api/event';
@@ -15,12 +15,12 @@ import {
   Upload,
 } from 'lucide-react';
 
-import DashboardPage from '@/pages/DashboardPage';
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 import LibraryPage from '@/pages/LibraryPage';
 import QueuePage from '@/pages/QueuePage';
-import ProfilesPage from '@/pages/ProfilesPage';
+const ProfilesPage = lazy(() => import('@/pages/ProfilesPage'));
 import SettingsPage from '@/pages/SettingsPage';
-import LogsPage from '@/pages/LogsPage';
+const LogsPage = lazy(() => import('@/pages/LogsPage'));
 import AssetDetailPage from '@/pages/AssetDetailPage';
 import TopBar from '@/components/TopBar';
 import { HelpOverlay } from '@/components/HelpModal';
@@ -151,7 +151,7 @@ function App() {
           toast.error(
             t(
               'startup.nodeMissing',
-              'Node.js não encontrado no PATH. Instale o Node.js 20+ para o processamento de vídeo funcionar.',
+              'As ferramentas de processamento de vídeo não foram encontradas. Consulte a secção Ajuda para instalar os requisitos.',
             ),
             { duration: Number.POSITIVE_INFINITY },
           );
@@ -160,7 +160,7 @@ function App() {
           toast.error(
             t(
               'startup.ffmpegMissing',
-              'FFmpeg/FFprobe não encontrados. Instale o FFmpeg e adicione ao PATH para ingerir vídeos.',
+              'O motor de conversão de vídeo não está disponível. Consulte a secção Ajuda para instalar os requisitos.',
             ),
             { duration: Number.POSITIVE_INFINITY },
           );
@@ -169,7 +169,7 @@ function App() {
           toast.warning(
             t(
               'startup.sidecarMissing',
-              'Script do Sidecar não encontrado. Execute npm run sidecar:build se estiver em desenvolvimento.',
+              'Componente interno em falta. Reinstale a aplicação ou contacte o suporte.',
             ),
             { duration: Number.POSITIVE_INFINITY },
           );
@@ -323,19 +323,30 @@ function App() {
             activeTab === 'library' ? 'flex flex-col overflow-hidden' : 'overflow-y-auto',
           )}
         >
-          {activeTab === 'dashboard' && (
-            <DashboardPage onNavigate={handleNavigate} onSelectAsset={handleSelectAsset} />
-          )}
-          {activeTab === 'library' && (
-            <LibraryPage onImportRequest={handleImportRequest} onSelectAsset={handleSelectAsset} />
-          )}
-          {activeTab === 'queue' && <QueuePage onSelectAsset={handleSelectAsset} />}
-          {activeTab === 'profiles' && <ProfilesPage />}
-          {activeTab === 'settings' && <SettingsPage />}
-          {activeTab === 'logs' && <LogsPage />}
-          {activeTab === 'detail' && selectedAssetId && (
-            <AssetDetailPage assetId={selectedAssetId} onBack={() => setActiveTab('library')} />
-          )}
+          <Suspense
+            fallback={
+              <div className="h-full flex items-center justify-center text-text-muted animate-pulse">
+                <span className="text-sm">{t('common.loading')}</span>
+              </div>
+            }
+          >
+            {activeTab === 'dashboard' && (
+              <DashboardPage onNavigate={handleNavigate} onSelectAsset={handleSelectAsset} />
+            )}
+            {activeTab === 'library' && (
+              <LibraryPage
+                onImportRequest={handleImportRequest}
+                onSelectAsset={handleSelectAsset}
+              />
+            )}
+            {activeTab === 'queue' && <QueuePage onSelectAsset={handleSelectAsset} />}
+            {activeTab === 'profiles' && <ProfilesPage />}
+            {activeTab === 'settings' && <SettingsPage />}
+            {activeTab === 'logs' && <LogsPage />}
+            {activeTab === 'detail' && selectedAssetId && (
+              <AssetDetailPage assetId={selectedAssetId} onBack={() => setActiveTab('library')} />
+            )}
+          </Suspense>
         </div>
       </main>
     </div>

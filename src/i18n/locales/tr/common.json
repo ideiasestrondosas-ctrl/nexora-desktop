@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -140,7 +140,10 @@
     "inQueue": "In Queue",
     "processing": "Processing",
     "error": "Error",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "emptyTitle": "Start by adding a video",
+    "emptyHint": "Drag videos to the window or click the button below",
+    "addFirstVideo": "Add Video"
   },
   "library": {
     "searchPlaceholder": "Search library...",
@@ -206,7 +209,10 @@
     "gpuNvenc": "GPU: NVENC",
     "rejectedManual": "Manuel olarak reddedildi",
     "openProcessedFile": "İşlenmiş dosyayı aç",
-    "viewAsset": "Varlığı görüntüle"
+    "viewAsset": "Varlığı görüntüle",
+    "phaseAnalyse": "Analysing",
+    "phaseConvert": "Converting",
+    "phaseVerify": "Verifying & saving"
   },
   "profiles": {
     "create": "Create",
@@ -573,5 +579,10 @@
     "resolution": "Çözünürlük",
     "fps": "FPS",
     "size": "Boyut"
+  },
+  "startup": {
+    "nodeMissing": "Video processing tools not found. Check the Help section to install requirements.",
+    "ffmpegMissing": "Video conversion engine unavailable. Check the Help section to install requirements.",
+    "sidecarMissing": "Internal component missing. Reinstall the app or contact support."
   }
 }

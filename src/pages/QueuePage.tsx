@@ -64,6 +64,12 @@ const PIPELINE_STEPS = [
   { key: 'delivery' },
 ];
 
+const PIPELINE_PHASES = [
+  { labelKey: 'queue.phaseAnalyse', steps: ['ingest', 'qc-pre'] },
+  { labelKey: 'queue.phaseConvert', steps: ['transcode', 'audio', 'proxy', 'thumbnail'] },
+  { labelKey: 'queue.phaseVerify', steps: ['qc-post', 'delivery'] },
+];
+
 export default function QueuePage({
   onSelectAsset,
 }: {
@@ -174,34 +180,6 @@ export default function QueuePage({
     if (score >= 85) return 'text-green-500';
     if (score >= 70) return 'text-yellow-500';
     return 'text-red-500';
-  };
-
-  const StepIcon = ({
-    stepIdx,
-    currentStepIdx,
-    jobStatus,
-  }: {
-    stepIdx: number;
-    currentStepIdx: number;
-    jobStatus: string;
-  }) => {
-    if (stepIdx < currentStepIdx) {
-      return <CheckCircle2 size={16} className="text-green-500" />;
-    }
-    if (stepIdx === currentStepIdx && jobStatus === 'processing') {
-      return <div className="w-2 h-2 bg-brand rounded-full animate-pulse" />;
-    }
-    if (jobStatus === 'qc_quarantined' && stepIdx === 1) {
-      return <ShieldAlert size={16} className="text-yellow-500" />;
-    }
-    if (jobStatus === 'error' && stepIdx === currentStepIdx) {
-      return <AlertCircle size={16} className="text-red-500" />;
-    }
-    return (
-      <span className="text-[9px] font-bold text-text-muted">
-        {t(`pipeline.${PIPELINE_STEPS[stepIdx].key}`).slice(0, 2).toUpperCase()}
-      </span>
-    );
   };
 
   return (
@@ -321,51 +299,87 @@ export default function QueuePage({
                     </div>
                   </div>
 
-                  {/* PIPELINE VISUALIZER */}
-                  <div className="mb-8 overflow-x-auto">
-                    <div className="flex items-center justify-between min-w-[700px] px-2">
-                      {PIPELINE_STEPS.map((step, idx) => (
-                        <React.Fragment key={step.key}>
-                          <div className="flex flex-col items-center gap-2 relative z-10 group/step">
+                  {/* PIPELINE VISUALIZER — 3 FASES */}
+                  <div className="mb-8">
+                    <div className="flex items-stretch gap-2">
+                      {PIPELINE_PHASES.map((phase, phaseIdx) => {
+                        const stepIndices = phase.steps.map((s) =>
+                          PIPELINE_STEPS.findIndex((ps) => ps.key === s),
+                        );
+                        const phaseMin = Math.min(...stepIndices);
+                        const phaseMax = Math.max(...stepIndices);
+                        const isDone = currentStepIdx > phaseMax;
+                        const isActive = currentStepIdx >= phaseMin && currentStepIdx <= phaseMax;
+                        return (
+                          <React.Fragment key={phase.labelKey}>
                             <div
-                              className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${
-                                idx < currentStepIdx
-                                  ? 'bg-green-500 border-green-500'
-                                  : idx === currentStepIdx
-                                    ? 'border-brand'
-                                    : 'border-border'
+                              className={`flex-1 rounded-xl border p-3 flex flex-col gap-2 transition-all ${
+                                isDone
+                                  ? 'border-green-500/40 bg-green-500/5'
+                                  : isActive
+                                    ? 'border-brand/60 bg-brand/5'
+                                    : 'border-border bg-bg-primary'
                               }`}
                             >
-                              <StepIcon
-                                stepIdx={idx}
-                                currentStepIdx={currentStepIdx}
-                                jobStatus={job.status}
-                              />
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${
+                                    isDone ? 'bg-green-500' : isActive ? 'bg-brand' : 'bg-surface'
+                                  }`}
+                                >
+                                  {isDone ? (
+                                    <CheckCircle2 size={10} className="text-white" />
+                                  ) : isActive ? (
+                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                                  ) : null}
+                                </div>
+                                <span
+                                  className={`text-[10px] font-black uppercase tracking-widest ${
+                                    isDone
+                                      ? 'text-green-500'
+                                      : isActive
+                                        ? 'text-brand'
+                                        : 'text-text-muted'
+                                  }`}
+                                >
+                                  {t(phase.labelKey)}
+                                </span>
+                              </div>
+                              <div className="flex gap-1 flex-wrap">
+                                {phase.steps.map((stepKey) => {
+                                  const idx = PIPELINE_STEPS.findIndex((s) => s.key === stepKey);
+                                  const stepDone = idx < currentStepIdx;
+                                  const stepActive = idx === currentStepIdx;
+                                  return (
+                                    <span
+                                      key={stepKey}
+                                      title={`${t(`pipeline.${stepKey}`)}: ${t(`pipeline.${stepKey}Desc`)}`}
+                                      className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                        stepDone
+                                          ? 'bg-green-500/20 text-green-500'
+                                          : stepActive
+                                            ? 'bg-brand/20 text-brand'
+                                            : 'bg-surface text-text-muted'
+                                      }`}
+                                    >
+                                      {t(`pipeline.${stepKey}`)}
+                                    </span>
+                                  );
+                                })}
+                              </div>
                             </div>
-                            <span
-                              className={`text-[9px] font-bold uppercase ${
-                                idx === currentStepIdx ? 'text-brand' : 'text-text-muted'
-                              }`}
-                            >
-                              {t(`pipeline.${step.key}`)}
-                            </span>
-                            {/* Tooltip com descrição da fase */}
-                            <div className="absolute bottom-full mb-2 hidden group-hover/step:block w-48 bg-bg-primary border border-border rounded-lg p-2 text-[10px] text-text-secondary z-20">
-                              <p className="font-bold text-text-primary mb-0.5">
-                                {t(`pipeline.${step.key}`)}
-                              </p>
-                              <p>{t(`pipeline.${step.key}Desc`)}</p>
-                            </div>
-                          </div>
-                          {idx < PIPELINE_STEPS.length - 1 && (
-                            <div
-                              className={`flex-1 h-0.5 mx-[-2px] mb-6 transition-all ${
-                                idx < currentStepIdx ? 'bg-green-500' : 'bg-surface'
-                              }`}
-                            ></div>
-                          )}
-                        </React.Fragment>
-                      ))}
+                            {phaseIdx < PIPELINE_PHASES.length - 1 && (
+                              <div className="flex items-center">
+                                <div
+                                  className={`w-6 h-0.5 ${
+                                    currentStepIdx > phaseMax ? 'bg-green-500' : 'bg-surface'
+                                  }`}
+                                />
+                              </div>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                     </div>
                   </div>
 

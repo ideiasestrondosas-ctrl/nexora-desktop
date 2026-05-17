@@ -1,5 +1,6 @@
 export interface TranscodeProfile {
   name: string;
+  labelFriendly?: string;
   description: string;
   videoCodec?: 'libx264' | 'libx265' | 'libvpx-vp9';
   videoBitrateK: number;

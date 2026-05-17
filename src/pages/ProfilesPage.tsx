@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 interface TranscodeProfile {
   id: string;
   name: string;
+  label_friendly?: string;
   description: string;
   is_system: boolean;
   container: string;
@@ -239,10 +240,14 @@ export default function ProfilesPage() {
               )}
               <div className="text-left min-w-0">
                 <div className="text-sm font-bold text-text-primary truncate">
-                  {selectedProfile?.name ?? t('profiles.selectProfile')}
+                  {selectedProfile
+                    ? (selectedProfile.label_friendly ?? selectedProfile.name)
+                    : t('profiles.selectProfile')}
                 </div>
                 <div className="text-[10px] text-text-muted truncate">
-                  {selectedProfile?.description ?? ''}
+                  {selectedProfile?.label_friendly
+                    ? selectedProfile.name
+                    : (selectedProfile?.description ?? '')}
                 </div>
               </div>
             </div>
@@ -284,8 +289,12 @@ export default function ProfilesPage() {
                         )}
                       />
                       <div className="min-w-0">
-                        <div className="text-sm font-bold text-text-primary truncate">{p.name}</div>
-                        <div className="text-[10px] text-text-muted truncate">{p.description}</div>
+                        <div className="text-sm font-bold text-text-primary truncate">
+                          {p.label_friendly ?? p.name}
+                        </div>
+                        <div className="text-[10px] text-text-muted truncate">
+                          {p.label_friendly ? p.name : p.description}
+                        </div>
                       </div>
                       <Lock size={10} className="text-text-muted shrink-0 ml-auto" />
                     </button>
@@ -392,7 +401,14 @@ export default function ProfilesPage() {
                   )}
                 />
                 <div>
-                  <h2 className="text-xl font-bold text-text-primary">{selectedProfile.name}</h2>
+                  <h2 className="text-xl font-bold text-text-primary">
+                    {selectedProfile.label_friendly ?? selectedProfile.name}
+                  </h2>
+                  {selectedProfile.label_friendly && (
+                    <p className="text-xs font-mono text-text-muted mt-0.5">
+                      {selectedProfile.name}
+                    </p>
+                  )}
                   <p className="text-sm text-text-secondary mt-1">{selectedProfile.description}</p>
                 </div>
               </div>

@@ -11,6 +11,7 @@ import {
   Film,
   ChevronRight,
   ChevronDown,
+  Upload,
 } from 'lucide-react';
 import {
   BarChart,
@@ -215,6 +216,25 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
           color={getVmafColor(stats?.avgVmaf ?? null)}
         />
       </div>
+
+      {/* EMPTY STATE — primeiro uso */}
+      {stats?.totalAssets === 0 && !loading && (
+        <div className="flex flex-col items-center justify-center py-16 bg-bg-secondary border border-dashed border-border rounded-2xl gap-4">
+          <div className="w-20 h-20 bg-brand/10 rounded-full flex items-center justify-center">
+            <Upload size={36} className="text-brand" />
+          </div>
+          <div className="text-center">
+            <p className="text-base font-black text-text-primary">{t('dashboard.emptyTitle')}</p>
+            <p className="text-sm text-text-muted mt-1">{t('dashboard.emptyHint')}</p>
+          </div>
+          <button
+            onClick={() => onNavigate('library')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-colors"
+          >
+            <Upload size={16} /> {t('dashboard.addFirstVideo')}
+          </button>
+        </div>
+      )}
 
       {/* JOBS RECENTES — largura total */}
       <div className="space-y-4">

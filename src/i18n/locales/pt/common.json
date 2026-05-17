@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -147,7 +147,10 @@
     "vmaf85to95": "85 to 95",
     "vmafAbove95": "Above 95",
     "processedFiles": "Processed files",
-    "avgQuality": "Average quality"
+    "avgQuality": "Average quality",
+    "emptyTitle": "Começa por adicionar um vídeo",
+    "emptyHint": "Arraste vídeos para a janela ou clique no botão abaixo",
+    "addFirstVideo": "Adicionar Vídeo"
   },
   "library": {
     "searchPlaceholder": "Pesquisar na biblioteca...",
@@ -213,7 +216,10 @@
     "cannotRetryState": "Este job não pode ser reprocessado no estado actual",
     "retryQueued": "Job adicionado à fila novamente",
     "openProcessedFile": "Abrir ficheiro processado",
-    "viewAsset": "Ver asset"
+    "viewAsset": "Ver asset",
+    "phaseAnalyse": "A analisar",
+    "phaseConvert": "A converter",
+    "phaseVerify": "A verificar e guardar"
   },
   "profiles": {
     "create": "Criar",
@@ -744,5 +750,10 @@
     "resolution": "Resolução",
     "fps": "FPS",
     "size": "Tamanho"
+  },
+  "startup": {
+    "nodeMissing": "As ferramentas de processamento de vídeo não foram encontradas. Consulte a secção Ajuda para instalar os requisitos.",
+    "ffmpegMissing": "O motor de conversão de vídeo não está disponível. Consulte a secção Ajuda para instalar os requisitos.",
+    "sidecarMissing": "Componente interno em falta. Reinstale a aplicação ou contacte o suporte."
   }
 }
