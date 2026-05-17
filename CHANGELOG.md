@@ -6,45 +6,51 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-05-17
+
+### Added
+- feat: 0.20.0
+
+
 ## [0.20.0] - 2026-05-17
 
 ### Added
 
 - MediaInfo no Detalhe de Asset com toggle Original/Processado e banner de caminho do ficheiro processado
-- Caminho do ficheiro visível sob o toggle do player (original e processado)
-- SHA-256 e TAGS incluídos na função "Copiar Tudo" do MediaInfoPanel
-- Videos_Tests/ com 18 samples de vídeo (5s/10s/15s/20s/30s em 360p/720p/1080p/2160p/H265/VP9)
+- Caminho do ficheiro visÃ­vel sob o toggle do player (original e processado)
+- SHA-256 e TAGS incluÃ­dos na funÃ§Ã£o "Copiar Tudo" do MediaInfoPanel
+- Videos_Tests/ com 18 samples de vÃ­deo (5s/10s/15s/20s/30s em 360p/720p/1080p/2160p/H265/VP9)
 
 ### Fixed
 
-- output_dir padrão aponta para Videos/Nexora Output (não para pasta temp do sistema)
-- Duração dos jobs no histórico calculada a partir de started_at/finished_at (não hardcoded)
-- Data de início no histórico mostra hora real (não só a data de criação)
-- Caminho do ficheiro processado no histórico de jobs mostra o path completo com botão abrir
+- output_dir padrÃ£o aponta para Videos/Nexora Output (nÃ£o para pasta temp do sistema)
+- DuraÃ§Ã£o dos jobs no histÃ³rico calculada a partir de started_at/finished_at (nÃ£o hardcoded)
+- Data de inÃ­cio no histÃ³rico mostra hora real (nÃ£o sÃ³ a data de criaÃ§Ã£o)
+- Caminho do ficheiro processado no histÃ³rico de jobs mostra o path completo com botÃ£o abrir
 
 ### Changed
 
-- Limpeza GitHub: eliminação de branches auxiliares, encerramento de 11 PRs Dependabot, remoção de 6 releases draft antigas
-- Repositório limpo com apenas branches main e dev
+- Limpeza GitHub: eliminaÃ§Ã£o de branches auxiliares, encerramento de 11 PRs Dependabot, remoÃ§Ã£o de 6 releases draft antigas
+- RepositÃ³rio limpo com apenas branches main e dev
 
 ## [0.19.0] - 2026-05-17
 
 ### Added
 
-- Suporte a codecs H.265/HEVC e VP9 no pipeline de transcodificação
+- Suporte a codecs H.265/HEVC e VP9 no pipeline de transcodificaÃ§Ã£o
 - BatchSubmitModal com estimativas de tempo e tamanho por ficheiro
-- Thumbnails automáticos gerados pelo worker de thumbnail
-- Player inline na Biblioteca para preview do vídeo original
-- MediaInfo detalhado no ecrã de Detalhe de Asset (GENERAL, VIDEO, AUDIO)
-- Navegação clicável nos cabeçalhos e nomes de vídeo na Biblioteca (Grid e Lista)
-- Ficha técnica do Asset em abas horizontais modernas (Relatório QC, Metadados, Histórico)
+- Thumbnails automÃ¡ticos gerados pelo worker de thumbnail
+- Player inline na Biblioteca para preview do vÃ­deo original
+- MediaInfo detalhado no ecrÃ£ de Detalhe de Asset (GENERAL, VIDEO, AUDIO)
+- NavegaÃ§Ã£o clicÃ¡vel nos cabeÃ§alhos e nomes de vÃ­deo na Biblioteca (Grid e Lista)
+- Ficha tÃ©cnica do Asset em abas horizontais modernas (RelatÃ³rio QC, Metadados, HistÃ³rico)
 
 ### Fixed
 
-- Corrigido parsing e escala VMAF no Windows (paths com `:` no filtergraph substituídos por `\:`)
-- Corrigido loop de loading infinito no ecrã AssetDetailPage
-- Corrigido mock síncrono do módulo nativo `fs` em workers.test.ts (Vitest)
-- Corrigido emit duplicado de `job:started` — gerido agora apenas pelo Orchestrator
+- Corrigido parsing e escala VMAF no Windows (paths com `:` no filtergraph substituÃ­dos por `\:`)
+- Corrigido loop de loading infinito no ecrÃ£ AssetDetailPage
+- Corrigido mock sÃ­ncrono do mÃ³dulo nativo `fs` em workers.test.ts (Vitest)
+- Corrigido emit duplicado de `job:started` â€” gerido agora apenas pelo Orchestrator
 - Corrigido problema de bloqueio de ficheiros no Windows no script sync.ps1
 
 ## [0.18.0] - 2026-05-16
@@ -52,25 +58,25 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - Drag-and-drop de ficheiros agora funciona via evento nativo `tauri://drag-drop` (T03/T04)
-- Activos deixam de ficar em estado "pending" — `submit_job` chamado automaticamente após ingest (T04)
-- Sidecar arranca correctamente via `Command::new("node")` com path dinâmico (T05)
-- Versão da aplicação lida dinamicamente via `getVersion()` de `@tauri-apps/api/app` (T06)
+- Activos deixam de ficar em estado "pending" â€” `submit_job` chamado automaticamente apÃ³s ingest (T04)
+- Sidecar arranca correctamente via `Command::new("node")` com path dinÃ¢mico (T05)
+- VersÃ£o da aplicaÃ§Ã£o lida dinamicamente via `getVersion()` de `@tauri-apps/api/app` (T06)
 
 ### Security
 
-- CSP estrita substituiu `"csp": null` com política granular por directiva (T07)
-- Capabilities reduzidas a permissões explícitas (least-privilege) em vez de `*:default` (T08)
+- CSP estrita substituiu `"csp": null` com polÃ­tica granular por directiva (T07)
+- Capabilities reduzidas a permissÃµes explÃ­citas (least-privilege) em vez de `*:default` (T08)
 
 ### Changed
 
-- Sidecar agora completamente stateless — `sidecar/db.ts` e `NexoraSimpleQueue.ts` eliminados (T09)
+- Sidecar agora completamente stateless â€” `sidecar/db.ts` e `NexoraSimpleQueue.ts` eliminados (T09)
 - Hooks `useJobStatus` e `useDiskSpace` migrados de polling para eventos Tauri (`listen()`) (T10)
 - Settings persistentes via `tauri-plugin-store` em vez de `localStorage` (T11)
 - Logging unificado via `tauri-plugin-log` com targets stdout, ficheiro e webview (T12)
 - Toasts migrados de `react-hot-toast` para `sonner` (T14)
 - `HelpModal` migrado para Radix Dialog com focus trap e ARIA correcto (T15)
-- `LibraryPage` com virtualização via `@tanstack/react-virtual` para listas grandes (T16)
-- Dashboard com gráficos VMAF (BarChart) e métricas CPU/RAM (AreaChart) via recharts (T17)
+- `LibraryPage` com virtualizaÃ§Ã£o via `@tanstack/react-virtual` para listas grandes (T16)
+- Dashboard com grÃ¡ficos VMAF (BarChart) e mÃ©tricas CPU/RAM (AreaChart) via recharts (T17)
 
 ### Added
 
@@ -79,8 +85,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 - Bundle analyzer com `rollup-plugin-visualizer` e manual chunk splitting (T20)
 - Testes de componentes com vitest + jsdom + Testing Library (T21)
 - Dependabot config para npm, cargo e GitHub Actions (T22)
-- Documentação do processo de release e code signing em `docs/RELEASE.md` (T23)
-- Toggle de telemetria opt-in (desactivado por defeito) nas definições (T24)
+- DocumentaÃ§Ã£o do processo de release e code signing em `docs/RELEASE.md` (T23)
+- Toggle de telemetria opt-in (desactivado por defeito) nas definiÃ§Ãµes (T24)
 
 ## [0.17.0] - 2026-05-14
 
@@ -98,7 +104,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- feat: AnÃƒÂ¡lise workspace aplicaÃƒÂ§ÃƒÂ£o e regras
+- feat: AnÃƒÆ’Ã‚Â¡lise workspace aplicaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o e regras
 
 ## [0.14.0] - 2026-05-13
 
@@ -152,14 +158,14 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- fix: Race condition na fila ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â claimNextJob() atÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³mico (SELECT+UPDATE numa transacÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o SQLite)
+- fix: Race condition na fila ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â claimNextJob() atÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³mico (SELECT+UPDATE numa transacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o SQLite)
 - feat: Tabela `profiles` no schema para perfis personalizados
-- feat: Tauri command `get_queue_stats` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â estatÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­sticas da fila (queued/processing/done/error hoje)
-- feat: Tauri command `retry_job` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â re-enfileira jobs com erro ou cancelados
-- feat: Tauri commands `create_profile`, `update_profile`, `delete_profile` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â CRUD de perfis custom
-- feat: Tauri command `export_logs` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â exporta logs para ficheiro .txt
-- feat: Tauri command `get_changelog` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â devolve CHANGELOG.md compilado no binÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio
-- docs: ANTIGRAVITY-GUIA.md ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â guia passo a passo para utilizador nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o-tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cnico gerar ecrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£s
+- feat: Tauri command `get_queue_stats` ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â estatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­sticas da fila (queued/processing/done/error hoje)
+- feat: Tauri command `retry_job` ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â re-enfileira jobs com erro ou cancelados
+- feat: Tauri commands `create_profile`, `update_profile`, `delete_profile` ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â CRUD de perfis custom
+- feat: Tauri command `export_logs` ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â exporta logs para ficheiro .txt
+- feat: Tauri command `get_changelog` ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â devolve CHANGELOG.md compilado no binÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡rio
+- docs: ANTIGRAVITY-GUIA.md ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â guia passo a passo para utilizador nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o-tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©cnico gerar ecrÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£s
 
 ## [0.6.0] - 2026-05-10
 
@@ -171,7 +177,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- feat: Prompt Desktop Bug fixes + Gap Analysis ConcluÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o
+- feat: Prompt Desktop Bug fixes + Gap Analysis ConcluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o
 
 ## [0.4.1] - 2026-05-10
 
@@ -183,19 +189,19 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- feat: CorrecÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes para releases
+- feat: CorrecÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes para releases
 
 ## [0.3.0] - 2026-05-09
 
 ### Added
 
-- feat: PROMPT 3 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Frontend React
+- feat: PROMPT 3 ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Frontend React
 
 ## [0.2.0] - 2026-05-09
 
 ### Added
 
-- feat: PROMPT 2 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Sidecar + Queue + Workers
+- feat: PROMPT 2 ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Sidecar + Queue + Workers
 
 ## [0.1.0] - 2026-05-09
 
