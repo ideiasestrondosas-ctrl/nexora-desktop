@@ -119,19 +119,21 @@ function ProfileDropdown({
       {open &&
         createPortal(
           <>
+            {/* pointer-events: auto necessário porque Radix Dialog aplica pointer-events: none no body */}
             <div
               className="fixed inset-0"
-              style={{ zIndex: 9998 }}
+              style={{ zIndex: 9998, pointerEvents: 'auto' }}
               onClick={() => setOpen(false)}
             />
             <div
               className="bg-bg-secondary border border-border rounded-xl shadow-2xl max-h-56 overflow-y-auto"
-              style={menuStyle}
+              style={{ ...menuStyle, pointerEvents: 'auto' }}
             >
               {profiles.map((p) => (
                 <button
                   key={p.id}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     onChange(p.id);
                     setOpen(false);
                   }}
@@ -187,6 +189,9 @@ export function BatchSubmitModal({
 
   useEffect(() => {
     if (!open) return;
+    // globalProfileId intencionalmente excluído das deps: a sincronização do perfil
+    // global é feita pelo handleGlobalProfileChange. Aqui só inicializamos as rows
+    // quando o modal abre ou os paths mudam.
     setRows(
       paths.map((path) => ({
         path,
@@ -195,7 +200,8 @@ export function BatchSubmitModal({
         status: 'idle',
       })),
     );
-  }, [open, paths, globalProfileId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, paths]);
 
   // Quando o perfil global muda, aplica a todas as linhas ainda não iniciadas
   const handleGlobalProfileChange = useCallback((id: string) => {
