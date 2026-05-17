@@ -65,3 +65,9 @@ WixTools/
 
 # Rust gerado (pode ser regenerado por cargo build)
 src-tauri/gen/
+
+# Media Processada e Samples
+src-tauri/sample-*
+src-tauri/*_proxy.mp4
+src-tauri/*_thumb.jpg
+src-tauri/*_normalized.wav

@@ -367,6 +367,30 @@ if ($largeFiles.Count -gt 0) {
     Write-Success "Nenhum ficheiro grande detectado"
 }
 
+# 3. Detectar ficheiros processados / media (Nao devem ir para o github)
+$processedFiles = @()
+try {
+    $processedFiles = Get-ChildItem -Path $WORKSPACE -Recurse -File -ErrorAction SilentlyContinue |
+        Where-Object {
+            $p = $_.FullName
+            $p -notmatch [regex]::Escape("\\.git\\") -and
+            $p -notmatch [regex]::Escape("\\node_modules\\") -and
+            $p -notmatch [regex]::Escape("\\src\\assets\\") -and
+            $p -notmatch [regex]::Escape("\\src-tauri\\icons\\") -and
+            ($p -match "\.(mp4|mkv|mov|avi|webm|wav|mp3|flac)$" -or $p -match "_(proxy|thumb|normalized)\.(jpg|png|mp4|wav)$" -or $p -match "sample.*\.(mp4|wav|jpg|png)$")
+        }
+} catch {}
+
+if ($processedFiles.Count -gt 0) {
+    Write-Warn "$($processedFiles.Count) ficheiro(s) de media/processados detectados -- serao excluidos do commit:"
+    $processedFiles | ForEach-Object {
+        $rel  = $_.FullName.Substring($WORKSPACE.Length + 1)
+        Write-Info "  $rel"
+    }
+} else {
+    Write-Success "Nenhum ficheiro processado/media detectado"
+}
+
 # ---------------------------------------------------------
 # COMMIT DE CODIGO
 # ---------------------------------------------------------
@@ -428,6 +452,15 @@ if ($status) {
         }
     }
 
+    # Unstage ficheiros processados detectados
+    if ($processedFiles.Count -gt 0) {
+        $processedFiles | ForEach-Object {
+            $relPath = $_.FullName.Substring($WORKSPACE.Length + 1)
+            git restore --staged $relPath 2>$null | Out-Null
+            Write-Info "Excluido do staging (media/processado): $relPath"
+        }
+    }
+
     # Unstage ficheiros de runtime/IDE que nunca devem ser commitados
     $runtimeFiles = @(
         ".claude\settings.local.json",
@@ -473,7 +506,24 @@ if ($status) {
                 git restore --staged $relPath 2>$null | Out-Null
             }
         }
-        git commit -m "docs: atualizar grafo e relatorios (auto)" --no-verify
+        # Garantir que ficheiros processados nao entram neste commit tambem
+        if ($processedFiles.Count -gt 0) {
+            $processedFiles | ForEach-Object {
+                $relPath = $_.FullName.Substring($WORKSPACE.Length + 1)
+                git restore --staged $relPath 2>$null | Out-Null
+            }
+        }
+        foreach ($rf in $runtimeFiles) {
+            $rfFull = Join-Path $WORKSPACE $rf
+            if (Test-Path $rfFull) {
+                git restore --staged $rf 2>$null | Out-Null
+            }
+        }
+        
+        $stagedChanges = git diff --staged --name-only
+        if ($stagedChanges) {
+            git commit -m "docs: atualizar grafo e relatorios (auto)" --no-verify
+        }
     }
 }
 

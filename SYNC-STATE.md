@@ -5,7 +5,7 @@
 
 ---
 
-Actualizado: 2026-05-17 10:45
+Actualizado: 2026-05-17 10:55
 Agente: Google Antigravity
 
 ## O que foi feito
@@ -13,16 +13,18 @@ Agente: Google Antigravity
 ### Sessao Actual — Resolucao de Testes Vitest, Erro VMAF no Windows, Redesign de Detalhes e Robustez do Script de Sincronizacao — CONCLUIDO
 
 **Bugs corrigidos e melhorias nesta sessao:**
-1. **Vitest 15/15 Passando:** 
+
+1. **Vitest 15/15 Passando:**
    - Corrigido o mock do módulo nativo `fs` em `tests/workers.test.ts` utilizando uma exportação síncrona com `default` e named exports. Isto resolveu de vez o erro `No "default" export is defined` e problemas de hoisting/ReferenceError no Vitest.
    - Resolvido o erro do teste do orchestrator (`tests/orchestrator.test.ts`) movendo a emissão do evento `job:started` diretamente para a classe `NexoraDesktopOrchestrator.ts`.
    - Limpeza das emissões duplicadas dos eventos de ciclo de vida do job em `sidecar/index.ts` (started, completed, failed são agora geridos apenas pelo orchestrator).
    - Resolvido o erro de importação do arquivo de testes da fila (`tests/queue.test.ts`) substituindo-o por um teste documentado explicativo, uma vez que a fila síncrona local foi removida na migração para o sidecar stateless.
 2. **Correção VMAF no Windows (Definitiva):** Resolvido completamente o problema de parsing e escala do VMAF no FFmpeg. O libvmaf exige inputs com a mesma resolução que o modelo (1080p), pelo que se adicionou filtros de scale bicubic antes do cálculo. Para evitar problemas de stdout corrompido, o worker agora grava os logs JSON do VMAF num ficheiro temporário gerado através de um caminho relativo.
-2.1. **Correção UI "A carregar detalhes":** Corrigido o loop de loading infinito no ecrã de AssetDetailPage.tsx. Separou-se a lógica de loading da lógica de asset não encontrado.
+   2.1. **Correção UI "A carregar detalhes":** Corrigido o loop de loading infinito no ecrã de AssetDetailPage.tsx. Separou-se a lógica de loading da lógica de asset não encontrado.
 3. **Navegação de Detalhes na Biblioteca:** Passado o callback `onSelectAsset` do `App.tsx` para o `LibraryPage.tsx`. Agora os botões de abrir detalhes (`ExternalLink`) e os cabeçalhos/nomes de vídeos em vista Grid e Lista são clicáveis e abrem a ficha de detalhes.
 4. **Redesign de Detalhes em Tabs Modernas:** Remodelada a ficha técnica no `AssetDetailPage.tsx` para apresentar as informações em abas horizontais modernas (Relatório QC, Metadados Técnicos, Histórico de Processamento), otimizando drasticamente a legibilidade e o espaço útil.
 5. **Robustez no Script de Sincronização (`sync.ps1`):** Resolvido o problema de bloqueio de ficheiros no Windows (File Locking). O script agora remove automaticamente os atributos de "Somente Leitura" (Read-Only) nos ficheiros do workspace antes de commitar (Opção A) e, caso o commit standard falhe por bloqueio ou erros do linter/formatter, oferece um fallback interativo para forçar o commit usando `--no-verify` (Opção B).
+6. **Exclusão de Media do Repositório:** Atualizado o `sync.ps1` e `.gitignore` para detetar e bloquear explicitamente a sincronização de ficheiros gerados de processamento e vídeos de sample (mp4, mkv, wav, thumbs, proxies) prevenindo uploads desnecessários para o GitHub.
 
 ---
 
@@ -85,7 +87,8 @@ tests/workers.test.ts           — mock síncrono completo do fs para testes Vi
 tests/queue.test.ts             — bypass amigável com explicação de migração stateless
 sidecar/orchestrator/NexoraDesktopOrchestrator.ts — emissão de job:started em run()
 sidecar/index.ts                — remoção de emits duplicados
-scripts/sync.ps1                — automatização da Opção A (Read-Only reset) e Opção B (--no-verify fallback)
+scripts/sync.ps1                — automatização e exclusão de media (Read-Only reset, fallback, exclude proxy/thumbs)
+.gitignore                      — exclusão explícita de samples e media gerada
 
 MODIFICADOS (auditoria anterior):
 src-tauri/tauri.conf.json       — dragDrop, CSP, versao 0.18.0
