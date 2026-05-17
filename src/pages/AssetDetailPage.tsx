@@ -90,6 +90,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [mediaInfoSide, setMediaInfoSide] = useState<'original' | 'processed'>('original');
 
   const removeAsset = useAssetsStore((s) => s.removeAsset);
   const removeJobsByAsset = useJobsStore((s) => s.removeJobsByAsset);
@@ -272,6 +273,15 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
             </div>
           </div>
 
+          {/* Path do ficheiro activo */}
+          <div className="flex items-start gap-2 text-[10px] text-text-muted font-mono leading-relaxed">
+            <FolderOpen size={12} className="mt-0.5 shrink-0" />
+            <span className="break-all">
+              {heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
+                ? (asset.output_path ?? jobs[0]?.output_path)
+                : asset.path}
+            </span>
+          </div>
           {/* Botão abrir no player do sistema */}
           <button
             onClick={() =>
@@ -491,12 +501,52 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                 <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
                   <ScanLine className="text-brand" size={20} /> {t('mediaInfo.title')}
                 </h2>
+                {/* Toggle Original / Processado */}
+                <div className="flex rounded-lg border border-border overflow-hidden text-xs font-bold">
+                  <button
+                    onClick={() => setMediaInfoSide('original')}
+                    className={`px-3 py-1.5 transition-colors ${mediaInfoSide === 'original' ? 'bg-brand text-white' : 'text-text-muted hover:text-text-primary'}`}
+                  >
+                    {t('detail.original')}
+                  </button>
+                  <button
+                    onClick={() => setMediaInfoSide('processed')}
+                    disabled={!asset.output_path && !jobs.some((j) => j.output_path)}
+                    className={`px-3 py-1.5 transition-colors disabled:opacity-30 ${mediaInfoSide === 'processed' ? 'bg-green-600 text-white' : 'text-text-muted hover:text-text-primary'}`}
+                  >
+                    {t('detail.thumbnailOut')}
+                  </button>
+                </div>
               </div>
               <div className="p-6">
-                <MediaInfoPanel
-                  metadata={asset.metadata as DetailedMediaInfo | null}
-                  compact={false}
-                />
+                {mediaInfoSide === 'original' ? (
+                  <MediaInfoPanel
+                    metadata={asset.metadata as DetailedMediaInfo | null}
+                    compact={false}
+                  />
+                ) : (
+                  <>
+                    {/* Path do ficheiro processado */}
+                    {(asset.output_path ?? jobs.find((j) => j.output_path)?.output_path) && (
+                      <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-green-500/5 border border-green-500/20 rounded-xl text-[10px] font-mono text-green-400 break-all">
+                        <FolderOpen size={12} className="shrink-0" />
+                        {asset.output_path ?? jobs.find((j) => j.output_path)?.output_path}
+                      </div>
+                    )}
+                    <MediaInfoPanel
+                      metadata={
+                        (asset.output_metadata as DetailedMediaInfo | null) ??
+                        (asset.metadata as DetailedMediaInfo | null)
+                      }
+                      compact={false}
+                    />
+                    {!asset.output_path && !jobs.some((j) => j.output_path) && (
+                      <p className="text-text-muted text-sm italic text-center py-8">
+                        {t('detail.notProcessedYet')}
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
             </section>
           </div>
@@ -710,14 +760,29 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                           {t('assetDetail.started')}
                         </div>
                         <div className="text-xs text-text-primary font-bold">
-                          {new Date(job.created_at).toLocaleDateString(i18n.language)}
+                          {job.started_at
+                            ? new Date(job.started_at).toLocaleString(i18n.language)
+                            : new Date(job.created_at).toLocaleDateString(i18n.language)}
                         </div>
                       </div>
                       <div>
                         <div className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1">
                           {t('assetDetail.jobDuration')}
                         </div>
-                        <div className="text-xs text-text-primary font-bold">2m 04s</div>
+                        <div className="text-xs text-text-primary font-bold">
+                          {job.started_at && job.finished_at
+                            ? (() => {
+                                const secs = Math.round(
+                                  (new Date(job.finished_at).getTime() -
+                                    new Date(job.started_at).getTime()) /
+                                    1000,
+                                );
+                                const m = Math.floor(secs / 60);
+                                const s = secs % 60;
+                                return m > 0 ? `${m}m ${s}s` : `${s}s`;
+                              })()
+                            : '--'}
+                        </div>
                       </div>
                       <div>
                         <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">
@@ -738,10 +803,16 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                     </div>
 
                     {job.output_path && (
-                      <div className="mt-6 pt-4 border-t border-border flex justify-end">
+                      <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 text-[10px] font-mono text-text-muted min-w-0">
+                          <FolderOpen size={12} className="shrink-0 text-green-500" />
+                          <span className="truncate" title={job.output_path}>
+                            {job.output_path}
+                          </span>
+                        </div>
                         <button
                           onClick={() => openPath(job.output_path!).catch(() => {})}
-                          className="flex items-center gap-2 text-[10px] font-black text-brand uppercase tracking-widest hover:underline"
+                          className="flex items-center gap-1.5 text-[10px] font-black text-brand uppercase tracking-widest hover:underline shrink-0"
                         >
                           <ExternalLink size={14} /> {t('assetDetail.openProcessedFile')}
                         </button>

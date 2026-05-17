@@ -2,13 +2,29 @@ use crate::state::AppState;
 use std::collections::HashMap;
 use tauri::State;
 
+fn default_output_dir() -> String {
+    // Tenta usar a pasta de Vídeos do utilizador; fallback para temp
+    #[cfg(target_os = "windows")]
+    let base = std::env::var("USERPROFILE").unwrap_or_default();
+    #[cfg(not(target_os = "windows"))]
+    let base = std::env::var("HOME").unwrap_or_default();
+
+    if !base.is_empty() {
+        #[cfg(target_os = "macos")]
+        let videos = "Movies";
+        #[cfg(not(target_os = "macos"))]
+        let videos = "Videos";
+
+        let candidate = std::path::PathBuf::from(&base).join(videos).join("Nexora Output");
+        return candidate.to_string_lossy().into_owned();
+    }
+    std::env::temp_dir().join("nexora-output").to_string_lossy().into_owned()
+}
+
 fn default_settings() -> HashMap<String, String> {
     let mut map = HashMap::new();
     map.insert("max_concurrent_jobs".to_string(), "2".to_string());
-    map.insert(
-        "output_dir".to_string(),
-        std::env::temp_dir().join("nexora-output").to_string_lossy().into_owned(),
-    );
+    map.insert("output_dir".to_string(), default_output_dir());
     map.insert("watch_dir".to_string(), "".to_string());
     map.insert("auto_ingest".to_string(), "false".to_string());
     map.insert("notifications_enabled".to_string(), "true".to_string());

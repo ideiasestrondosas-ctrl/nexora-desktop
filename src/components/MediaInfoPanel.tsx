@@ -127,11 +127,9 @@ function formatDuration(secs: number | string | undefined): string {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = (s % 60).toFixed(3);
-  return [
-    h.toString().padStart(2, '0'),
-    m.toString().padStart(2, '0'),
-    sec.padStart(6, '0'),
-  ].join(':');
+  return [h.toString().padStart(2, '0'), m.toString().padStart(2, '0'), sec.padStart(6, '0')].join(
+    ':',
+  );
 }
 
 function formatFrameRate(fr: string | undefined): string {
@@ -168,7 +166,11 @@ function formatChannels(channels: number | undefined, layout: string | undefined
   return `${channels} ch${layoutStr}`;
 }
 
-function formatColorSpace(space: string | undefined, transfer: string | undefined, primaries: string | undefined): string {
+function formatColorSpace(
+  space: string | undefined,
+  transfer: string | undefined,
+  primaries: string | undefined,
+): string {
   const parts = [space, transfer, primaries].filter(Boolean);
   if (parts.length === 0) return '—';
   return parts.join(' / ');
@@ -193,7 +195,13 @@ interface SectionProps {
   children: React.ReactNode;
 }
 
-function Section({ title, icon, color = 'text-brand', defaultOpen = true, children }: SectionProps) {
+function Section({
+  title,
+  icon,
+  color = 'text-brand',
+  defaultOpen = true,
+  children,
+}: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -202,7 +210,12 @@ function Section({ title, icon, color = 'text-brand', defaultOpen = true, childr
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between px-4 py-3 bg-bg-primary hover:bg-bg-hover transition-colors"
       >
-        <div className={cn('flex items-center gap-2 text-xs font-black uppercase tracking-widest', color)}>
+        <div
+          className={cn(
+            'flex items-center gap-2 text-xs font-black uppercase tracking-widest',
+            color,
+          )}
+        >
           {icon}
           {title}
         </div>
@@ -211,11 +224,7 @@ function Section({ title, icon, color = 'text-brand', defaultOpen = true, childr
           className={cn('text-text-muted transition-transform', !open && '-rotate-90')}
         />
       </button>
-      {open && (
-        <div className="divide-y divide-border">
-          {children}
-        </div>
-      )}
+      {open && <div className="divide-y divide-border">{children}</div>}
     </div>
   );
 }
@@ -239,13 +248,17 @@ function Row({ label, value, mono = false, highlight = false, tooltip }: RowProp
     <div className="flex items-center justify-between px-4 py-2.5 hover:bg-bg-hover/50 transition-colors group">
       <span className="text-xs text-text-muted flex items-center gap-1.5" title={tooltip}>
         {label}
-        {tooltip && <Info size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />}
+        {tooltip && (
+          <Info size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+        )}
       </span>
-      <span className={cn(
-        'text-xs font-bold text-right max-w-[60%] truncate',
-        mono ? 'font-mono text-text-secondary' : 'text-text-primary',
-        highlight && 'text-brand',
-      )}>
+      <span
+        className={cn(
+          'text-xs font-bold text-right max-w-[60%] truncate',
+          mono ? 'font-mono text-text-secondary' : 'text-text-primary',
+          highlight && 'text-brand',
+        )}
+      >
         {displayVal}
       </span>
     </div>
@@ -268,7 +281,9 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
 
   if (!metadata) {
     return (
-      <div className={cn('flex flex-col items-center justify-center py-12 text-text-muted', className)}>
+      <div
+        className={cn('flex flex-col items-center justify-center py-12 text-text-muted', className)}
+      >
         <ScanLine size={32} className="mb-3 opacity-30" />
         <p className="text-sm font-bold">{t('mediaInfo.noData')}</p>
         <p className="text-xs mt-1">{t('mediaInfo.noDataHint')}</p>
@@ -312,17 +327,33 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
       lines.push(`Bitrate: ${formatBitrate(v.bit_rate)}`);
       lines.push(`Pixel Format: ${v.pix_fmt ?? '—'}`);
       lines.push(`Bit Depth: ${v.bits_per_raw_sample ? `${v.bits_per_raw_sample} bits` : '—'}`);
-      lines.push(`Color Space: ${formatColorSpace(v.color_space, v.color_transfer, v.color_primaries)}`);
+      lines.push(
+        `Color Space: ${formatColorSpace(v.color_space, v.color_transfer, v.color_primaries)}`,
+      );
       lines.push(`Scan Type: ${formatScanType(v.field_order)}`);
     });
     audioStreams.forEach((a, i) => {
       lines.push('', `AUDIO #${i}`, '========');
       lines.push(`Codec: ${a.codec_long_name ?? a.codec_name ?? '—'}`);
-      lines.push(`Sample Rate: ${a.sample_rate ? `${Number(a.sample_rate).toLocaleString()} Hz` : '—'}`);
+      lines.push(
+        `Sample Rate: ${a.sample_rate ? `${Number(a.sample_rate).toLocaleString()} Hz` : '—'}`,
+      );
       lines.push(`Channels: ${formatChannels(a.channels, a.channel_layout)}`);
       lines.push(`Bitrate: ${formatBitrate(a.bit_rate)}`);
       if (a.tags?.language) lines.push(`Language: ${a.tags.language}`);
     });
+    // Tags do container
+    if (format?.tags && Object.keys(format.tags).length > 0) {
+      lines.push('', 'TAGS', '========');
+      for (const [k, v] of Object.entries(format.tags)) {
+        lines.push(`${k}: ${v}`);
+      }
+    }
+    // SHA-256
+    if (info.sha256) {
+      lines.push('', 'SHA-256', '========');
+      lines.push(info.sha256);
+    }
     return lines.join('\n');
   };
 
@@ -331,7 +362,9 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
       await navigator.clipboard.writeText(generateTextReport());
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch { /* fallback */ }
+    } catch {
+      /* fallback */
+    }
   };
 
   return (
@@ -360,21 +393,34 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
         >
           {format ? (
             <>
-              <Row label={t('mediaInfo.format')} value={format.format_long_name ?? format.format_name} />
+              <Row
+                label={t('mediaInfo.format')}
+                value={format.format_long_name ?? format.format_name}
+              />
               <Row label={t('mediaInfo.fileSize')} value={formatBytes(format.size)} />
               <Row label={t('mediaInfo.duration')} value={formatDuration(format.duration)} mono />
               <Row label={t('mediaInfo.overallBitrate')} value={formatBitrate(format.bit_rate)} />
               <Row label={t('mediaInfo.streams')} value={format.nb_streams} />
-              {format.tags?.encoder && <Row label={t('mediaInfo.encoder')} value={format.tags.encoder} mono />}
-              {format.tags?.creation_time && <Row label={t('mediaInfo.creationTime')} value={format.tags.creation_time} mono />}
+              {format.tags?.encoder && (
+                <Row label={t('mediaInfo.encoder')} value={format.tags.encoder} mono />
+              )}
+              {format.tags?.creation_time && (
+                <Row label={t('mediaInfo.creationTime')} value={format.tags.creation_time} mono />
+              )}
             </>
           ) : (
             // Fallback básico
             <>
-              <Row label={t('assetDetail.duration')} value={basicDuration ? formatDuration(basicDuration) : undefined} mono />
+              <Row
+                label={t('assetDetail.duration')}
+                value={basicDuration ? formatDuration(basicDuration) : undefined}
+                mono
+              />
               <Row label={t('assetDetail.video')} value={basicVideoCodec?.toUpperCase()} />
               <Row label={t('assetDetail.audio')} value={basicAudioCodec?.toUpperCase()} />
-              {basicWidth && basicHeight && <Row label={t('mediaInfo.resolution')} value={`${basicWidth}×${basicHeight}`} />}
+              {basicWidth && basicHeight && (
+                <Row label={t('mediaInfo.resolution')} value={`${basicWidth}×${basicHeight}`} />
+              )}
               {basicFps && <Row label={t('mediaInfo.frameRate')} value={`${basicFps} fps`} />}
               {info.sha256 && !compact && <Row label="SHA-256" value={info.sha256} mono />}
             </>
@@ -385,10 +431,10 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
       {/* ── VIDEO STREAMS ── */}
       {videoStreams.map((v, i) => {
         const hdr = v.side_data_list?.find((sd) =>
-          sd.side_data_type?.toLowerCase().includes('mastering')
+          sd.side_data_type?.toLowerCase().includes('mastering'),
         );
         const cll = v.side_data_list?.find((sd) =>
-          sd.side_data_type?.toLowerCase().includes('content_light')
+          sd.side_data_type?.toLowerCase().includes('content_light'),
         );
         return (
           <Section
@@ -402,7 +448,9 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
             {(v.profile || v.level != null) && (
               <Row
                 label={t('profiles.h264Profile')}
-                value={[v.profile, v.level != null ? `L${v.level}` : ''].filter(Boolean).join(' @ ')}
+                value={[v.profile, v.level != null ? `L${v.level}` : '']
+                  .filter(Boolean)
+                  .join(' @ ')}
               />
             )}
             <Row label={t('mediaInfo.bitRate')} value={formatBitrate(v.bit_rate)} highlight />
@@ -428,13 +476,20 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
               mono
             />
             {v.color_range && <Row label={t('mediaInfo.colorRange')} value={v.color_range} mono />}
-            {v.chroma_location && <Row label={t('mediaInfo.chromaLocation')} value={v.chroma_location} mono />}
+            {v.chroma_location && (
+              <Row label={t('mediaInfo.chromaLocation')} value={v.chroma_location} mono />
+            )}
             <Row label={t('mediaInfo.scanType')} value={formatScanType(v.field_order)} />
             {v.has_b_frames != null && (
-              <Row label={t('mediaInfo.bFrames')} value={v.has_b_frames > 0 ? `Yes (${v.has_b_frames})` : 'No'} />
+              <Row
+                label={t('mediaInfo.bFrames')}
+                value={v.has_b_frames > 0 ? `Yes (${v.has_b_frames})` : 'No'}
+              />
             )}
             {v.refs != null && <Row label={t('mediaInfo.refFrames')} value={String(v.refs)} />}
-            {v.nb_frames && !compact && <Row label={t('mediaInfo.totalFrames')} value={String(v.nb_frames)} />}
+            {v.nb_frames && !compact && (
+              <Row label={t('mediaInfo.totalFrames')} value={String(v.nb_frames)} />
+            )}
             {v.tags?.language && <Row label={t('mediaInfo.language')} value={v.tags.language} />}
             {v.tags?.title && <Row label={t('mediaInfo.title')} value={v.tags.title} />}
 
@@ -450,10 +505,18 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
                       <span className="text-text-muted">{t('mediaInfo.masteringDisplay')}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 text-[10px] text-text-muted mt-1">
-                      <span>R: {parseFraction(hdr.red_x)}, {parseFraction(hdr.red_y)}</span>
-                      <span>G: {parseFraction(hdr.green_x)}, {parseFraction(hdr.green_y)}</span>
-                      <span>B: {parseFraction(hdr.blue_x)}, {parseFraction(hdr.blue_y)}</span>
-                      <span>W: {parseFraction(hdr.white_point_x)}, {parseFraction(hdr.white_point_y)}</span>
+                      <span>
+                        R: {parseFraction(hdr.red_x)}, {parseFraction(hdr.red_y)}
+                      </span>
+                      <span>
+                        G: {parseFraction(hdr.green_x)}, {parseFraction(hdr.green_y)}
+                      </span>
+                      <span>
+                        B: {parseFraction(hdr.blue_x)}, {parseFraction(hdr.blue_y)}
+                      </span>
+                      <span>
+                        W: {parseFraction(hdr.white_point_x)}, {parseFraction(hdr.white_point_y)}
+                      </span>
                     </div>
                     <div className="flex gap-4 mt-1 text-[10px] text-text-muted">
                       <span>Min lum: {parseFraction(hdr.min_luminance)}</span>
@@ -488,7 +551,10 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
             label={t('mediaInfo.sampleRate')}
             value={a.sample_rate ? `${Number(a.sample_rate).toLocaleString()} Hz` : undefined}
           />
-          <Row label={t('mediaInfo.channels')} value={formatChannels(a.channels, a.channel_layout)} />
+          <Row
+            label={t('mediaInfo.channels')}
+            value={formatChannels(a.channels, a.channel_layout)}
+          />
           <Row label={t('mediaInfo.sampleFormat')} value={a.sample_fmt} mono />
           {a.bits_per_sample != null && a.bits_per_sample > 0 && (
             <Row label={t('mediaInfo.bitDepth')} value={`${a.bits_per_sample} bits`} />
@@ -510,7 +576,8 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
             <div key={i} className="flex items-center justify-between px-4 py-2.5">
               <span className="text-xs text-text-muted">#{i}</span>
               <span className="text-xs font-bold text-text-primary">
-                {s.codec_name?.toUpperCase() ?? '—'} {s.tags?.language ? `— ${s.tags.language}` : ''}
+                {s.codec_name?.toUpperCase() ?? '—'}{' '}
+                {s.tags?.language ? `— ${s.tags.language}` : ''}
               </span>
             </div>
           ))}
@@ -535,8 +602,12 @@ export function MediaInfoPanel({ metadata, compact = false, className }: MediaIn
       {!compact && info.sha256 && hasDetailedData && (
         <div className="px-4 py-2 bg-bg-primary border border-border rounded-xl">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted">SHA-256</span>
-            <span className="text-[10px] font-mono text-text-muted truncate max-w-[70%]">{info.sha256}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted">
+              SHA-256
+            </span>
+            <span className="text-[10px] font-mono text-text-muted truncate max-w-[70%]">
+              {info.sha256}
+            </span>
           </div>
         </div>
       )}
