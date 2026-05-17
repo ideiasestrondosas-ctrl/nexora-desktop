@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "Det här jobbet kan inte avbrytas i sitt nuvarande tillstånd",
+    "cannotRetryState": "Det här jobbet kan inte bearbetas om i sitt nuvarande tillstånd",
+    "retryQueued": "Jobbet är köat för ombearbetning"
   },
   "profiles": {
     "create": "Create",

@@ -39,6 +39,14 @@ fn ensure_defaults(db: &rusqlite::Connection) -> rusqlite::Result<()> {
             rusqlite::params![key, value],
         )?;
     }
+    // Migrar output_dir de paths temporários para o padrão correcto
+    let new_default = default_output_dir();
+    db.execute(
+        "UPDATE settings SET value = ?1 WHERE key = 'output_dir'
+         AND (value = '' OR value LIKE '%AppData%Temp%' OR value LIKE '%AppData%Local%Temp%'
+              OR value LIKE '%tmp%nexora%' OR value LIKE '%temp%nexora%')",
+        rusqlite::params![new_default],
+    )?;
     Ok(())
 }
 

@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "This job cannot be cancelled in its current state",
+    "cannotRetryState": "This job cannot be reprocessed in its current state",
+    "retryQueued": "Job queued for reprocessing"
   },
   "profiles": {
     "create": "Create",

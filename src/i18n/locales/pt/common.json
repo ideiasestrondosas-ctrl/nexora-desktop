@@ -206,7 +206,10 @@
     "rejected": "Rejected",
     "rejectedManual": "Rejected manually by operator",
     "step": "{{step}}...",
-    "gpuNvenc": "GPU: NVENC"
+    "gpuNvenc": "GPU: NVENC",
+    "cannotCancelState": "Este job não pode ser cancelado no estado actual",
+    "cannotRetryState": "Este job não pode ser reprocessado no estado actual",
+    "retryQueued": "Job adicionado à fila novamente"
   },
   "profiles": {
     "create": "Criar",

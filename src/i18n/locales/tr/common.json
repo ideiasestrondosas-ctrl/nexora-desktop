@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "Bu iş mevcut durumunda iptal edilemez",
+    "cannotRetryState": "Bu iş mevcut durumunda yeniden işlenemez",
+    "retryQueued": "İş yeniden kuyruğa alındı"
   },
   "profiles": {
     "create": "Create",

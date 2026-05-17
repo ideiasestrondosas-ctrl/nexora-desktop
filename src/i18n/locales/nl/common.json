@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "Dit job kan niet worden geannuleerd in de huidige status",
+    "cannotRetryState": "Dit job kan niet opnieuw worden verwerkt in de huidige status",
+    "retryQueued": "Job opnieuw in wachtrij geplaatst"
   },
   "profiles": {
     "create": "Create",

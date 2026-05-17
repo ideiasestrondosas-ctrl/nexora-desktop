@@ -22,6 +22,7 @@ pub struct Job {
     pub output_path: Option<String>,
     pub vmaf_score: Option<f64>,
     pub lufs: Option<f64>,
+    pub filename: Option<String>,
 }
 
 fn row_to_job(row: &Row) -> rusqlite::Result<Job> {
@@ -41,12 +42,13 @@ fn row_to_job(row: &Row) -> rusqlite::Result<Job> {
         output_path: row.get(12)?,
         vmaf_score: row.get(13)?,
         lufs: row.get(14)?,
+        filename: row.get(15).ok(),
     })
 }
 
-const COLS: &str = "id, asset_id, profile, status, priority, progress, step,
-                    created_at, updated_at, started_at, finished_at,
-                    error, output_path, vmaf_score, lufs";
+const COLS: &str = "j.id, j.asset_id, j.profile, j.status, j.priority, j.progress, j.step,
+                    j.created_at, j.updated_at, j.started_at, j.finished_at,
+                    j.error, j.output_path, j.vmaf_score, j.lufs, a.filename";
 
 fn collect_jobs(
     db: &rusqlite::Connection,
@@ -82,6 +84,8 @@ pub fn submit_job(
     )
     .map_err(|e| e.to_string())?;
 
+    crate::logger::write("INFO", "jobs", &format!("Job {} submetido — asset: {}, perfil: {}", id, asset_id, profile));
+
     Ok(Job {
         id,
         asset_id,
@@ -98,6 +102,7 @@ pub fn submit_job(
         output_path: None,
         vmaf_score: None,
         lufs: None,
+        filename: None,
     })
 }
 
@@ -112,6 +117,9 @@ pub fn cancel_job(id: String, state: State<AppState>) -> Result<bool, String> {
             rusqlite::params![now, id],
         )
         .map_err(|e| e.to_string())?;
+    if rows > 0 {
+        crate::logger::write("INFO", "jobs", &format!("Job {} cancelado pelo utilizador", id));
+    }
     Ok(rows > 0)
 }
 
@@ -120,7 +128,7 @@ pub fn get_job_status(id: String, state: State<AppState>) -> Result<Option<Job>,
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let mut jobs = collect_jobs(
         &db,
-        &format!("SELECT {COLS} FROM jobs WHERE id = ?1"),
+        &format!("SELECT {COLS} FROM jobs j LEFT JOIN assets a ON j.asset_id = a.id WHERE j.id = ?1"),
         Some(&id),
     )?;
     Ok(jobs.pop())
@@ -185,6 +193,9 @@ pub fn retry_job(id: String, state: State<AppState>) -> Result<bool, String> {
             rusqlite::params![now, id],
         )
         .map_err(|e| e.to_string())?;
+    if rows > 0 {
+        crate::logger::write("INFO", "jobs", &format!("Job {} reprocessado pelo utilizador", id));
+    }
     Ok(rows > 0)
 }
 
@@ -200,6 +211,9 @@ pub fn approve_job(id: String, state: State<AppState>) -> Result<bool, String> {
             rusqlite::params![now, id],
         )
         .map_err(|e| e.to_string())?;
+    if rows > 0 {
+        crate::logger::write("INFO", "jobs", &format!("Job {} aprovado pelo utilizador (quarentena)", id));
+    }
     Ok(rows > 0)
 }
 
@@ -207,7 +221,7 @@ pub fn approve_job(id: String, state: State<AppState>) -> Result<bool, String> {
 pub fn reject_job(id: String, reason: Option<String>, state: State<AppState>) -> Result<bool, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let now = Utc::now().to_rfc3339();
-    let error_msg = reason.unwrap_or_else(|| "Rejeitado manualmente".to_string());
+    let error_msg = reason.clone().unwrap_or_else(|| "Rejeitado manualmente".to_string());
     let rows = db
         .execute(
             "UPDATE jobs SET status='qc_rejected', error=?1, updated_at=?2
@@ -215,6 +229,9 @@ pub fn reject_job(id: String, reason: Option<String>, state: State<AppState>) ->
             rusqlite::params![error_msg, now, id],
         )
         .map_err(|e| e.to_string())?;
+    if rows > 0 {
+        crate::logger::write("INFO", "jobs", &format!("Job {} rejeitado pelo utilizador: {}", id, reason.as_deref().unwrap_or("sem razão")));
+    }
     Ok(rows > 0)
 }
 
@@ -225,12 +242,17 @@ pub fn list_jobs(asset_id: Option<String>, state: State<AppState>) -> Result<Vec
     match asset_id.as_deref() {
         Some(aid) => collect_jobs(
             &db,
-            &format!("SELECT {COLS} FROM jobs WHERE asset_id = ?1 ORDER BY created_at DESC"),
+            &format!("SELECT {COLS} FROM jobs j LEFT JOIN assets a ON j.asset_id = a.id \
+                      WHERE j.asset_id = ?1 ORDER BY j.created_at DESC"),
             Some(aid),
         ),
         None => collect_jobs(
             &db,
-            &format!("SELECT {COLS} FROM jobs ORDER BY priority DESC, created_at ASC"),
+            &format!("SELECT {COLS} FROM jobs j LEFT JOIN assets a ON j.asset_id = a.id \
+                      ORDER BY \
+                        CASE j.status WHEN 'processing' THEN 0 WHEN 'queued' THEN 1 WHEN 'qc_quarantined' THEN 2 ELSE 3 END ASC, \
+                        j.priority DESC, j.updated_at DESC \
+                      LIMIT 200"),
             None,
         ),
     }

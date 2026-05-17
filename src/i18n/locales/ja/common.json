@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "現在の状態ではこのジョブをキャンセルできません",
+    "cannotRetryState": "現在の状態ではこのジョブを再処理できません",
+    "retryQueued": "ジョブを再キューに追加しました"
   },
   "profiles": {
     "create": "Create",

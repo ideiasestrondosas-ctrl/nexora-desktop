@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "Dieser Job kann im aktuellen Status nicht abgebrochen werden",
+    "cannotRetryState": "Dieser Job kann im aktuellen Status nicht erneut verarbeitet werden",
+    "retryQueued": "Job wurde erneut in die Warteschlange gestellt"
   },
   "profiles": {
     "create": "Create",

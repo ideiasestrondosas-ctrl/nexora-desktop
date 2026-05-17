@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { openPath } from '@tauri-apps/plugin-opener';
+import { toast } from 'sonner';
 import {
   X,
   CheckCircle2,
@@ -39,7 +40,7 @@ interface Job {
   vmaf_score: number | null;
   lufs: number | null;
   output_path: string | null;
-  filename: string;
+  filename: string | null;
 }
 
 interface QueueStats {
@@ -94,7 +95,10 @@ export default function QueuePage() {
 
   const handleCancel = async (jobId: string) => {
     try {
-      await invoke('cancel_job', { id: jobId });
+      const ok = await invoke<boolean>('cancel_job', { id: jobId });
+      if (!ok) {
+        toast.warning(t('queue.cannotCancelState'));
+      }
       fetchData();
     } catch (error) {
       console.error('Failed to cancel job:', error);
@@ -103,7 +107,12 @@ export default function QueuePage() {
 
   const handleRetry = async (jobId: string) => {
     try {
-      await invoke('retry_job', { id: jobId });
+      const ok = await invoke<boolean>('retry_job', { id: jobId });
+      if (!ok) {
+        toast.warning(t('queue.cannotRetryState'));
+      } else {
+        toast.success(t('queue.retryQueued'));
+      }
       fetchData();
     } catch (error) {
       console.error('Failed to retry job:', error);
@@ -452,9 +461,9 @@ export default function QueuePage() {
                     <td className="px-6 py-4">
                       <div
                         className="font-bold text-text-primary truncate max-w-[200px]"
-                        title={job.filename}
+                        title={job.filename ?? undefined}
                       >
-                        {job.filename}
+                        {job.filename ?? job.asset_id.slice(0, 8)}
                       </div>
                       {job.output_path && (
                         <div

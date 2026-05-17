@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "Tego zadania nie można anulować w bieżącym stanie",
+    "cannotRetryState": "Tego zadania nie można ponownie przetworzyć w bieżącym stanie",
+    "retryQueued": "Zadanie ponownie dodane do kolejki"
   },
   "profiles": {
     "create": "Create",

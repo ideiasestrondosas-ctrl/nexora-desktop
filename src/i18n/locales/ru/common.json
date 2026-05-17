@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "Этот задание не может быть отменено в текущем состоянии",
+    "cannotRetryState": "Этот задание не может быть повторно обработано в текущем состоянии",
+    "retryQueued": "Задание снова добавлено в очередь"
   },
   "profiles": {
     "create": "Create",

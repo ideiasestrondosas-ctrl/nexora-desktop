@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "Questo job non può essere annullato nel suo stato attuale",
+    "cannotRetryState": "Questo job non può essere rielaborato nel suo stato attuale",
+    "retryQueued": "Job accodato di nuovo"
   },
   "profiles": {
     "create": "Create",

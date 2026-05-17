@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "Este trabajo no puede cancelarse en su estado actual",
+    "cannotRetryState": "Este trabajo no puede reprocesarse en su estado actual",
+    "retryQueued": "Trabajo añadido a la cola de nuevo"
   },
   "profiles": {
     "create": "Create",

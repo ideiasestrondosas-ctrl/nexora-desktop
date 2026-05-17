@@ -6,7 +6,6 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
 const POLL_INTERVAL_MS: u64 = 2_000;
-const MAX_CONCURRENT: usize = 2;
 
 struct QueueState {
     running_count: usize,
@@ -38,7 +37,7 @@ fn poll<R: Runtime>(
     let app_state = app.state::<AppState>();
     let db = app_state.db.lock().map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
 
-    // Recuperar jobs presos em 'processing' há mais de 10 minutos
+    // Recuperar jobs presos em 'processing' há mais de 15 minutos
     // (o sidecar pode ter crashado sem emitir job:failed)
     let _ = db.execute(
         "UPDATE jobs SET status='error', error='Timeout: processo interrompido inesperadamente', \
@@ -47,6 +46,19 @@ fn poll<R: Runtime>(
          (julianday('now') - julianday(COALESCE(started_at, updated_at))) * 24 * 60 > 15",
         [],
     );
+
+    // Ler max_concurrent_jobs da BD (respeita a setting do utilizador)
+    let max_concurrent: usize = db
+        .query_row(
+            "SELECT value FROM settings WHERE key = 'max_concurrent_jobs'",
+            [],
+            |row| row.get::<_, String>(0),
+        )
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(2)
+        .max(1)
+        .min(8);
 
     // Contar jobs em processamento
     let running_count: i64 = db
@@ -57,7 +69,7 @@ fn poll<R: Runtime>(
         )
         .unwrap_or(0);
 
-    let slots = MAX_CONCURRENT.saturating_sub(running_count as usize);
+    let slots = max_concurrent.saturating_sub(running_count as usize);
     if slots == 0 {
         return Ok(());
     }
@@ -95,19 +107,27 @@ fn poll<R: Runtime>(
         .collect();
 
     drop(stmt);
+
+    // Marcar todos os jobs como 'processing' enquanto ainda temos o lock da BD —
+    // elimina a race condition onde outro poll pode pegar no mesmo job antes de
+    // incrementarmos o contador in-memory.
+    let now = chrono::Utc::now().to_rfc3339();
+    let jobs_to_run: Vec<_> = jobs
+        .into_iter()
+        .filter(|(job_id, ..)| {
+            db.execute(
+                "UPDATE jobs SET status = 'processing', started_at = ?, updated_at = ? \
+                 WHERE id = ? AND status = 'queued'",
+                [&now, &now, job_id.as_str()],
+            )
+            .map(|rows| rows > 0)
+            .unwrap_or(false)
+        })
+        .collect();
+
     drop(db);
 
-    for (job_id, asset_id, profile, asset_path, duration_secs, video_codec, audio_codec, width, height, fps, size_bytes) in jobs {
-        // Marcar como processing
-        {
-            let db = app_state.db.lock().map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
-            let now = chrono::Utc::now().to_rfc3339();
-            let _ = db.execute(
-                "UPDATE jobs SET status = 'processing', started_at = ?, updated_at = ? WHERE id = ? AND status = 'queued'",
-                [&now, &now, &job_id],
-            );
-        }
-
+    for (job_id, asset_id, profile, asset_path, duration_secs, video_codec, audio_codec, width, height, fps, size_bytes) in jobs_to_run {
         let app_clone = app.clone();
         let db_path_buf = db_path.to_path_buf();
         let queue_state_clone = Arc::clone(queue_state);

@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "현재 상태에서는 이 작업을 취소할 수 없습니다",
+    "cannotRetryState": "현재 상태에서는 이 작업을 재처리할 수 없습니다",
+    "retryQueued": "작업이 다시 대기열에 추가되었습니다"
   },
   "profiles": {
     "create": "Create",

@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "لا يمكن إلغاء هذه المهمة في حالتها الحالية",
+    "cannotRetryState": "لا يمكن إعادة معالجة هذه المهمة في حالتها الحالية",
+    "retryQueued": "تمت إضافة المهمة إلى قائمة الانتظار مجددًا"
   },
   "profiles": {
     "create": "Create",

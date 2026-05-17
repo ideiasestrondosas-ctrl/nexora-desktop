@@ -195,7 +195,10 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "该任务在当前状态下无法取消",
+    "cannotRetryState": "该任务在当前状态下无法重新处理",
+    "retryQueued": "任务已重新加入队列"
   },
   "profiles": {
     "create": "Create",
