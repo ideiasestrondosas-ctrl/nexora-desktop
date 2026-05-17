@@ -5,10 +5,20 @@
 
 ---
 
-Actualizado: 2026-05-17 18:35
+Actualizado: 2026-05-17 18:40
 Agente: Claude Code (Sonnet 4.6)
 
 ## O que foi feito
+
+### Sessao 4 — v0.21.0 Validação + i18n Audit — CONCLUIDO
+
+**Sessao 4 (esta sessao):**
+
+- i18n: Auditoria completa — detectadas 153 chaves em falta em 14 locales (vs pt reference)
+- i18n: Propagadas 153 chaves × 14 locales = 2142 entradas adicionadas; todos os locales têm agora 663 chaves
+- Sidecar: Reconstruído (`npm run sidecar:build`) — dist actualizado com todos os fixes v0.19-v0.21
+- Verificado: B5 (LIMIT 200 em list_jobs) já estava implementado em sessao anterior
+- Plano v0.21.0 completo — todas as sessoes 1-4 concluidas
 
 ### Sessao 3 — v0.21.0 UX + Performance — CONCLUIDO
 
@@ -56,19 +66,20 @@ Agente: Claude Code (Sonnet 4.6)
 
 ## Estado das branches
 
-- `dev`: Sessoes 1+2+3 nao committed — fazer commit + push
+- `dev`: Sessoes 1-4 committed e pushed — em sincronia com remote
 - `main`: commit anterior (v0.20.0 area)
 - Remote: apenas `main` e `dev`
 
 ---
 
-## Proximos passos (Sessao 4 — Validacao + Screenshots)
+## Proximos passos (v0.22.0 ou seguinte)
 
-| Tarefa                                                 | Prioridade | Plan item |
-| ------------------------------------------------------ | ---------- | --------- |
-| Actualizar screenshots / documentacao visual           | Media      | -         |
-| Auditoria i18n 15 linguas (chaves orfas / em falta)    | Media      | -         |
-| npm run sidecar:build + tauri dev — testar golden path | Alta       | -         |
+| Tarefa                                                              | Prioridade | Plan item |
+| ------------------------------------------------------------------- | ---------- | --------- |
+| B6: dedup startup_checks — cachear resultado em AppState            | Baixa      | B6        |
+| Traducao profissional dos locales nao-pt (fallback em pt por agora) | Media      | -         |
+| Screenshots / documentacao visual actualizada                       | Baixa      | -         |
+| tauri dev golden path — testar drag-drop end-to-end                 | Alta       | -         |
 
 ---
 
