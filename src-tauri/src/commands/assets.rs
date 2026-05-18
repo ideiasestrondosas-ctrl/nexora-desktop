@@ -364,7 +364,7 @@ pub fn find_asset_by_path(path: String, state: State<AppState>) -> Result<Option
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let result = db
         .query_row(
-            "SELECT id FROM assets WHERE path = ? LIMIT 1",
+            "SELECT id FROM assets WHERE path = ?1 LIMIT 1",
             rusqlite::params![path],
             |row| row.get::<_, String>(0),
         )
