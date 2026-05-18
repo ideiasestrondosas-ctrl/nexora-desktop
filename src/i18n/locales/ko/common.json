@@ -219,7 +219,8 @@
     "viewAsset": "에셋 보기",
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
-    "phaseVerify": "Verifying & saving"
+    "phaseVerify": "Verifying & saving",
+    "reprocessOptions": "재처리 옵션"
   },
   "profiles": {
     "create": "Create",
@@ -500,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "처리된 파일이 없습니다",
+    "downloadProcessed": "처리된 파일 다운로드",
+    "downloadSuccess": "{{path}}에 저장되었습니다",
+    "openOriginal": "원본 보기",
+    "openProcessed": "처리된 보기",
+    "reprocessProfile": "프로필로 재처리",
+    "reprocessQueued": "작업이 대기열에 추가되었습니다",
+    "sameProfile": "같은 프로필"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -639,7 +648,14 @@
     "sampleFormat": "Sample Format",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analyze",
-    "reanalyze": "Re-analyze"
+    "reanalyze": "Re-analyze",
+    "fileName": "파일명",
+    "filePath": "경로",
+    "tabAudio": "오디오",
+    "tabGeneral": "일반",
+    "tabSha256": "SHA-256",
+    "tabTags": "태그",
+    "tabVideo": "비디오"
   },
   "status": {
     "pending": "Pending",

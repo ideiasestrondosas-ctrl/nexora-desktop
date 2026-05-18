@@ -219,7 +219,8 @@
     "viewAsset": "View asset",
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
-    "phaseVerify": "Verifying & saving"
+    "phaseVerify": "Verifying & saving",
+    "reprocessOptions": "Reprocess options"
   },
   "profiles": {
     "create": "Create",
@@ -500,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "No processed file available",
+    "downloadProcessed": "Download Processed",
+    "downloadSuccess": "File saved to {{path}}",
+    "openOriginal": "View Original",
+    "openProcessed": "View Processed",
+    "reprocessProfile": "Reprocess with profile",
+    "reprocessQueued": "Job added to queue",
+    "sameProfile": "Same profile"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -639,7 +648,14 @@
     "sampleFormat": "Sample Format",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analyze",
-    "reanalyze": "Re-analyze"
+    "reanalyze": "Re-analyze",
+    "fileName": "Filename",
+    "filePath": "Path",
+    "tabAudio": "Audio",
+    "tabGeneral": "General",
+    "tabSha256": "SHA-256",
+    "tabTags": "Tags",
+    "tabVideo": "Video"
   },
   "status": {
     "pending": "Pending",

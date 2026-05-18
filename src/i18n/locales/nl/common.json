@@ -219,7 +219,8 @@
     "viewAsset": "Asset bekijken",
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
-    "phaseVerify": "Verifying & saving"
+    "phaseVerify": "Verifying & saving",
+    "reprocessOptions": "Verwerkingsopties"
   },
   "profiles": {
     "create": "Create",
@@ -500,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "Geen verwerkt bestand beschikbaar",
+    "downloadProcessed": "Verwerkt bestand downloaden",
+    "downloadSuccess": "Bestand opgeslagen in {{path}}",
+    "openOriginal": "Origineel bekijken",
+    "openProcessed": "Verwerkt bekijken",
+    "reprocessProfile": "Opnieuw verwerken met profiel",
+    "reprocessQueued": "Taak toegevoegd aan wachtrij",
+    "sameProfile": "Zelfde profiel"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -639,7 +648,14 @@
     "sampleFormat": "Sample Format",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analyze",
-    "reanalyze": "Re-analyze"
+    "reanalyze": "Re-analyze",
+    "fileName": "Bestandsnaam",
+    "filePath": "Pad",
+    "tabAudio": "Audio",
+    "tabGeneral": "Algemeen",
+    "tabSha256": "SHA-256",
+    "tabTags": "Tags",
+    "tabVideo": "Video"
   },
   "status": {
     "pending": "Pending",

@@ -219,7 +219,8 @@
     "viewAsset": "Просмотр ресурса",
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
-    "phaseVerify": "Verifying & saving"
+    "phaseVerify": "Verifying & saving",
+    "reprocessOptions": "Параметры повторной обработки"
   },
   "profiles": {
     "create": "Create",
@@ -500,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "Обработанный файл недоступен",
+    "downloadProcessed": "Скачать обработанный файл",
+    "downloadSuccess": "Файл сохранён в {{path}}",
+    "openOriginal": "Просмотр оригинала",
+    "openProcessed": "Просмотр обработанного",
+    "reprocessProfile": "Обработать с профилем",
+    "reprocessQueued": "Задание добавлено в очередь",
+    "sameProfile": "Тот же профиль"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -639,7 +648,14 @@
     "sampleFormat": "Sample Format",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analyze",
-    "reanalyze": "Re-analyze"
+    "reanalyze": "Re-analyze",
+    "fileName": "Имя файла",
+    "filePath": "Путь",
+    "tabAudio": "Аудио",
+    "tabGeneral": "Общее",
+    "tabSha256": "SHA-256",
+    "tabTags": "Теги",
+    "tabVideo": "Видео"
   },
   "status": {
     "pending": "Pending",

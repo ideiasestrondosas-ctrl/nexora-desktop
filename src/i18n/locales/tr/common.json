@@ -219,7 +219,8 @@
     "viewAsset": "Varlığı görüntüle",
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
-    "phaseVerify": "Verifying & saving"
+    "phaseVerify": "Verifying & saving",
+    "reprocessOptions": "Yeniden işleme seçenekleri"
   },
   "profiles": {
     "create": "Create",
@@ -500,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "İşlenmiş dosya mevcut değil",
+    "downloadProcessed": "İşlenmiş dosyayı indir",
+    "downloadSuccess": "Dosya {{path}} konumuna kaydedildi",
+    "openOriginal": "Orijinali görüntüle",
+    "openProcessed": "İşlenmiş görüntüle",
+    "reprocessProfile": "Profille yeniden işle",
+    "reprocessQueued": "İş kuyruğa eklendi",
+    "sameProfile": "Aynı profil"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -639,7 +648,14 @@
     "sampleFormat": "Sample Format",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analyze",
-    "reanalyze": "Re-analyze"
+    "reanalyze": "Re-analyze",
+    "fileName": "Dosya adı",
+    "filePath": "Yol",
+    "tabAudio": "Ses",
+    "tabGeneral": "Genel",
+    "tabSha256": "SHA-256",
+    "tabTags": "Etiketler",
+    "tabVideo": "Video"
   },
   "status": {
     "pending": "Pending",

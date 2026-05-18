@@ -219,7 +219,8 @@
     "viewAsset": "アセットを表示",
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
-    "phaseVerify": "Verifying & saving"
+    "phaseVerify": "Verifying & saving",
+    "reprocessOptions": "再処理オプション"
   },
   "profiles": {
     "create": "Create",
@@ -500,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "処理済みファイルがありません",
+    "downloadProcessed": "処理済みファイルをダウンロード",
+    "downloadSuccess": "{{path}} に保存しました",
+    "openOriginal": "オリジナルを表示",
+    "openProcessed": "処理済みを表示",
+    "reprocessProfile": "プロファイルで再処理",
+    "reprocessQueued": "ジョブをキューに追加しました",
+    "sameProfile": "同じプロファイル"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -639,7 +648,14 @@
     "sampleFormat": "Sample Format",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analyze",
-    "reanalyze": "Re-analyze"
+    "reanalyze": "Re-analyze",
+    "fileName": "ファイル名",
+    "filePath": "パス",
+    "tabAudio": "オーディオ",
+    "tabGeneral": "一般",
+    "tabSha256": "SHA-256",
+    "tabTags": "タグ",
+    "tabVideo": "ビデオ"
   },
   "status": {
     "pending": "Pending",

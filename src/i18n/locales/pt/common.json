@@ -219,7 +219,8 @@
     "viewAsset": "Ver asset",
     "phaseAnalyse": "A analisar",
     "phaseConvert": "A converter",
-    "phaseVerify": "A verificar e guardar"
+    "phaseVerify": "A verificar e guardar",
+    "reprocessOptions": "Opções de reprocessamento"
   },
   "profiles": {
     "create": "Criar",
@@ -500,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "Sem ficheiro processado disponível",
+    "downloadProcessed": "Descarregar Processado",
+    "downloadSuccess": "Ficheiro guardado em {{path}}",
+    "openOriginal": "Ver Original",
+    "openProcessed": "Ver Processado",
+    "reprocessProfile": "Reprocessar com perfil",
+    "reprocessQueued": "Job adicionado à fila",
+    "sameProfile": "Mesmo perfil"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -691,7 +700,14 @@
     "sampleFormat": "Formato de Sample",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analisar",
-    "reanalyze": "Re-analisar"
+    "reanalyze": "Re-analisar",
+    "fileName": "Ficheiro",
+    "filePath": "Caminho",
+    "tabAudio": "Áudio",
+    "tabGeneral": "Geral",
+    "tabSha256": "SHA-256",
+    "tabTags": "Etiquetas",
+    "tabVideo": "Vídeo"
   },
   "dropZone": {
     "dropHere": "Largue vídeos aqui",

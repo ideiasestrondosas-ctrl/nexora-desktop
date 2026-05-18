@@ -219,7 +219,8 @@
     "viewAsset": "Visa tillgång",
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
-    "phaseVerify": "Verifying & saving"
+    "phaseVerify": "Verifying & saving",
+    "reprocessOptions": "Alternativ för ombearbetning"
   },
   "profiles": {
     "create": "Create",
@@ -500,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "Ingen bearbetad fil tillgänglig",
+    "downloadProcessed": "Ladda ner bearbetad fil",
+    "downloadSuccess": "Fil sparad i {{path}}",
+    "openOriginal": "Visa original",
+    "openProcessed": "Visa bearbetad",
+    "reprocessProfile": "Bearbeta om med profil",
+    "reprocessQueued": "Jobb lagt till i kö",
+    "sameProfile": "Samma profil"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -639,7 +648,14 @@
     "sampleFormat": "Sample Format",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analyze",
-    "reanalyze": "Re-analyze"
+    "reanalyze": "Re-analyze",
+    "fileName": "Filnamn",
+    "filePath": "Sökväg",
+    "tabAudio": "Ljud",
+    "tabGeneral": "Allmänt",
+    "tabSha256": "SHA-256",
+    "tabTags": "Taggar",
+    "tabVideo": "Video"
   },
   "status": {
     "pending": "Pending",

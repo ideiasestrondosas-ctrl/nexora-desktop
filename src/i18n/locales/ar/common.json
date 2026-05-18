@@ -219,7 +219,8 @@
     "viewAsset": "عرض الأصل",
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
-    "phaseVerify": "Verifying & saving"
+    "phaseVerify": "Verifying & saving",
+    "reprocessOptions": "خيارات إعادة المعالجة"
   },
   "profiles": {
     "create": "Create",
@@ -500,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "لا يوجد ملف معالج متاح",
+    "downloadProcessed": "تنزيل الملف المعالج",
+    "downloadSuccess": "تم حفظ الملف في {{path}}",
+    "openOriginal": "عرض الأصلي",
+    "openProcessed": "عرض المعالج",
+    "reprocessProfile": "إعادة المعالجة بالملف الشخصي",
+    "reprocessQueued": "تمت إضافة المهمة إلى قائمة الانتظار",
+    "sameProfile": "نفس الملف الشخصي"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -639,7 +648,14 @@
     "sampleFormat": "Sample Format",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analyze",
-    "reanalyze": "Re-analyze"
+    "reanalyze": "Re-analyze",
+    "fileName": "اسم الملف",
+    "filePath": "المسار",
+    "tabAudio": "الصوت",
+    "tabGeneral": "عام",
+    "tabSha256": "SHA-256",
+    "tabTags": "الوسوم",
+    "tabVideo": "الفيديو"
   },
   "status": {
     "pending": "Pending",
