@@ -17,9 +17,11 @@ import {
   Play,
   Plus,
   FolderOpen,
+  Download,
 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useJobsStore } from '@/store/jobs';
+import { logActivity } from '@/lib/activityLog';
 
 interface Asset {
   id: string;
@@ -34,6 +36,7 @@ interface Asset {
   created_at: string;
   thumbnail_path: string | null;
   vmaf_score: number | null;
+  output_path: string | null;
 }
 
 interface LibraryPageProps {
@@ -198,6 +201,32 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
       setSelectedIds(new Set(filteredAssets.map((a) => a.id)));
     } else {
       setSelectedIds(new Set());
+    }
+  };
+
+  const handleDownload = async (asset: Asset) => {
+    if (!asset.output_path) {
+      logActivity(
+        'Download Processado (Biblioteca)',
+        'attempt',
+        `asset_id=${asset.id} sem output_path`,
+      );
+      toast.warning(t('assetDetail.downloadNoOutput', 'Sem ficheiro processado disponível'));
+      return;
+    }
+    logActivity('Download Processado (Biblioteca)', 'execute', `asset_id=${asset.id}`);
+    try {
+      const { downloadFile } = await import('@/lib/fileUtils');
+      const filename = asset.output_path.split(/[/\\]/).pop() ?? 'output.mp4';
+      const dest = await downloadFile(asset.output_path, filename);
+      if (dest) {
+        toast.success(
+          t('assetDetail.downloadSuccess', { path: dest, defaultValue: `Guardado em ${dest}` }),
+        );
+      }
+    } catch (e: unknown) {
+      console.error('Download failed:', e);
+      toast.error(t('common.error', 'Ocorreu um erro'));
     }
   };
 
@@ -447,6 +476,18 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                           <Play size={18} />
                         </button>
                       )}
+                      {asset.output_path && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(asset);
+                          }}
+                          title={t('assetDetail.downloadProcessed', 'Descarregar processado')}
+                          className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-md transition-colors"
+                        >
+                          <Download size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(asset.id)}
                         title={t('common.delete')}
@@ -564,6 +605,15 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                       >
                         <ExternalLink size={14} />
                       </button>
+                      {asset.output_path && (
+                        <button
+                          onClick={() => handleDownload(asset)}
+                          title={t('assetDetail.downloadProcessed', 'Descarregar processado')}
+                          className="p-1.5 text-text-muted hover:text-brand hover:bg-surface rounded transition-colors"
+                        >
+                          <Download size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(asset.id)}
                         title={t('common.delete')}
