@@ -569,11 +569,24 @@ pub async fn factory_reset(
         }
     }
 
-    // 6. Limpar pasta temporária do sidecar se existir
+    // 6. Limpar directorias temporárias do sidecar
+    let os_tmp = std::env::temp_dir();
+
     if delete_files {
-        let temp_dir = std::env::temp_dir().join("nexora-output");
-        if temp_dir.exists() {
-            let _ = std::fs::remove_dir_all(&temp_dir);
+        // nexora-output (outputDir por omissão)
+        let _ = std::fs::remove_dir_all(os_tmp.join("nexora-output"));
+
+        // nexora-thumbs (cache de thumbnails — sempre apagar em reset total)
+        let _ = std::fs::remove_dir_all(os_tmp.join("nexora-thumbs"));
+    }
+
+    // Limpar temp dirs de transcode e proxy com prefixo nexora- (mesmo sem delete_files)
+    if let Ok(entries) = std::fs::read_dir(&os_tmp) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with("nexora-transcode-") || name.starts_with("nexora-proxy-") {
+                let _ = std::fs::remove_dir_all(entry.path());
+            }
         }
     }
 
