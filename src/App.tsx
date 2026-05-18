@@ -344,7 +344,11 @@ function App() {
             {activeTab === 'settings' && <SettingsPage />}
             {activeTab === 'logs' && <LogsPage />}
             {activeTab === 'detail' && selectedAssetId && (
-              <AssetDetailPage assetId={selectedAssetId} onBack={() => setActiveTab('library')} />
+              <AssetDetailPage
+                assetId={selectedAssetId}
+                onBack={() => setActiveTab('library')}
+                onSelectAsset={handleSelectAsset}
+              />
             )}
           </Suspense>
         </div>
