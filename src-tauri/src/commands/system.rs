@@ -465,6 +465,7 @@ pub fn exit_app(app: tauri::AppHandle) {
 
 #[tauri::command]
 pub async fn factory_reset(
+    delete_files: bool,
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
@@ -487,25 +488,27 @@ pub async fn factory_reset(
     // 2. Limpar ficheiros gerados pela aplicação (transcodes, proxies, thumbnails)
     {
         if let Ok(db) = state.db.lock() {
-            // Obter todos os caminhos de ficheiros de saída registados nos jobs
-            if let Ok(mut stmt) =
-                db.prepare("SELECT output_path FROM jobs WHERE output_path IS NOT NULL")
-            {
-                if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
-                    for path in paths.flatten() {
-                        let _ = std::fs::remove_file(path);
+            if delete_files {
+                // Obter todos os caminhos de ficheiros de saída registados nos jobs
+                if let Ok(mut stmt) =
+                    db.prepare("SELECT output_path FROM jobs WHERE output_path IS NOT NULL")
+                {
+                    if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+                        for path in paths.flatten() {
+                            let _ = std::fs::remove_file(path);
+                        }
                     }
                 }
-            }
-            // Obter caminhos do audit_log (thumbnails e proxies que não estão na tabela jobs)
-            if let Ok(mut stmt) = db.prepare("SELECT data FROM audit_log WHERE event IN ('delivery:completed', 'thumbnail:completed', 'proxy:completed')") {
-                if let Ok(rows) = stmt.query_map([], |r| r.get::<_, String>(0)) {
-                    for json_str in rows.flatten() {
-                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
-                            // Tentar apagar campos comuns de caminhos
-                            for key in ["destination", "thumbnailPath", "proxyPath", "thumbPath", "finalPath"] {
-                                if let Some(p) = json.get(key).and_then(|v| v.as_str()) {
-                                    let _ = std::fs::remove_file(p);
+                // Obter caminhos do audit_log (thumbnails e proxies que não estão na tabela jobs)
+                if let Ok(mut stmt) = db.prepare("SELECT data FROM audit_log WHERE event IN ('delivery:completed', 'thumbnail:completed', 'proxy:completed')") {
+                    if let Ok(rows) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+                        for json_str in rows.flatten() {
+                            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
+                                // Tentar apagar campos comuns de caminhos
+                                for key in ["destination", "thumbnailPath", "proxyPath", "thumbPath", "finalPath"] {
+                                    if let Some(p) = json.get(key).and_then(|v| v.as_str()) {
+                                        let _ = std::fs::remove_file(p);
+                                    }
                                 }
                             }
                         }
@@ -513,7 +516,7 @@ pub async fn factory_reset(
                 }
             }
 
-            // 3. Limpar a BD por dentro (DELETE)
+            // 3. Limpar a BD por dentro (DELETE) — sempre executa, independente de delete_files
             let _ = db.execute("PRAGMA foreign_keys = OFF", []);
             let _ = db.execute("DELETE FROM jobs", []);
             let _ = db.execute("DELETE FROM assets", []);
@@ -552,9 +555,11 @@ pub async fn factory_reset(
     }
 
     // 6. Limpar pasta temporária do sidecar se existir
-    let temp_dir = std::env::temp_dir().join("nexora-output");
-    if temp_dir.exists() {
-        let _ = std::fs::remove_dir_all(&temp_dir);
+    if delete_files {
+        let temp_dir = std::env::temp_dir().join("nexora-output");
+        if temp_dir.exists() {
+            let _ = std::fs::remove_dir_all(&temp_dir);
+        }
     }
 
     // 7. Reiniciar a aplicação

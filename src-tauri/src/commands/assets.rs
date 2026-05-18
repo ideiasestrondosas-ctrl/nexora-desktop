@@ -1,5 +1,5 @@
 use crate::state::AppState;
-use rusqlite::Row;
+use rusqlite::{OptionalExtension, Row};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 use uuid::Uuid;
@@ -266,7 +266,7 @@ pub fn list_assets_slim(state: State<AppState>) -> Result<Vec<AssetSlim>, String
 }
 
 #[tauri::command]
-pub fn delete_asset(id: String, state: State<AppState>) -> Result<(), String> {
+pub fn delete_asset(id: String, delete_files: bool, state: State<AppState>) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
     // 1. Recolher caminhos de output dos jobs para apagar ficheiros gerados
@@ -308,9 +308,11 @@ pub fn delete_asset(id: String, state: State<AppState>) -> Result<(), String> {
     }
 
     // 6. Apagar ficheiros gerados do disco (não crítico — falhas são ignoradas)
-    for path in output_paths {
-        if !path.is_empty() {
-            let _ = std::fs::remove_file(&path);
+    if delete_files {
+        for path in output_paths {
+            if !path.is_empty() {
+                let _ = std::fs::remove_file(&path);
+            }
         }
     }
 
@@ -355,4 +357,18 @@ pub async fn scan_directory(path: String) -> Result<Vec<String>, String> {
 
     paths.sort();
     Ok(paths)
+}
+
+#[tauri::command]
+pub fn find_asset_by_path(path: String, state: State<AppState>) -> Result<Option<String>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let result = db
+        .query_row(
+            "SELECT id FROM assets WHERE path = ? LIMIT 1",
+            rusqlite::params![path],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()
+        .map_err(|e| e.to_string())?;
+    Ok(result)
 }
