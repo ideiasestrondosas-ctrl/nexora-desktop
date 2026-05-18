@@ -1,6 +1,6 @@
 # Nexora Desktop — User Manual
 
-**Version:** 0.22.0 | **Platform:** Windows · macOS · Linux
+**Version:** 0.23.0 | **Platform:** Windows · macOS · Linux
 
 ---
 
