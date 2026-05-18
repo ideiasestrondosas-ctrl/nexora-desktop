@@ -1,4 +1,4 @@
-{
+﻿{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -395,7 +395,7 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\n• All asset library\n• Job and log history\n• All custom profiles\n• All your settings\n\nThe application will restart. This action is irreversible.",
       "factoryResetDeleteFilesTitle": "Auch Ausgabedateien löschen?",
       "factoryResetDeleteFilesConfirm": "Alle verarbeiteten Ausgabedateien vom Datenträger löschen? (Transcodierungen, Proxys, Miniaturansichten). Wählen Sie Nein, um die Dateien zu behalten."
     },
