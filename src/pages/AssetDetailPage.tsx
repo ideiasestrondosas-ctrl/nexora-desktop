@@ -16,8 +16,11 @@ import {
   ScanLine,
   Volume2,
   BarChart2,
+  ChevronDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { logActivity } from '@/lib/activityLog';
 import { MediaInfoPanel } from '@/components/MediaInfoPanel';
 import type { DetailedMediaInfo } from '@/components/MediaInfoPanel';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -61,6 +64,13 @@ interface Job {
   output_path: string | null;
 }
 
+interface Profile {
+  id: string;
+  name: string;
+  label_friendly: string | null;
+  description: string;
+}
+
 interface AssetDetailPageProps {
   assetId: string;
   onBack: () => void;
@@ -91,18 +101,22 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [mediaInfoSide, setMediaInfoSide] = useState<'original' | 'processed'>('original');
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [reprocessMenuOpen, setReprocessMenuOpen] = useState(false);
 
   const removeAsset = useAssetsStore((s) => s.removeAsset);
   const removeJobsByAsset = useJobsStore((s) => s.removeJobsByAsset);
 
   const fetchData = useCallback(async () => {
     try {
-      const [assetData, jobsData] = await Promise.all([
+      const [assetData, jobsData, profilesData] = await Promise.all([
         invoke<Asset | null>('get_asset', { id: assetId }), // P6: backend retorna Option<Asset>; P11: param name é 'id'
         invoke<Job[]>('list_jobs', { asset_id: assetId }), // P11: backend espera asset_id não assetId
+        invoke<Profile[]>('list_profiles'),
       ]);
       if (assetData) setAsset(assetData); // P6: verificar null
       setJobs(jobsData);
+      setProfiles(profilesData);
     } catch (error) {
       console.error('Failed to fetch asset detail:', error);
     } finally {
@@ -135,12 +149,27 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
 
   // P14: Processar Novamente via submit_job
   const handleReprocess = async (profile: string) => {
+    logActivity('Processar Novamente', 'execute', `asset_id=${assetId} profile=${profile}`);
     try {
-      await invoke('submit_job', { assetId, profile, priority: 0 });
-    } catch (error) {
-      console.error('Failed to submit job:', error);
+      await invoke('submit_job', { asset_id: assetId, profile, priority: 0 });
+      toast.success(t('assetDetail.reprocessQueued', 'Job adicionado à fila'));
+      fetchData();
+    } catch (e: unknown) {
+      console.error('Failed to submit job:', e);
+      toast.error(t('common.error', 'Ocorreu um erro'));
     }
+    setReprocessMenuOpen(false);
   };
+
+  useEffect(() => {
+    if (!reprocessMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-reprocess-menu]')) setReprocessMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [reprocessMenuOpen]);
 
   const formatBytes = (bytes: number) => {
     const k = 1024;
@@ -840,12 +869,48 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
       {/* STICKY ACTION BAR */}
       <div className="fixed bottom-6 left-[252px] right-8 bg-bg-secondary/80 backdrop-blur-xl border border-border p-4 rounded-2xl shadow-2xl flex items-center justify-between z-40">
         <div className="flex gap-4">
-          <button
-            onClick={() => handleReprocess(jobs[0]?.profile || 'broadcast-hd')}
-            className="flex items-center gap-2 px-6 py-2 bg-brand hover:bg-blue-600 text-white rounded-xl font-bold transition-all"
-          >
-            <Play size={18} /> {t('assetDetail.reprocess')}
-          </button>
+          <div className="relative" data-reprocess-menu>
+            <button
+              onClick={() => {
+                logActivity('Abrir menu reprocessar', 'click', `asset_id=${assetId}`);
+                setReprocessMenuOpen((v) => !v);
+              }}
+              className="flex items-center gap-2 px-6 py-2 bg-brand hover:bg-blue-600 text-white rounded-xl font-bold transition-all"
+            >
+              <Play size={18} /> {t('assetDetail.reprocess')}
+              <ChevronDown
+                size={14}
+                className={
+                  reprocessMenuOpen ? 'rotate-180 transition-transform' : 'transition-transform'
+                }
+              />
+            </button>
+            {reprocessMenuOpen && profiles.length > 0 && (
+              <div className="absolute bottom-full mb-2 left-0 bg-bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden z-50 min-w-[220px]">
+                <div className="px-4 py-2 border-b border-border">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+                    {t('assetDetail.reprocessProfile', 'Reprocessar com perfil')}
+                  </span>
+                </div>
+                {profiles.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => handleReprocess(p.name)}
+                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-bg-hover transition-colors flex items-center justify-between gap-2"
+                  >
+                    <span className="font-bold text-text-primary">
+                      {p.label_friendly ?? p.name}
+                    </span>
+                    {jobs[0]?.profile === p.name && (
+                      <span className="text-[9px] font-black text-brand uppercase">
+                        {t('assetDetail.sameProfile', 'actual')}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             onClick={() => revealItemInDir(asset.path).catch(() => {})}
             className="flex items-center gap-2 px-6 py-2 bg-surface hover:bg-surface-hover text-text-secondary rounded-xl font-bold transition-all"
