@@ -642,6 +642,9 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                     {t('detail.original')}
                   </h3>
                   {[
+                    { label: t('mediaInfo.fileName', 'Ficheiro'), value: asset.filename },
+                    { label: t('mediaInfo.filePath', 'Caminho'), value: asset.path },
+                    { label: t('assetDetail.size'), value: formatBytes(asset.size_bytes || 0) },
                     { label: t('analysis.codec'), value: asset.video_codec },
                     {
                       label: t('analysis.resolution'),
@@ -676,10 +679,15 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                   ].map(({ label, value }) => (
                     <div
                       key={label}
-                      className="flex items-center justify-between py-1.5 border-b border-border/50 text-sm"
+                      className="flex items-start justify-between py-1.5 border-b border-border/50 text-sm gap-2"
                     >
-                      <span className="text-text-muted">{label}</span>
-                      <span className="font-bold text-text-primary font-mono">{value ?? '—'}</span>
+                      <span className="text-text-muted shrink-0">{label}</span>
+                      <span
+                        className="font-bold text-text-primary font-mono text-right truncate max-w-[60%]"
+                        title={String(value ?? '')}
+                      >
+                        {value ?? '—'}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -689,73 +697,96 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                   <h3 className="text-xs font-black uppercase tracking-widest text-green-500 mb-4">
                     {t('detail.processed')}
                   </h3>
-                  {asset.output_metadata ? (
-                    [
-                      {
-                        label: t('analysis.codec'),
-                        value: String(
-                          (asset.output_metadata as Record<string, unknown>)?.videoCodec ?? '—',
-                        ),
-                      },
-                      {
-                        label: t('analysis.resolution'),
-                        value:
-                          (asset.output_metadata as Record<string, unknown>)?.width &&
-                          (asset.output_metadata as Record<string, unknown>)?.height
-                            ? `${(asset.output_metadata as Record<string, unknown>).width}×${(asset.output_metadata as Record<string, unknown>).height}`
+                  {(() => {
+                    const outPath =
+                      asset.output_path ?? jobs.find((j) => j.output_path)?.output_path;
+                    const outFilename = outPath?.split(/[/\\]/).pop();
+                    const outSize = (
+                      asset.output_metadata as Record<string, { size?: string }> | null
+                    )?.format?.size;
+                    return asset.output_metadata ? (
+                      [
+                        {
+                          label: t('mediaInfo.fileName', 'Ficheiro'),
+                          value: outFilename ?? '—',
+                        },
+                        { label: t('mediaInfo.filePath', 'Caminho'), value: outPath ?? '—' },
+                        {
+                          label: t('assetDetail.size'),
+                          value: outSize ? formatBytes(Number(outSize)) : '—',
+                        },
+                        {
+                          label: t('analysis.codec'),
+                          value: String(
+                            (asset.output_metadata as Record<string, unknown>)?.videoCodec ?? '—',
+                          ),
+                        },
+                        {
+                          label: t('analysis.resolution'),
+                          value:
+                            (asset.output_metadata as Record<string, unknown>)?.width &&
+                            (asset.output_metadata as Record<string, unknown>)?.height
+                              ? `${(asset.output_metadata as Record<string, unknown>).width}×${(asset.output_metadata as Record<string, unknown>).height}`
+                              : '—',
+                        },
+                        {
+                          label: t('analysis.fps'),
+                          value: (asset.output_metadata as Record<string, unknown>)?.fps
+                            ? `${(asset.output_metadata as Record<string, unknown>).fps}fps`
                             : '—',
-                      },
-                      {
-                        label: t('analysis.fps'),
-                        value: (asset.output_metadata as Record<string, unknown>)?.fps
-                          ? `${(asset.output_metadata as Record<string, unknown>).fps}fps`
-                          : '—',
-                      },
-                      {
-                        label: t('analysis.bitDepth'),
-                        value: (asset.output_metadata as Record<string, unknown>)?.bitDepth
-                          ? `${(asset.output_metadata as Record<string, unknown>).bitDepth}-bit`
-                          : '—',
-                      },
-                      {
-                        label: t('analysis.hdr'),
-                        value: String(
-                          (asset.output_metadata as Record<string, unknown>)?.hdrType ?? 'SDR',
-                        ),
-                      },
-                      {
-                        label: t('analysis.colorSpace'),
-                        value: String(
-                          (asset.output_metadata as Record<string, unknown>)?.colorSpace ?? '—',
-                        ),
-                      },
-                      {
-                        label: t('analysis.container'),
-                        value: String(
-                          (asset.output_metadata as Record<string, unknown>)?.formatName ?? '—',
-                        ),
-                      },
-                      {
-                        label: t('analysis.interlace'),
-                        value:
-                          (asset.output_metadata as Record<string, unknown>)?.isInterlaced === true
-                            ? t('analysis.interlaced')
-                            : t('analysis.progressive'),
-                      },
-                    ].map(({ label, value }) => (
-                      <div
-                        key={label}
-                        className="flex items-center justify-between py-1.5 border-b border-border/50 text-sm"
-                      >
-                        <span className="text-text-muted">{label}</span>
-                        <span className="font-bold text-text-primary font-mono">
-                          {value ?? '—'}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-text-muted text-sm italic">{t('detail.notProcessedYet')}</p>
-                  )}
+                        },
+                        {
+                          label: t('analysis.bitDepth'),
+                          value: (asset.output_metadata as Record<string, unknown>)?.bitDepth
+                            ? `${(asset.output_metadata as Record<string, unknown>).bitDepth}-bit`
+                            : '—',
+                        },
+                        {
+                          label: t('analysis.hdr'),
+                          value: String(
+                            (asset.output_metadata as Record<string, unknown>)?.hdrType ?? 'SDR',
+                          ),
+                        },
+                        {
+                          label: t('analysis.colorSpace'),
+                          value: String(
+                            (asset.output_metadata as Record<string, unknown>)?.colorSpace ?? '—',
+                          ),
+                        },
+                        {
+                          label: t('analysis.container'),
+                          value: String(
+                            (asset.output_metadata as Record<string, unknown>)?.formatName ?? '—',
+                          ),
+                        },
+                        {
+                          label: t('analysis.interlace'),
+                          value:
+                            (asset.output_metadata as Record<string, unknown>)?.isInterlaced ===
+                            true
+                              ? t('analysis.interlaced')
+                              : t('analysis.progressive'),
+                        },
+                      ].map(({ label, value }) => (
+                        <div
+                          key={label}
+                          className="flex items-start justify-between py-1.5 border-b border-border/50 text-sm gap-2"
+                        >
+                          <span className="text-text-muted shrink-0">{label}</span>
+                          <span
+                            className="font-bold text-text-primary font-mono text-right truncate max-w-[60%]"
+                            title={String(value ?? '')}
+                          >
+                            {value ?? '—'}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-text-muted text-sm italic">
+                        {t('detail.notProcessedYet')}
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
             </section>
