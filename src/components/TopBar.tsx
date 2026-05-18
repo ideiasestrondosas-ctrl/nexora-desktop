@@ -24,8 +24,16 @@ function useScreenMap(t: (key: string) => string): Record<string, ScreenInfo> {
   };
 }
 
-function CircularGauge({ value, label, icon: Icon, colorClass }: {
-  value: number; label: string; icon: React.ElementType; colorClass: string;
+function CircularGauge({
+  value,
+  label,
+  icon: Icon,
+  colorClass,
+}: {
+  value: number;
+  label: string;
+  icon: React.ElementType;
+  colorClass: string;
 }) {
   const pct = Math.min(Math.max(value, 0), 100);
   const radius = 22;
@@ -37,16 +45,17 @@ function CircularGauge({ value, label, icon: Icon, colorClass }: {
   else if (pct > 60) strokeColor = 'stroke-yellow-500';
 
   return (
-    <div className="flex items-center gap-2.5" title={`${label}: ${isNaN(pct) ? '--' : pct.toFixed(0)}%`}>
+    <div
+      className="flex items-center gap-2.5"
+      title={`${label}: ${isNaN(pct) ? '--' : pct.toFixed(0)}%`}
+    >
       <div className="relative w-12 h-12 flex items-center justify-center">
         <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+          <circle cx="24" cy="24" r={radius} className="stroke-border fill-none" strokeWidth="4" />
           <circle
-            cx="24" cy="24" r={radius}
-            className="stroke-border fill-none"
-            strokeWidth="4"
-          />
-          <circle
-            cx="24" cy="24" r={radius}
+            cx="24"
+            cy="24"
+            r={radius}
             className={cn('fill-none transition-all duration-700', strokeColor)}
             strokeWidth="4"
             strokeDasharray={circumference}
@@ -57,7 +66,9 @@ function CircularGauge({ value, label, icon: Icon, colorClass }: {
         <Icon size={16} className={cn('absolute', colorClass)} />
       </div>
       <div className="flex flex-col leading-none">
-        <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">{label}</span>
+        <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">
+          {label}
+        </span>
         <span className={cn('text-xs font-bold', pct > 80 ? 'text-red-500' : 'text-text-primary')}>
           {isNaN(pct) ? '--' : `${pct.toFixed(0)}%`}
         </span>
@@ -81,9 +92,8 @@ export default function TopBar({ activeTab, onHelpOpen }: TopBarProps) {
   const screen = screenMap[activeTab] ?? { name: activeTab, description: '' };
 
   const cpuPercent = metrics?.cpuPercent ?? 0;
-  const memPercent = metrics && metrics.memTotalBytes > 0
-    ? (metrics.memUsedBytes / metrics.memTotalBytes) * 100
-    : 0;
+  const memPercent =
+    metrics && metrics.memTotalBytes > 0 ? (metrics.memUsedBytes / metrics.memTotalBytes) * 100 : 0;
   const gpuPercent = gpu?.available ? 15 : 0;
   const diskPercent = disk.usedPercent ?? 0;
 
@@ -92,17 +102,39 @@ export default function TopBar({ activeTab, onHelpOpen }: TopBarProps) {
       {/* Drag area + Título */}
       <div data-tauri-drag-region className="flex-1 flex items-center gap-3 min-w-0">
         <div className="flex flex-col">
-          <h2 className="text-base font-bold text-text-primary leading-tight truncate">{screen.name}</h2>
+          <h2 className="text-base font-bold text-text-primary leading-tight truncate">
+            {screen.name}
+          </h2>
           <span className="text-xs text-text-muted font-medium truncate">{screen.description}</span>
         </div>
       </div>
 
       {/* Métricas circulares */}
       <div className="hidden md:flex items-center gap-6 mr-5">
-        <CircularGauge value={cpuPercent} label={t('topbar.cpu')} icon={Cpu} colorClass="text-brand" />
-        <CircularGauge value={memPercent} label={t('topbar.ram')} icon={MemoryStick} colorClass="text-green-500" />
-        <CircularGauge value={gpuPercent} label={t('topbar.gpu')} icon={Monitor} colorClass="text-purple-500" />
-        <CircularGauge value={diskPercent} label={t('topbar.disk')} icon={HardDrive} colorClass="text-yellow-500" />
+        <CircularGauge
+          value={cpuPercent}
+          label={t('topbar.cpu')}
+          icon={Cpu}
+          colorClass="text-brand"
+        />
+        <CircularGauge
+          value={memPercent}
+          label={t('topbar.ram')}
+          icon={MemoryStick}
+          colorClass="text-green-500"
+        />
+        <CircularGauge
+          value={gpuPercent}
+          label={t('topbar.gpu')}
+          icon={Monitor}
+          colorClass="text-purple-500"
+        />
+        <CircularGauge
+          value={diskPercent}
+          label={t('topbar.disk')}
+          icon={HardDrive}
+          colorClass="text-yellow-500"
+        />
       </div>
 
       {/* Botão Ajuda */}

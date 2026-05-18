@@ -13,7 +13,9 @@ const BATCH_SIZE = 1; // LibreTranslate pública aceita 1 de cada vez
 // Cache em disco para evitar re-traduzir strings idênticas
 let cache = {};
 if (fs.existsSync(CACHE_FILE)) {
-  try { cache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8')); } catch {}
+  try {
+    cache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8'));
+  } catch {}
 }
 
 function saveCache() {
@@ -21,12 +23,50 @@ function saveCache() {
 }
 
 const TECH_TERMS = [
-  'VMAF', 'LUFS', 'FFmpeg', 'FFprobe', 'GPU', 'NVENC', 'AMF', 'QSV',
-  'CPU', 'RAM', 'H.264', 'H.265', 'HEVC', 'ProRes', 'DNxHD', 'AV1',
-  'AAC', 'PCM', 'MOV', 'MP4', 'MXF', 'TS', 'SHA-256', 'R128',
-  'dBTP', 'fps', 'kbps', 'Mbps', 'GB', 'MB', 'Node.js', 'SQLite',
-  'Tauri', 'React', 'Rust', 'Nexora', 'BBC', 'Netflix', 'DPP',
-  'Windows', 'macOS', 'Linux', 'VS Code', 'npm'
+  'VMAF',
+  'LUFS',
+  'FFmpeg',
+  'FFprobe',
+  'GPU',
+  'NVENC',
+  'AMF',
+  'QSV',
+  'CPU',
+  'RAM',
+  'H.264',
+  'H.265',
+  'HEVC',
+  'ProRes',
+  'DNxHD',
+  'AV1',
+  'AAC',
+  'PCM',
+  'MOV',
+  'MP4',
+  'MXF',
+  'TS',
+  'SHA-256',
+  'R128',
+  'dBTP',
+  'fps',
+  'kbps',
+  'Mbps',
+  'GB',
+  'MB',
+  'Node.js',
+  'SQLite',
+  'Tauri',
+  'React',
+  'Rust',
+  'Nexora',
+  'BBC',
+  'Netflix',
+  'DPP',
+  'Windows',
+  'macOS',
+  'Linux',
+  'VS Code',
+  'npm',
 ];
 
 const PLACEHOLDER_REGEX = /\{\{[^}]+\}\}/g;
@@ -82,8 +122,8 @@ async function translateString(text, targetLang) {
         q: prepared,
         source: 'en',
         target: targetLang,
-        format: 'text'
-      })
+        format: 'text',
+      }),
     });
 
     if (!res.ok) {
@@ -116,7 +156,7 @@ async function translateObject(obj, targetLang, path = '') {
     if (typeof value === 'string') {
       process.stdout.write(`  [${targetLang}] ${currentPath.padEnd(50)} \r`);
       result[key] = await translateString(value, targetLang);
-      await new Promise(r => setTimeout(r, DELAY_MS));
+      await new Promise((r) => setTimeout(r, DELAY_MS));
     } else if (typeof value === 'object' && value !== null) {
       result[key] = await translateObject(value, targetLang, currentPath);
     } else {
@@ -151,7 +191,7 @@ async function main() {
   console.log('\n🎉 Tradução completa!');
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ Erro fatal:', err);
   process.exit(1);
 });

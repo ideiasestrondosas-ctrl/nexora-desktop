@@ -132,8 +132,7 @@ fn disk_space_impl(path: String) -> Result<DiskSpace, String> {
         .chain(std::iter::once(0))
         .collect();
     let (mut free, mut total, mut total_free) = (0u64, 0u64, 0u64);
-    let ok =
-        unsafe { GetDiskFreeSpaceExW(wide.as_ptr(), &mut free, &mut total, &mut total_free) };
+    let ok = unsafe { GetDiskFreeSpaceExW(wide.as_ptr(), &mut free, &mut total, &mut total_free) };
     if ok != 0 {
         Ok(DiskSpace {
             path,
@@ -153,10 +152,7 @@ fn disk_space_impl(path: String) -> Result<DiskSpace, String> {
         .map_err(|e| e.to_string())?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let line = stdout
-        .lines()
-        .nth(1)
-        .ok_or("df: output inesperado")?;
+    let line = stdout.lines().nth(1).ok_or("df: output inesperado")?;
     let parts: Vec<&str> = line.split_whitespace().collect();
     if parts.len() < 4 {
         return Err("df: formato inesperado".to_string());
@@ -217,7 +213,7 @@ pub fn get_system_info(app: tauri::AppHandle) -> Result<SystemInfo, String> {
 
     // ── Memória (sysinfo mínimo — apenas memória, sem CPU/rede/discos) ───────
     let (mem_total_gb, mem_used_gb) = {
-        use sysinfo::{System, RefreshKind, MemoryRefreshKind};
+        use sysinfo::{MemoryRefreshKind, RefreshKind, System};
         let sys = System::new_with_specifics(
             RefreshKind::new().with_memory(MemoryRefreshKind::everything()),
         );
@@ -319,7 +315,9 @@ pub struct DbInfo {
 pub fn get_db_info(state: State<'_, AppState>, app: tauri::AppHandle) -> Result<DbInfo, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
-    let db_path = app.path().app_data_dir()
+    let db_path = app
+        .path()
+        .app_data_dir()
         .ok()
         .map(|p| p.join("nexora.db"))
         .unwrap_or_default();
@@ -328,9 +326,15 @@ pub fn get_db_info(state: State<'_, AppState>, app: tauri::AppHandle) -> Result<
         .map(|m| m.len() as f64 / (1024.0 * 1024.0))
         .unwrap_or(0.0);
 
-    let assets_count: i64 = db.query_row("SELECT COUNT(*) FROM assets", [], |r| r.get(0)).unwrap_or(0);
-    let jobs_count: i64 = db.query_row("SELECT COUNT(*) FROM jobs", [], |r| r.get(0)).unwrap_or(0);
-    let logs_count: i64 = db.query_row("SELECT COUNT(*) FROM logs", [], |r| r.get(0)).unwrap_or(0);
+    let assets_count: i64 = db
+        .query_row("SELECT COUNT(*) FROM assets", [], |r| r.get(0))
+        .unwrap_or(0);
+    let jobs_count: i64 = db
+        .query_row("SELECT COUNT(*) FROM jobs", [], |r| r.get(0))
+        .unwrap_or(0);
+    let logs_count: i64 = db
+        .query_row("SELECT COUNT(*) FROM logs", [], |r| r.get(0))
+        .unwrap_or(0);
 
     Ok(DbInfo {
         db_size_mb,
@@ -343,7 +347,11 @@ pub fn get_db_info(state: State<'_, AppState>, app: tauri::AppHandle) -> Result<
 // Helper local para resolver path do FFmpeg (reusa lógica do sidecar.rs)
 use std::path::PathBuf;
 fn resolve_media_binary_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>, name: &str) -> PathBuf {
-    let ext = if cfg!(target_os = "windows") { ".exe" } else { "" };
+    let ext = if cfg!(target_os = "windows") {
+        ".exe"
+    } else {
+        ""
+    };
     if let Ok(exe) = std::env::current_exe() {
         if let Some(exe_dir) = exe.parent() {
             let candidate = exe_dir.join(format!("{}{}", name, ext));
@@ -373,10 +381,7 @@ pub struct AppStats {
 }
 
 #[tauri::command]
-pub fn get_stats(
-    state: State<'_, AppState>,
-    app: tauri::AppHandle,
-) -> Result<AppStats, String> {
+pub fn get_stats(state: State<'_, AppState>, app: tauri::AppHandle) -> Result<AppStats, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
     let total_assets: i64 = db
@@ -474,19 +479,18 @@ pub async fn factory_reset(
         let _ = Command::new("taskkill")
             .args(["/F", "/PID", &p.to_string()])
             .status();
-        
+
         #[cfg(not(target_os = "windows"))]
-        let _ = Command::new("kill")
-            .arg("-9")
-            .arg(p.to_string())
-            .status();
+        let _ = Command::new("kill").arg("-9").arg(p.to_string()).status();
     }
 
     // 2. Limpar ficheiros gerados pela aplicação (transcodes, proxies, thumbnails)
     {
         if let Ok(db) = state.db.lock() {
             // Obter todos os caminhos de ficheiros de saída registados nos jobs
-            if let Ok(mut stmt) = db.prepare("SELECT output_path FROM jobs WHERE output_path IS NOT NULL") {
+            if let Ok(mut stmt) =
+                db.prepare("SELECT output_path FROM jobs WHERE output_path IS NOT NULL")
+            {
                 if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
                     for path in paths.flatten() {
                         let _ = std::fs::remove_file(path);
@@ -523,7 +527,8 @@ pub async fn factory_reset(
     }
 
     // 4. Libertar estado (fechar Mutex/Conexão)
-    drop(state); 
+    // Nota: drop(state) omitido — State<'_, AppState> não implementa Drop;
+    // o Mutex é libertado automaticamente quando sai do scope.
 
     // 5. Tentar apagar ficheiros físicos do sistema (AppData)
     if let Ok(data_dir) = app.path().app_data_dir() {
@@ -554,7 +559,7 @@ pub async fn factory_reset(
 
     // 7. Reiniciar a aplicação
     app.restart();
-    
+
     #[allow(unreachable_code)]
     Ok(())
 }

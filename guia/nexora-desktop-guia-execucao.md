@@ -1,5 +1,7 @@
 # Nexora Media Processing — Desktop Nativo
+
 ## Guia de Execução: Claude Code & Google Antigravity IDE
+
 ### Passo a Passo Completo — v1.0
 
 > **Para quem é:** Para qualquer pessoa, mesmo sem experiência, que quer construir
@@ -15,7 +17,9 @@
 ---
 
 # ════════════════════════════════════════
+
 # ÍNDICE
+
 # ════════════════════════════════════════
 
 ```
@@ -33,7 +37,9 @@ SECÇÃO 6 — VERIFICAR SE CORREU TUDO BEM
 ---
 
 # ════════════════════════════════════════
+
 # SECÇÃO 0 — ANTES DE COMEÇAR
+
 # ════════════════════════════════════════
 
 ## O que são estes dois modos?
@@ -73,20 +79,23 @@ Existem duas formas de executar os prompts do documento Desktop:
 
 **Combinação ideal (recomendada):**
 
-| Prompt | Ferramenta ideal |
-|---|---|
-| Prompt Desktop 1 (Tauri + SQLite + Rust) | Claude Code |
-| Prompt Desktop 2 (Sidecar + Workers) | Claude Code |
-| Prompt Desktop 3 (Frontend React) | Antigravity (Gemini ou Claude) |
-| Prompt Desktop 4 (Build + Testes) | Claude Code |
+| Prompt                                   | Ferramenta ideal               |
+| ---------------------------------------- | ------------------------------ |
+| Prompt Desktop 1 (Tauri + SQLite + Rust) | Claude Code                    |
+| Prompt Desktop 2 (Sidecar + Workers)     | Claude Code                    |
+| Prompt Desktop 3 (Frontend React)        | Antigravity (Gemini ou Claude) |
+| Prompt Desktop 4 (Build + Testes)        | Claude Code                    |
 
 ---
 
 ---
 
 # ════════════════════════════════════════
+
 # SECÇÃO 1 — PREPARAÇÃO COMUM
+
 # (obrigatória para ambos os modos)
+
 # ════════════════════════════════════════
 
 > **Faz isto primeiro, independentemente de usares Antigravity ou Claude Code.**
@@ -290,8 +299,11 @@ Se chegaste aqui e tudo funcionou — **estás pronto** para escolher o teu modo
 ---
 
 # ════════════════════════════════════════
+
 # SECÇÃO 2 — MODO A: GOOGLE ANTIGRAVITY IDE
+
 # (Recomendado para iniciantes)
+
 # ════════════════════════════════════════
 
 ## O que é o Google Antigravity?
@@ -364,7 +376,7 @@ Selecciona o agente: **Claude** (preferido para backend/Rust) ou **Gemini** (bom
 2. Cola o seguinte texto no chat e prime Enter:
 
 ```
-Lê primeiro o ficheiro PROGRESS-DESKTOP.md na raiz do projecto e o ficheiro 
+Lê primeiro o ficheiro PROGRESS-DESKTOP.md na raiz do projecto e o ficheiro
 arquitetura/nexora-desktop-documento.md (especialmente a PARTE 5.1).
 
 Agora executa a PARTE 5.1 — Prompt Desktop 1 do documento:
@@ -394,6 +406,7 @@ cd ..
 ```
 
 6. Se houver erros, cola a mensagem de erro de volta no chat do Antigravity:
+
 ```
 Obtive este erro ao correr "cargo check":
 [cola aqui o erro]
@@ -504,6 +517,7 @@ npm run dev
 ```
 
 Se tudo correr bem, verás:
+
 - A janela do Nexora abre com 3 tabs (Processar, Histórico, Definições)
 - No canto superior aparece a GPU detectada (ex: "NVIDIA RTX 3060")
 - A drop zone está visível no tab "Processar"
@@ -552,13 +566,17 @@ npm run build
 ---
 
 # ════════════════════════════════════════
+
 # SECÇÃO 3 — MODO B: CLAUDE CODE
+
 # (Terminal — para mais autónomo)
+
 # ════════════════════════════════════════
 
 ## O que é o Claude Code?
 
 É uma ferramenta de terminal criada pela Anthropic. Corres `claude` no terminal, e o Claude:
+
 - Lê todos os teus ficheiros automaticamente
 - Escreve código directamente nos ficheiros
 - Executa comandos no terminal por si mesmo
@@ -706,7 +724,7 @@ Type your message (or /help for commands)
 No prompt do Claude Code, escreve:
 
 ```
-Lê o ../PROGRESS-DESKTOP.md e o ../arquitetura/nexora-desktop-documento.md 
+Lê o ../PROGRESS-DESKTOP.md e o ../arquitetura/nexora-desktop-documento.md
 (especialmente a PARTE 5.1 — Prompt Desktop 1).
 
 Depois executa exactamente o Prompt Desktop 1:
@@ -722,6 +740,7 @@ Quando terminar, actualiza ../PROGRESS-DESKTOP.md.
 ```
 
 O Claude Code vai:
+
 1. Ler os documentos automaticamente
 2. Criar os ficheiros um a um
 3. Pedir confirmação antes de executar comandos no terminal
@@ -762,7 +781,7 @@ No prompt:
 ```
 Lê o ../PROGRESS-DESKTOP.md actualizado.
 
-Executa agora o Prompt Desktop 2 da PARTE 5.2 do documento 
+Executa agora o Prompt Desktop 2 da PARTE 5.2 do documento
 ../arquitetura/nexora-desktop-documento.md:
 - Cria NexoraSimpleQueue em sidecar/queue/simple-queue.ts
 - Cria NexoraDesktopOrchestrator em sidecar/pipeline/desktop-orchestrator.ts
@@ -770,7 +789,7 @@ Executa agora o Prompt Desktop 2 da PARTE 5.2 do documento
 - Cria os 6 perfis de transcode JSON em sidecar/profiles/
 - Configura a comunicação sidecar ↔ Tauri
 
-Quando terminar, corre "npx esbuild sidecar/index.ts --bundle --platform=node 
+Quando terminar, corre "npx esbuild sidecar/index.ts --bundle --platform=node
 --outfile=sidecar/dist/sidecar.js" para verificar que compila.
 Actualiza ../PROGRESS-DESKTOP.md.
 ```
@@ -784,7 +803,7 @@ Actualiza ../PROGRESS-DESKTOP.md.
 ```
 Lê o ../PROGRESS-DESKTOP.md actualizado.
 
-Executa o Prompt Desktop 3 da PARTE 5.3 do documento 
+Executa o Prompt Desktop 3 da PARTE 5.3 do documento
 ../arquitetura/nexora-desktop-documento.md:
 - Cria todos os componentes em src/components/
 - Cria as 3 páginas em src/pages/
@@ -807,7 +826,7 @@ Actualiza ../PROGRESS-DESKTOP.md.
 ```
 Lê o ../PROGRESS-DESKTOP.md actualizado.
 
-Executa o Prompt Desktop 4 da PARTE 5.4 do documento 
+Executa o Prompt Desktop 4 da PARTE 5.4 do documento
 ../arquitetura/nexora-desktop-documento.md:
 - Cria .github/workflows/build-desktop.yml
 - Cria scripts/download-media-binaries.js
@@ -860,8 +879,11 @@ O Claude Code vai executar os comandos e mostrar-te os resultados. Se algo falha
 ---
 
 # ════════════════════════════════════════
+
 # SECÇÃO 4 — FLUXO DE TRABALHO DIÁRIO
+
 # (após configuração inicial)
+
 # ════════════════════════════════════════
 
 Depois de ter tudo configurado, cada sessão de trabalho segue este padrão:
@@ -909,12 +931,15 @@ git push origin main
 ---
 
 # ════════════════════════════════════════
+
 # SECÇÃO 5 — RESOLVER PROBLEMAS COMUNS
+
 # ════════════════════════════════════════
 
 ## "cargo check dá erro"
 
 Cola o erro no chat do Antigravity ou no Claude Code:
+
 ```
 O cargo check deu este erro. Corrige:
 [cola o erro aqui]
@@ -963,6 +988,7 @@ Ctrl+clique na app → "Abrir" (bypass do Gatekeeper).
 ## "O agente IA está a fazer coisas erradas"
 
 Para qualquer agente (Antigravity ou Claude Code):
+
 ```
 Para. Lê novamente o PROGRESS-DESKTOP.md e o arquitetura/nexora-desktop-documento.md
 antes de continuar. O que fizeste não está correcto porque [explica].
@@ -978,7 +1004,9 @@ O `PROGRESS-DESKTOP.md` tem tudo registado. Abre-o e lê a secção "Histórico 
 ---
 
 # ════════════════════════════════════════
+
 # SECÇÃO 6 — VERIFICAR SE CORREU TUDO BEM
+
 # ════════════════════════════════════════
 
 No final do desenvolvimento, verifica estes pontos antes de considerar o Desktop pronto:
@@ -1033,7 +1061,9 @@ bs1770gain output.mp4
 ---
 
 # ════════════════════════════════════════
+
 # RESUMO VISUAL: SEQUÊNCIA COMPLETA
+
 # ════════════════════════════════════════
 
 ```
@@ -1101,6 +1131,6 @@ bs1770gain output.mp4
 
 ---
 
-*Nexora Media Processing — Guia de Execução Desktop v1.0*
-*Para usar em conjunto com: arquitetura/nexora-desktop-documento.md*
-*Língua: Português de Portugal · Maio 2026*
+_Nexora Media Processing — Guia de Execução Desktop v1.0_
+_Para usar em conjunto com: arquitetura/nexora-desktop-documento.md_
+_Língua: Português de Portugal · Maio 2026_

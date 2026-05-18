@@ -15,8 +15,6 @@
       "Read(C:\\Dev\\Nexora Media Processing\\arquitetura\\**)",
       "Write(C:\\Dev\\nexora-desktop\\**)"
     ],
-    "deny": [
-      "Write(C:\\Dev\\Nexora Media Processing\\**)"
-    ]
+    "deny": ["Write(C:\\Dev\\Nexora Media Processing\\**)"]
   }
 }

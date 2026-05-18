@@ -21,13 +21,18 @@ const translations = {
 };
 
 const localesDir = path.join(__dirname, '..', 'src', 'i18n', 'locales');
-let ok = 0, failed = 0;
+let ok = 0,
+  failed = 0;
 
 for (const [lang, keys] of Object.entries(translations)) {
   const filePath = path.join(localesDir, lang, 'common.json');
   try {
     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    if (!data.common) { console.warn(`${lang}: sem secção "common"`); failed++; continue; }
+    if (!data.common) {
+      console.warn(`${lang}: sem secção "common"`);
+      failed++;
+      continue;
+    }
     data.common.showAll = keys.showAll;
     data.common.showLess = keys.showLess;
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n', 'utf8');

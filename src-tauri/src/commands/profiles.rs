@@ -22,12 +22,30 @@ pub struct Profile {
 
 // Perfis de sistema compilados no binário
 const PROFILES_RAW: &[(&str, &str)] = &[
-    ("broadcast-hd", include_str!("../../../sidecar/profiles/broadcast-hd.json")),
-    ("broadcast-sd", include_str!("../../../sidecar/profiles/broadcast-sd.json")),
-    ("proxy",        include_str!("../../../sidecar/profiles/proxy.json")),
-    ("social",       include_str!("../../../sidecar/profiles/social.json")),
-    ("web-4k",       include_str!("../../../sidecar/profiles/web-4k.json")),
-    ("web-hd",       include_str!("../../../sidecar/profiles/web-hd.json")),
+    (
+        "broadcast-hd",
+        include_str!("../../../sidecar/profiles/broadcast-hd.json"),
+    ),
+    (
+        "broadcast-sd",
+        include_str!("../../../sidecar/profiles/broadcast-sd.json"),
+    ),
+    (
+        "proxy",
+        include_str!("../../../sidecar/profiles/proxy.json"),
+    ),
+    (
+        "social",
+        include_str!("../../../sidecar/profiles/social.json"),
+    ),
+    (
+        "web-4k",
+        include_str!("../../../sidecar/profiles/web-4k.json"),
+    ),
+    (
+        "web-hd",
+        include_str!("../../../sidecar/profiles/web-hd.json"),
+    ),
 ];
 
 fn system_profiles() -> Vec<Profile> {
@@ -166,10 +184,16 @@ pub fn update_profile(
              resolution=?5,fps=?6,bitrate_kbps=?7,vmaf_threshold=?8,updated_at=?9
              WHERE id=?10 AND is_system=0",
             params![
-                profile.name, description, container, profile.video_codec,
-                profile.resolution, profile.fps as i64,
+                profile.name,
+                description,
+                container,
+                profile.video_codec,
+                profile.resolution,
+                profile.fps as i64,
                 profile.bitrate_kbps.map(|n| n as i64),
-                vmaf_threshold as i64, now, id
+                vmaf_threshold as i64,
+                now,
+                id
             ],
         )
         .map_err(|e| e.to_string())?;

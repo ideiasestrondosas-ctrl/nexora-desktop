@@ -11,7 +11,7 @@ function fmtBytes(bytes: number): string {
 }
 
 function fmtGb(bytes: number): string {
-  return (bytes / (1024 ** 3)).toFixed(1);
+  return (bytes / 1024 ** 3).toFixed(1);
 }
 
 function MiniBar({ value, color }: { value: number; color: string }) {
@@ -37,9 +37,11 @@ export const SystemMetricsBar: React.FC = () => {
     );
   }
 
-  const cpuColor = m.cpuPercent > 80 ? 'bg-red-500' : m.cpuPercent > 50 ? 'bg-yellow-500' : 'bg-nexora-green';
+  const cpuColor =
+    m.cpuPercent > 80 ? 'bg-red-500' : m.cpuPercent > 50 ? 'bg-yellow-500' : 'bg-nexora-green';
   const memPercent = m.memTotalBytes > 0 ? (m.memUsedBytes / m.memTotalBytes) * 100 : 0;
-  const memColor = memPercent > 80 ? 'bg-red-500' : memPercent > 60 ? 'bg-yellow-500' : 'bg-nexora-blue';
+  const memColor =
+    memPercent > 80 ? 'bg-red-500' : memPercent > 60 ? 'bg-yellow-500' : 'bg-nexora-blue';
 
   return (
     <div className="hidden xl:flex items-center gap-5 text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider select-none">

@@ -34,7 +34,14 @@ let skipped = 0;
 
 for (const rawLine of lines) {
   const line = rawLine.trim();
-  if (!line || line.startsWith('NEXORA') || line.startsWith('===') || line.startsWith('-') || line.startsWith('INSTRUCTIONS') || line.startsWith('RULES')) {
+  if (
+    !line ||
+    line.startsWith('NEXORA') ||
+    line.startsWith('===') ||
+    line.startsWith('-') ||
+    line.startsWith('INSTRUCTIONS') ||
+    line.startsWith('RULES')
+  ) {
     skipped++;
     continue;
   }

@@ -15,10 +15,15 @@ fn default_output_dir() -> String {
         #[cfg(not(target_os = "macos"))]
         let videos = "Videos";
 
-        let candidate = std::path::PathBuf::from(&base).join(videos).join("Nexora Output");
+        let candidate = std::path::PathBuf::from(&base)
+            .join(videos)
+            .join("Nexora Output");
         return candidate.to_string_lossy().into_owned();
     }
-    std::env::temp_dir().join("nexora-output").to_string_lossy().into_owned()
+    std::env::temp_dir()
+        .join("nexora-output")
+        .to_string_lossy()
+        .into_owned()
 }
 
 fn default_settings() -> HashMap<String, String> {
@@ -59,18 +64,16 @@ pub fn get_settings(state: State<AppState>) -> Result<HashMap<String, String>, S
         .prepare("SELECT key, value FROM settings")
         .map_err(|e| e.to_string())?;
     let iter = stmt
-        .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))
+        .query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })
         .map_err(|e| e.to_string())?;
     let collected: rusqlite::Result<HashMap<_, _>> = iter.collect();
     collected.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn update_settings(
-    key: String,
-    value: String,
-    state: State<AppState>,
-) -> Result<bool, String> {
+pub fn update_settings(key: String, value: String, state: State<AppState>) -> Result<bool, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute(
         "INSERT INTO settings (key, value) VALUES (?1, ?2)

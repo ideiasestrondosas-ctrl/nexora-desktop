@@ -21,9 +21,5 @@ export const NexoraStatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const color = statusColors[status] || statusColors.pending;
   const label = t(`status.${status}`);
 
-  return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
-      {label}
-    </span>
-  );
+  return <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>{label}</span>;
 };

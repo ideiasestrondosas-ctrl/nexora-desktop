@@ -26,7 +26,7 @@ const STEPS = [
 
 function getStepIndex(stepKey: string | null): number {
   if (!stepKey) return -1;
-  return STEPS.findIndex(s => s.key === stepKey);
+  return STEPS.findIndex((s) => s.key === stepKey);
 }
 
 function getPhaseStatus(jobs: Job[], stepIdx: number) {
@@ -91,8 +91,20 @@ function getPhaseStatus(jobs: Job[], stepIdx: number) {
   return { completed, active, failed, quarantined };
 }
 
-function PhaseDots({ stepIdx, active, completed, failed, quarantined, totalJobs }: {
-  stepIdx: number; active: number; completed: number; failed: number; quarantined: number; totalJobs: number;
+function PhaseDots({
+  stepIdx,
+  active,
+  completed,
+  failed,
+  quarantined,
+  totalJobs,
+}: {
+  stepIdx: number;
+  active: number;
+  completed: number;
+  failed: number;
+  quarantined: number;
+  totalJobs: number;
 }) {
   return (
     <div className="flex items-center gap-1.5">
@@ -119,7 +131,14 @@ function PhaseDots({ stepIdx, active, completed, failed, quarantined, totalJobs 
           <div key={idx} className="flex items-center">
             <div className={cn('w-2.5 h-2.5 rounded-full transition-colors', colorClass)} />
             {idx < STEPS.length - 1 && (
-              <div className={cn('w-3 h-0.5', idx < stepIdx || (completed > 0 && status !== 'pending') ? 'bg-green-500/50' : 'bg-surface')} />
+              <div
+                className={cn(
+                  'w-3 h-0.5',
+                  idx < stepIdx || (completed > 0 && status !== 'pending')
+                    ? 'bg-green-500/50'
+                    : 'bg-surface',
+                )}
+              />
             )}
           </div>
         );
@@ -131,32 +150,42 @@ function PhaseDots({ stepIdx, active, completed, failed, quarantined, totalJobs 
 export default function PipelineSummary({ jobs }: PipelineSummaryProps) {
   const { t } = useTranslation();
   const totalJobs = jobs.length;
-  const globalQueued = jobs.filter(j => j.status === 'queued').length;
-  const globalProcessing = jobs.filter(j => j.status === 'processing').length;
-  const globalDone = jobs.filter(j => j.status === 'done').length;
+  const globalQueued = jobs.filter((j) => j.status === 'queued').length;
+  const globalProcessing = jobs.filter((j) => j.status === 'processing').length;
+  const globalDone = jobs.filter((j) => j.status === 'done').length;
 
   return (
     <div className="bg-bg-secondary border border-border rounded-2xl p-6 space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-black uppercase tracking-widest text-text-muted">{t('queue.pipelineSummary')}</h3>
-        <span className="text-[10px] text-text-muted font-mono">{t('queue.totalJobs', { count: totalJobs })}</span>
+        <h3 className="text-xs font-black uppercase tracking-widest text-text-muted">
+          {t('queue.pipelineSummary')}
+        </h3>
+        <span className="text-[10px] text-text-muted font-mono">
+          {t('queue.totalJobs', { count: totalJobs })}
+        </span>
       </div>
 
       {/* ESTADOS GLOBAIS */}
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="flex items-center gap-2 px-3 py-1.5 bg-bg-primary border border-border rounded-lg">
           <Clock size={12} className="text-text-muted" />
-          <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">{t('queue.queued')}</span>
+          <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+            {t('queue.queued')}
+          </span>
           <span className="text-xs font-black text-text-primary">{globalQueued}</span>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-lg">
           <div className="w-2 h-2 bg-brand rounded-full animate-pulse" />
-          <span className="text-[10px] font-bold text-brand uppercase tracking-wider">{t('queue.processing')}</span>
+          <span className="text-[10px] font-bold text-brand uppercase tracking-wider">
+            {t('queue.processing')}
+          </span>
           <span className="text-xs font-black text-text-primary">{globalProcessing}</span>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg">
           <CheckCircle2 size={12} className="text-green-500" />
-          <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">{t('queue.completed')}</span>
+          <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">
+            {t('queue.completed')}
+          </span>
           <span className="text-xs font-black text-text-primary">{globalDone}</span>
         </div>
       </div>
@@ -171,29 +200,42 @@ export default function PipelineSummary({ jobs }: PipelineSummaryProps) {
               key={step.key}
               className={cn(
                 'flex items-center gap-4 p-3 rounded-xl border transition-colors',
-                active > 0 ? 'border-brand/30 bg-brand/5' :
-                quarantined > 0 ? 'border-yellow-500/30 bg-yellow-500/5' :
-                failed > 0 ? 'border-red-500/30 bg-red-500/5' :
-                'border-border bg-bg-primary'
+                active > 0
+                  ? 'border-brand/30 bg-brand/5'
+                  : quarantined > 0
+                    ? 'border-yellow-500/30 bg-yellow-500/5'
+                    : failed > 0
+                      ? 'border-red-500/30 bg-red-500/5'
+                      : 'border-border bg-bg-primary',
               )}
             >
               {/* Número da fase */}
-              <div className={cn(
-                'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0',
-                active > 0 ? 'bg-brand text-white' :
-                quarantined > 0 ? 'bg-yellow-500 text-black' :
-                failed > 0 ? 'bg-red-500 text-white' :
-                completed > 0 ? 'bg-green-500 text-white' :
-                'bg-surface text-text-muted'
-              )}>
+              <div
+                className={cn(
+                  'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0',
+                  active > 0
+                    ? 'bg-brand text-white'
+                    : quarantined > 0
+                      ? 'bg-yellow-500 text-black'
+                      : failed > 0
+                        ? 'bg-red-500 text-white'
+                        : completed > 0
+                          ? 'bg-green-500 text-white'
+                          : 'bg-surface text-text-muted',
+                )}
+              >
                 {idx + 1}
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-text-primary">{t(`pipeline.${step.key}`)}</span>
-                  <span className="text-[10px] text-text-muted truncate">{t(`pipeline.${step.key}Desc`)}</span>
+                  <span className="text-sm font-bold text-text-primary">
+                    {t(`pipeline.${step.key}`)}
+                  </span>
+                  <span className="text-[10px] text-text-muted truncate">
+                    {t(`pipeline.${step.key}Desc`)}
+                  </span>
                 </div>
 
                 {/* Indicador visual de 8 bolinhas */}
@@ -231,9 +273,7 @@ export default function PipelineSummary({ jobs }: PipelineSummaryProps) {
                     <AlertCircle size={12} /> {failed}
                   </span>
                 )}
-                {!hasAny && (
-                  <span className="text-gray-600">—</span>
-                )}
+                {!hasAny && <span className="text-gray-600">—</span>}
               </div>
             </div>
           );

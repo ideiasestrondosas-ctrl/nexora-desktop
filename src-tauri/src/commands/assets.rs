@@ -90,51 +90,77 @@ pub fn ingest_asset(
     // Extrair metadata com FFprobe imediatamente (não espera pelo sidecar)
     let probe = run_ffprobe(&app, &path);
     let duration_secs = probe.as_ref().ok().and_then(|p| {
-        p.get("format")?.get("duration")?.as_str()?.parse::<f64>().ok()
+        p.get("format")?
+            .get("duration")?
+            .as_str()?
+            .parse::<f64>()
+            .ok()
     });
     let video_stream = probe.as_ref().ok().and_then(|p| {
-        p.get("streams")?.as_array()?.iter()
+        p.get("streams")?
+            .as_array()?
+            .iter()
             .find(|s| s.get("codec_type").and_then(|v| v.as_str()) == Some("video"))
             .cloned()
     });
     let audio_stream = probe.as_ref().ok().and_then(|p| {
-        p.get("streams")?.as_array()?.iter()
+        p.get("streams")?
+            .as_array()?
+            .iter()
             .find(|s| s.get("codec_type").and_then(|v| v.as_str()) == Some("audio"))
             .cloned()
     });
-    let video_codec = video_stream.as_ref()
+    let video_codec = video_stream
+        .as_ref()
         .and_then(|v| v.get("codec_name")?.as_str().map(str::to_string));
-    let audio_codec = audio_stream.as_ref()
+    let audio_codec = audio_stream
+        .as_ref()
         .and_then(|a| a.get("codec_name")?.as_str().map(str::to_string));
-    let width = video_stream.as_ref()
-        .and_then(|v| v.get("width")?.as_i64());
-    let height = video_stream.as_ref()
+    let width = video_stream.as_ref().and_then(|v| v.get("width")?.as_i64());
+    let height = video_stream
+        .as_ref()
         .and_then(|v| v.get("height")?.as_i64());
     let fps: Option<f64> = video_stream.as_ref().and_then(|v| {
         let fr = v.get("r_frame_rate")?.as_str()?;
         if let Some((n, d)) = fr.split_once('/') {
             let n: f64 = n.parse().ok()?;
             let d: f64 = d.parse().ok()?;
-            if d > 0.0 { Some((n / d * 100.0).round() / 100.0) } else { None }
+            if d > 0.0 {
+                Some((n / d * 100.0).round() / 100.0)
+            } else {
+                None
+            }
         } else {
             fr.parse().ok()
         }
     });
-    let metadata_json = probe.ok().map(|p| serde_json::to_string(&p).unwrap_or_default());
+    let metadata_json = probe
+        .ok()
+        .map(|p| serde_json::to_string(&p).unwrap_or_default());
 
     db.execute(
         "INSERT INTO assets (id, path, filename, status, size_bytes, duration_secs, \
          video_codec, audio_codec, width, height, fps, metadata, created_at, updated_at) \
          VALUES (?1, ?2, ?3, 'pending', ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?12)",
         rusqlite::params![
-            id, path, filename, size_bytes, duration_secs,
-            video_codec, audio_codec, width, height, fps,
-            metadata_json, now
+            id,
+            path,
+            filename,
+            size_bytes,
+            duration_secs,
+            video_codec,
+            audio_codec,
+            width,
+            height,
+            fps,
+            metadata_json,
+            now
         ],
     )
     .map_err(|e| e.to_string())?;
 
-    let metadata_val = metadata_json.as_deref()
+    let metadata_val = metadata_json
+        .as_deref()
         .and_then(|s| serde_json::from_str(s).ok());
 
     Ok(Asset {
@@ -164,8 +190,10 @@ fn run_ffprobe(app: &tauri::AppHandle, path: &str) -> Result<serde_json::Value, 
     let ffprobe = crate::sidecar::resolve_media_binary_path(app, "ffprobe");
     let output = std::process::Command::new(&ffprobe)
         .args([
-            "-v", "quiet",
-            "-print_format", "json",
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
             "-show_streams",
             "-show_format",
             path,
@@ -179,7 +207,6 @@ fn run_ffprobe(app: &tauri::AppHandle, path: &str) -> Result<serde_json::Value, 
 
     serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())
 }
-
 
 #[tauri::command]
 pub fn list_assets(status: Option<String>, state: State<AppState>) -> Result<Vec<Asset>, String> {
@@ -268,11 +295,8 @@ pub fn delete_asset(id: String, state: State<AppState>) -> Result<(), String> {
     );
 
     // 4. Apagar todos os jobs deste asset
-    db.execute(
-        "DELETE FROM jobs WHERE asset_id=?1",
-        rusqlite::params![id],
-    )
-    .map_err(|e| e.to_string())?;
+    db.execute("DELETE FROM jobs WHERE asset_id=?1", rusqlite::params![id])
+        .map_err(|e| e.to_string())?;
 
     // 5. Hard delete do asset
     let affected = db
@@ -310,7 +334,9 @@ pub fn get_asset(id: String, state: State<AppState>) -> Result<Option<Asset>, St
 #[tauri::command]
 pub async fn scan_directory(path: String) -> Result<Vec<String>, String> {
     use walkdir::WalkDir;
-    const VIDEO_EXTS: &[&str] = &["mp4", "mov", "mxf", "avi", "mkv", "webm", "ts", "m2ts", "m4v"];
+    const VIDEO_EXTS: &[&str] = &[
+        "mp4", "mov", "mxf", "avi", "mkv", "webm", "ts", "m2ts", "m4v",
+    ];
 
     let mut paths: Vec<String> = WalkDir::new(&path)
         .follow_links(true)

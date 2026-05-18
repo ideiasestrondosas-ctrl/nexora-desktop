@@ -1,6 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Terminal, Trash2, RefreshCw, Search, AlertTriangle, Info, AlertCircle, ChevronDown } from 'lucide-react';
+import {
+  Terminal,
+  Trash2,
+  RefreshCw,
+  Search,
+  AlertTriangle,
+  Info,
+  AlertCircle,
+  ChevronDown,
+} from 'lucide-react';
 import { useLogs } from '@/hooks/useLogs';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +34,12 @@ function LevelBadge({ level }: { level: string }) {
   const { t } = useTranslation();
   const cfg = LEVEL_CONFIG[level] ?? LEVEL_CONFIG['INFO'];
   return (
-    <span className={cn('inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase', cfg.badge)}>
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase',
+        cfg.badge,
+      )}
+    >
       {cfg.icon}
       {t(`logViewer.${level.toLowerCase()}`)}
     </span>
@@ -61,8 +75,18 @@ export const LogViewer: React.FC = () => {
 
   const levels: { id: LevelFilter; labelKey: string; count?: number; color: string }[] = [
     { id: 'all', labelKey: 'all', count: stats.total, color: 'text-gray-600 dark:text-gray-400' },
-    { id: 'ERROR', labelKey: 'error', count: stats.errors, color: 'text-red-600 dark:text-red-400' },
-    { id: 'WARN', labelKey: 'warn', count: stats.warnings, color: 'text-yellow-600 dark:text-yellow-400' },
+    {
+      id: 'ERROR',
+      labelKey: 'error',
+      count: stats.errors,
+      color: 'text-red-600 dark:text-red-400',
+    },
+    {
+      id: 'WARN',
+      labelKey: 'warn',
+      count: stats.warnings,
+      color: 'text-yellow-600 dark:text-yellow-400',
+    },
     { id: 'INFO', labelKey: 'info', count: stats.info, color: 'text-blue-600 dark:text-blue-400' },
   ];
 
@@ -72,7 +96,9 @@ export const LogViewer: React.FC = () => {
       <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-nexora-blue" />
-          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{t('logViewer.title')}</span>
+          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
+            {t('logViewer.title')}
+          </span>
           {stats.errors > 0 && (
             <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
               {stats.errors} ERR
@@ -169,7 +195,10 @@ export const LogViewer: React.FC = () => {
                   <td className="px-2 py-1.5 w-16">
                     <LevelBadge level={entry.level} />
                   </td>
-                  <td className="px-2 py-1.5 whitespace-nowrap text-gray-400 dark:text-gray-500 w-44 truncate max-w-[11rem]" title={entry.source}>
+                  <td
+                    className="px-2 py-1.5 whitespace-nowrap text-gray-400 dark:text-gray-500 w-44 truncate max-w-[11rem]"
+                    title={entry.source}
+                  >
                     {entry.source.replace('rust:nexora_desktop_lib::', '').replace('rust:', '')}
                   </td>
                   <td className="px-2 py-1.5 text-gray-700 dark:text-gray-300 break-all">

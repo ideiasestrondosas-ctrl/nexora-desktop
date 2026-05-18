@@ -84,7 +84,14 @@ pub fn submit_job(
     )
     .map_err(|e| e.to_string())?;
 
-    crate::logger::write("INFO", "jobs", &format!("Job {} submetido — asset: {}, perfil: {}", id, asset_id, profile));
+    crate::logger::write(
+        "INFO",
+        "jobs",
+        &format!(
+            "Job {} submetido — asset: {}, perfil: {}",
+            id, asset_id, profile
+        ),
+    );
 
     Ok(Job {
         id,
@@ -119,7 +126,11 @@ pub fn cancel_job(id: String, state: State<AppState>) -> Result<bool, String> {
         .map_err(|e| e.to_string())?;
 
     if rows > 0 {
-        crate::logger::write("INFO", "jobs", &format!("Job {} cancelado pelo utilizador", id));
+        crate::logger::write(
+            "INFO",
+            "jobs",
+            &format!("Job {} cancelado pelo utilizador", id),
+        );
 
         // Matar o processo Node.js se estiver activo
         if let Ok(mut pids) = state.active_pids.lock() {
@@ -153,7 +164,9 @@ pub fn get_job_status(id: String, state: State<AppState>) -> Result<Option<Job>,
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let mut jobs = collect_jobs(
         &db,
-        &format!("SELECT {COLS} FROM jobs j LEFT JOIN assets a ON j.asset_id = a.id WHERE j.id = ?1"),
+        &format!(
+            "SELECT {COLS} FROM jobs j LEFT JOIN assets a ON j.asset_id = a.id WHERE j.id = ?1"
+        ),
         Some(&id),
     )?;
     Ok(jobs.pop())
@@ -174,10 +187,16 @@ pub struct QueueStats {
 pub fn get_queue_stats(state: State<AppState>) -> Result<QueueStats, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let queued: i64 = db
-        .query_row("SELECT COUNT(*) FROM jobs WHERE status='queued'", [], |r| r.get(0))
+        .query_row("SELECT COUNT(*) FROM jobs WHERE status='queued'", [], |r| {
+            r.get(0)
+        })
         .unwrap_or(0);
     let processing: i64 = db
-        .query_row("SELECT COUNT(*) FROM jobs WHERE status='processing'", [], |r| r.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE status='processing'",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
     let done_today: i64 = db
         .query_row(
@@ -194,7 +213,11 @@ pub fn get_queue_stats(state: State<AppState>) -> Result<QueueStats, String> {
         )
         .unwrap_or(0);
     let quarantined: i64 = db
-        .query_row("SELECT COUNT(*) FROM jobs WHERE status='qc_quarantined'", [], |r| r.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE status='qc_quarantined'",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
     let rejected_today: i64 = db
         .query_row(
@@ -203,7 +226,14 @@ pub fn get_queue_stats(state: State<AppState>) -> Result<QueueStats, String> {
             |r| r.get(0),
         )
         .unwrap_or(0);
-    Ok(QueueStats { queued, processing, done_today, error_today, quarantined, rejected_today })
+    Ok(QueueStats {
+        queued,
+        processing,
+        done_today,
+        error_today,
+        quarantined,
+        rejected_today,
+    })
 }
 
 #[tauri::command]
@@ -219,7 +249,11 @@ pub fn retry_job(id: String, state: State<AppState>) -> Result<bool, String> {
         )
         .map_err(|e| e.to_string())?;
     if rows > 0 {
-        crate::logger::write("INFO", "jobs", &format!("Job {} reprocessado pelo utilizador", id));
+        crate::logger::write(
+            "INFO",
+            "jobs",
+            &format!("Job {} reprocessado pelo utilizador", id),
+        );
     }
     Ok(rows > 0)
 }
@@ -237,16 +271,26 @@ pub fn approve_job(id: String, state: State<AppState>) -> Result<bool, String> {
         )
         .map_err(|e| e.to_string())?;
     if rows > 0 {
-        crate::logger::write("INFO", "jobs", &format!("Job {} aprovado pelo utilizador (quarentena)", id));
+        crate::logger::write(
+            "INFO",
+            "jobs",
+            &format!("Job {} aprovado pelo utilizador (quarentena)", id),
+        );
     }
     Ok(rows > 0)
 }
 
 #[tauri::command]
-pub fn reject_job(id: String, reason: Option<String>, state: State<AppState>) -> Result<bool, String> {
+pub fn reject_job(
+    id: String,
+    reason: Option<String>,
+    state: State<AppState>,
+) -> Result<bool, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let now = Utc::now().to_rfc3339();
-    let error_msg = reason.clone().unwrap_or_else(|| "Rejeitado manualmente".to_string());
+    let error_msg = reason
+        .clone()
+        .unwrap_or_else(|| "Rejeitado manualmente".to_string());
     let rows = db
         .execute(
             "UPDATE jobs SET status='qc_rejected', error=?1, updated_at=?2
@@ -255,7 +299,15 @@ pub fn reject_job(id: String, reason: Option<String>, state: State<AppState>) ->
         )
         .map_err(|e| e.to_string())?;
     if rows > 0 {
-        crate::logger::write("INFO", "jobs", &format!("Job {} rejeitado pelo utilizador: {}", id, reason.as_deref().unwrap_or("sem razão")));
+        crate::logger::write(
+            "INFO",
+            "jobs",
+            &format!(
+                "Job {} rejeitado pelo utilizador: {}",
+                id,
+                reason.as_deref().unwrap_or("sem razão")
+            ),
+        );
     }
     Ok(rows > 0)
 }

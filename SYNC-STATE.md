@@ -5,10 +5,42 @@
 
 ---
 
-Actualizado: 2026-05-17 18:40
-Agente: Claude Code (Sonnet 4.6)
+Actualizado: 2026-05-18
+Agente: OpenCode (Kimi k2.6)
 
 ## O que foi feito
+
+### Sessao 5 — Correção CI/CD (format:check, cargo clippy, placeholders) — CONCLUIDO
+
+**Problema:** GitHub Actions `ci.yml` e `build.yml` com erros em TODAS as plataformas.
+
+**Diagnóstico:**
+
+- `lint-and-test` (Ubuntu): `format:check` falhava — 63 ficheiros não formatados com Prettier
+- `rust-check` (Windows/macOS): `cargo clippy` falhava — `tauri_build::build()` exige binários `externalBin` (FFmpeg/FFprobe) que não existem no CI (estão no `.gitignore`)
+- `rust-check` (Linux): `cargo fmt --check` falhava — código Rust nunca formatado com `cargo fmt`
+- `build.yml`: usava `npm install` em vez de `npm ci`; tinha input inválido `includeUpdaterJson`; `bundle.targets: "all"` tentava `.rpm` no Linux sem tooling
+
+**Correcções aplicadas:**
+
+1. `npm run format` + `cargo fmt` — formatados todos os ficheiros (63 Prettier + ~15 Rust)
+2. `ci.yml` — adicionado step "Create binary placeholders" no job `rust-check` (cria ficheiros vazios para FFmpeg/FFprobe por plataforma antes do `cargo clippy`)
+3. Código Rust — corrigidos 7 erros de Clippy:
+   - `drop(state)` removido (`State` não implementa `Drop`)
+   - `n % 100 == 0` → `n.is_multiple_of(100)`
+   - `.max(1).min(8)` → `.clamp(1, 8)`
+   - `#[allow(clippy::type_complexity)]` no tipo `Vec<(...11 tipos...)>`
+   - `#[allow(clippy::too_many_arguments)]` na função `run_job` (13 args)
+   - `nets.iter().map(|(_, n)| ...)` → `nets.values().map(...)` (2 ocorrências)
+4. `build.yml` — `npm install` → `npm ci`; removido `includeUpdaterJson: true`
+5. `tauri.conf.json` — `bundle.targets: "all"` → `["deb", "appimage", "msi", "nsis", "dmg", "app"]`
+
+**Verificação local:**
+
+- `npm run format:check`: OK
+- `npm run lint`: OK
+- `cargo fmt --check`: OK
+- `cargo clippy -- -D warnings`: OK
 
 ### Sessao 4 — v0.21.0 Validação + i18n Audit — CONCLUIDO
 
@@ -59,6 +91,10 @@ Agente: Claude Code (Sonnet 4.6)
 
 - `tsc --noEmit`: **OK** (0 erros)
 - `cargo check`: **OK** (0 erros — v0.21.0)
+- `cargo clippy -- -D warnings`: **OK** (0 erros — 7 fixes aplicados)
+- `cargo fmt --check`: **OK** (formatado nesta sessao)
+- `npm run format:check`: **OK** (63 ficheiros formatados)
+- `npm run lint`: **OK** (0 warnings)
 - `vitest run`: **OK** (24 testes)
 - Validacao JSON i18n: **OK** (15 linguas completas)
 
@@ -66,7 +102,7 @@ Agente: Claude Code (Sonnet 4.6)
 
 ## Estado das branches
 
-- `dev`: Sessoes 1-4 committed e pushed — em sincronia com remote
+- `dev`: Sessao 5 (CI/CD fixes) committed — ainda nao pushed
 - `main`: commit anterior (v0.20.0 area)
 - Remote: apenas `main` e `dev`
 

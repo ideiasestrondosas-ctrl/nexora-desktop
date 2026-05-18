@@ -88,10 +88,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4" /> {t('assetDetailModal.originalFileDetails')}
             </h3>
-            <MediaInfoPanel
-              metadata={parsedMetadata as DetailedMediaInfo | null}
-              compact={true}
-            />
+            <MediaInfoPanel metadata={parsedMetadata as DetailedMediaInfo | null} compact={true} />
           </section>
 
           {/* Jobs History */}

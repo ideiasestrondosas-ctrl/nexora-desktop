@@ -14,12 +14,50 @@ const TARGET_LANGS = ['pt', 'es', 'fr', 'de'];
 
 // Termos técnicos que NÃO devem ser traduzidos
 const TECH_TERMS = [
-  'VMAF', 'LUFS', 'FFmpeg', 'FFprobe', 'GPU', 'NVENC', 'AMF', 'QSV',
-  'CPU', 'RAM', 'H.264', 'H.265', 'HEVC', 'ProRes', 'DNxHD', 'AV1',
-  'AAC', 'PCM', 'MOV', 'MP4', 'MXF', 'TS', 'SHA-256', 'R128',
-  'dBTP', 'fps', 'kbps', 'Mbps', 'GB', 'MB', 'Node.js', 'SQLite',
-  'Tauri', 'React', 'Rust', 'Nexora', 'BBC', 'Netflix', 'DPP',
-  'Windows', 'macOS', 'Linux', 'VS Code', 'npm'
+  'VMAF',
+  'LUFS',
+  'FFmpeg',
+  'FFprobe',
+  'GPU',
+  'NVENC',
+  'AMF',
+  'QSV',
+  'CPU',
+  'RAM',
+  'H.264',
+  'H.265',
+  'HEVC',
+  'ProRes',
+  'DNxHD',
+  'AV1',
+  'AAC',
+  'PCM',
+  'MOV',
+  'MP4',
+  'MXF',
+  'TS',
+  'SHA-256',
+  'R128',
+  'dBTP',
+  'fps',
+  'kbps',
+  'Mbps',
+  'GB',
+  'MB',
+  'Node.js',
+  'SQLite',
+  'Tauri',
+  'React',
+  'Rust',
+  'Nexora',
+  'BBC',
+  'Netflix',
+  'DPP',
+  'Windows',
+  'macOS',
+  'Linux',
+  'VS Code',
+  'npm',
 ];
 
 // Placeholders que devem ser preservados
@@ -70,7 +108,10 @@ async function translateString(text, targetLang) {
 
     // Restaurar termos técnicos
     techTokens.forEach(({ token, original }) => {
-      translated = translated.replace(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), original);
+      translated = translated.replace(
+        new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+        original,
+      );
     });
 
     // Restaurar placeholders
@@ -78,7 +119,9 @@ async function translateString(text, targetLang) {
 
     return translated;
   } catch (err) {
-    console.warn(`  ⚠️ Falha ao traduzir para ${targetLang}: "${text.substring(0, 40)}..." — ${err.message}`);
+    console.warn(
+      `  ⚠️ Falha ao traduzir para ${targetLang}: "${text.substring(0, 40)}..." — ${err.message}`,
+    );
     return text; // Fallback: manter em inglês
   }
 }
@@ -98,7 +141,7 @@ async function translateObject(obj, targetLang, path = '') {
       process.stdout.write(`  [${targetLang}] ${currentPath}                    \r`);
       result[key] = await translateString(value, targetLang);
       // Pequeno delay para evitar rate limiting
-      await new Promise(r => setTimeout(r, 150));
+      await new Promise((r) => setTimeout(r, 150));
     } else if (typeof value === 'object' && value !== null) {
       result[key] = await translateObject(value, targetLang, currentPath);
     } else {
@@ -142,7 +185,7 @@ async function main() {
   console.log('\n🎉 Tradução completa!');
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ Erro fatal:', err);
   process.exit(1);
 });

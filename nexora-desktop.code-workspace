@@ -2,26 +2,26 @@
   "folders": [
     {
       "name": "📦 Nexora Desktop (WORKSPACE ACTIVO — escrever aqui)",
-      "path": "C:\\Dev\\nexora-desktop"
+      "path": "C:\\Dev\\nexora-desktop",
     },
     {
       "name": "👁️ Nexora Media Processing (somente leitura — não modificar)",
-      "path": "C:\\Dev\\Nexora Media Processing"
-    }
+      "path": "C:\\Dev\\Nexora Media Processing",
+    },
   ],
   "settings": {
     "workbench.colorCustomizations": {
       "titleBar.activeBackground": "#1A6FD4",
       "titleBar.activeForeground": "#ffffff",
       "statusBar.background": "#4FB8A0",
-      "statusBar.foreground": "#000000"
+      "statusBar.foreground": "#000000",
     },
     "window.title": "🖥️ NEXORA DESKTOP — ${activeEditorMedium}",
     "files.exclude": {
       "**/node_modules": true,
       "**/target": true,
-      "**/dist": true
-    }
+      "**/dist": true,
+    },
   },
   "extensions": {
     "recommendations": [
@@ -30,7 +30,7 @@
       "rust-lang.rust-analyzer",
       "tauri-apps.tauri-vscode",
       "eamodio.gitlens",
-      "usernamehw.errorlens"
-    ]
-  }
+      "usernamehw.errorlens",
+    ],
+  },
 }

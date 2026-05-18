@@ -34,16 +34,16 @@ Nexora Desktop is a native, multiplatform application for professional video pro
 
 ### Core Concepts
 
-| Term | Definition |
-|------|------------|
-| **Asset** | A media file that has been ingested into Nexora (with metadata extracted) |
-| **Job** | A processing request assigned to an asset, using a specific profile |
-| **Profile** | A preset or custom configuration defining output codec, resolution, bitrate, and quality targets |
-| **Pipeline** | The 8 sequential stages every job passes through |
-| **QC** | Quality Control — automated checks before and after transcoding |
-| **VMAF** | Video Multi-Method Assessment Fusion — perceptual quality score (0-100) |
-| **LUFS** | Loudness Units Full Scale — broadcast-standard audio loudness measurement |
-| **Quarantine** | A state where a job is paused awaiting manual approval after a QC failure |
+| Term           | Definition                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| **Asset**      | A media file that has been ingested into Nexora (with metadata extracted)                        |
+| **Job**        | A processing request assigned to an asset, using a specific profile                              |
+| **Profile**    | A preset or custom configuration defining output codec, resolution, bitrate, and quality targets |
+| **Pipeline**   | The 8 sequential stages every job passes through                                                 |
+| **QC**         | Quality Control — automated checks before and after transcoding                                  |
+| **VMAF**       | Video Multi-Method Assessment Fusion — perceptual quality score (0-100)                          |
+| **LUFS**       | Loudness Units Full Scale — broadcast-standard audio loudness measurement                        |
+| **Quarantine** | A state where a job is paused awaiting manual approval after a QC failure                        |
 
 ---
 
@@ -92,6 +92,7 @@ Click any job in the Recent Jobs list to jump to its **Asset Detail** page.
 The Library is your media repository.
 
 **Features:**
+
 - **Grid view** — thumbnail cards with status badges
 - **List view** — table with sortable columns
 - **Drag & drop** — drop files from anywhere on your OS
@@ -101,6 +102,7 @@ The Library is your media repository.
 - **Sort** — by Newest, Oldest, Name, or Size
 
 **Actions per asset:**
+
 - **Open** — open the original file in your default player
 - **Play** — preview the file (if supported)
 - **Delete** — remove from library (with confirmation)
@@ -122,6 +124,7 @@ The Queue is the heart of Nexora — real-time job monitoring.
 
 **Pipeline Visualizer:**
 Each processing job shows an 8-step timeline:
+
 - Green checkmark = step completed
 - Blue pulsing dot = step in progress
 - Yellow shield = step quarantined
@@ -130,6 +133,7 @@ Each processing job shows an 8-step timeline:
 Hover any step for its name and description.
 
 **Actions:**
+
 - **Cancel** — stop a queued or processing job
 - **Approve / Reject** — for quarantined jobs
 - **Retry** — re-run a failed job
@@ -140,15 +144,18 @@ Hover any step for its name and description.
 Profiles define how your media is transcoded.
 
 **System Profiles** (read-only, 6 presets):
+
 - Broadcast HD, Broadcast SD, Web 4K, Web HD, Proxy, Social
 
 **Custom Profiles:**
+
 - **Create** — start from scratch
 - **Edit** — modify existing custom profile
 - **Duplicate** — clone any profile (system or custom) as a starting point
 - **Delete** — remove custom profile
 
 **Profile settings:**
+
 - General: name, description, container (MP4/MKV/MOV)
 - Video: codec (H.264/HEVC/AV1), resolution, fps, bitrate, CPU preset, H.264 profile/level
 - Audio & Quality: audio codec, bitrate, sample rate, target LUFS, true peak limit, VMAF minimum threshold, acceleration mode
@@ -158,6 +165,7 @@ Profiles define how your media is transcoded.
 Settings are organised into 5 tabs.
 
 **General:**
+
 - Output directory (where processed files are saved)
 - Concurrent jobs (1–4, default 2)
 - Default profile for quick submits
@@ -168,21 +176,25 @@ Settings are organised into 5 tabs.
 - System notifications toggle
 
 **Interface:**
+
 - Theme: System / Light / Dark
 - Language: 15 languages available
 
 **System:**
+
 - OS, CPU, RAM, Disk, GPU info
 - FFmpeg/libvmaf/Node.js versions
 - Database path and statistics
 
 **Advanced:**
+
 - Export settings + profiles to JSON
 - Import settings from JSON
 - Reset settings to defaults
 - **Factory Reset** — wipes everything (irreversible)
 
 **About:**
+
 - App version and edition
 - Changelog / release notes
 - Check for updates
@@ -193,17 +205,20 @@ Settings are organised into 5 tabs.
 Structured log viewer for debugging.
 
 **Filters:**
+
 - Level: DEBUG, INFO, WARN, ERROR
 - Source: sidecar, tauri, ffmpeg, app
 - Time: 1h, 6h, 24h, 7d, All
 - Search: free-text search in messages
 
 **Actions:**
+
 - Export logs to text file
 - Clear all logs (with confirmation)
 - Auto-scroll toggle
 
 **Visual indicators:**
+
 - Red left border = ERROR
 - Yellow left border = WARN
 - Expandable rows for multi-line messages
@@ -213,6 +228,7 @@ Structured log viewer for debugging.
 Deep-dive into a single media file.
 
 **Sections:**
+
 - **Hero** — thumbnail/preview, filename, status badge, metadata grid
 - **QC Report** — verification checks (codec, resolution, VMAF, audio) with pass/fail
 - **Processing History** — timeline of all jobs for this asset with mini pipeline
@@ -229,11 +245,13 @@ Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post �
 ```
 
 ### Stage 1: Ingest (5%)
+
 - Compute SHA-256 hash of the source file
 - Extract metadata via ffprobe (codec, resolution, duration, fps, bitrate)
 - Store in database as an Asset
 
 ### Stage 2: QC-Pre (5%)
+
 - Validate file size (< 100 GB)
 - Validate duration (> 0.5 seconds)
 - Check for video stream
@@ -244,28 +262,33 @@ Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post �
   - Duration too short
 
 ### Stage 3: Transcode (50%)
+
 - GPU auto-detection: NVENC → AMF → QSV → CPU (libx264 fallback)
 - Build FFmpeg command based on profile settings
 - Broadcast parameters applied: closed GOP, no B-frames, YUV 4:2:0, faststart
 - Progress parsed from FFmpeg stderr
 
 ### Stage 4: Audio (15%)
+
 - 2-pass EBU R128 loudness normalization
 - Pass 1: analyse loudness
 - Pass 2: apply gain + alimiter for true peak limiting
 - Verify result within ±1.5 LUFS of target
 
 ### Stage 5: Proxy (10%)
+
 - Generate 960×540 preview file
 - Veryfast preset, 800 kbps
 - Non-critical: failure does not fail the job
 
 ### Stage 6: Thumbnail (3%)
+
 - Extract frame at min(5s, duration/2)
 - Scale to 640px width
 - Non-critical: failure does not fail the job
 
 ### Stage 7: QC-Post (7%)
+
 - Compute SHA-256 of output file
 - Run VMAF comparing source vs. output
 - **Thresholds per profile:**
@@ -276,6 +299,7 @@ Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post �
 - Non-critical: low VMAF does not fail the job (reported only)
 
 ### Stage 8: Delivery (5%)
+
 - Copy final file to the configured output directory
 - Rename with timestamp suffix if file exists
 - Job marked as **Done**
@@ -286,14 +310,14 @@ Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post �
 
 ### Built-in Profiles
 
-| Profile | Resolution | Video | Bitrate | LUFS | VMAF | Use Case |
-|---------|-----------|-------|---------|------|------|----------|
-| Broadcast HD | 1920×1080 | H.264 High | 15 Mbps | -23 | 90 | TV broadcast |
-| Broadcast SD | 720×576 | H.264 Main | 5 Mbps | -23 | 90 | Legacy TV |
-| Web 4K | 3840×2160 | H.264 High | 35 Mbps | -16 | 85 | UHD streaming |
-| Web HD | 1920×1080 | H.264 High | 8 Mbps | -16 | 85 | HD streaming |
-| Proxy | 960×540 | H.264 Baseline | 800 kbps | — | 70 | Preview / editing |
-| Social | 1080×1080 | H.264 Main | 4 Mbps | -14 | 80 | Social media |
+| Profile      | Resolution | Video          | Bitrate  | LUFS | VMAF | Use Case          |
+| ------------ | ---------- | -------------- | -------- | ---- | ---- | ----------------- |
+| Broadcast HD | 1920×1080  | H.264 High     | 15 Mbps  | -23  | 90   | TV broadcast      |
+| Broadcast SD | 720×576    | H.264 Main     | 5 Mbps   | -23  | 90   | Legacy TV         |
+| Web 4K       | 3840×2160  | H.264 High     | 35 Mbps  | -16  | 85   | UHD streaming     |
+| Web HD       | 1920×1080  | H.264 High     | 8 Mbps   | -16  | 85   | HD streaming      |
+| Proxy        | 960×540    | H.264 Baseline | 800 kbps | —    | 70   | Preview / editing |
+| Social       | 1080×1080  | H.264 Main     | 4 Mbps   | -14  | 80   | Social media      |
 
 ### Creating Custom Profiles
 
@@ -320,6 +344,7 @@ Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post �
 ### Technical Notes
 
 All profiles apply these broadcast-standard FFmpeg parameters:
+
 ```
 -g [fps*2]          # GOP length
 -keyint_min [fps*2] # Minimum keyframe interval
@@ -338,15 +363,16 @@ All profiles apply these broadcast-standard FFmpeg parameters:
 
 Pre-QC runs automatically after Ingest. If a file fails any check, it is **quarantined**:
 
-| Check | Fail Condition | Result |
-|-------|---------------|--------|
-| File size | > 100 GB | Error (job fails) |
-| File size | > 50 GB | Quarantine |
-| Duration | < 0.5 seconds | Error |
-| Video stream | Missing | Error |
-| Codec | HEVC / ProRes / DNxHD / AV1 | Quarantine |
+| Check        | Fail Condition              | Result            |
+| ------------ | --------------------------- | ----------------- |
+| File size    | > 100 GB                    | Error (job fails) |
+| File size    | > 50 GB                     | Quarantine        |
+| Duration     | < 0.5 seconds               | Error             |
+| Video stream | Missing                     | Error             |
+| Codec        | HEVC / ProRes / DNxHD / AV1 | Quarantine        |
 
 **What to do with quarantined files:**
+
 1. Go to **Queue → Pending Approvals**.
 2. Review the file info and quarantine reason.
 3. Click **Approve** to continue processing, or **Reject** to cancel the job.
@@ -355,25 +381,26 @@ Pre-QC runs automatically after Ingest. If a file fails any check, it is **quara
 
 Post-QC runs after transcoding completes:
 
-| Check | Description |
-|-------|-------------|
-| SHA-256 match | Verify output file integrity |
-| VMAF score | Compare perceptual quality vs. source |
+| Check             | Description                                  |
+| ----------------- | -------------------------------------------- |
+| SHA-256 match     | Verify output file integrity                 |
+| VMAF score        | Compare perceptual quality vs. source        |
 | LUFS verification | Confirm audio loudness within ±1.5 of target |
 
 **QC Report** in Asset Detail shows:
+
 - PASS / FAIL for each check
 - Actual value vs. limit
 - Timestamp of QC run
 
 ### VMAF Score Interpretation
 
-| Score | Quality Level | Action |
-|-------|---------------|--------|
-| 93–100 | Broadcast-grade | Excellent |
-| 85–92 | Good | Acceptable for most uses |
-| 70–84 | Acceptable | May be noticeable quality loss |
-| 0–69 | Poor | Review profile settings |
+| Score  | Quality Level   | Action                         |
+| ------ | --------------- | ------------------------------ |
+| 93–100 | Broadcast-grade | Excellent                      |
+| 85–92  | Good            | Acceptable for most uses       |
+| 70–84  | Acceptable      | May be noticeable quality loss |
+| 0–69   | Poor            | Review profile settings        |
 
 ---
 
@@ -382,16 +409,19 @@ Post-QC runs after transcoding completes:
 ### Ingesting Files
 
 **Method 1 — Drag & Drop:**
+
 1. Open any file manager (Explorer, Finder, etc.).
 2. Drag video files onto the Nexora Library window.
 3. Files are validated and added automatically.
 
 **Method 2 — File Dialog:**
+
 1. Click **Add Videos** in the Library.
 2. Select one or more files.
 3. Click **Open**.
 
 **Validation:**
+
 - Supported formats: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS
 - Unsupported files trigger a toast error and are ignored
 
@@ -415,27 +445,28 @@ Post-QC runs after transcoding completes:
 
 ### General Settings
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Output Directory | User's home / Nexora | Where processed files are saved |
-| Concurrent Jobs | 2 | Max simultaneous processing jobs |
-| Default Profile | Broadcast HD | Profile used for quick reprocess |
-| VMAF Threshold | 85 | Minimum acceptable VMAF score |
-| Target LUFS | -23 | Audio loudness target |
-| True Peak | -1.0 dBTP | Maximum audio peak level |
-| GPU Acceleration | On | Use NVENC/AMF/QSV when available |
-| Notifications | On | System notifications for events |
+| Setting          | Default              | Description                      |
+| ---------------- | -------------------- | -------------------------------- |
+| Output Directory | User's home / Nexora | Where processed files are saved  |
+| Concurrent Jobs  | 2                    | Max simultaneous processing jobs |
+| Default Profile  | Broadcast HD         | Profile used for quick reprocess |
+| VMAF Threshold   | 85                   | Minimum acceptable VMAF score    |
+| Target LUFS      | -23                  | Audio loudness target            |
+| True Peak        | -1.0 dBTP            | Maximum audio peak level         |
+| GPU Acceleration | On                   | Use NVENC/AMF/QSV when available |
+| Notifications    | On                   | System notifications for events  |
 
 ### Interface Settings
 
-| Setting | Default | Options |
-|---------|---------|---------|
-| Theme | System | System / Light / Dark |
-| Language | English | 15 languages |
+| Setting  | Default | Options               |
+| -------- | ------- | --------------------- |
+| Theme    | System  | System / Light / Dark |
+| Language | English | 15 languages          |
 
 ### System Information
 
 Shows real-time and static system data:
+
 - OS version and architecture
 - CPU model, cores, threads
 - RAM used / total
@@ -449,18 +480,22 @@ Shows real-time and static system data:
 ### Advanced Settings
 
 **Export Settings:**
+
 - Saves all settings and custom profiles to a JSON file
 - Useful for backup or migrating to another machine
 
 **Import Settings:**
+
 - Loads settings from a previously exported JSON file
 - App restarts automatically after import
 
 **Reset Settings:**
+
 - Resets all settings to defaults
 - Preserves assets, jobs, and custom profiles
 
 **Factory Reset:**
+
 - **WARNING: Irreversible**
 - Clears all data: assets, jobs, profiles, logs, settings
 - Deletes downloaded binaries
@@ -473,11 +508,13 @@ Shows real-time and static system data:
 ### Common Issues
 
 #### "FFmpeg not found"
+
 - Nexora downloads FFmpeg automatically on first launch.
 - If it fails, check your internet connection.
 - Alternatively, place `ffmpeg` and `ffprobe` in your system PATH.
 
 #### "No GPU detected"
+
 - Ensure GPU drivers are up to date.
 - NVIDIA: install latest drivers from nvidia.com.
 - AMD: install Adrenalin drivers.
@@ -485,6 +522,7 @@ Shows real-time and static system data:
 - Nexora falls back to CPU (libx264) if no GPU is found.
 
 #### "Job failed at Transcode stage"
+
 - Check Logs for FFmpeg error output.
 - Common causes:
   - Source file is corrupted
@@ -493,11 +531,13 @@ Shows real-time and static system data:
 - Try a different profile or re-ingest the file.
 
 #### "Low VMAF score"
+
 - Increase the bitrate in your custom profile.
 - Use a slower CPU preset (better quality).
 - Ensure source file is high quality.
 
 #### "App won't start"
+
 - Check that Node.js 20+ is installed (for sidecar).
 - Delete `%APPDATA%/com.nexora.desktop` (Windows) or `~/Library/Application Support/com.nexora.desktop` (macOS) and restart.
 - See Logs for startup errors.

@@ -1,4 +1,5 @@
 # Nexora Media Processing — Desktop Nativo
+
 ## Documento de Progresso, Execução e Especificação Técnica — v1.0
 
 > **Para quem é este documento:** Para qualquer pessoa, mesmo sem experiência em desenvolvimento, que queira construir e executar a versão Desktop nativa do Nexora Media Processing.
@@ -14,7 +15,9 @@
 ---
 
 # ═══════════════════════════════════════════
+
 # ÍNDICE GERAL
+
 # ═══════════════════════════════════════════
 
 ```
@@ -42,12 +45,15 @@ APÊNDICE D — GLOSSÁRIO COMPLEMENTAR
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 0 — CONTEXTO: PORQUÊ UMA VERSÃO DESKTOP NATIVA
+
 # ═══════════════════════════════════════════
 
 ## 0.1 — O Problema que o Desktop Resolve
 
 O Nexora Server (Cloud) é poderoso, mas exige:
+
 - Docker e Docker Compose instalados e configurados
 - PostgreSQL, Redis, MinIO, Temporal.io a correr simultaneamente
 - Conhecimento de terminal e administração de sistemas
@@ -102,45 +108,47 @@ Para um editor de vídeo freelancer, uma produtora pequena ou um técnico que tr
 
 ## 0.3 — Comparação Funcional Completa
 
-| Capacidade | Desktop | Server |
-|---|---|---|
-| Instalação | 1 ficheiro instalador | Docker Compose |
-| Base de dados | SQLite (ficheiro local) | PostgreSQL |
-| Fila de jobs | Async queue em memória com persistência SQLite | BullMQ + Redis |
-| Orquestração | Workflow engine simples (local) | Temporal.io |
-| Storage | Pasta local ou disco externo USB/NAS | MinIO S3-compatible |
-| Multi-utilizador | Não (mono-utilizador) | Sim (multi-org, RBAC) |
-| Jobs simultâneos | 1-4 (limitado por hardware local) | Configurável (4-24+) |
-| Dashboard | Integrado na aplicação | Grafana + Prometheus |
-| GPU aceleração | Sim (NVENC/AMF/QSV — auto-detectada) | Sim |
-| Todos os perfis Nexora | Sim | Sim |
-| Transcode (H.264/H.265) | Sim | Sim |
-| Audio EBU R128 + True Peak | Sim | Sim |
-| VMAF scoring | Sim | Sim |
-| QC pré-encode | Sim | Sim |
-| QC pós-encode | Sim | Sim |
-| Proxy + Thumbnails | Sim | Sim |
-| Legendas (CEA-708/TTML/WebVTT) | Sim | Sim |
-| MXF output | Sim | Sim |
-| HDR/SDR tone mapping | Sim | Sim |
-| DRM packaging | Não (requer key server externo) | Sim (CMAF + Widevine) |
-| API REST | Não | Sim |
-| Webhooks | Notificações nativas do SO | Sim (HTTP callbacks) |
-| Watch folder | Não — drag-and-drop na app | Sim |
-| Custo de infraestrutura | Zero | Servidor + storage |
-| Requisito técnico | Nenhum | Docker, terminal, rede |
-| System tray | Sim (ícone com estado dos jobs) | N/A |
-| Notificações nativas SO | Sim | N/A |
-| Auto-updater | Sim (verificação automática) | Manual (docker pull) |
-| Backup automático da DB | Sim (diário) | Configurável |
-| Tamanho do instalador | ~20-30 MB | N/A (imagens Docker) |
+| Capacidade                     | Desktop                                        | Server                 |
+| ------------------------------ | ---------------------------------------------- | ---------------------- |
+| Instalação                     | 1 ficheiro instalador                          | Docker Compose         |
+| Base de dados                  | SQLite (ficheiro local)                        | PostgreSQL             |
+| Fila de jobs                   | Async queue em memória com persistência SQLite | BullMQ + Redis         |
+| Orquestração                   | Workflow engine simples (local)                | Temporal.io            |
+| Storage                        | Pasta local ou disco externo USB/NAS           | MinIO S3-compatible    |
+| Multi-utilizador               | Não (mono-utilizador)                          | Sim (multi-org, RBAC)  |
+| Jobs simultâneos               | 1-4 (limitado por hardware local)              | Configurável (4-24+)   |
+| Dashboard                      | Integrado na aplicação                         | Grafana + Prometheus   |
+| GPU aceleração                 | Sim (NVENC/AMF/QSV — auto-detectada)           | Sim                    |
+| Todos os perfis Nexora         | Sim                                            | Sim                    |
+| Transcode (H.264/H.265)        | Sim                                            | Sim                    |
+| Audio EBU R128 + True Peak     | Sim                                            | Sim                    |
+| VMAF scoring                   | Sim                                            | Sim                    |
+| QC pré-encode                  | Sim                                            | Sim                    |
+| QC pós-encode                  | Sim                                            | Sim                    |
+| Proxy + Thumbnails             | Sim                                            | Sim                    |
+| Legendas (CEA-708/TTML/WebVTT) | Sim                                            | Sim                    |
+| MXF output                     | Sim                                            | Sim                    |
+| HDR/SDR tone mapping           | Sim                                            | Sim                    |
+| DRM packaging                  | Não (requer key server externo)                | Sim (CMAF + Widevine)  |
+| API REST                       | Não                                            | Sim                    |
+| Webhooks                       | Notificações nativas do SO                     | Sim (HTTP callbacks)   |
+| Watch folder                   | Não — drag-and-drop na app                     | Sim                    |
+| Custo de infraestrutura        | Zero                                           | Servidor + storage     |
+| Requisito técnico              | Nenhum                                         | Docker, terminal, rede |
+| System tray                    | Sim (ícone com estado dos jobs)                | N/A                    |
+| Notificações nativas SO        | Sim                                            | N/A                    |
+| Auto-updater                   | Sim (verificação automática)                   | Manual (docker pull)   |
+| Backup automático da DB        | Sim (diário)                                   | Configurável           |
+| Tamanho do instalador          | ~20-30 MB                                      | N/A (imagens Docker)   |
 
 ---
 
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 1 — ARQUITECTURA TÉCNICA DESKTOP
+
 # ═══════════════════════════════════════════
 
 ## 1.1 — Diagrama de Arquitectura
@@ -329,19 +337,19 @@ FICHEIRO DE MEDIA (drag-and-drop ou selecção manual)
 
 ## 1.3 — Porquê Tauri 2.x e Não Electron
 
-| Critério | Electron | Tauri 2.x |
-|---|---|---|
-| Tamanho do instalador | 80-150 MB | 10-25 MB |
-| RAM em idle | ~200 MB | ~30 MB |
-| CPU em idle | Alto (Chromium completo) | Muito baixo |
-| Motor de rendering | Chromium bundled | WebView nativo do SO |
-| Windows | Chromium (duplicado) | WebView2 (Edge, já no Win10/11) |
-| macOS | Chromium (duplicado) | WKWebView (Safari engine) |
-| Linux | Chromium (duplicado) | WebKitGTK |
-| Backend | Node.js completo | Rust (leve) + sidecar opcional |
-| Segurança | Superfície Chromium completa | Superfície mínima |
-| Build cross-platform | GitHub Actions | GitHub Actions (Tauri Action) |
-| Maturidade | Muito alta (VS Code, Slack, Discord) | Alta (Tauri 2.x estável, prod-ready) |
+| Critério              | Electron                             | Tauri 2.x                            |
+| --------------------- | ------------------------------------ | ------------------------------------ |
+| Tamanho do instalador | 80-150 MB                            | 10-25 MB                             |
+| RAM em idle           | ~200 MB                              | ~30 MB                               |
+| CPU em idle           | Alto (Chromium completo)             | Muito baixo                          |
+| Motor de rendering    | Chromium bundled                     | WebView nativo do SO                 |
+| Windows               | Chromium (duplicado)                 | WebView2 (Edge, já no Win10/11)      |
+| macOS                 | Chromium (duplicado)                 | WKWebView (Safari engine)            |
+| Linux                 | Chromium (duplicado)                 | WebKitGTK                            |
+| Backend               | Node.js completo                     | Rust (leve) + sidecar opcional       |
+| Segurança             | Superfície Chromium completa         | Superfície mínima                    |
+| Build cross-platform  | GitHub Actions                       | GitHub Actions (Tauri Action)        |
+| Maturidade            | Muito alta (VS Code, Slack, Discord) | Alta (Tauri 2.x estável, prod-ready) |
 
 **Decisão ADR-DESKTOP-001:** Tauri 2.x com Node.js sidecar para lógica de media. O sidecar reutiliza o mesmo código dos workers do Nexora Server — sem duplicação de lógica.
 
@@ -350,53 +358,57 @@ FICHEIRO DE MEDIA (drag-and-drop ou selecção manual)
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 2 — STACK TECNOLÓGICA E DECISÕES (ADRs Desktop)
+
 # ═══════════════════════════════════════════
 
 ## 2.1 — Stack Completa
 
-| Camada | Tecnologia | Função |
-|---|---|---|
-| Shell nativa | Tauri 2.x (Rust) | Janela, IPC, system tray, auto-updater |
-| Frontend | React 18 + TypeScript + Tailwind CSS | Interface do utilizador |
-| Estado frontend | Zustand | Gestão de estado (simples, sem Redux) |
-| Backend media | Node.js 20 sidecar (TypeScript) | Workers FFmpeg, QC, áudio |
-| Base de dados | SQLite via better-sqlite3 | Dados locais (ficheiro único) |
-| Transcode core | FFmpeg 6.x | Motor principal de processamento |
-| Batch encoding | HandBrake CLI | Proxies e web outputs |
-| Análise media | MediaInfo + FFprobe | Validação de containers e streams |
-| Conformance | MediaConch | Verificação AS-11 broadcast |
-| Loudness | BS1770GAIN | Medição independente LUFS/True Peak |
-| Build | esbuild | Bundling do sidecar Node.js |
-| Testes | Vitest | Unit + integration tests |
-| Linting | ESLint | Qualidade de código |
-| CI/CD | GitHub Actions | Build automático das 3 plataformas |
+| Camada          | Tecnologia                           | Função                                 |
+| --------------- | ------------------------------------ | -------------------------------------- |
+| Shell nativa    | Tauri 2.x (Rust)                     | Janela, IPC, system tray, auto-updater |
+| Frontend        | React 18 + TypeScript + Tailwind CSS | Interface do utilizador                |
+| Estado frontend | Zustand                              | Gestão de estado (simples, sem Redux)  |
+| Backend media   | Node.js 20 sidecar (TypeScript)      | Workers FFmpeg, QC, áudio              |
+| Base de dados   | SQLite via better-sqlite3            | Dados locais (ficheiro único)          |
+| Transcode core  | FFmpeg 6.x                           | Motor principal de processamento       |
+| Batch encoding  | HandBrake CLI                        | Proxies e web outputs                  |
+| Análise media   | MediaInfo + FFprobe                  | Validação de containers e streams      |
+| Conformance     | MediaConch                           | Verificação AS-11 broadcast            |
+| Loudness        | BS1770GAIN                           | Medição independente LUFS/True Peak    |
+| Build           | esbuild                              | Bundling do sidecar Node.js            |
+| Testes          | Vitest                               | Unit + integration tests               |
+| Linting         | ESLint                               | Qualidade de código                    |
+| CI/CD           | GitHub Actions                       | Build automático das 3 plataformas     |
 
 ## 2.2 — ADRs Desktop (Decisões Imutáveis)
 
 Estas decisões são definitivas e não devem ser alteradas por nenhum agente IA.
 
-| ADR | Decisão | Justificação |
-|---|---|---|
-| ADR-D001 | Tauri 2.x como shell nativa | Instalador 10x menor que Electron, RAM 6x menor |
-| ADR-D002 | Node.js sidecar para lógica media | Reutiliza código dos workers do Server sem duplicação |
-| ADR-D003 | SQLite como única base de dados | Zero configuração, ficheiro local, backup trivial |
-| ADR-D004 | Fila em memória com persistência SQLite | Substituição simples do BullMQ+Redis do Server |
-| ADR-D005 | Orchestrator local step-by-step | Substituição simples do Temporal.io do Server |
-| ADR-D006 | Binários media incluídos no instalador | Zero dependências externas para o utilizador |
-| ADR-D007 | GPU auto-detectada no startup | NVENC/AMF/QSV sem configuração manual |
-| ADR-D008 | Notificações nativas do SO | Substituição dos webhooks HTTP do Server |
-| ADR-D009 | Auto-updater via Tauri built-in | Actualizações automáticas sem intervenção |
-| ADR-D010 | Mesmos parâmetros FFmpeg que o Server | Garantia de compatibilidade de outputs |
-| ADR-D011 | IPC via Tauri Commands (não HTTP) | Comunicação directa Rust↔WebView, sem servidor HTTP |
-| ADR-D012 | Deep links nexora://open?asset=UUID | Abrir assets directamente via URL |
+| ADR      | Decisão                                 | Justificação                                          |
+| -------- | --------------------------------------- | ----------------------------------------------------- |
+| ADR-D001 | Tauri 2.x como shell nativa             | Instalador 10x menor que Electron, RAM 6x menor       |
+| ADR-D002 | Node.js sidecar para lógica media       | Reutiliza código dos workers do Server sem duplicação |
+| ADR-D003 | SQLite como única base de dados         | Zero configuração, ficheiro local, backup trivial     |
+| ADR-D004 | Fila em memória com persistência SQLite | Substituição simples do BullMQ+Redis do Server        |
+| ADR-D005 | Orchestrator local step-by-step         | Substituição simples do Temporal.io do Server         |
+| ADR-D006 | Binários media incluídos no instalador  | Zero dependências externas para o utilizador          |
+| ADR-D007 | GPU auto-detectada no startup           | NVENC/AMF/QSV sem configuração manual                 |
+| ADR-D008 | Notificações nativas do SO              | Substituição dos webhooks HTTP do Server              |
+| ADR-D009 | Auto-updater via Tauri built-in         | Actualizações automáticas sem intervenção             |
+| ADR-D010 | Mesmos parâmetros FFmpeg que o Server   | Garantia de compatibilidade de outputs                |
+| ADR-D011 | IPC via Tauri Commands (não HTTP)       | Comunicação directa Rust↔WebView, sem servidor HTTP   |
+| ADR-D012 | Deep links nexora://open?asset=UUID     | Abrir assets directamente via URL                     |
 
 ---
 
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 3 — ESTRUTURA DO PROJECTO DESKTOP
+
 # ═══════════════════════════════════════════
 
 ## 3.1 — Árvore de Directórios
@@ -551,7 +563,9 @@ nexora-media-processing/              ← workspace principal
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 4 — PREPARAÇÃO DO AMBIENTE
+
 # ═══════════════════════════════════════════
 
 > **Para quem é esta secção:** Para quem vai desenvolver o Nexora Desktop. Se só quer usar a aplicação final (já compilada), salte para a PARTE 9.
@@ -560,13 +574,13 @@ nexora-media-processing/              ← workspace principal
 
 Antes de começar a desenvolver, precisas de instalar estas ferramentas no teu computador:
 
-| Ferramenta | Versão mínima | Para que serve |
-|---|---|---|
-| Node.js | 20.x LTS | Frontend React + Sidecar TypeScript |
-| Rust | 1.77+ (stable) | Backend Tauri (compilação da shell nativa) |
-| Git | 2.x | Controlo de versões e sincronização GitHub |
-| FFmpeg | 6.x | Teste local de processamento media |
-| VS Code / Antigravity | Mais recente | IDE de desenvolvimento |
+| Ferramenta            | Versão mínima  | Para que serve                             |
+| --------------------- | -------------- | ------------------------------------------ |
+| Node.js               | 20.x LTS       | Frontend React + Sidecar TypeScript        |
+| Rust                  | 1.77+ (stable) | Backend Tauri (compilação da shell nativa) |
+| Git                   | 2.x            | Controlo de versões e sincronização GitHub |
+| FFmpeg                | 6.x            | Teste local de processamento media         |
+| VS Code / Antigravity | Mais recente   | IDE de desenvolvimento                     |
 
 ## 4.2 — Setup macOS
 
@@ -702,7 +716,9 @@ node scripts/download-media-binaries.js
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 5 — PROMPTS DE DESENVOLVIMENTO (Agentes IA)
+
 # ═══════════════════════════════════════════
 
 > **Como usar:** Cola cada prompt no teu IDE (Antigravity, Cursor, ou outro com IA integrada). Executa na ordem indicada. Cada prompt produz uma parte funcional da aplicação.
@@ -1270,7 +1286,9 @@ SEMANA 3:
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 6 — GUIA PASSO A PASSO DE EXECUÇÃO
+
 # ═══════════════════════════════════════════
 
 > **Para quem é:** Para alguém sem experiência que quer construir o Nexora Desktop do zero.
@@ -1422,6 +1440,7 @@ npm run build:linux           # Linux
 ```
 
 Para gerar builds das 3 plataformas automaticamente:
+
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
@@ -1433,7 +1452,9 @@ git push origin v0.1.0
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 7 — SCRIPTS DE AUTOMAÇÃO DESKTOP
+
 # ═══════════════════════════════════════════
 
 ## 7.1 — nexora-desktop-setup.sh (macOS/Linux)
@@ -1629,7 +1650,9 @@ Write-Host "Próximo passo: cd nexora-desktop; npm install" -ForegroundColor Yel
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 8 — INTERFACE DO UTILIZADOR (UI/UX)
+
 # ═══════════════════════════════════════════
 
 ## 8.1 — Design System Desktop
@@ -1702,7 +1725,9 @@ NOTIFICAÇÕES:
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 9 — BUILD CROSS-PLATFORM E DISTRIBUIÇÃO
+
 # ═══════════════════════════════════════════
 
 ## 9.1 — Requisitos do Utilizador Final (Não Desenvolvedor)
@@ -1875,7 +1900,9 @@ Quando uma nova versão é publicada no GitHub Releases, o Nexora Desktop verifi
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 10 — TESTES E VALIDAÇÃO
+
 # ═══════════════════════════════════════════
 
 ## 10.1 — Testes Unitários
@@ -1966,7 +1993,9 @@ ls -la "$FIXTURES_DIR"
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 11 — CHECKLIST DE ACEITAÇÃO DESKTOP
+
 # ═══════════════════════════════════════════
 
 A aplicação Desktop só é considerada "pronta" quando todos estes pontos estiverem verificados:
@@ -2042,7 +2071,9 @@ BUILD E DISTRIBUIÇÃO:
 ---
 
 # ═══════════════════════════════════════════
+
 # PARTE 12 — PROGRESS-DESKTOP.md (ESTADO DO PROJECTO)
+
 # ═══════════════════════════════════════════
 
 Este ficheiro deve ser criado na raiz do workspace como `PROGRESS-DESKTOP.md`:
@@ -2060,18 +2091,18 @@ Este ficheiro deve ser criado na raiz do workspace como `PROGRESS-DESKTOP.md`:
 
 ## Identidade
 
-| Campo | Valor |
-|---|---|
-| Nome | Nexora Media Processing — Desktop |
-| Versão | 0.1.0 |
-| IDE | Google Antigravity |
-| Stack Shell | Tauri 2.x (Rust) |
-| Stack Frontend | React 18 + TypeScript + Tailwind CSS + Zustand |
-| Stack Sidecar | Node.js 20 + TypeScript + esbuild |
-| Base de dados | SQLite via better-sqlite3 |
-| Media tools | FFmpeg · FFprobe · MediaInfo · BS1770GAIN · MediaConch · HandBrakeCLI |
-| Build | GitHub Actions (Tauri Action) |
-| Plataformas | Windows x64 · macOS Universal · Linux x64 |
+| Campo          | Valor                                                                 |
+| -------------- | --------------------------------------------------------------------- |
+| Nome           | Nexora Media Processing — Desktop                                     |
+| Versão         | 0.1.0                                                                 |
+| IDE            | Google Antigravity                                                    |
+| Stack Shell    | Tauri 2.x (Rust)                                                      |
+| Stack Frontend | React 18 + TypeScript + Tailwind CSS + Zustand                        |
+| Stack Sidecar  | Node.js 20 + TypeScript + esbuild                                     |
+| Base de dados  | SQLite via better-sqlite3                                             |
+| Media tools    | FFmpeg · FFprobe · MediaInfo · BS1770GAIN · MediaConch · HandBrakeCLI |
+| Build          | GitHub Actions (Tauri Action)                                         |
+| Plataformas    | Windows x64 · macOS Universal · Linux x64                             |
 
 ---
 
@@ -2094,10 +2125,10 @@ Este ficheiro deve ser criado na raiz do workspace como `PROGRESS-DESKTOP.md`:
 
 ## Em progresso agora
 
-Data: ___________
-Agente: ___________
-A trabalhar em: ___________
-Bloqueios: ___________
+Data: \***\*\_\_\_\*\***
+Agente: \***\*\_\_\_\*\***
+A trabalhar em: \***\*\_\_\_\*\***
+Bloqueios: \***\*\_\_\_\*\***
 
 ---
 
@@ -2111,27 +2142,27 @@ nexora-desktop/
 ## Problemas conhecidos
 
 | Data | Problema | Estado |
-|---|---|---|
-| — | Nenhum | — |
+| ---- | -------- | ------ |
+| —    | Nenhum   | —      |
 
 ---
 
 ## ADRs Desktop (Imutáveis)
 
-| ADR | Decisão |
-|---|---|
-| ADR-D001 | Tauri 2.x como shell nativa |
-| ADR-D002 | Node.js sidecar para lógica media |
-| ADR-D003 | SQLite como única base de dados |
+| ADR      | Decisão                                 |
+| -------- | --------------------------------------- |
+| ADR-D001 | Tauri 2.x como shell nativa             |
+| ADR-D002 | Node.js sidecar para lógica media       |
+| ADR-D003 | SQLite como única base de dados         |
 | ADR-D004 | Fila em memória com persistência SQLite |
-| ADR-D005 | Orchestrator local step-by-step |
-| ADR-D006 | Binários media incluídos no instalador |
-| ADR-D007 | GPU auto-detectada no startup |
-| ADR-D008 | Notificações nativas do SO |
-| ADR-D009 | Auto-updater via Tauri built-in |
-| ADR-D010 | Mesmos parâmetros FFmpeg que o Server |
-| ADR-D011 | IPC via Tauri Commands (não HTTP) |
-| ADR-D012 | Deep links nexora://open?asset=UUID |
+| ADR-D005 | Orchestrator local step-by-step         |
+| ADR-D006 | Binários media incluídos no instalador  |
+| ADR-D007 | GPU auto-detectada no startup           |
+| ADR-D008 | Notificações nativas do SO              |
+| ADR-D009 | Auto-updater via Tauri built-in         |
+| ADR-D010 | Mesmos parâmetros FFmpeg que o Server   |
+| ADR-D011 | IPC via Tauri Commands (não HTTP)       |
+| ADR-D012 | Deep links nexora://open?asset=UUID     |
 
 ---
 
@@ -2139,9 +2170,9 @@ nexora-desktop/
 
 Nunca apagar linhas antigas.
 
-| Data | O que foi feito | Agente usado | Ficheiros criados/modificados |
-|---|---|---|---|
-| YYYY-MM-DD | Projecto iniciado, PROGRESS-DESKTOP.md criado | — | PROGRESS-DESKTOP.md |
+| Data       | O que foi feito                               | Agente usado | Ficheiros criados/modificados |
+| ---------- | --------------------------------------------- | ------------ | ----------------------------- |
+| YYYY-MM-DD | Projecto iniciado, PROGRESS-DESKTOP.md criado | —            | PROGRESS-DESKTOP.md           |
 
 ---
 
@@ -2163,10 +2194,12 @@ Nunca apagar linhas antigas.
 ## Contexto técnico rápido (para agentes IA)
 
 Portas em uso (desenvolvimento):
+
 - 1420 → Vite dev server (frontend React)
 - Sem servidor HTTP em produção (IPC directo Tauri)
 
 Convenções de código:
+
 - TypeScript strict mode — sem "any" implícito
 - Nomes em inglês no código, comentários em português
 - Todos os erros são typed (nunca catch(e: any))
@@ -2174,14 +2207,15 @@ Convenções de código:
 - FFmpeg sempre via execFile (NUNCA exec com string)
 
 Limites:
+
 - Max jobs simultâneos: configurável (default 2)
 - FFmpeg timeout: 4h por transcode
 - SQLite max size: sem limite prático (filesystem local)
 
 ---
 
-*Este ficheiro é a fonte de verdade do projecto Desktop.*
-*Em caso de dúvida, consulta aqui.*
+_Este ficheiro é a fonte de verdade do projecto Desktop._
+_Em caso de dúvida, consulta aqui._
 ```
 
 ---
@@ -2189,134 +2223,144 @@ Limites:
 ---
 
 # ═══════════════════════════════════════════
+
 # APÊNDICE A — VARIÁVEIS DE CONFIGURAÇÃO DESKTOP
+
 # ═══════════════════════════════════════════
 
 O Nexora Desktop não usa ficheiro `.env` — usa a tabela `settings` na SQLite. Valores por defeito:
 
-| Chave | Valor default | Descrição |
-|---|---|---|
-| output_folder | (vazio — pede ao utilizador) | Pasta onde os ficheiros processados são guardados |
-| default_profile | broadcast_h264_1080p | Perfil usado quando nenhum é seleccionado |
-| max_concurrent_jobs | 2 | Número máximo de jobs em paralelo |
-| gpu_enabled | auto | auto / nvidia / amd / intel / cpu |
-| loudness_target | broadcast | broadcast (-23 LUFS) ou streaming (-14 LUFS) |
-| auto_update | true | Verificar actualizações automaticamente |
-| theme | system | system / light / dark |
-| language | pt | Idioma da interface (pt / en) |
-| vmaf_threshold_streaming | 85 | Score VMAF mínimo para streaming |
-| vmaf_threshold_broadcast | 90 | Score VMAF mínimo para broadcast |
-| vmaf_threshold_archive | 93 | Score VMAF mínimo para arquivo |
-| ffmpeg_timeout_ms | 14400000 | Timeout do FFmpeg (4h em milissegundos) |
-| max_retries | 3 | Número máximo de retries por job |
-| backup_enabled | true | Backup automático diário da SQLite |
+| Chave                    | Valor default                | Descrição                                         |
+| ------------------------ | ---------------------------- | ------------------------------------------------- |
+| output_folder            | (vazio — pede ao utilizador) | Pasta onde os ficheiros processados são guardados |
+| default_profile          | broadcast_h264_1080p         | Perfil usado quando nenhum é seleccionado         |
+| max_concurrent_jobs      | 2                            | Número máximo de jobs em paralelo                 |
+| gpu_enabled              | auto                         | auto / nvidia / amd / intel / cpu                 |
+| loudness_target          | broadcast                    | broadcast (-23 LUFS) ou streaming (-14 LUFS)      |
+| auto_update              | true                         | Verificar actualizações automaticamente           |
+| theme                    | system                       | system / light / dark                             |
+| language                 | pt                           | Idioma da interface (pt / en)                     |
+| vmaf_threshold_streaming | 85                           | Score VMAF mínimo para streaming                  |
+| vmaf_threshold_broadcast | 90                           | Score VMAF mínimo para broadcast                  |
+| vmaf_threshold_archive   | 93                           | Score VMAF mínimo para arquivo                    |
+| ffmpeg_timeout_ms        | 14400000                     | Timeout do FFmpeg (4h em milissegundos)           |
+| max_retries              | 3                            | Número máximo de retries por job                  |
+| backup_enabled           | true                         | Backup automático diário da SQLite                |
 
 ---
 
 ---
 
 # ═══════════════════════════════════════════
+
 # APÊNDICE B — MAPEAMENTO FUNCIONAL CLOUD → DESKTOP
+
 # ═══════════════════════════════════════════
 
 Este apêndice mostra como cada componente do Nexora Server é substituído no Desktop:
 
-| Server (Cloud) | Desktop (Local) | Notas |
-|---|---|---|
-| PostgreSQL | SQLite (better-sqlite3) | Ficheiro local, zero config |
-| BullMQ + Redis | NexoraSimpleQueue (memória + SQLite) | Mesma API, sem Redis |
-| Temporal.io | NexoraDesktopOrchestrator | Idempotente, step-by-step |
-| MinIO S3 | Pasta local (filesystem) | ~/Documents/Nexora/output |
-| Fastify API REST | Tauri Commands (IPC directo) | Sem servidor HTTP |
-| Grafana + Prometheus | Dashboard inline na app | Métricas básicas |
-| Webhooks HTTP | Notificações nativas do SO | @tauri-apps/api/notification |
-| Watch folder | Drag-and-drop na app | @tauri-apps/api/dialog |
-| Multi-org RBAC | Mono-utilizador | Sem autenticação |
-| JWT RS256 | N/A | Sem API externa |
-| Docker Compose | Instalador nativo (.exe/.dmg/.AppImage) | Tauri bundle |
-| Loki (logs) | Ficheiro de log local | pino → ficheiro rotativo |
-| Alertmanager | Notificações nativas do SO | Apenas alertas locais |
-| DRM packaging | Não incluído | Requer key server externo |
+| Server (Cloud)       | Desktop (Local)                         | Notas                        |
+| -------------------- | --------------------------------------- | ---------------------------- |
+| PostgreSQL           | SQLite (better-sqlite3)                 | Ficheiro local, zero config  |
+| BullMQ + Redis       | NexoraSimpleQueue (memória + SQLite)    | Mesma API, sem Redis         |
+| Temporal.io          | NexoraDesktopOrchestrator               | Idempotente, step-by-step    |
+| MinIO S3             | Pasta local (filesystem)                | ~/Documents/Nexora/output    |
+| Fastify API REST     | Tauri Commands (IPC directo)            | Sem servidor HTTP            |
+| Grafana + Prometheus | Dashboard inline na app                 | Métricas básicas             |
+| Webhooks HTTP        | Notificações nativas do SO              | @tauri-apps/api/notification |
+| Watch folder         | Drag-and-drop na app                    | @tauri-apps/api/dialog       |
+| Multi-org RBAC       | Mono-utilizador                         | Sem autenticação             |
+| JWT RS256            | N/A                                     | Sem API externa              |
+| Docker Compose       | Instalador nativo (.exe/.dmg/.AppImage) | Tauri bundle                 |
+| Loki (logs)          | Ficheiro de log local                   | pino → ficheiro rotativo     |
+| Alertmanager         | Notificações nativas do SO              | Apenas alertas locais        |
+| DRM packaging        | Não incluído                            | Requer key server externo    |
 
 ---
 
 ---
 
 # ═══════════════════════════════════════════
+
 # APÊNDICE C — TROUBLESHOOTING DESKTOP
+
 # ═══════════════════════════════════════════
 
 ## Problemas de Instalação
 
-| Problema | SO | Solução |
-|---|---|---|
+| Problema                  | SO      | Solução                                                   |
+| ------------------------- | ------- | --------------------------------------------------------- |
 | "WebView2 não encontrado" | Windows | Instalar WebView2 Runtime: choco install webview2-runtime |
-| "App não abre" | macOS | Ctrl+clique → "Abrir" (bypass Gatekeeper) |
-| "libwebkit2gtk not found" | Linux | sudo apt install libwebkit2gtk-4.1-0 |
-| "Tela branca ao abrir" | Todos | Actualizar drivers de GPU. Tentar com --disable-gpu |
-| Instalador pede admin | Windows | Normal — precisa de permissões para instalar binários |
+| "App não abre"            | macOS   | Ctrl+clique → "Abrir" (bypass Gatekeeper)                 |
+| "libwebkit2gtk not found" | Linux   | sudo apt install libwebkit2gtk-4.1-0                      |
+| "Tela branca ao abrir"    | Todos   | Actualizar drivers de GPU. Tentar com --disable-gpu       |
+| Instalador pede admin     | Windows | Normal — precisa de permissões para instalar binários     |
 
 ## Problemas de Processamento
 
-| Problema | Causa provável | Solução |
-|---|---|---|
-| Transcode muito lento | GPU não detectada, a usar CPU | Verificar definições → GPU. Actualizar drivers |
-| VMAF abaixo do threshold | Bitrate insuficiente para o conteúdo | Usar perfil com bitrate mais alto (ex: archive_mezzanine) |
-| LUFS fora do target | Áudio com dinâmica extrema | Verificar se fonte é mono/estéreo. Ajustar LRA |
-| Job fica "stuck" em processing | FFmpeg crash ou timeout | Cancelar e resubmeter. Verificar logs em ~/.local/share/Nexora/logs/ |
-| "Disco cheio" durante transcode | Espaço insuficiente | Libertar espaço. Alterar pasta de output para disco com mais espaço |
-| Erro "FFmpeg not found" | Binário corrompido ou não bundled | Reinstalar o Nexora Desktop |
-| App não inicia após update | DB migration falhou | Apagar nexora.db (perdes histórico) ou reportar bug |
+| Problema                        | Causa provável                       | Solução                                                              |
+| ------------------------------- | ------------------------------------ | -------------------------------------------------------------------- |
+| Transcode muito lento           | GPU não detectada, a usar CPU        | Verificar definições → GPU. Actualizar drivers                       |
+| VMAF abaixo do threshold        | Bitrate insuficiente para o conteúdo | Usar perfil com bitrate mais alto (ex: archive_mezzanine)            |
+| LUFS fora do target             | Áudio com dinâmica extrema           | Verificar se fonte é mono/estéreo. Ajustar LRA                       |
+| Job fica "stuck" em processing  | FFmpeg crash ou timeout              | Cancelar e resubmeter. Verificar logs em ~/.local/share/Nexora/logs/ |
+| "Disco cheio" durante transcode | Espaço insuficiente                  | Libertar espaço. Alterar pasta de output para disco com mais espaço  |
+| Erro "FFmpeg not found"         | Binário corrompido ou não bundled    | Reinstalar o Nexora Desktop                                          |
+| App não inicia após update      | DB migration falhou                  | Apagar nexora.db (perdes histórico) ou reportar bug                  |
 
 ## Localizações dos Ficheiros
 
-| O quê | Windows | macOS | Linux |
-|---|---|---|---|
-| Base de dados | %APPDATA%\Nexora\nexora.db | ~/Library/Application Support/Nexora/nexora.db | ~/.local/share/Nexora/nexora.db |
-| Logs | %APPDATA%\Nexora\logs\ | ~/Library/Logs/Nexora/ | ~/.local/share/Nexora/logs/ |
-| Backups | %APPDATA%\Nexora\backups\ | ~/Library/Application Support/Nexora/backups/ | ~/.local/share/Nexora/backups/ |
-| Config | %APPDATA%\Nexora\ | ~/Library/Application Support/Nexora/ | ~/.config/Nexora/ |
-| Output (default) | Documentos\Nexora\output\ | ~/Documents/Nexora/output/ | ~/Documents/Nexora/output/ |
+| O quê            | Windows                    | macOS                                          | Linux                           |
+| ---------------- | -------------------------- | ---------------------------------------------- | ------------------------------- |
+| Base de dados    | %APPDATA%\Nexora\nexora.db | ~/Library/Application Support/Nexora/nexora.db | ~/.local/share/Nexora/nexora.db |
+| Logs             | %APPDATA%\Nexora\logs\     | ~/Library/Logs/Nexora/                         | ~/.local/share/Nexora/logs/     |
+| Backups          | %APPDATA%\Nexora\backups\  | ~/Library/Application Support/Nexora/backups/  | ~/.local/share/Nexora/backups/  |
+| Config           | %APPDATA%\Nexora\          | ~/Library/Application Support/Nexora/          | ~/.config/Nexora/               |
+| Output (default) | Documentos\Nexora\output\  | ~/Documents/Nexora/output/                     | ~/Documents/Nexora/output/      |
 
 ---
 
 ---
 
 # ═══════════════════════════════════════════
+
 # APÊNDICE D — GLOSSÁRIO COMPLEMENTAR
+
 # ═══════════════════════════════════════════
 
 Termos específicos do Desktop que complementam o glossário do Manual Técnico v4.0:
 
-| Termo | Definição |
-|---|---|
-| Tauri | Framework open source para criar apps desktop nativas usando Rust + WebView |
-| WebView | Componente nativo do SO que renderiza HTML/CSS/JS (como um browser embutido) |
-| Sidecar | Processo secundário que corre em paralelo com a app principal |
-| IPC | Inter-Process Communication — comunicação entre o Rust (Tauri) e o React (frontend) |
-| Tauri Command | Função em Rust que pode ser chamada pelo frontend via invoke() |
-| AppImage | Formato de distribuição Linux — um único ficheiro executável, sem instalação |
-| .dmg | Formato de instalação macOS — um disco virtual que se monta |
-| WKWebView | Motor de rendering web nativo do macOS (Safari engine) |
-| WebView2 | Motor de rendering web nativo do Windows (Edge/Chromium) |
-| WebKitGTK | Motor de rendering web para Linux (necessário para Tauri) |
-| Zustand | Biblioteca de gestão de estado para React (alternativa simples ao Redux) |
-| esbuild | Bundler JavaScript ultra-rápido (compila o sidecar Node.js) |
-| better-sqlite3 | Binding Node.js para SQLite (síncrono, rápido) |
-| System Tray | Ícone na barra de sistema (bandeja do Windows, menu bar do macOS) |
-| Deep Link | URL que abre directamente a app (ex: nexora://open?asset=UUID) |
-| Universal Binary | Binário macOS que corre nativamente em Intel e Apple Silicon |
-| NVENC | Encoder de hardware da NVIDIA (H.264/H.265 acelerado por GPU) |
-| AMF | Advanced Media Framework da AMD (encoder de hardware) |
-| QSV | Quick Sync Video da Intel (encoder de hardware) |
-| VideoToolbox | Framework de aceleração de vídeo nativo do macOS/Apple Silicon |
+| Termo            | Definição                                                                           |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| Tauri            | Framework open source para criar apps desktop nativas usando Rust + WebView         |
+| WebView          | Componente nativo do SO que renderiza HTML/CSS/JS (como um browser embutido)        |
+| Sidecar          | Processo secundário que corre em paralelo com a app principal                       |
+| IPC              | Inter-Process Communication — comunicação entre o Rust (Tauri) e o React (frontend) |
+| Tauri Command    | Função em Rust que pode ser chamada pelo frontend via invoke()                      |
+| AppImage         | Formato de distribuição Linux — um único ficheiro executável, sem instalação        |
+| .dmg             | Formato de instalação macOS — um disco virtual que se monta                         |
+| WKWebView        | Motor de rendering web nativo do macOS (Safari engine)                              |
+| WebView2         | Motor de rendering web nativo do Windows (Edge/Chromium)                            |
+| WebKitGTK        | Motor de rendering web para Linux (necessário para Tauri)                           |
+| Zustand          | Biblioteca de gestão de estado para React (alternativa simples ao Redux)            |
+| esbuild          | Bundler JavaScript ultra-rápido (compila o sidecar Node.js)                         |
+| better-sqlite3   | Binding Node.js para SQLite (síncrono, rápido)                                      |
+| System Tray      | Ícone na barra de sistema (bandeja do Windows, menu bar do macOS)                   |
+| Deep Link        | URL que abre directamente a app (ex: nexora://open?asset=UUID)                      |
+| Universal Binary | Binário macOS que corre nativamente em Intel e Apple Silicon                        |
+| NVENC            | Encoder de hardware da NVIDIA (H.264/H.265 acelerado por GPU)                       |
+| AMF              | Advanced Media Framework da AMD (encoder de hardware)                               |
+| QSV              | Quick Sync Video da Intel (encoder de hardware)                                     |
+| VideoToolbox     | Framework de aceleração de vídeo nativo do macOS/Apple Silicon                      |
 
 ---
 
 ---
 
 # ═══════════════════════════════════════════
+
 # NOTA FINAL
+
 # ═══════════════════════════════════════════
 
 Este documento é parte integrante do projecto Nexora Media Processing e complementa:
@@ -2328,6 +2372,7 @@ Este documento é parte integrante do projecto Nexora Media Processing e complem
 5. **.antigravity/rules.md** — regras globais para todos os agentes IA
 
 O Nexora Desktop deve ser desenvolvido em paralelo com o Server, partilhando:
+
 - A mesma lógica de workers (código TypeScript reutilizado)
 - Os mesmos perfis de transcode (ficheiros JSON)
 - Os mesmos parâmetros FFmpeg
@@ -2335,6 +2380,7 @@ O Nexora Desktop deve ser desenvolvido em paralelo com o Server, partilhando:
 - O mesmo repositório GitHub
 
 **Sequência recomendada de desenvolvimento:**
+
 ```
 Server:  Semana 1-4 (Prompts 1-10 do Manual v4.0)
 Desktop: Semana 1-3 (Prompts Desktop 1-4 deste documento)
@@ -2343,6 +2389,6 @@ Desktop: Semana 1-3 (Prompts Desktop 1-4 deste documento)
 
 ---
 
-*Nexora Media Processing — Desktop Nativo — Documento de Progresso, Execução e Especificação Técnica v1.0*
-*Stack 100% Open Source · Broadcast & OTT Grade · Portugal*
-*Arquitecto: Claude Opus · Maio 2026*
+_Nexora Media Processing — Desktop Nativo — Documento de Progresso, Execução e Especificação Técnica v1.0_
+_Stack 100% Open Source · Broadcast & OTT Grade · Portugal_
+_Arquitecto: Claude Opus · Maio 2026_

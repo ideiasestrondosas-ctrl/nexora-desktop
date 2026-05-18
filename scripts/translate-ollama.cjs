@@ -22,7 +22,15 @@ const LANG_NAMES = { es: 'Spanish', fr: 'French', de: 'German' };
 const TARGET_NAME = LANG_NAMES[TARGET_LANG];
 
 const BASE_PATH = path.join(__dirname, '..', 'src', 'i18n', 'locales', 'en', 'base.json');
-const OUTPUT_PATH = path.join(__dirname, '..', 'src', 'i18n', 'locales', TARGET_LANG, 'common.json');
+const OUTPUT_PATH = path.join(
+  __dirname,
+  '..',
+  'src',
+  'i18n',
+  'locales',
+  TARGET_LANG,
+  'common.json',
+);
 const OLLAMA_URL = 'http://localhost:11434/api/generate';
 const MODEL = 'qwen2.5:7b-instruct';
 const BATCH_SIZE = 8;
@@ -31,12 +39,52 @@ const BASE_DELAY_MS = 1500;
 
 // Termos técnicos que NÃO devem ser traduzidos
 const TECH_TERMS = [
-  'VMAF', 'LUFS', 'FFmpeg', 'FFprobe', 'GPU', 'NVENC', 'AMF', 'QSV',
-  'CPU', 'RAM', 'H.264', 'H.265', 'HEVC', 'ProRes', 'DNxHD', 'AV1',
-  'AAC', 'PCM', 'MOV', 'MP4', 'MXF', 'TS', 'SHA-256', 'R128',
-  'dBTP', 'fps', 'kbps', 'Mbps', 'GB', 'MB', 'Node.js', 'SQLite',
-  'Tauri', 'React', 'Rust', 'Nexora', 'BBC', 'Netflix', 'DPP',
-  'Windows', 'macOS', 'Linux', 'VS Code', 'npm', 'LU', 'EBU R128'
+  'VMAF',
+  'LUFS',
+  'FFmpeg',
+  'FFprobe',
+  'GPU',
+  'NVENC',
+  'AMF',
+  'QSV',
+  'CPU',
+  'RAM',
+  'H.264',
+  'H.265',
+  'HEVC',
+  'ProRes',
+  'DNxHD',
+  'AV1',
+  'AAC',
+  'PCM',
+  'MOV',
+  'MP4',
+  'MXF',
+  'TS',
+  'SHA-256',
+  'R128',
+  'dBTP',
+  'fps',
+  'kbps',
+  'Mbps',
+  'GB',
+  'MB',
+  'Node.js',
+  'SQLite',
+  'Tauri',
+  'React',
+  'Rust',
+  'Nexora',
+  'BBC',
+  'Netflix',
+  'DPP',
+  'Windows',
+  'macOS',
+  'Linux',
+  'VS Code',
+  'npm',
+  'LU',
+  'EBU R128',
 ];
 
 function flatten(obj, prefix = '') {
@@ -67,7 +115,7 @@ function unflatten(entries) {
 }
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function translateBatch(batch, targetLang, attempt = 1) {
@@ -92,7 +140,7 @@ Translated output:`;
   const res = await fetch(OLLAMA_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: MODEL, prompt, stream: false })
+    body: JSON.stringify({ model: MODEL, prompt, stream: false }),
   });
 
   if (!res.ok) throw new Error('Ollama HTTP ' + res.status);
@@ -101,13 +149,16 @@ Translated output:`;
 }
 
 function parseBatchResponse(response, batch) {
-  const lines = response.split('\n').map(l => l.trim()).filter(l => l);
+  const lines = response
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l);
   const result = [];
 
   for (let i = 0; i < batch.length; i++) {
     const entry = batch[i];
     const expectedPrefix = `[${entry.path}]`;
-    const line = lines.find(l => l.startsWith(expectedPrefix));
+    const line = lines.find((l) => l.startsWith(expectedPrefix));
 
     if (line) {
       const translated = line.slice(expectedPrefix.length).trim();
@@ -139,7 +190,9 @@ async function translateBatchWithRetry(batch, targetLang) {
       return { success: true, parsed };
     } catch (err) {
       const isLast = attempt === MAX_RETRIES;
-      console.error(`\n  ⚠️  Attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}${isLast ? ' — falling back to EN' : ''}`);
+      console.error(
+        `\n  ⚠️  Attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}${isLast ? ' — falling back to EN' : ''}`,
+      );
       if (!isLast) {
         const backoff = BASE_DELAY_MS * Math.pow(2, attempt - 1);
         await sleep(backoff);
@@ -149,7 +202,7 @@ async function translateBatchWithRetry(batch, targetLang) {
   // All retries exhausted: return original English text
   return {
     success: false,
-    parsed: batch.map(e => ({ path: e.path, text: e.text }))
+    parsed: batch.map((e) => ({ path: e.path, text: e.text })),
   };
 }
 
@@ -170,8 +223,8 @@ async function main() {
   }
 
   // Build a set of already translated paths
-  const donePaths = new Set(existing.map(e => e.path));
-  const pending = allEntries.filter(e => !donePaths.has(e.path));
+  const donePaths = new Set(existing.map((e) => e.path));
+  const pending = allEntries.filter((e) => !donePaths.has(e.path));
   console.log(`⏳ Keys to translate: ${pending.length}`);
 
   if (pending.length === 0) {
@@ -194,7 +247,7 @@ async function main() {
     translated.push(...parsed);
 
     if (success) {
-      const successCount = parsed.filter(p => p.text !== p.path && p.text !== '').length;
+      const successCount = parsed.filter((p) => p.text !== p.path && p.text !== '').length;
       process.stdout.write(`✅ ${successCount}/${batch.length} translated`);
     } else {
       failedCount += batch.length;
@@ -217,7 +270,7 @@ async function main() {
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Fatal error:', err);
   process.exit(1);
 });

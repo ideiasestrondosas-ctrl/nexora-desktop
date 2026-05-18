@@ -58,21 +58,21 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 
 ## Features
 
-| Feature | Description |
-|---------|-------------|
-| **GPU-Accelerated Transcoding** | Auto-detects NVIDIA NVENC, AMD AMF, Intel QSV, or falls back to CPU (libx264) |
-| **8-Stage Pipeline** | Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post → Delivery |
-| **VMAF Quality Scoring** | Perceptual quality measurement comparing source vs. output |
-| **EBU R128 Loudness** | Broadcast-standard audio normalization with true peak limiting |
-| **QC Quarantine** | Automatic quarantine of files failing pre-QC checks; manual approve/reject workflow |
-| **6 System Profiles** | Broadcast HD/SD, Web 4K/HD, Proxy, Social — plus custom profile editor |
-| **Real-Time Monitoring** | Live job queue with visual pipeline, progress bars, system metrics (CPU/RAM/GPU/Disk) |
-| **Drag & Drop Ingest** | Native file drop from anywhere on the OS; supports MP4, MKV, MOV, MXF, AVI, WebM |
-| **Multi-Language UI** | Full i18n with 15 languages; theme switching (System / Light / Dark) |
-| **Auto-Updater** | Built-in Tauri updater checks GitHub releases automatically |
-| **Native Notifications** | System-level notifications for job completion, errors, and quarantine alerts |
-| **Comprehensive Logging** | Structured logs with filtering by level, source, and time range; exportable |
-| **Factory Reset** | One-click reset to defaults, preserving or wiping all data |
+| Feature                         | Description                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------- |
+| **GPU-Accelerated Transcoding** | Auto-detects NVIDIA NVENC, AMD AMF, Intel QSV, or falls back to CPU (libx264)         |
+| **8-Stage Pipeline**            | Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post → Delivery          |
+| **VMAF Quality Scoring**        | Perceptual quality measurement comparing source vs. output                            |
+| **EBU R128 Loudness**           | Broadcast-standard audio normalization with true peak limiting                        |
+| **QC Quarantine**               | Automatic quarantine of files failing pre-QC checks; manual approve/reject workflow   |
+| **6 System Profiles**           | Broadcast HD/SD, Web 4K/HD, Proxy, Social — plus custom profile editor                |
+| **Real-Time Monitoring**        | Live job queue with visual pipeline, progress bars, system metrics (CPU/RAM/GPU/Disk) |
+| **Drag & Drop Ingest**          | Native file drop from anywhere on the OS; supports MP4, MKV, MOV, MXF, AVI, WebM      |
+| **Multi-Language UI**           | Full i18n with 15 languages; theme switching (System / Light / Dark)                  |
+| **Auto-Updater**                | Built-in Tauri updater checks GitHub releases automatically                           |
+| **Native Notifications**        | System-level notifications for job completion, errors, and quarantine alerts          |
+| **Comprehensive Logging**       | Structured logs with filtering by level, source, and time range; exportable           |
+| **Factory Reset**               | One-click reset to defaults, preserving or wiping all data                            |
 
 ---
 
@@ -80,15 +80,15 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 
 > Replace the placeholders below with actual screenshots from your installation.
 
-| Dashboard | Library | Queue |
-|-----------|---------|-------|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Library](docs/screenshots/library.png) | ![Queue](docs/screenshots/queue.png) |
-| System overview with stats and recent jobs | Asset management with grid/list views and drag-drop | Real-time job monitoring with pipeline visualizer |
+| Dashboard                                    | Library                                             | Queue                                             |
+| -------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Library](docs/screenshots/library.png)            | ![Queue](docs/screenshots/queue.png)              |
+| System overview with stats and recent jobs   | Asset management with grid/list views and drag-drop | Real-time job monitoring with pipeline visualizer |
 
-| Profiles | Settings | Asset Detail |
-|----------|----------|--------------|
+| Profiles                                   | Settings                                   | Asset Detail                                       |
+| ------------------------------------------ | ------------------------------------------ | -------------------------------------------------- |
 | ![Profiles](docs/screenshots/profiles.png) | ![Settings](docs/screenshots/settings.png) | ![Asset Detail](docs/screenshots/asset-detail.png) |
-| Transcode profile editor with presets | System configuration and diagnostics | Deep-dive into asset metadata and QC reports |
+| Transcode profile editor with presets      | System configuration and diagnostics       | Deep-dive into asset metadata and QC reports       |
 
 ---
 
@@ -131,22 +131,22 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 
 Get the latest release from the [Releases](https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releases) page.
 
-| Platform | Installer | Size |
-|----------|-----------|------|
-| **Windows** | `.msi` (recommended) or `.exe` (NSIS) | ~150 MB |
-| **macOS** | `.dmg` (Universal Intel + Apple Silicon) | ~180 MB |
-| **Linux** | `.deb` (Debian/Ubuntu) or `.AppImage` | ~120 MB |
+| Platform    | Installer                                | Size    |
+| ----------- | ---------------------------------------- | ------- |
+| **Windows** | `.msi` (recommended) or `.exe` (NSIS)    | ~150 MB |
+| **macOS**   | `.dmg` (Universal Intel + Apple Silicon) | ~180 MB |
+| **Linux**   | `.deb` (Debian/Ubuntu) or `.AppImage`    | ~120 MB |
 
 ### System Requirements
 
-| | Minimum | Recommended |
-|---|---|---|
-| **OS** | Windows 10 / macOS 11 / Ubuntu 20.04 | Windows 11 / macOS 14 / Ubuntu 22.04 |
-| **CPU** | 64-bit dual-core | 64-bit quad-core or better |
-| **RAM** | 4 GB | 8 GB+ |
-| **GPU** | Not required | NVIDIA (NVENC), AMD (AMF), or Intel (QSV) |
-| **Disk** | 500 MB for app + working space | SSD with 10 GB+ free |
-| **Network** | Optional (for updater) | Recommended |
+|             | Minimum                              | Recommended                               |
+| ----------- | ------------------------------------ | ----------------------------------------- |
+| **OS**      | Windows 10 / macOS 11 / Ubuntu 20.04 | Windows 11 / macOS 14 / Ubuntu 22.04      |
+| **CPU**     | 64-bit dual-core                     | 64-bit quad-core or better                |
+| **RAM**     | 4 GB                                 | 8 GB+                                     |
+| **GPU**     | Not required                         | NVIDIA (NVENC), AMD (AMF), or Intel (QSV) |
+| **Disk**    | 500 MB for app + working space       | SSD with 10 GB+ free                      |
+| **Network** | Optional (for updater)               | Recommended                               |
 
 ### First Launch
 
@@ -204,14 +204,14 @@ Get the latest release from the [Releases](https://github.com/ideiasestrondosas-
 
 ## Transcoding Profiles
 
-| Profile | Resolution | Video Codec | Bitrate | LUFS Target | VMAF Threshold | Use Case |
-|---------|-----------|-------------|---------|-------------|----------------|----------|
-| **Broadcast HD** | 1920×1080 | H.264 High | 15 Mbps | -23 | 90 | TV broadcast |
-| **Broadcast SD** | 720×576 | H.264 Main | 5 Mbps | -23 | 90 | Legacy broadcast |
-| **Web 4K** | 3840×2160 | H.264 High | 35 Mbps | -16 | 85 | Streaming UHD |
-| **Web HD** | 1920×1080 | H.264 High | 8 Mbps | -16 | 85 | Web streaming |
-| **Proxy** | 960×540 | H.264 Baseline | 800 kbps | — | 70 | Fast preview / editing |
-| **Social** | 1080×1080 | H.264 Main | 4 Mbps | -14 | 80 | Social media |
+| Profile          | Resolution | Video Codec    | Bitrate  | LUFS Target | VMAF Threshold | Use Case               |
+| ---------------- | ---------- | -------------- | -------- | ----------- | -------------- | ---------------------- |
+| **Broadcast HD** | 1920×1080  | H.264 High     | 15 Mbps  | -23         | 90             | TV broadcast           |
+| **Broadcast SD** | 720×576    | H.264 Main     | 5 Mbps   | -23         | 90             | Legacy broadcast       |
+| **Web 4K**       | 3840×2160  | H.264 High     | 35 Mbps  | -16         | 85             | Streaming UHD          |
+| **Web HD**       | 1920×1080  | H.264 High     | 8 Mbps   | -16         | 85             | Web streaming          |
+| **Proxy**        | 960×540    | H.264 Baseline | 800 kbps | —           | 70             | Fast preview / editing |
+| **Social**       | 1080×1080  | H.264 Main     | 4 Mbps   | -14         | 80             | Social media           |
 
 > All profiles use broadcast-standard parameters: closed GOP, no B-frames, YUV 4:2:0, and faststart for web compatibility. See [docs/USER_MANUAL.md](docs/USER_MANUAL.md) for full technical details.
 
@@ -219,18 +219,18 @@ Get the latest release from the [Releases](https://github.com/ideiasestrondosas-
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl + 1` | Go to Dashboard |
-| `Ctrl + 2` | Go to Library |
-| `Ctrl + 3` | Go to Queue |
-| `Ctrl + 4` | Go to Profiles |
-| `Ctrl + 5` | Go to Settings |
-| `Ctrl + L` | Go to Logs |
-| `Ctrl + D` | Go to Asset Detail (if asset selected) |
-| `Esc` | Close modal / overlay / go back |
-| `F1` | Open Help / User Manual |
-| `Ctrl + Shift + E` | Export logs |
+| Shortcut           | Action                                 |
+| ------------------ | -------------------------------------- |
+| `Ctrl + 1`         | Go to Dashboard                        |
+| `Ctrl + 2`         | Go to Library                          |
+| `Ctrl + 3`         | Go to Queue                            |
+| `Ctrl + 4`         | Go to Profiles                         |
+| `Ctrl + 5`         | Go to Settings                         |
+| `Ctrl + L`         | Go to Logs                             |
+| `Ctrl + D`         | Go to Asset Detail (if asset selected) |
+| `Esc`              | Close modal / overlay / go back        |
+| `F1`               | Open Help / User Manual                |
+| `Ctrl + Shift + E` | Export logs                            |
 
 > Shortcuts are contextual to the active screen. See the in-app **Help** panel (❓ button in the top-right) for screen-specific shortcuts.
 
@@ -238,13 +238,13 @@ Get the latest release from the [Releases](https://github.com/ideiasestrondosas-
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [docs/USER_MANUAL.md](docs/USER_MANUAL.md) | Complete user guide: all screens, pipeline, QC workflow |
+| Document                                     | Description                                                  |
+| -------------------------------------------- | ------------------------------------------------------------ |
+| [docs/USER_MANUAL.md](docs/USER_MANUAL.md)   | Complete user guide: all screens, pipeline, QC workflow      |
 | [docs/SCREEN_GUIDE.md](docs/SCREEN_GUIDE.md) | Visual guide to every screen, button, badge, and interaction |
-| [docs/FUNCTIONS.md](docs/FUNCTIONS.md) | Technical reference: commands, workers, database, hooks |
-| [docs/INSTALL.md](docs/INSTALL.md) | Platform-specific installation and uninstallation guide |
-| [docs/LICENSE.md](docs/LICENSE.md) | GNU General Public License v3.0 |
+| [docs/FUNCTIONS.md](docs/FUNCTIONS.md)       | Technical reference: commands, workers, database, hooks      |
+| [docs/INSTALL.md](docs/INSTALL.md)           | Platform-specific installation and uninstallation guide      |
+| [docs/LICENSE.md](docs/LICENSE.md)           | GNU General Public License v3.0                              |
 
 ---
 

@@ -16,17 +16,18 @@ pub fn start<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) {
     let app_handle = app.clone();
     let db_path_buf = db_path.to_path_buf();
 
-    std::thread::spawn(move || {
-        loop {
-            std::thread::sleep(Duration::from_millis(POLL_INTERVAL_MS));
+    std::thread::spawn(move || loop {
+        std::thread::sleep(Duration::from_millis(POLL_INTERVAL_MS));
 
-            if let Err(e) = poll(&app_handle, &db_path_buf, &state) {
-                error!("Queue poll error: {}", e);
-            }
+        if let Err(e) = poll(&app_handle, &db_path_buf, &state) {
+            error!("Queue poll error: {}", e);
         }
     });
 
-    info!("Queue worker started — polling every {}s", POLL_INTERVAL_MS / 1000);
+    info!(
+        "Queue worker started — polling every {}s",
+        POLL_INTERVAL_MS / 1000
+    );
 }
 
 fn poll<R: Runtime>(
@@ -35,7 +36,10 @@ fn poll<R: Runtime>(
     queue_state: &Arc<Mutex<QueueState>>,
 ) -> anyhow::Result<()> {
     let app_state = app.state::<AppState>();
-    let db = app_state.db.lock().map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
+    let db = app_state
+        .db
+        .lock()
+        .map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
 
     // Recuperar jobs presos em 'processing' há mais de 15 minutos
     // (o sidecar pode ter crashado sem emitir job:failed)
@@ -57,8 +61,7 @@ fn poll<R: Runtime>(
         .ok()
         .and_then(|v| v.parse::<usize>().ok())
         .unwrap_or(2)
-        .max(1)
-        .min(8);
+        .clamp(1, 8);
 
     // Contar jobs em processamento
     let running_count: i64 = db
@@ -82,18 +85,31 @@ fn poll<R: Runtime>(
              FROM jobs j JOIN assets a ON j.asset_id = a.id
              WHERE j.status = 'queued'
              ORDER BY j.priority DESC, j.created_at ASC
-             LIMIT ?"
+             LIMIT ?",
         )
         .map_err(|e| anyhow::anyhow!("DB prepare error: {}", e))?;
 
-    let jobs: Vec<(String, String, String, String, Option<f64>, Option<String>, Option<String>, Option<i64>, Option<i64>, Option<f64>, Option<i64>)> = stmt
+    #[allow(clippy::type_complexity)]
+    let jobs: Vec<(
+        String,
+        String,
+        String,
+        String,
+        Option<f64>,
+        Option<String>,
+        Option<String>,
+        Option<i64>,
+        Option<i64>,
+        Option<f64>,
+        Option<i64>,
+    )> = stmt
         .query_map([slots as i64], |row| {
             Ok((
-                row.get::<_, String>(0)?,      // job_id
-                row.get::<_, String>(1)?,      // asset_id
-                row.get::<_, String>(2)?,      // profile
-                row.get::<_, String>(3)?,      // asset_path
-                row.get::<_, Option<f64>>(4)?, // duration_secs
+                row.get::<_, String>(0)?,         // job_id
+                row.get::<_, String>(1)?,         // asset_id
+                row.get::<_, String>(2)?,         // profile
+                row.get::<_, String>(3)?,         // asset_path
+                row.get::<_, Option<f64>>(4)?,    // duration_secs
                 row.get::<_, Option<String>>(5)?, // video_codec
                 row.get::<_, Option<String>>(6)?, // audio_codec
                 row.get::<_, Option<i64>>(7)?,    // width
@@ -127,13 +143,40 @@ fn poll<R: Runtime>(
 
     drop(db);
 
-    for (job_id, asset_id, profile, asset_path, duration_secs, video_codec, audio_codec, width, height, fps, size_bytes) in jobs_to_run {
+    for (
+        job_id,
+        asset_id,
+        profile,
+        asset_path,
+        duration_secs,
+        video_codec,
+        audio_codec,
+        width,
+        height,
+        fps,
+        size_bytes,
+    ) in jobs_to_run
+    {
         let app_clone = app.clone();
         let db_path_buf = db_path.to_path_buf();
         let queue_state_clone = Arc::clone(queue_state);
 
         std::thread::spawn(move || {
-            if let Err(e) = run_job(&app_clone, &db_path_buf, &job_id, &asset_id, &profile, &asset_path, duration_secs, video_codec, audio_codec, width, height, fps, size_bytes) {
+            if let Err(e) = run_job(
+                &app_clone,
+                &db_path_buf,
+                &job_id,
+                &asset_id,
+                &profile,
+                &asset_path,
+                duration_secs,
+                video_codec,
+                audio_codec,
+                width,
+                height,
+                fps,
+                size_bytes,
+            ) {
                 error!("Job {} failed: {}", job_id, e);
                 // Se o erro é por cancelamento (processo morto), não sobrescrever status
                 let already_cancelled = app_clone
@@ -142,11 +185,9 @@ fn poll<R: Runtime>(
                     .lock()
                     .ok()
                     .and_then(|db| {
-                        db.query_row(
-                            "SELECT status FROM jobs WHERE id = ?",
-                            [&job_id],
-                            |r| r.get::<_, String>(0),
-                        )
+                        db.query_row("SELECT status FROM jobs WHERE id = ?", [&job_id], |r| {
+                            r.get::<_, String>(0)
+                        })
                         .ok()
                     })
                     .map(|s| s == "cancelled")
@@ -161,11 +202,14 @@ fn poll<R: Runtime>(
                             [&now, &now, &err_str[..200.min(err_str.len())], &job_id],
                         );
                     }
-                    let _ = app_clone.emit("sidecar:event", serde_json::json!({
-                        "type": "job:failed",
-                        "jobId": job_id,
-                        "error": e.to_string(),
-                    }));
+                    let _ = app_clone.emit(
+                        "sidecar:event",
+                        serde_json::json!({
+                            "type": "job:failed",
+                            "jobId": job_id,
+                            "error": e.to_string(),
+                        }),
+                    );
                 }
             }
             // Remover PID do mapa de activos
@@ -187,6 +231,7 @@ fn poll<R: Runtime>(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn run_job<R: Runtime>(
     app: &AppHandle<R>,
     db_path: &std::path::Path,
@@ -206,7 +251,10 @@ fn run_job<R: Runtime>(
 
     let script_path = super::sidecar::resolve_script_path(app);
     if !script_path.exists() {
-        return Err(anyhow::anyhow!("Sidecar script not found: {:?}", script_path));
+        return Err(anyhow::anyhow!(
+            "Sidecar script not found: {:?}",
+            script_path
+        ));
     }
 
     let ffmpeg_path = super::sidecar::resolve_media_binary_path(app, "ffmpeg");
@@ -216,15 +264,23 @@ fn run_job<R: Runtime>(
     // Settings — output_dir
     let output_dir: String = {
         let state = app.state::<AppState>();
-        let db = state.db.lock().map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
+        let db = state
+            .db
+            .lock()
+            .map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
         let row = db
-            .query_row("SELECT value FROM settings WHERE key = 'output_dir'", [], |row| {
-                row.get::<_, String>(0)
-            })
+            .query_row(
+                "SELECT value FROM settings WHERE key = 'output_dir'",
+                [],
+                |row| row.get::<_, String>(0),
+            )
             .unwrap_or_default();
-            
+
         if row.trim().is_empty() {
-            std::env::temp_dir().join("nexora-output").to_string_lossy().into_owned()
+            std::env::temp_dir()
+                .join("nexora-output")
+                .to_string_lossy()
+                .into_owned()
         } else {
             row
         }
@@ -232,13 +288,17 @@ fn run_job<R: Runtime>(
 
     // Garantir que o directório de saída existe antes de arrancar o sidecar
     if let Err(e) = std::fs::create_dir_all(&output_dir) {
-        return Err(anyhow::anyhow!("Falha ao criar output_dir '{output_dir}': {e}"));
+        return Err(anyhow::anyhow!(
+            "Falha ao criar output_dir '{output_dir}': {e}"
+        ));
     }
     info!("[queue] output_dir: {}", output_dir);
 
     // Verificar que o asset ainda existe no disco
     if !std::path::Path::new(asset_path).exists() {
-        return Err(anyhow::anyhow!("Asset não encontrado no disco: {asset_path}"));
+        return Err(anyhow::anyhow!(
+            "Asset não encontrado no disco: {asset_path}"
+        ));
     }
 
     let job_input = serde_json::json!({
@@ -261,7 +321,13 @@ fn run_job<R: Runtime>(
         .env("NEXORA_DB_PATH", db_path)
         .env("NEXORA_FFMPEG_PATH", &ffmpeg_path)
         .env("NEXORA_FFPROBE_PATH", &ffprobe_path)
-        .env("NEXORA_RESOURCE_DIR", resource_dir.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default())
+        .env(
+            "NEXORA_RESOURCE_DIR",
+            resource_dir
+                .as_ref()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_default(),
+        )
         .env("NEXORA_OUTPUT_DIR", &output_dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -309,10 +375,23 @@ fn run_job<R: Runtime>(
                             if let Some(t) = json.get("type").and_then(|v| v.as_str()) {
                                 match t {
                                     "log" => {
-                                        let level = json.get("level").and_then(|v| v.as_str()).unwrap_or("INFO");
-                                        let source = json.get("source").and_then(|v| v.as_str()).unwrap_or("sidecar");
-                                        let msg = json.get("message").and_then(|v| v.as_str()).unwrap_or("");
-                                        crate::logger::write(level, &format!("sidecar:{source}"), msg);
+                                        let level = json
+                                            .get("level")
+                                            .and_then(|v| v.as_str())
+                                            .unwrap_or("INFO");
+                                        let source = json
+                                            .get("source")
+                                            .and_then(|v| v.as_str())
+                                            .unwrap_or("sidecar");
+                                        let msg = json
+                                            .get("message")
+                                            .and_then(|v| v.as_str())
+                                            .unwrap_or("");
+                                        crate::logger::write(
+                                            level,
+                                            &format!("sidecar:{source}"),
+                                            msg,
+                                        );
                                     }
                                     "job:started" => {
                                         info!("Job started: {}", job_id_owned);
@@ -323,7 +402,8 @@ fn run_job<R: Runtime>(
                                             json.get("progress").and_then(|v| v.as_f64()),
                                             json.get("step").and_then(|v| v.as_str()),
                                         ) {
-                                            if let Ok(db) = app_handle.state::<AppState>().db.lock() {
+                                            if let Ok(db) = app_handle.state::<AppState>().db.lock()
+                                            {
                                                 let now = chrono::Utc::now().to_rfc3339();
                                                 let _ = db.execute(
                                                     "UPDATE jobs SET progress = ?, step = ?, updated_at = ? WHERE id = ?",
@@ -334,9 +414,18 @@ fn run_job<R: Runtime>(
                                         let _ = app_handle.emit("sidecar:event", &json);
                                     }
                                     "job:completed" => {
-                                        let output_path = json.get("data").and_then(|d| d.get("outputPath")).and_then(|v| v.as_str());
-                                        let vmaf_score = json.get("data").and_then(|d| d.get("vmafScore")).and_then(|v| v.as_f64());
-                                        let lufs = json.get("data").and_then(|d| d.get("lufs")).and_then(|v| v.as_f64());
+                                        let output_path = json
+                                            .get("data")
+                                            .and_then(|d| d.get("outputPath"))
+                                            .and_then(|v| v.as_str());
+                                        let vmaf_score = json
+                                            .get("data")
+                                            .and_then(|d| d.get("vmafScore"))
+                                            .and_then(|v| v.as_f64());
+                                        let lufs = json
+                                            .get("data")
+                                            .and_then(|d| d.get("lufs"))
+                                            .and_then(|v| v.as_f64());
                                         if let Ok(db) = app_handle.state::<AppState>().db.lock() {
                                             let now = chrono::Utc::now().to_rfc3339();
                                             let _ = db.execute(
@@ -347,7 +436,10 @@ fn run_job<R: Runtime>(
                                         let _ = app_handle.emit("sidecar:event", &json);
                                     }
                                     "job:failed" => {
-                                        let error = json.get("error").and_then(|v| v.as_str()).unwrap_or("unknown error");
+                                        let error = json
+                                            .get("error")
+                                            .and_then(|v| v.as_str())
+                                            .unwrap_or("unknown error");
                                         if let Ok(db) = app_handle.state::<AppState>().db.lock() {
                                             let now = chrono::Utc::now().to_rfc3339();
                                             let _ = db.execute(
@@ -372,20 +464,47 @@ fn run_job<R: Runtime>(
                                             json.get("assetId").and_then(|v| v.as_str()),
                                             json.get("data"),
                                         ) {
-                                            if let Ok(db) = app_handle.state::<AppState>().db.lock() {
+                                            if let Ok(db) = app_handle.state::<AppState>().db.lock()
+                                            {
                                                 let now = chrono::Utc::now().to_rfc3339();
-                                                let duration_secs = data.get("duration_secs").and_then(|v| v.as_f64());
-                                                let video_codec = data.get("video_codec").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
-                                                let audio_codec = data.get("audio_codec").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
-                                                let width = data.get("width").and_then(|v| v.as_i64());
-                                                let height = data.get("height").and_then(|v| v.as_i64());
+                                                let duration_secs = data
+                                                    .get("duration_secs")
+                                                    .and_then(|v| v.as_f64());
+                                                let video_codec = data
+                                                    .get("video_codec")
+                                                    .and_then(|v| v.as_str())
+                                                    .filter(|s| !s.is_empty());
+                                                let audio_codec = data
+                                                    .get("audio_codec")
+                                                    .and_then(|v| v.as_str())
+                                                    .filter(|s| !s.is_empty());
+                                                let width =
+                                                    data.get("width").and_then(|v| v.as_i64());
+                                                let height =
+                                                    data.get("height").and_then(|v| v.as_i64());
                                                 let fps = data.get("fps").and_then(|v| v.as_f64());
-                                                let metadata = data.get("metadata").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
-                                                let status = data.get("status").and_then(|v| v.as_str());
-                                                let thumbnail_path = data.get("thumbnail_path").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
-                                                let thumbnail_output_path = data.get("thumbnail_output_path").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
-                                                let output_metadata = data.get("output_metadata").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
-                                                let output_path = data.get("output_path").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+                                                let metadata = data
+                                                    .get("metadata")
+                                                    .and_then(|v| v.as_str())
+                                                    .filter(|s| !s.is_empty());
+                                                let status =
+                                                    data.get("status").and_then(|v| v.as_str());
+                                                let thumbnail_path = data
+                                                    .get("thumbnail_path")
+                                                    .and_then(|v| v.as_str())
+                                                    .filter(|s| !s.is_empty());
+                                                let thumbnail_output_path = data
+                                                    .get("thumbnail_output_path")
+                                                    .and_then(|v| v.as_str())
+                                                    .filter(|s| !s.is_empty());
+                                                let output_metadata = data
+                                                    .get("output_metadata")
+                                                    .and_then(|v| v.as_str())
+                                                    .filter(|s| !s.is_empty());
+                                                let output_path = data
+                                                    .get("output_path")
+                                                    .and_then(|v| v.as_str())
+                                                    .filter(|s| !s.is_empty());
                                                 // COALESCE preserva o valor existente quando o novo valor é NULL
                                                 let _ = db.execute(
                                                     "UPDATE assets SET \
@@ -439,7 +558,10 @@ fn run_job<R: Runtime>(
 
     let status = child.wait()?;
     if !status.success() {
-        return Err(anyhow::anyhow!("Sidecar exited with code {:?}", status.code()));
+        return Err(anyhow::anyhow!(
+            "Sidecar exited with code {:?}",
+            status.code()
+        ));
     }
 
     Ok(())

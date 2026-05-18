@@ -99,12 +99,8 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, className }
       </div>
 
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-text-primary">
-          {t('dropZone.dropHere')}
-        </h3>
-        <p className="text-sm text-text-muted mt-1">
-          {t('dropZone.clickToSelect')}
-        </p>
+        <h3 className="text-lg font-semibold text-text-primary">{t('dropZone.dropHere')}</h3>
+        <p className="text-sm text-text-muted mt-1">{t('dropZone.clickToSelect')}</p>
       </div>
 
       <div className="flex items-center gap-3 mt-2">

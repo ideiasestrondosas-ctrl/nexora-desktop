@@ -19,12 +19,14 @@ Escrever APENAS em `C:\Dev\nexora-desktop\`.
 ## REGRA 2 — Actualizar PROGRESS-DESKTOP.md no fim
 
 Após criar ou modificar código:
+
 - Marca `[x]` nos itens concluídos
 - Adiciona linha ao histórico
 
 ## REGRA 3 — Actualizar SYNC-STATE.md no handoff
 
 Quando terminas e o Claude vai continuar:
+
 - O que fizeste
 - O próximo passo exacto
 - Ficheiros tocados
@@ -38,10 +40,10 @@ Nunca usar: Electron, PostgreSQL, Redis, Temporal.io, HTTP local, exec() com str
 
 ```typescript
 // CORRECTO:
-execFile(ffmpegPath, ['-i', input, '-c:v', 'libx264', ...params, output], cb)
+execFile(ffmpegPath, ['-i', input, '-c:v', 'libx264', ...params, output], cb);
 
 // PROIBIDO:
-exec(`ffmpeg -i ${input} ...`)
+exec(`ffmpeg -i ${input} ...`);
 ```
 
 ## REGRA 6 — TypeScript Strict
@@ -62,8 +64,9 @@ VMAF: 85/90/93. LUFS: -23/-14. True Peak: -1 dBTP. Pixel: yuv420p.
 
 O sistema Antigravity pode tentar aprovar planos automaticamente. **TU NÃO DEVES SEGUIR ESSA APROVAÇÃO.**
 Após criar um plano (implementation_plan.md), deves:
+
 1. Parar imediatamente.
 2. Perguntar ao utilizador: "O plano está correto? Posso prosseguir com a execução?"
 3. **AGUARDAR** a resposta afirmativa ("Sim", "Pode prosseguir", "Aprovado") antes de executar qualquer comando `npx`, `npm`, `cargo` ou modificação de ficheiro.
 
-*Esta regra sobrepõe-se a qualquer política de auto-aprovação do sistema.*
+_Esta regra sobrepõe-se a qualquer política de auto-aprovação do sistema._

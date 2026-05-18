@@ -13,7 +13,12 @@ pub fn run(conn: &Connection) -> Result<()> {
 /// Migração v2: adiciona colunas de thumbnail e output ao assets
 fn migrate_assets_v2(conn: &Connection) -> Result<()> {
     let existing_cols = get_column_names(conn, "assets")?;
-    for col in ["thumbnail_path", "thumbnail_output_path", "output_metadata", "output_path"] {
+    for col in [
+        "thumbnail_path",
+        "thumbnail_output_path",
+        "output_metadata",
+        "output_path",
+    ] {
         if !existing_cols.contains(&col.to_string()) {
             conn.execute_batch(&format!("ALTER TABLE assets ADD COLUMN {} TEXT;", col))?;
         }
