@@ -1,18 +1,15 @@
-# Screenshots Pending Manual Capture
+# Screenshots Pending Manual Capture (v0.23.0)
 
-The following screenshots need to be captured manually by running the app
-with `npm run tauri dev` and using a screenshot tool (Snipping Tool, ShareX, etc.):
+The following 4 screenshots are NEW in v0.23.0 and need to be captured manually
+by running the app with `npm run tauri dev`:
 
-1. `dashboard.png` — Dashboard tab, ensure at least 3 recent jobs are visible
-2. `library.png` — Library tab, grid view, hover over one card to show overlay
-3. `queue.png` — Queue tab, with at least 1 processing job and 1 completed job
-4. `asset-detail.png` — Asset Detail of a completed job, showing MediaInfo tabs
-5. `profiles.png` — Profiles tab, showing Broadcast HD detail cards
-6. `settings.png` — Settings → System tab, showing hardware info
-7. `pipeline-summary-expanded.png` — Queue tab, click "Done: N" badge to expand panel
-8. `reprocess-popup.png` — Queue tab, click ⟳ on a completed job to open popup
-9. `delete-confirm.png` — Asset Detail, click Delete to show both dialogs
-10. `factory-reset-confirm.png` — Settings → Advanced, click Factory Reset
+1. `pipeline-summary-expanded.png` — Queue tab, click a count badge (e.g. "Done: 3") to expand the inline panel
+2. `reprocess-popup.png` — Queue tab, click ⟳ (Reprocess) on a completed job to open the portal popup
+3. `delete-confirm.png` — Asset Detail, click Delete to trigger both confirmation dialogs
+4. `factory-reset-confirm.png` — Settings → Advanced, click Factory Reset to show both confirmation steps
+
+> The existing 6 screenshots (dashboard, library, queue, asset-detail, profiles, settings)
+> are already in `docs/screenshots/` but may need re-capturing if outdated.
 
 **Recommended tool:** ShareX or Snipping Tool (Win+Shift+S)
 **Resolution:** 1280×800 window
