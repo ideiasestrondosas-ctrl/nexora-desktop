@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { invoke, convertFileSrc } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { open } from '@tauri-apps/plugin-dialog';
+import { open, confirm } from '@tauri-apps/plugin-dialog';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import {
@@ -154,11 +154,28 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
   };
 
   const executeDelete = async () => {
+    // Capturar valores antes de fechar o diálogo — o state será stale após setDeleteConfirm
+    const targetId = deleteConfirm.id;
+    const isMulti = deleteConfirm.multi;
+
+    // Fechar o primeiro diálogo antes de mostrar o segundo
+    setDeleteConfirm({ open: false, id: null, multi: false });
+
+    // Segunda confirmação: perguntar se deve apagar ficheiros do disco
+    const deleteFiles = await confirm(t('assetDetail.deleteFilesConfirm'), {
+      title: t('assetDetail.deleteFilesTitle'),
+      kind: 'warning',
+    });
+
     setDeleteLoading(true);
     try {
-      if (deleteConfirm.multi) {
+      if (isMulti) {
         // Multi-delete
-        await Promise.all(Array.from(selectedIds).map((id) => invoke('delete_asset', { id })));
+        await Promise.all(
+          Array.from(selectedIds).map((id) =>
+            invoke('delete_asset', { id, delete_files: deleteFiles }),
+          ),
+        );
         // Remover do store local imediatamente
         Array.from(selectedIds).forEach((id) => removeJobsByAsset(id));
         setAssets((prev) => prev.filter((a) => !selectedIds.has(a.id)));
@@ -166,15 +183,14 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
         toast.success(
           t('library.deletedSuccessMultiple', { defaultValue: 'Assets apagados com sucesso!' }),
         );
-      } else if (deleteConfirm.id) {
-        const id = deleteConfirm.id;
-        await invoke('delete_asset', { id });
+      } else if (targetId) {
+        await invoke('delete_asset', { id: targetId, delete_files: deleteFiles });
         // Remover do store local imediatamente
-        removeJobsByAsset(id);
-        setAssets((prev) => prev.filter((a) => a.id !== id));
+        removeJobsByAsset(targetId);
+        setAssets((prev) => prev.filter((a) => a.id !== targetId));
         setSelectedIds((prev) => {
           const n = new Set(prev);
-          n.delete(id);
+          n.delete(targetId);
           return n;
         });
       }
@@ -183,7 +199,6 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
       toast.error(t('library.deleteError'));
     } finally {
       setDeleteLoading(false);
-      setDeleteConfirm({ open: false, id: null, multi: false });
     }
   };
 
