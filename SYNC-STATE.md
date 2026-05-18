@@ -109,7 +109,7 @@ Agente: Claude Code (claude-sonnet-4-6)
    - Persistence: `tauri-plugin-store` (não localStorage)
    - Evento `sidecar:event`
 6. Actualização do INSTALL.md e RELEASE.md com versão 0.23.0
-7. Criação de índice de screenshots e placeholders para captura manual
+7. **Screenshots capturados manualmente** — todos os 10 screenshots (6 existentes + 4 novos v0.23.0) capturados em 2026-05-18 a 1280×800, light mode. Índice em `docs/screenshots/README.md`, histórico de captura em `docs/screenshots/PENDING_CAPTURE.md`.
 8. Actualização do PROGRESS-DESKTOP.md
 
 **Verificação:** lint ✅ · tsc ✅ · 24/24 testes ✅ · cargo build ✅

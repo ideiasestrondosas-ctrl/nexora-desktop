@@ -15,4 +15,7 @@ Visual reference for Nexora Desktop v0.23.0.
 | `delete-confirm.png`            | Two-step delete confirmation dialog                         | 2026-05-18   |
 | `factory-reset-confirm.png`     | Factory reset with file deletion option                     | 2026-05-18   |
 
+> **Status:** Todos os 10 screenshots foram capturados manualmente em 2026-05-18.  
+> Veja `PENDING_CAPTURE.md` para o histórico de captura.
+>
 > **Note:** Screenshots should be captured at 1280×800 (default app window size) on Windows 11 with the default light theme, unless testing dark mode variants.

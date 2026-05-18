@@ -1,16 +1,28 @@
-# Screenshots Pending Manual Capture (v0.23.0)
+# Screenshots — Concluído em 2026-05-18
 
-The following 4 screenshots are NEW in v0.23.0 and need to be captured manually
-by running the app with `npm run tauri dev`:
+Todos os screenshots do v0.23.0 foram capturados manualmente.
 
-1. `pipeline-summary-expanded.png` — Queue tab, click a count badge (e.g. "Done: 3") to expand the inline panel
-2. `reprocess-popup.png` — Queue tab, click ⟳ (Reprocess) on a completed job to open the portal popup
-3. `delete-confirm.png` — Asset Detail, click Delete to trigger both confirmation dialogs
-4. `factory-reset-confirm.png` — Settings → Advanced, click Factory Reset to show both confirmation steps
+## Screenshots Novos (v0.23.0) — Capturados
 
-> The existing 6 screenshots (dashboard, library, queue, asset-detail, profiles, settings)
-> are already in `docs/screenshots/` but may need re-capturing if outdated.
+| #   | Ficheiro                        | Descrição                                    |
+| --- | ------------------------------- | -------------------------------------------- |
+| 1   | `pipeline-summary-expanded.png` | Pipeline Summary com painel inline expandido |
+| 2   | `reprocess-popup.png`           | Popup de reprocessamento (portal-rendered)   |
+| 3   | `delete-confirm.png`            | Dialog de delete em dois passos              |
+| 4   | `factory-reset-confirm.png`     | Factory reset com opção de apagar ficheiros  |
 
-**Recommended tool:** ShareX or Snipping Tool (Win+Shift+S)
-**Resolution:** 1280×800 window
-**Theme:** Light mode (default)
+## Screenshots Existentes (Re-capturados)
+
+| #   | Ficheiro           | Notas                   |
+| --- | ------------------ | ----------------------- |
+| 5   | `dashboard.png`    | Re-capturado em v0.23.0 |
+| 6   | `library.png`      | Re-capturado em v0.23.0 |
+| 7   | `queue.png`        | Re-capturado em v0.23.0 |
+| 8   | `asset-detail.png` | Re-capturado em v0.23.0 |
+| 9   | `profiles.png`     | Re-capturado em v0.23.0 |
+| 10  | `settings.png`     | Re-capturado em v0.23.0 |
+
+> **Data de captura:** 2026-05-18  
+> **Resolução:** 1280×800  
+> **Tema:** Light mode  
+> **Ferramenta:** Snipping Tool / ShareX
