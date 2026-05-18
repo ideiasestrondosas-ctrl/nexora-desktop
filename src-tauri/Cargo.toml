@@ -30,3 +30,6 @@ num_cpus = "1"
 sysinfo = { version = "0.32", default-features = false, features = ["system", "network"] }
 tokio = { version = "1", features = ["time", "sync"] }
 walkdir = "2"
+
+[target.'cfg(not(target_os = "windows"))'.dependencies]
+libc = "0.2"
