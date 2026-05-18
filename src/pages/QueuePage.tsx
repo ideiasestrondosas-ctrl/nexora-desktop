@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { openPath } from '@tauri-apps/plugin-opener';
 import { toast } from 'sonner';
+import { logActivity } from '@/lib/activityLog';
 import {
   X,
   CheckCircle2,
@@ -85,14 +85,20 @@ export default function QueuePage({
     quarantined: 0,
     rejectedToday: 0,
   });
+  const [availableProfiles, setAvailableProfiles] = useState<
+    { id: string; name: string; label_friendly: string | null }[]
+  >([]);
+  const [reprocessPopover, setReprocessPopover] = useState<string | null>(null); // job.id
   const fetchData = useCallback(async () => {
     try {
-      const [jobsData, statsData] = await Promise.all([
+      const [jobsData, statsData, profilesData] = await Promise.all([
         invoke<Job[]>('list_jobs'),
         invoke<QueueStats>('get_queue_stats'),
+        invoke<{ id: string; name: string; label_friendly: string | null }[]>('list_profiles'),
       ]);
       setJobs(jobsData);
       setStats(statsData);
+      setAvailableProfiles(profilesData);
     } catch (error) {
       console.error('Failed to fetch queue data:', error);
     }
@@ -138,6 +144,29 @@ export default function QueuePage({
       console.error('Failed to retry job:', error);
     }
   };
+
+  const handleReprocessWithProfile = async (assetId: string, profile: string) => {
+    logActivity('Reprocessar com perfil', 'execute', `asset_id=${assetId} profile=${profile}`);
+    try {
+      await invoke('submit_job', { asset_id: assetId, profile, priority: 0 });
+      toast.success(t('queue.retryQueued'));
+      fetchData();
+    } catch (error) {
+      console.error('Failed to reprocess:', error);
+      toast.error(t('common.error', 'Ocorreu um erro'));
+    }
+    setReprocessPopover(null);
+  };
+
+  useEffect(() => {
+    if (!reprocessPopover) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-reprocess-popover]')) setReprocessPopover(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [reprocessPopover]);
 
   const handleApprove = async (jobId: string) => {
     try {
@@ -567,22 +596,66 @@ export default function QueuePage({
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        {job.output_path && (
-                          <button
-                            onClick={() => openPath(job.output_path!).catch(() => {})}
-                            title={t('queue.openProcessedFile') + ': ' + job.output_path}
-                            className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded transition-colors"
-                          >
-                            <ExternalLink size={14} />
-                          </button>
-                        )}
                         <button
-                          onClick={() => handleRetry(job.id)}
-                          title={t('queue.retry')}
-                          className="p-1.5 text-brand hover:text-white hover:bg-brand rounded transition-colors"
+                          onClick={() => {
+                            logActivity(
+                              'Abrir Asset da Fila',
+                              'navigate',
+                              `asset_id=${job.asset_id}`,
+                            );
+                            onSelectAsset?.(job.asset_id);
+                          }}
+                          title={t('queue.viewAsset')}
+                          className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded transition-colors"
                         >
-                          <Repeat size={14} />
+                          <ExternalLink size={14} />
                         </button>
+                        <div className="relative" data-reprocess-popover>
+                          <button
+                            onClick={() => {
+                              logActivity('Menu reprocessar fila', 'click', `job_id=${job.id}`);
+                              setReprocessPopover(reprocessPopover === job.id ? null : job.id);
+                            }}
+                            title={t('queue.reprocessOptions', 'Opções de reprocessamento')}
+                            className="p-1.5 text-brand hover:text-white hover:bg-brand rounded transition-colors"
+                          >
+                            <Repeat size={14} />
+                          </button>
+                          {reprocessPopover === job.id && (
+                            <div className="absolute bottom-full right-0 mb-1 bg-bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden z-50 min-w-[200px]">
+                              <div className="px-3 py-1.5 border-b border-border">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-text-muted">
+                                  {t('queue.reprocessOptions', 'Opções de reprocessamento')}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  handleRetry(job.id);
+                                  setReprocessPopover(null);
+                                }}
+                                className="w-full text-left px-3 py-2 text-xs hover:bg-bg-hover transition-colors flex items-center gap-2"
+                              >
+                                <Repeat size={12} className="text-brand" />
+                                <span className="font-bold">
+                                  {t('assetDetail.sameProfile', 'Mesmo perfil')} — {job.profile}
+                                </span>
+                              </button>
+                              {availableProfiles
+                                .filter((p) => p.name !== job.profile)
+                                .map((p) => (
+                                  <button
+                                    key={p.id}
+                                    onClick={() => handleReprocessWithProfile(job.asset_id, p.name)}
+                                    className="w-full text-left px-3 py-2 text-xs hover:bg-bg-hover transition-colors"
+                                  >
+                                    <span className="font-bold text-text-primary">
+                                      {p.label_friendly ?? p.name}
+                                    </span>
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>
