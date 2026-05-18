@@ -74,10 +74,12 @@ jobs:
             patchelf \
             libssl-dev
 
-      # Placeholders para externalBin — tauri_build::build() valida estes caminhos
-      - name: Create binary placeholders
+      # Placeholders para resources e externalBin — tauri_build::build() valida estes caminhos
+      - name: Create resource placeholders
         shell: bash
         run: |
+          mkdir -p sidecar/dist
+          touch sidecar/dist/nexora-sidecar.cjs
           mkdir -p src-tauri/binaries
           if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
             touch src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe
