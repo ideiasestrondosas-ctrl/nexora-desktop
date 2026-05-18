@@ -3,7 +3,7 @@
  * Actualizar aqui em cada release — propaga automaticamente
  * para todos os sítios que mostram a versão.
  */
-export const APP_VERSION = '0.21.0';
+export const APP_VERSION = '0.22.0';
 
 export interface VersionEntry {
   version: string;
@@ -11,6 +11,11 @@ export interface VersionEntry {
 }
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: '0.22.0',
+    description:
+      'v0.22.0: MediaInfo com tabs horizontais, caminhos original/processado visíveis, reprocessar com selector de perfil, botões explorador separados (original/processado), download de ficheiro processado, fila com navegação para asset, dashboard scrollável, registo de actividade, 16 novas chaves i18n, manual do utilizador.',
+  },
   {
     version: '0.21.0',
     description:
