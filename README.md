@@ -287,6 +287,17 @@ npm test
 cd src-tauri && cargo check
 ```
 
+## Development Environment
+
+| Component    | Details                                                    |
+| ------------ | ---------------------------------------------------------- |
+| OS           | Windows 11 Pro (Build 26200)                               |
+| IDE          | Claude Code (Anthropic) + Google Antigravity (when needed) |
+| Shell        | PowerShell 7 + Bash (via Git)                              |
+| Frontend     | React 19 + TypeScript + Vite                               |
+| Backend      | Rust stable (Tauri 2.x)                                    |
+| Media engine | Node.js 20 sidecar + FFmpeg                                |
+
 ### Project Structure
 
 ```
@@ -329,6 +340,17 @@ For questions or bug reports, please use the [GitHub Issues](https://github.com/
 This project is licensed under the **GNU General Public License v3.0**.
 
 See [docs/LICENSE.md](docs/LICENSE.md) for the full license text.
+
+---
+
+## AI Tools & Development Assistance
+
+This project was developed with the assistance of AI coding tools:
+
+- **[Claude Code](https://claude.ai/code)** (Anthropic) — primary development assistant: architecture, implementation, code review, and documentation
+- **[Google Antigravity](https://antigravity.dev)** — supplementary AI assistance when needed
+
+These tools were used for pair-programming, not for autonomous code generation without review.
 
 ---
 
