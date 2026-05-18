@@ -53,6 +53,50 @@ Returns all non-deleted assets.
 
 ---
 
+#### `list_assets_slim`
+
+```rust
+fn list_assets_slim() -> Result<Vec<AssetSlim>, String>
+```
+
+Returns a lightweight list of assets (without heavy metadata JSON). Preferred for Dashboard and Library list views.
+
+**Returns:** Array of `AssetSlim` objects.
+
+---
+
+#### `scan_directory`
+
+```rust
+fn scan_directory(path: String) -> Result<Vec<Asset>, String>
+```
+
+Recursively scans a directory for supported video files and ingests them.
+
+**Parameters:**
+
+- `path` — absolute directory path
+
+**Returns:** Array of ingested `Asset` objects.
+
+---
+
+#### `find_asset_by_path`
+
+```rust
+fn find_asset_by_path(path: String) -> Result<Option<Asset>, String>
+```
+
+Searches for an asset by its file path. Used for in-app navigation when opening processed files.
+
+**Parameters:**
+
+- `path` — absolute file path
+
+**Returns:** `Asset` object if found, `null` if not found.
+
+---
+
 #### `get_asset`
 
 ```rust
@@ -70,10 +114,18 @@ Returns a single asset by ID.
 #### `delete_asset`
 
 ```rust
-fn delete_asset(id: String) -> Result<(), String>
+fn delete_asset(id: String, delete_files: bool, state: State<AppState>) -> Result<(), String>
 ```
 
-Soft-deletes an asset (sets status to `deleted`).
+Hard-deletes an asset and optionally removes its processed output file from disk.
+
+**Parameters:**
+
+- `id` — asset UUID
+- `delete_files` — if `true`, also deletes the processed output file from disk
+- `state` — Tauri app state (for sidecar management)
+
+**Warning:** This permanently removes the asset record from the database. The two-step frontend confirmation ensures the user understands this.
 
 ---
 
@@ -417,10 +469,25 @@ Gracefully exits the application.
 #### `factory_reset`
 
 ```rust
-fn factory_reset() -> Result<(), String>
+async fn factory_reset(delete_files: bool, app: AppHandle, state: State<AppState>) -> Result<(), String>
 ```
 
-Wipes all data, kills sidecar, clears DB, restarts app.
+Wipes all application data, optionally deletes output files, kills sidecar, clears DB, and restarts app.
+
+**Parameters:**
+
+- `delete_files` — if `true`, also deletes all files in the output directory
+- `app` — Tauri app handle (for restart)
+- `state` — Tauri app state (for sidecar management)
+
+**Flow:**
+
+1. First native confirmation dialog ("This will erase all data...")
+2. Second native confirmation dialog asking whether to delete output files
+3. Kills sidecar process
+4. Deletes output files (if confirmed)
+5. Deletes database file and temp directory
+6. Restarts the application
 
 **WARNING:** Irreversible. Deletes assets, jobs, profiles, logs, settings.
 
@@ -1013,7 +1080,7 @@ interface SettingsState {
 }
 ```
 
-**Persistence:** All settings are persisted to `localStorage`.
+**Persistence:** All settings are persisted via `tauri-plugin-store` to a native JSON file in the app's data directory. Not `localStorage`.
 
 ---
 
@@ -1123,6 +1190,18 @@ interface JobProgressEvent {
 **Payload:** `{ jobId: string; reason: string }`
 
 **Consumers:** QueuePage, notification system
+
+---
+
+### 6.7 `sidecar:event`
+
+**Emitter:** Sidecar stdout via Rust bridge
+
+**Payload:** `JobEvent` — `{ type: string; jobId: string; data?: unknown }`
+
+**Consumers:** QueuePage, DashboardPage
+
+Primary real-time update mechanism. QueuePage and DashboardPage listen to this event. Polling at 30s is a fallback.
 
 ---
 
@@ -1272,4 +1351,4 @@ interface Profile {
 
 ---
 
-_Last updated: 2026-05-15 for Nexora Desktop v0.17.0_
+_Last updated: 2026-05-18 for Nexora Desktop v0.23.0_
