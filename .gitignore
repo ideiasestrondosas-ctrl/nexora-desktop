@@ -71,3 +71,9 @@ src-tauri/sample-*
 src-tauri/*_proxy.mp4
 src-tauri/*_thumb.jpg
 src-tauri/*_normalized.wav
+
+# Graphify cache
+graphify-out/
+
+# Superpowers cache
+.superpowers/
