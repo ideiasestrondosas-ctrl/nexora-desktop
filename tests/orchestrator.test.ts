@@ -6,43 +6,49 @@ vi.mock('../sidecar/events', () => ({
 }));
 
 vi.mock('../sidecar/workers/ingest-worker', () => ({
-  IngestWorker: vi.fn().mockImplementation(() => ({ run: vi.fn().mockResolvedValue(undefined) })),
+  IngestWorker: vi.fn().mockImplementation(function () {
+    return { run: vi.fn().mockResolvedValue(undefined) };
+  }),
 }));
 vi.mock('../sidecar/workers/qc-pre-worker', () => ({
-  QCPreWorker: vi.fn().mockImplementation(() => ({ run: vi.fn().mockResolvedValue(undefined) })),
+  QCPreWorker: vi.fn().mockImplementation(function () {
+    return { run: vi.fn().mockResolvedValue(undefined) };
+  }),
 }));
 vi.mock('../sidecar/workers/transcode-worker', () => ({
-  TranscodeWorker: vi.fn().mockImplementation(() => ({
-    run: vi.fn().mockImplementation((_ctx: any, onProgress: (n: number) => void) => {
-      onProgress(1.0);
-      return Promise.resolve();
-    }),
-  })),
+  TranscodeWorker: vi.fn().mockImplementation(function () {
+    return {
+      run: vi.fn().mockImplementation(function (_ctx: unknown, onProgress: (n: number) => void) {
+        onProgress(1.0);
+        return Promise.resolve();
+      }),
+    };
+  }),
 }));
 vi.mock('../sidecar/workers/audio-worker', () => ({
-  AudioWorker: vi.fn().mockImplementation(() => ({
-    run: vi.fn().mockResolvedValue(undefined),
-  })),
+  AudioWorker: vi.fn().mockImplementation(function () {
+    return { run: vi.fn().mockResolvedValue(undefined) };
+  }),
 }));
 vi.mock('../sidecar/workers/proxy-worker', () => ({
-  ProxyWorker: vi.fn().mockImplementation(() => ({
-    run: vi.fn().mockResolvedValue(undefined),
-  })),
+  ProxyWorker: vi.fn().mockImplementation(function () {
+    return { run: vi.fn().mockResolvedValue(undefined) };
+  }),
 }));
 vi.mock('../sidecar/workers/thumbnail-worker', () => ({
-  ThumbnailWorker: vi.fn().mockImplementation(() => ({
-    run: vi.fn().mockResolvedValue(undefined),
-  })),
+  ThumbnailWorker: vi.fn().mockImplementation(function () {
+    return { run: vi.fn().mockResolvedValue(undefined) };
+  }),
 }));
 vi.mock('../sidecar/workers/qc-post-worker', () => ({
-  QCPostWorker: vi.fn().mockImplementation(() => ({
-    run: vi.fn().mockResolvedValue(undefined),
-  })),
+  QCPostWorker: vi.fn().mockImplementation(function () {
+    return { run: vi.fn().mockResolvedValue(undefined) };
+  }),
 }));
 vi.mock('../sidecar/workers/delivery-worker', () => ({
-  DeliveryWorker: vi.fn().mockImplementation(() => ({
-    run: vi.fn().mockResolvedValue(undefined),
-  })),
+  DeliveryWorker: vi.fn().mockImplementation(function () {
+    return { run: vi.fn().mockResolvedValue(undefined) };
+  }),
 }));
 
 import { NexoraDesktopOrchestrator } from '../sidecar/orchestrator/NexoraDesktopOrchestrator';

@@ -20,10 +20,9 @@ export interface LogStats {
 export function useLogs(level?: string, search?: string) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [stats, setStats] = useState<LogStats>({ total: 0, errors: 0, warnings: 0, info: 0 });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchLogs = useCallback(async () => {
-    setLoading(true);
     try {
       const [entries, s] = await Promise.all([
         invoke<LogEntry[]>('list_logs', {

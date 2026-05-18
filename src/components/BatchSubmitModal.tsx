@@ -171,6 +171,23 @@ export function BatchSubmitModal({
   const [rows, setRows] = useState<FileRow[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [outputDir, setOutputDir] = useState<string>('');
+  // Valores anteriores para detectar mudanças durante o render (evita setState em useEffect)
+  const [prevOpen, setPrevOpen] = useState(false);
+  const [prevPaths, setPrevPaths] = useState<string[]>([]);
+  if (prevOpen !== open || (open && prevPaths !== paths)) {
+    setPrevOpen(open);
+    setPrevPaths(paths);
+    if (open) {
+      setRows(
+        paths.map((path) => ({
+          path,
+          filename: path.split(/[/\\]/).pop() ?? path,
+          profileId: globalProfileId,
+          status: 'idle',
+        })),
+      );
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -206,22 +223,6 @@ export function BatchSubmitModal({
       })
       .catch(console.error);
   }, [open, defaultProfileId]);
-
-  useEffect(() => {
-    if (!open) return;
-    // globalProfileId intencionalmente excluído das deps: a sincronização do perfil
-    // global é feita pelo handleGlobalProfileChange. Aqui só inicializamos as rows
-    // quando o modal abre ou os paths mudam.
-    setRows(
-      paths.map((path) => ({
-        path,
-        filename: path.split(/[/\\]/).pop() ?? path,
-        profileId: globalProfileId,
-        status: 'idle',
-      })),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, paths]);
 
   // Quando o perfil global muda, aplica a todas as linhas ainda não iniciadas
   const handleGlobalProfileChange = useCallback((id: string) => {
