@@ -2,17 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke, convertFileSrc } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import {
-  Archive,
-  Activity,
-  Gauge,
-  Clock,
-  Loader2,
-  Film,
-  ChevronRight,
-  ChevronDown,
-  Upload,
-} from 'lucide-react';
+import { logActivity } from '@/lib/activityLog';
+import { Archive, Activity, Gauge, Clock, Loader2, Film, ChevronRight, Upload } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -79,7 +70,6 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
   const { t, i18n } = useTranslation();
   const [stats, setStats] = useState<AppStats | null>(null);
   const [allJobs, setAllJobs] = useState<Job[]>([]);
-  const [showAllJobs, setShowAllJobs] = useState(false);
   const [assetMap, setAssetMap] = useState<AssetMap>({});
   const [loading, setLoading] = useState(true);
   const metrics = useSystemMetrics();
@@ -133,7 +123,7 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
     setMetricsHistory((h) => [...h.slice(-59), { cpu: metrics.cpuPercent, ram: ramPct }]);
   }, [metrics]);
 
-  const recentJobs = showAllJobs ? allJobs : allJobs.slice(0, 5);
+  const recentJobs = allJobs;
 
   const getVmafColor = (score: number | null) => {
     if (score === null) return 'text-text-muted';
@@ -248,19 +238,6 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
             )}
           </h2>
           <div className="flex items-center gap-3">
-            {allJobs.length > 5 && (
-              <button
-                onClick={() => setShowAllJobs((v) => !v)}
-                className="text-[11px] font-bold text-text-muted hover:text-text-primary uppercase tracking-widest flex items-center gap-1"
-              >
-                {showAllJobs ? t('common.showLess') : t('common.showAll')}
-                {showAllJobs ? (
-                  <ChevronDown size={14} className="rotate-180" />
-                ) : (
-                  <ChevronDown size={14} />
-                )}
-              </button>
-            )}
             <button
               onClick={() => onNavigate('queue')}
               className="text-[11px] font-bold text-brand hover:underline uppercase tracking-widest flex items-center gap-1"
@@ -285,7 +262,14 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
                 <div
                   key={job.id}
                   className="p-4 flex items-center gap-4 hover:bg-bg-hover transition-colors cursor-pointer"
-                  onClick={() => onSelectAsset(job.asset_id)}
+                  onClick={() => {
+                    logActivity(
+                      'Job Recente — abrir asset',
+                      'navigate',
+                      `asset_id=${job.asset_id}`,
+                    );
+                    onSelectAsset(job.asset_id);
+                  }}
                 >
                   <div className="w-10 h-10 bg-bg-primary rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                     {assetMap[job.asset_id]?.thumbnail_path ? (
