@@ -279,10 +279,18 @@ export default function SettingsPage() {
       title: t('settings.advanced.factoryResetTitle'),
       kind: 'error',
     });
-    if (confirmed) {
-      toast.loading(t('settings.advanced.factoryResetPreparing'));
-      await invoke('factory_reset').catch(() => toast.error(t('settings.toasts.resetError')));
-    }
+    if (!confirmed) return;
+
+    // Segunda confirmação: também apagar os ficheiros de output do disco?
+    const deleteFiles = await confirm(t('settings.advanced.factoryResetDeleteFilesConfirm'), {
+      title: t('settings.advanced.factoryResetDeleteFilesTitle'),
+      kind: 'warning',
+    });
+
+    toast.loading(t('settings.advanced.factoryResetPreparing'));
+    await invoke('factory_reset', { delete_files: deleteFiles }).catch(() =>
+      toast.error(t('settings.toasts.resetError')),
+    );
   };
 
   const handleExport = async () => {
