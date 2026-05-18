@@ -23,6 +23,7 @@ Agente: OpenCode (Kimi k2.6)
 - `build.yml`: usava `npm install` em vez de `npm ci`; tinha input inválido `includeUpdaterJson`; `bundle.targets: "all"` tentava `.rpm` no Linux sem tooling
 
 **Correcções aplicadas:**
+
 1. `npm run format` + `cargo fmt` — formatados todos os ficheiros (63 Prettier + ~15 Rust)
 2. `ci.yml` — adicionado step "Create resource placeholders" no job `rust-check` (cria ficheiros vazios para FFmpeg/FFprobe + sidecar antes do `cargo clippy`)
 3. Código Rust — corrigidos 7 erros de Clippy:
@@ -37,12 +38,14 @@ Agente: OpenCode (Kimi k2.6)
 6. `tauri.conf.json` — `bundle.targets: "all"` → `["deb", "appimage", "msi", "nsis", "dmg", "app"]`
 
 **Verificação local:**
+
 - `npm run format:check`: OK
 - `npm run lint`: OK
 - `cargo fmt --check`: OK
 - `cargo clippy -- -D warnings`: OK
 
 **Verificação GitHub Actions (run #92):**
+
 - `lint-and-test` (Ubuntu): ✅ OK
 - `rust-check` Windows: ✅ OK
 - `rust-check` macOS: ✅ OK
