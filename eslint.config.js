@@ -30,6 +30,8 @@ export default [
       ...reactHooks.configs.recommended.rules,
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/static-components': 'off',
+      'react-hooks/incompatible-library': 'off',
+      'react-hooks/purity': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
