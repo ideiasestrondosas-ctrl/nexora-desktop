@@ -220,7 +220,11 @@
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
     "phaseVerify": "Verifying & saving",
-    "reprocessOptions": "Параметры повторной обработки"
+    "reprocessOptions": "Параметры повторной обработки",
+    "pipeline": {
+      "expandTooltip": "Нажмите для просмотра файлов",
+      "noFilesForStatus": "Нет файлов для этого статуса"
+    }
   },
   "profiles": {
     "create": "Create",
@@ -391,7 +395,9 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetDeleteFilesTitle": "Также удалить выходные файлы?",
+      "factoryResetDeleteFilesConfirm": "Удалить все обработанные выходные файлы с диска? (транскодированные файлы, прокси, миниатюры). Выберите «Нет», чтобы сохранить файлы."
     },
     "about": {
       "releaseNotes": "Release Notes",
@@ -509,7 +515,9 @@
     "openProcessed": "Просмотр обработанного",
     "reprocessProfile": "Обработать с профилем",
     "reprocessQueued": "Задание добавлено в очередь",
-    "sameProfile": "Тот же профиль"
+    "sameProfile": "Тот же профиль",
+    "deleteFilesTitle": "Удалить обработанные файлы?",
+    "deleteFilesConfirm": "Хотите также удалить обработанные файлы с диска? Это действие нельзя отменить."
   },
   "pipeline": {
     "ingest": "Ingest",

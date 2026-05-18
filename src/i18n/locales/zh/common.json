@@ -220,7 +220,11 @@
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
     "phaseVerify": "Verifying & saving",
-    "reprocessOptions": "重新处理选项"
+    "reprocessOptions": "重新处理选项",
+    "pipeline": {
+      "expandTooltip": "点击查看文件",
+      "noFilesForStatus": "此状态下无文件"
+    }
   },
   "profiles": {
     "create": "Create",
@@ -391,7 +395,9 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetDeleteFilesTitle": "同时删除输出文件？",
+      "factoryResetDeleteFilesConfirm": "从磁盘删除所有已处理的输出文件？（转码文件、代理文件、缩略图）。选择“否”以保留文件。"
     },
     "about": {
       "releaseNotes": "Release Notes",
@@ -509,7 +515,9 @@
     "openProcessed": "查看已处理文件",
     "reprocessProfile": "使用配置文件重新处理",
     "reprocessQueued": "任务已添加到队列",
-    "sameProfile": "相同配置文件"
+    "sameProfile": "相同配置文件",
+    "deleteFilesTitle": "删除已处理的文件？",
+    "deleteFilesConfirm": "是否同时从磁盘删除已处理的文件？此操作无法撤销。"
   },
   "pipeline": {
     "ingest": "Ingest",

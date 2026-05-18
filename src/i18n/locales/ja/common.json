@@ -220,7 +220,11 @@
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
     "phaseVerify": "Verifying & saving",
-    "reprocessOptions": "再処理オプション"
+    "reprocessOptions": "再処理オプション",
+    "pipeline": {
+      "expandTooltip": "クリックしてファイルを表示",
+      "noFilesForStatus": "このステータスのファイルはありません"
+    }
   },
   "profiles": {
     "create": "Create",
@@ -391,7 +395,9 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetDeleteFilesTitle": "出力ファイルも削除しますか？",
+      "factoryResetDeleteFilesConfirm": "処理済みの出力ファイルをすべてディスクから削除しますか？（トランスコードファイル、プロキシ、サムネイル）。ファイルを保持するには「いいえ」を選択してください。"
     },
     "about": {
       "releaseNotes": "Release Notes",
@@ -509,7 +515,9 @@
     "openProcessed": "処理済みを表示",
     "reprocessProfile": "プロファイルで再処理",
     "reprocessQueued": "ジョブをキューに追加しました",
-    "sameProfile": "同じプロファイル"
+    "sameProfile": "同じプロファイル",
+    "deleteFilesTitle": "処理済みファイルを削除しますか？",
+    "deleteFilesConfirm": "処理済みファイルをディスクからも削除しますか？この操作は元に戻せません。"
   },
   "pipeline": {
     "ingest": "Ingest",

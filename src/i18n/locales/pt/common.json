@@ -220,7 +220,11 @@
     "phaseAnalyse": "A analisar",
     "phaseConvert": "A converter",
     "phaseVerify": "A verificar e guardar",
-    "reprocessOptions": "Opções de reprocessamento"
+    "reprocessOptions": "Opções de reprocessamento",
+    "pipeline": {
+      "expandTooltip": "Clique para ver ficheiros",
+      "noFilesForStatus": "Sem ficheiros para este estado"
+    }
   },
   "profiles": {
     "create": "Criar",
@@ -391,7 +395,9 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetDeleteFilesTitle": "Eliminar também ficheiros de output?",
+      "factoryResetDeleteFilesConfirm": "Eliminar todos os ficheiros de output processados do disco? (transcodificados, proxies, miniaturas). Escolha Não para manter os ficheiros."
     },
     "about": {
       "releaseNotes": "Notas de Lançamento",
@@ -509,7 +515,9 @@
     "openProcessed": "Ver Processado",
     "reprocessProfile": "Reprocessar com perfil",
     "reprocessQueued": "Job adicionado à fila",
-    "sameProfile": "Mesmo perfil"
+    "sameProfile": "Mesmo perfil",
+    "deleteFilesTitle": "Eliminar ficheiros processados?",
+    "deleteFilesConfirm": "Deseja também eliminar os ficheiros processados do disco? Esta acção não pode ser desfeita."
   },
   "pipeline": {
     "ingest": "Ingest",

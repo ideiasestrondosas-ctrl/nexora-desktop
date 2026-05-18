@@ -220,7 +220,11 @@
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
     "phaseVerify": "Verifying & saving",
-    "reprocessOptions": "Options de retraitement"
+    "reprocessOptions": "Options de retraitement",
+    "pipeline": {
+      "expandTooltip": "Cliquer pour voir les fichiers",
+      "noFilesForStatus": "Aucun fichier pour ce statut"
+    }
   },
   "profiles": {
     "create": "Create",
@@ -391,7 +395,9 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetDeleteFilesTitle": "Supprimer aussi les fichiers de sortie ?",
+      "factoryResetDeleteFilesConfirm": "Supprimer tous les fichiers de sortie traités du disque ? (transodés, proxys, miniatures). Choisissez Non pour conserver les fichiers."
     },
     "about": {
       "releaseNotes": "Release Notes",
@@ -509,7 +515,9 @@
     "openProcessed": "Voir le traité",
     "reprocessProfile": "Retraiter avec le profil",
     "reprocessQueued": "Tâche ajoutée à la file",
-    "sameProfile": "Même profil"
+    "sameProfile": "Même profil",
+    "deleteFilesTitle": "Supprimer les fichiers traités ?",
+    "deleteFilesConfirm": "Voulez-vous également supprimer les fichiers traités du disque ? Cette action est irréversible."
   },
   "pipeline": {
     "ingest": "Ingest",

@@ -220,7 +220,11 @@
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
     "phaseVerify": "Verifying & saving",
-    "reprocessOptions": "재처리 옵션"
+    "reprocessOptions": "재처리 옵션",
+    "pipeline": {
+      "expandTooltip": "파일 보기 클릭",
+      "noFilesForStatus": "이 상태에 대한 파일 없음"
+    }
   },
   "profiles": {
     "create": "Create",
@@ -391,7 +395,9 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetDeleteFilesTitle": "출력 파일도 삭제하시겠습니까?",
+      "factoryResetDeleteFilesConfirm": "처리된 출력 파일을 모두 디스크에서 삭제하시겠습니까? (트랜스코딩 파일, 프록시, 썸네일). 파일을 유지하려면 아니오를 선택하세요."
     },
     "about": {
       "releaseNotes": "Release Notes",
@@ -509,7 +515,9 @@
     "openProcessed": "처리된 보기",
     "reprocessProfile": "프로필로 재처리",
     "reprocessQueued": "작업이 대기열에 추가되었습니다",
-    "sameProfile": "같은 프로필"
+    "sameProfile": "같은 프로필",
+    "deleteFilesTitle": "처리된 파일을 삭제하시겠습니까?",
+    "deleteFilesConfirm": "처리된 파일을 디스크에서도 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
   },
   "pipeline": {
     "ingest": "Ingest",

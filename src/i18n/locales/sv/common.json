@@ -220,7 +220,11 @@
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
     "phaseVerify": "Verifying & saving",
-    "reprocessOptions": "Alternativ för ombearbetning"
+    "reprocessOptions": "Alternativ för ombearbetning",
+    "pipeline": {
+      "expandTooltip": "Klicka för att se filer",
+      "noFilesForStatus": "Inga filer för denna status"
+    }
   },
   "profiles": {
     "create": "Create",
@@ -391,7 +395,9 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetDeleteFilesTitle": "Ta även bort utdatafiler?",
+      "factoryResetDeleteFilesConfirm": "Ta bort alla bearbetade utdatafiler från disken? (transkodade filer, proxies, miniatyrer). Välj Nej för att behålla filerna."
     },
     "about": {
       "releaseNotes": "Release Notes",
@@ -509,7 +515,9 @@
     "openProcessed": "Visa bearbetad",
     "reprocessProfile": "Bearbeta om med profil",
     "reprocessQueued": "Jobb lagt till i kö",
-    "sameProfile": "Samma profil"
+    "sameProfile": "Samma profil",
+    "deleteFilesTitle": "Ta bort bearbetade filer?",
+    "deleteFilesConfirm": "Vill du också ta bort de bearbetade filerna från disken? Den här åtgärden kan inte ångras."
   },
   "pipeline": {
     "ingest": "Ingest",

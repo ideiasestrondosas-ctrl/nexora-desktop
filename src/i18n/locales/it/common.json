@@ -220,7 +220,11 @@
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
     "phaseVerify": "Verifying & saving",
-    "reprocessOptions": "Opzioni di rielaborazione"
+    "reprocessOptions": "Opzioni di rielaborazione",
+    "pipeline": {
+      "expandTooltip": "Clicca per vedere i file",
+      "noFilesForStatus": "Nessun file per questo stato"
+    }
   },
   "profiles": {
     "create": "Create",
@@ -391,7 +395,9 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetDeleteFilesTitle": "Eliminare anche i file di output?",
+      "factoryResetDeleteFilesConfirm": "Eliminare tutti i file di output elaborati dal disco? (transcodificati, proxy, miniature). Scegli No per mantenere i file."
     },
     "about": {
       "releaseNotes": "Release Notes",
@@ -509,7 +515,9 @@
     "openProcessed": "Visualizza elaborato",
     "reprocessProfile": "Rielabora con profilo",
     "reprocessQueued": "Lavoro aggiunto alla coda",
-    "sameProfile": "Stesso profilo"
+    "sameProfile": "Stesso profilo",
+    "deleteFilesTitle": "Eliminare i file elaborati?",
+    "deleteFilesConfirm": "Vuoi anche eliminare i file elaborati dal disco? Questa azione non può essere annullata."
   },
   "pipeline": {
     "ingest": "Ingest",
