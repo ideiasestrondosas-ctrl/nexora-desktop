@@ -16,8 +16,12 @@ import {
   ScanLine,
   Volume2,
   BarChart2,
+  ChevronDown,
+  Download,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { logActivity } from '@/lib/activityLog';
 import { MediaInfoPanel } from '@/components/MediaInfoPanel';
 import type { DetailedMediaInfo } from '@/components/MediaInfoPanel';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -61,6 +65,13 @@ interface Job {
   output_path: string | null;
 }
 
+interface Profile {
+  id: string;
+  name: string;
+  label_friendly: string | null;
+  description: string;
+}
+
 interface AssetDetailPageProps {
   assetId: string;
   onBack: () => void;
@@ -91,18 +102,22 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [mediaInfoSide, setMediaInfoSide] = useState<'original' | 'processed'>('original');
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [reprocessMenuOpen, setReprocessMenuOpen] = useState(false);
 
   const removeAsset = useAssetsStore((s) => s.removeAsset);
   const removeJobsByAsset = useJobsStore((s) => s.removeJobsByAsset);
 
   const fetchData = useCallback(async () => {
     try {
-      const [assetData, jobsData] = await Promise.all([
+      const [assetData, jobsData, profilesData] = await Promise.all([
         invoke<Asset | null>('get_asset', { id: assetId }), // P6: backend retorna Option<Asset>; P11: param name é 'id'
         invoke<Job[]>('list_jobs', { asset_id: assetId }), // P11: backend espera asset_id não assetId
+        invoke<Profile[]>('list_profiles'),
       ]);
       if (assetData) setAsset(assetData); // P6: verificar null
       setJobs(jobsData);
+      setProfiles(profilesData);
     } catch (error) {
       console.error('Failed to fetch asset detail:', error);
     } finally {
@@ -135,10 +150,48 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
 
   // P14: Processar Novamente via submit_job
   const handleReprocess = async (profile: string) => {
+    logActivity('Processar Novamente', 'execute', `asset_id=${assetId} profile=${profile}`);
     try {
-      await invoke('submit_job', { assetId, profile, priority: 0 });
-    } catch (error) {
-      console.error('Failed to submit job:', error);
+      await invoke('submit_job', { asset_id: assetId, profile, priority: 0 });
+      toast.success(t('assetDetail.reprocessQueued', 'Job adicionado à fila'));
+      fetchData();
+    } catch (e: unknown) {
+      console.error('Failed to submit job:', e);
+      toast.error(t('common.error', 'Ocorreu um erro'));
+    }
+    setReprocessMenuOpen(false);
+  };
+
+  useEffect(() => {
+    if (!reprocessMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-reprocess-menu]')) setReprocessMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [reprocessMenuOpen]);
+
+  const handleDownloadProcessed = async () => {
+    const outputPath = asset?.output_path ?? jobs.find((j) => j.output_path)?.output_path;
+    if (!outputPath) {
+      logActivity('Download Processado', 'attempt', 'sem output_path disponível');
+      toast.warning(t('assetDetail.downloadNoOutput', 'Sem ficheiro processado disponível'));
+      return;
+    }
+    logActivity('Download Processado', 'execute', `output_path=${outputPath}`);
+    try {
+      const { downloadFile } = await import('@/lib/fileUtils');
+      const filename = outputPath.split(/[/\\]/).pop() ?? 'output.mp4';
+      const dest = await downloadFile(outputPath, filename);
+      if (dest) {
+        toast.success(
+          t('assetDetail.downloadSuccess', { path: dest, defaultValue: `Guardado em ${dest}` }),
+        );
+      }
+    } catch (e: unknown) {
+      console.error('Download failed:', e);
+      toast.error(t('common.error', 'Ocorreu um erro'));
     }
   };
 
@@ -259,6 +312,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                 {/* Botão Play overlay */}
                 <button
                   onClick={() => setPlayerActive(true)}
+                  title={t('detail.playerOriginal')}
                   className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30"
                 >
                   <div className="w-16 h-16 rounded-full bg-brand/90 flex items-center justify-center shadow-xl">
@@ -269,7 +323,11 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
             )}
 
             <div className="absolute bottom-3 left-3 right-3 bg-black/60 backdrop-blur-md p-2 rounded-lg border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <p className="text-[10px] font-mono text-text-secondary truncate">{asset.path}</p>
+              <p className="text-[10px] font-mono text-text-secondary truncate">
+                {heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
+                  ? (asset.output_path ?? jobs[0]?.output_path)
+                  : asset.path}
+              </p>
             </div>
           </div>
 
@@ -362,7 +420,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
       {/* TAB NAVIGATION */}
       <div className="flex border-b border-border gap-2 shrink-0">
         <button
-          onClick={() => setActiveDetailTab('qc')}
+          onClick={() => {
+            logActivity('Separador QC', 'click');
+            setActiveDetailTab('qc');
+          }}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
             activeDetailTab === 'qc'
               ? 'border-brand text-brand'
@@ -373,7 +434,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
           {t('assetDetail.qualityReport', 'Relatório QC')}
         </button>
         <button
-          onClick={() => setActiveDetailTab('metadata')}
+          onClick={() => {
+            logActivity('Separador Metadados', 'click');
+            setActiveDetailTab('metadata');
+          }}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
             activeDetailTab === 'metadata'
               ? 'border-brand text-brand'
@@ -384,7 +448,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
           {t('mediaInfo.title', 'Metadados Técnicos')}
         </button>
         <button
-          onClick={() => setActiveDetailTab('media')}
+          onClick={() => {
+            logActivity('Separador Análise', 'click');
+            setActiveDetailTab('media');
+          }}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
             activeDetailTab === 'media'
               ? 'border-brand text-brand'
@@ -395,7 +462,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
           {t('analysis.title', 'Análise Técnica')}
         </button>
         <button
-          onClick={() => setActiveDetailTab('history')}
+          onClick={() => {
+            logActivity('Separador Histórico', 'click');
+            setActiveDetailTab('history');
+          }}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
             activeDetailTab === 'history'
               ? 'border-brand text-brand'
@@ -520,10 +590,16 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
               </div>
               <div className="p-6">
                 {mediaInfoSide === 'original' ? (
-                  <MediaInfoPanel
-                    metadata={asset.metadata as DetailedMediaInfo | null}
-                    compact={false}
-                  />
+                  <>
+                    <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-brand/5 border border-brand/20 rounded-xl text-[10px] font-mono text-brand/80 break-all">
+                      <FolderOpen size={12} className="shrink-0" />
+                      {asset.path}
+                    </div>
+                    <MediaInfoPanel
+                      metadata={asset.metadata as DetailedMediaInfo | null}
+                      compact={false}
+                    />
+                  </>
                 ) : (
                   <>
                     {/* Path do ficheiro processado */}
@@ -566,6 +642,9 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                     {t('detail.original')}
                   </h3>
                   {[
+                    { label: t('mediaInfo.fileName', 'Ficheiro'), value: asset.filename },
+                    { label: t('mediaInfo.filePath', 'Caminho'), value: asset.path },
+                    { label: t('assetDetail.size'), value: formatBytes(asset.size_bytes || 0) },
                     { label: t('analysis.codec'), value: asset.video_codec },
                     {
                       label: t('analysis.resolution'),
@@ -600,10 +679,15 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                   ].map(({ label, value }) => (
                     <div
                       key={label}
-                      className="flex items-center justify-between py-1.5 border-b border-border/50 text-sm"
+                      className="flex items-start justify-between py-1.5 border-b border-border/50 text-sm gap-2"
                     >
-                      <span className="text-text-muted">{label}</span>
-                      <span className="font-bold text-text-primary font-mono">{value ?? '—'}</span>
+                      <span className="text-text-muted shrink-0">{label}</span>
+                      <span
+                        className="font-bold text-text-primary font-mono text-right truncate max-w-[60%]"
+                        title={String(value ?? '')}
+                      >
+                        {value ?? '—'}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -613,73 +697,96 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                   <h3 className="text-xs font-black uppercase tracking-widest text-green-500 mb-4">
                     {t('detail.processed')}
                   </h3>
-                  {asset.output_metadata ? (
-                    [
-                      {
-                        label: t('analysis.codec'),
-                        value: String(
-                          (asset.output_metadata as Record<string, unknown>)?.videoCodec ?? '—',
-                        ),
-                      },
-                      {
-                        label: t('analysis.resolution'),
-                        value:
-                          (asset.output_metadata as Record<string, unknown>)?.width &&
-                          (asset.output_metadata as Record<string, unknown>)?.height
-                            ? `${(asset.output_metadata as Record<string, unknown>).width}×${(asset.output_metadata as Record<string, unknown>).height}`
+                  {(() => {
+                    const outPath =
+                      asset.output_path ?? jobs.find((j) => j.output_path)?.output_path;
+                    const outFilename = outPath?.split(/[/\\]/).pop();
+                    const outSize = (
+                      asset.output_metadata as Record<string, { size?: string }> | null
+                    )?.format?.size;
+                    return asset.output_metadata ? (
+                      [
+                        {
+                          label: t('mediaInfo.fileName', 'Ficheiro'),
+                          value: outFilename ?? '—',
+                        },
+                        { label: t('mediaInfo.filePath', 'Caminho'), value: outPath ?? '—' },
+                        {
+                          label: t('assetDetail.size'),
+                          value: outSize ? formatBytes(Number(outSize)) : '—',
+                        },
+                        {
+                          label: t('analysis.codec'),
+                          value: String(
+                            (asset.output_metadata as Record<string, unknown>)?.videoCodec ?? '—',
+                          ),
+                        },
+                        {
+                          label: t('analysis.resolution'),
+                          value:
+                            (asset.output_metadata as Record<string, unknown>)?.width &&
+                            (asset.output_metadata as Record<string, unknown>)?.height
+                              ? `${(asset.output_metadata as Record<string, unknown>).width}×${(asset.output_metadata as Record<string, unknown>).height}`
+                              : '—',
+                        },
+                        {
+                          label: t('analysis.fps'),
+                          value: (asset.output_metadata as Record<string, unknown>)?.fps
+                            ? `${(asset.output_metadata as Record<string, unknown>).fps}fps`
                             : '—',
-                      },
-                      {
-                        label: t('analysis.fps'),
-                        value: (asset.output_metadata as Record<string, unknown>)?.fps
-                          ? `${(asset.output_metadata as Record<string, unknown>).fps}fps`
-                          : '—',
-                      },
-                      {
-                        label: t('analysis.bitDepth'),
-                        value: (asset.output_metadata as Record<string, unknown>)?.bitDepth
-                          ? `${(asset.output_metadata as Record<string, unknown>).bitDepth}-bit`
-                          : '—',
-                      },
-                      {
-                        label: t('analysis.hdr'),
-                        value: String(
-                          (asset.output_metadata as Record<string, unknown>)?.hdrType ?? 'SDR',
-                        ),
-                      },
-                      {
-                        label: t('analysis.colorSpace'),
-                        value: String(
-                          (asset.output_metadata as Record<string, unknown>)?.colorSpace ?? '—',
-                        ),
-                      },
-                      {
-                        label: t('analysis.container'),
-                        value: String(
-                          (asset.output_metadata as Record<string, unknown>)?.formatName ?? '—',
-                        ),
-                      },
-                      {
-                        label: t('analysis.interlace'),
-                        value:
-                          (asset.output_metadata as Record<string, unknown>)?.isInterlaced === true
-                            ? t('analysis.interlaced')
-                            : t('analysis.progressive'),
-                      },
-                    ].map(({ label, value }) => (
-                      <div
-                        key={label}
-                        className="flex items-center justify-between py-1.5 border-b border-border/50 text-sm"
-                      >
-                        <span className="text-text-muted">{label}</span>
-                        <span className="font-bold text-text-primary font-mono">
-                          {value ?? '—'}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-text-muted text-sm italic">{t('detail.notProcessedYet')}</p>
-                  )}
+                        },
+                        {
+                          label: t('analysis.bitDepth'),
+                          value: (asset.output_metadata as Record<string, unknown>)?.bitDepth
+                            ? `${(asset.output_metadata as Record<string, unknown>).bitDepth}-bit`
+                            : '—',
+                        },
+                        {
+                          label: t('analysis.hdr'),
+                          value: String(
+                            (asset.output_metadata as Record<string, unknown>)?.hdrType ?? 'SDR',
+                          ),
+                        },
+                        {
+                          label: t('analysis.colorSpace'),
+                          value: String(
+                            (asset.output_metadata as Record<string, unknown>)?.colorSpace ?? '—',
+                          ),
+                        },
+                        {
+                          label: t('analysis.container'),
+                          value: String(
+                            (asset.output_metadata as Record<string, unknown>)?.formatName ?? '—',
+                          ),
+                        },
+                        {
+                          label: t('analysis.interlace'),
+                          value:
+                            (asset.output_metadata as Record<string, unknown>)?.isInterlaced ===
+                            true
+                              ? t('analysis.interlaced')
+                              : t('analysis.progressive'),
+                        },
+                      ].map(({ label, value }) => (
+                        <div
+                          key={label}
+                          className="flex items-start justify-between py-1.5 border-b border-border/50 text-sm gap-2"
+                        >
+                          <span className="text-text-muted shrink-0">{label}</span>
+                          <span
+                            className="font-bold text-text-primary font-mono text-right truncate max-w-[60%]"
+                            title={String(value ?? '')}
+                          >
+                            {value ?? '—'}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-text-muted text-sm italic">
+                        {t('detail.notProcessedYet')}
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
             </section>
@@ -829,21 +936,85 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
       {/* STICKY ACTION BAR */}
       <div className="fixed bottom-6 left-[252px] right-8 bg-bg-secondary/80 backdrop-blur-xl border border-border p-4 rounded-2xl shadow-2xl flex items-center justify-between z-40">
         <div className="flex gap-4">
+          <div className="relative" data-reprocess-menu>
+            <button
+              onClick={() => {
+                logActivity('Abrir menu reprocessar', 'click', `asset_id=${assetId}`);
+                setReprocessMenuOpen((v) => !v);
+              }}
+              className="flex items-center gap-2 px-6 py-2 bg-brand hover:bg-blue-600 text-white rounded-xl font-bold transition-all"
+            >
+              <Play size={18} /> {t('assetDetail.reprocess')}
+              <ChevronDown
+                size={14}
+                className={
+                  reprocessMenuOpen ? 'rotate-180 transition-transform' : 'transition-transform'
+                }
+              />
+            </button>
+            {reprocessMenuOpen && profiles.length > 0 && (
+              <div className="absolute bottom-full mb-2 left-0 bg-bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden z-50 min-w-[220px]">
+                <div className="px-4 py-2 border-b border-border">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+                    {t('assetDetail.reprocessProfile', 'Reprocessar com perfil')}
+                  </span>
+                </div>
+                {profiles.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => handleReprocess(p.name)}
+                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-bg-hover transition-colors flex items-center justify-between gap-2"
+                  >
+                    <span className="font-bold text-text-primary">
+                      {p.label_friendly ?? p.name}
+                    </span>
+                    {jobs[0]?.profile === p.name && (
+                      <span className="text-[9px] font-black text-brand uppercase">
+                        {t('assetDetail.sameProfile', 'actual')}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
-            onClick={() => handleReprocess(jobs[0]?.profile || 'broadcast-hd')}
-            className="flex items-center gap-2 px-6 py-2 bg-brand hover:bg-blue-600 text-white rounded-xl font-bold transition-all"
+            onClick={() => {
+              logActivity('Abrir Original no Explorador', 'execute', `path=${asset.path}`);
+              revealItemInDir(asset.path).catch(() => {});
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-bg-hover text-text-secondary rounded-xl font-bold transition-all text-sm"
           >
-            <Play size={18} /> {t('assetDetail.reprocess')}
+            <FolderOpen size={16} /> {t('assetDetail.openOriginal', 'Ver Original')}
           </button>
           <button
-            onClick={() => revealItemInDir(asset.path).catch(() => {})}
-            className="flex items-center gap-2 px-6 py-2 bg-surface hover:bg-surface-hover text-text-secondary rounded-xl font-bold transition-all"
+            onClick={() => {
+              const out = asset.output_path ?? jobs.find((j) => j.output_path)?.output_path;
+              if (!out) {
+                logActivity('Abrir Processado no Explorador', 'attempt', 'sem output_path');
+                return;
+              }
+              logActivity('Abrir Processado no Explorador', 'execute', `path=${out}`);
+              revealItemInDir(out).catch(() => {});
+            }}
+            disabled={!asset.output_path && !jobs.some((j) => j.output_path)}
+            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-bg-hover text-text-secondary rounded-xl font-bold transition-all text-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <FolderOpen size={18} /> {t('assetDetail.openInExplorer')}
+            <FolderOpen size={16} /> {t('assetDetail.openProcessed', 'Ver Processado')}
+          </button>
+          <button
+            onClick={handleDownloadProcessed}
+            disabled={!asset.output_path && !jobs.some((j) => j.output_path)}
+            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-bg-hover text-text-secondary rounded-xl font-bold transition-all text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download size={16} /> {t('assetDetail.downloadProcessed', 'Descarregar')}
           </button>
         </div>
         <button
-          onClick={handleDelete}
+          onClick={() => {
+            logActivity('Apagar Asset', 'click', `asset_id=${assetId}`);
+            handleDelete();
+          }}
           className="flex items-center gap-2 px-6 py-2 text-red-500 hover:bg-red-500/10 rounded-xl font-bold transition-all"
         >
           <Trash2 size={18} /> {t('assetDetail.deleteAsset')}

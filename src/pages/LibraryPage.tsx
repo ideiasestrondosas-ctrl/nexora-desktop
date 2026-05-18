@@ -17,9 +17,11 @@ import {
   Play,
   Plus,
   FolderOpen,
+  Download,
 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useJobsStore } from '@/store/jobs';
+import { logActivity } from '@/lib/activityLog';
 
 interface Asset {
   id: string;
@@ -34,6 +36,7 @@ interface Asset {
   created_at: string;
   thumbnail_path: string | null;
   vmaf_score: number | null;
+  output_path: string | null;
 }
 
 interface LibraryPageProps {
@@ -201,6 +204,32 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
     }
   };
 
+  const handleDownload = async (asset: Asset) => {
+    if (!asset.output_path) {
+      logActivity(
+        'Download Processado (Biblioteca)',
+        'attempt',
+        `asset_id=${asset.id} sem output_path`,
+      );
+      toast.warning(t('assetDetail.downloadNoOutput', 'Sem ficheiro processado disponível'));
+      return;
+    }
+    logActivity('Download Processado (Biblioteca)', 'execute', `asset_id=${asset.id}`);
+    try {
+      const { downloadFile } = await import('@/lib/fileUtils');
+      const filename = asset.output_path.split(/[/\\]/).pop() ?? 'output.mp4';
+      const dest = await downloadFile(asset.output_path, filename);
+      if (dest) {
+        toast.success(
+          t('assetDetail.downloadSuccess', { path: dest, defaultValue: `Guardado em ${dest}` }),
+        );
+      }
+    } catch (e: unknown) {
+      console.error('Download failed:', e);
+      toast.error(t('common.error', 'Ocorreu um erro'));
+    }
+  };
+
   const formatBytes = (bytes: number) => {
     if (!bytes || bytes === 0) return '0 B';
     const k = 1024;
@@ -295,12 +324,14 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
         <div className="flex bg-bg-primary border border-border rounded-lg p-1">
           <button
             onClick={() => setViewMode('grid')}
+            title={t('library.gridView')}
             className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-surface text-brand' : 'text-text-muted hover:text-text-secondary'}`}
           >
             <Grid2X2 size={16} />
           </button>
           <button
             onClick={() => setViewMode('list')}
+            title={t('library.listView')}
             className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-surface text-brand' : 'text-text-muted hover:text-text-secondary'}`}
           >
             <List size={16} />
@@ -432,17 +463,34 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                     <div className="absolute inset-0 bg-bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                       <button
                         onClick={() => onSelectAsset?.(asset.id)}
+                        title={t('queue.viewAsset')}
                         className="p-2 bg-brand text-white rounded-full hover:scale-110 transition-transform"
                       >
                         <ExternalLink size={18} />
                       </button>
                       {(asset.status === 'done' || asset.status === 'error') && (
-                        <button className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform">
+                        <button
+                          title={t('detail.playerOriginal')}
+                          className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform"
+                        >
                           <Play size={18} />
+                        </button>
+                      )}
+                      {asset.output_path && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(asset);
+                          }}
+                          title={t('assetDetail.downloadProcessed', 'Descarregar processado')}
+                          className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-md transition-colors"
+                        >
+                          <Download size={14} />
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(asset.id)}
+                        title={t('common.delete')}
                         className="p-2 bg-red-600 text-white rounded-full hover:scale-110 transition-transform"
                       >
                         <Trash2 size={16} />
@@ -552,12 +600,23 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                     <div className="px-6 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => onSelectAsset?.(asset.id)}
+                        title={t('queue.viewAsset')}
                         className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded"
                       >
                         <ExternalLink size={14} />
                       </button>
+                      {asset.output_path && (
+                        <button
+                          onClick={() => handleDownload(asset)}
+                          title={t('assetDetail.downloadProcessed', 'Descarregar processado')}
+                          className="p-1.5 text-text-muted hover:text-brand hover:bg-surface rounded transition-colors"
+                        >
+                          <Download size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(asset.id)}
+                        title={t('common.delete')}
                         className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/10 rounded"
                       >
                         <Trash2 size={14} />

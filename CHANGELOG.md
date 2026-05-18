@@ -8,9 +8,21 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [0.21.0] - 2026-05-17
 
-### Added
-- feat: 0.20.0
+### Fixed
 
+- Sidecar reconstruído: fix do proxy "width not divisible by 2" agora activo (pad=ceil(iw/2)\*2)
+- output_dir migrado automaticamente de %TEMP% para Videos/Nexora Output em instalações existentes
+- max_concurrent_jobs lido da BD pelo queue worker — a setting tem agora efeito real
+- Race condition na fila eliminada: jobs marcados como 'processing' antes de lançar thread
+- filename dos assets incluído na resposta de list_jobs (via LEFT JOIN)
+- version.ts sincronizado com 0.21.0
+- Feedback de retry/cancel quando job não pode ser alterado (toast.warning)
+- Log de acções em cancel_job, retry_job, approve_job, reject_job, submit_job
+
+### Changed
+
+- list_jobs ordenado por: processing → queued → quarantined → histórico, limitado a 200 registos
+- i18n: adicionadas chaves cannotCancelState, cannotRetryState, retryQueued em 15 línguas
 
 ## [0.20.0] - 2026-05-17
 

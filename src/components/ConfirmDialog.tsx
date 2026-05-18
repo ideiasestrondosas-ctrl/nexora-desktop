@@ -56,14 +56,17 @@ export function ConfirmDialog({
           )}
         >
           {/* Ícone */}
-          <div className={cn(
-            'w-12 h-12 rounded-full flex items-center justify-center mb-4',
-            isDanger ? 'bg-red-500/10' : 'bg-yellow-500/10',
-          )}>
-            {isDanger
-              ? <Trash2 size={22} className="text-red-500" />
-              : <AlertTriangle size={22} className="text-yellow-500" />
-            }
+          <div
+            className={cn(
+              'w-12 h-12 rounded-full flex items-center justify-center mb-4',
+              isDanger ? 'bg-red-500/10' : 'bg-yellow-500/10',
+            )}
+          >
+            {isDanger ? (
+              <Trash2 size={22} className="text-red-500" />
+            ) : (
+              <AlertTriangle size={22} className="text-yellow-500" />
+            )}
           </div>
 
           <AlertDialog.Title className="text-lg font-black text-text-primary mb-2">

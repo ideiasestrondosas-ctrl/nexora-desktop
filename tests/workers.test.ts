@@ -53,7 +53,7 @@ describe('QCPreWorker', () => {
     const worker = new QCPreWorker();
     await expect(worker.run(makeCtx())).resolves.toBe('PASS');
     expect(mockEmit).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'log', source: 'qc-pre-worker' })
+      expect.objectContaining({ type: 'log', source: 'qc-pre-worker' }),
     );
   });
 
@@ -72,12 +72,16 @@ describe('QCPreWorker', () => {
 
   it('rejeita ficheiro sem stream de vídeo', async () => {
     const worker = new QCPreWorker();
-    await expect(worker.run(makeCtx({ assetVideoCodec: null }))).rejects.toThrow('sem stream de vídeo');
+    await expect(worker.run(makeCtx({ assetVideoCodec: null }))).rejects.toThrow(
+      'sem stream de vídeo',
+    );
   });
 
   it('rejeita duração inferior a 0.5s', async () => {
     const worker = new QCPreWorker();
-    await expect(worker.run(makeCtx({ assetDurationSecs: 0.3 }))).rejects.toThrow('duração insuficiente');
+    await expect(worker.run(makeCtx({ assetDurationSecs: 0.3 }))).rejects.toThrow(
+      'duração insuficiente',
+    );
   });
 
   it('passa quando duration_secs é null (desconhecido)', async () => {
@@ -91,7 +95,7 @@ describe('QCPreWorker', () => {
     const worker = new QCPreWorker();
     await expect(worker.run(makeCtx())).resolves.toBe('QUARANTINE');
     expect(mockEmit).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'job:status', jobId: 'job-1', status: 'qc_quarantined' })
+      expect.objectContaining({ type: 'job:status', jobId: 'job-1', status: 'qc_quarantined' }),
     );
   });
 
@@ -100,7 +104,7 @@ describe('QCPreWorker', () => {
     // hevc é agora suportado como input (v0.19.0); usar prores que continua na blacklist
     await expect(worker.run(makeCtx({ assetVideoCodec: 'prores' }))).resolves.toBe('QUARANTINE');
     expect(mockEmit).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'job:status', jobId: 'job-1', status: 'qc_quarantined' })
+      expect.objectContaining({ type: 'job:status', jobId: 'job-1', status: 'qc_quarantined' }),
     );
   });
 
@@ -109,7 +113,7 @@ describe('QCPreWorker', () => {
     await worker.run(makeCtx());
 
     const logCall = mockEmit.mock.calls.find(
-      (call: [unknown]) => (call[0] as { type: string }).type === 'log'
+      (call: [unknown]) => (call[0] as { type: string }).type === 'log',
     );
     expect(logCall).toBeDefined();
     expect(logCall![0]).toMatchObject({

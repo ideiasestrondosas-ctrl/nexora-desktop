@@ -38,17 +38,18 @@
 
 ## SUMÁRIO EXECUTIVO
 
-| Categoria | Itens | Estado |
-|---|---|---|
-| Bugs bloqueantes (P0) | 3 | Bloqueiam funcionamento; corrigir primeiro |
-| Segurança (P0) | 2 | CSP `null`, capabilities sem least-privilege |
-| Performance (P1) | 5 | Polling, duplicação SQLite, virtualização ausente |
-| Arquitectura (P1) | 4 | localStorage, deps mal classificadas, logs no repo, versão hardcoded |
-| UX/Acessibilidade (P2) | 4 | Toasts, gráficos, modais sem focus trap, atalhos globais |
-| Qualidade/CI (P2) | 4 | Coverage, ESLint, Prettier, dependabot |
-| Profissionalização (P3) | 2 | Code signing, telemetria opt-in |
+| Categoria               | Itens | Estado                                                               |
+| ----------------------- | ----- | -------------------------------------------------------------------- |
+| Bugs bloqueantes (P0)   | 3     | Bloqueiam funcionamento; corrigir primeiro                           |
+| Segurança (P0)          | 2     | CSP `null`, capabilities sem least-privilege                         |
+| Performance (P1)        | 5     | Polling, duplicação SQLite, virtualização ausente                    |
+| Arquitectura (P1)       | 4     | localStorage, deps mal classificadas, logs no repo, versão hardcoded |
+| UX/Acessibilidade (P2)  | 4     | Toasts, gráficos, modais sem focus trap, atalhos globais             |
+| Qualidade/CI (P2)       | 4     | Coverage, ESLint, Prettier, dependabot                               |
+| Profissionalização (P3) | 2     | Code signing, telemetria opt-in                                      |
 
 **Bugs identificados na análise (já documentados em `Plano - Bugs + Gap Analysis Nexora Desktop.md`):**
+
 - A1 — Drag-and-drop inoperante
 - A2 — Sidecar nunca arranca
 - A3 — Versão hardcoded na UI
@@ -60,6 +61,7 @@ Este plano integra esses bugs e adiciona 21 melhorias.
 ## STACK DE DEPENDÊNCIAS (alterações permitidas)
 
 ### A adicionar (`dependencies`)
+
 - `sonner@^1.7.0` — toasts modernos (substitui `react-hot-toast`)
 - `@tanstack/react-virtual@^3.10.0` — virtualização de listas
 - `@tanstack/react-query@^5.59.0` — gestão de estado servidor/IPC
@@ -72,6 +74,7 @@ Este plano integra esses bugs e adiciona 21 melhorias.
 - `@tauri-apps/plugin-global-shortcut@^2` — atalhos globais (opcional)
 
 ### A adicionar (`devDependencies`)
+
 - `eslint@^9.15.0` + `@typescript-eslint/parser` + `@typescript-eslint/eslint-plugin`
 - `eslint-plugin-react-hooks@^5.0.0`
 - `prettier@^3.4.0`
@@ -83,16 +86,19 @@ Este plano integra esses bugs e adiciona 21 melhorias.
 - `husky@^9.1.0` + `lint-staged@^15.2.0`
 
 ### A mover de `dependencies` para `devDependencies`
+
 - `esbuild` (já era dev)
 - `concurrently` (apenas para scripts)
 - `tsx` (apenas dev)
 - `better-sqlite3` — manter em dependencies **só** se o sidecar empacotado o precisar; ver T08
 
 ### A remover
+
 - `translate@^3.0.1` — não é usado em runtime; era para tradução manual
 - `react-hot-toast@^2.6.0` — substituído por `sonner`
 
 ### Plugins Tauri (Rust, `src-tauri/Cargo.toml`)
+
 - `tauri-plugin-store = "2"`
 - `tauri-plugin-log = "2"`
 - `tauri-plugin-global-shortcut = "2"` (se for adoptado)
@@ -106,6 +112,7 @@ Este plano integra esses bugs e adiciona 21 melhorias.
 **Objectivo:** Garantir reversibilidade total.
 
 **Implementação:**
+
 ```bash
 cd C:\Dev\nexora-desktop
 git status                                  # deve estar limpo
@@ -115,6 +122,7 @@ git push origin pre-audit-v0.17.0
 ```
 
 **Validação:**
+
 ```bash
 git branch --show-current                   # deve imprimir: chore/audit-v0.18
 git tag -l pre-audit-v0.17.0                # deve listar a tag
@@ -131,12 +139,14 @@ git tag -l pre-audit-v0.17.0                # deve listar a tag
 **Causa-raiz:** A pasta `.logs/` tem 40+ ficheiros de sessões de dev no repositório. Ocupa espaço, polui diffs, expõe paths locais.
 
 **Ficheiros:**
+
 - `.gitignore` (modificar)
 - `.logs/` (remover do tracking, manter localmente)
 
 **Implementação:**
 
 1. Garantir que `.gitignore` contém:
+
 ```gitignore
 # Logs de desenvolvimento
 .logs/
@@ -171,18 +181,21 @@ Thumbs.db
 ```
 
 2. Remover do tracking sem apagar localmente:
+
 ```bash
 git rm -r --cached .logs/
 git rm --cached src-tauri/target/ -r 2>nul || echo "ok"
 ```
 
 **Validação:**
+
 ```bash
 git status                                  # .logs/ não aparece como tracked
 git check-ignore .logs/qualquer.log         # imprime ".logs/qualquer.log"
 ```
 
 **Commit:**
+
 ```bash
 git add .gitignore
 git commit -m "chore(repo): ignore .logs/ and build artifacts (T02)"
@@ -199,16 +212,19 @@ git commit -m "chore(repo): ignore .logs/ and build artifacts (T02)"
 **Objectivo:** Permitir que o WebView receba eventos de drop de ficheiros.
 
 **Causa-raiz:** Tauri 2 intercepta drag-drop por defeito. É preciso:
+
 - `dragDropEnabled: true` na configuração da janela.
 - `drag-drop:default` nas capabilities.
 
 **Ficheiros:**
+
 - `src-tauri/tauri.conf.json`
 - `src-tauri/capabilities/default.json`
 
 **Implementação:**
 
 1. Em `src-tauri/tauri.conf.json`, dentro de `app.windows[0]`, garantir:
+
 ```json
 {
   "label": "main",
@@ -223,6 +239,7 @@ git commit -m "chore(repo): ignore .logs/ and build artifacts (T02)"
 ```
 
 2. Em `src-tauri/capabilities/default.json`, no array `permissions`, adicionar:
+
 ```json
 "core:webview:allow-set-webview-focus",
 "core:window:default",
@@ -232,12 +249,15 @@ git commit -m "chore(repo): ignore .logs/ and build artifacts (T02)"
 > **Atenção:** o plugin de drag-drop está em `core:webview` em Tauri 2; verifica primeiro `npm run tauri info` e a documentação local. Se o identifier `drag-drop:default` não existir, substituir por `core:webview:allow-internal-toggle-devtools` é **errado**; nesse caso o handler de drop funciona via evento Tauri `tauri://drag-drop` directamente sem capability extra.
 
 **Validação:**
+
 ```bash
 cd src-tauri && cargo check
 ```
+
 Deve compilar sem warnings. Depois, manual: arrastar um `.mp4` para a janela em `npm run tauri dev` deve disparar o evento (ainda sem UI a responder — isso vem em T04).
 
 **Commit:**
+
 ```bash
 git add src-tauri/tauri.conf.json src-tauri/capabilities/default.json
 git commit -m "fix(tauri): enable drag-drop at window and capability level (T03)"
@@ -252,11 +272,13 @@ git commit -m "fix(tauri): enable drag-drop at window and capability level (T03)
 **Causa-raiz:** O handler existe mas está vazio.
 
 **Ficheiros:**
+
 - `src/components/DropZone.tsx` (apenas o handler)
 
 **Implementação:**
 
 Substituir o handler `onDrop` por:
+
 ```tsx
 import { listen } from '@tauri-apps/api/event';
 import { useEffect } from 'react';
@@ -266,7 +288,7 @@ const SUPPORTED_EXTENSIONS = ['.mp4', '.mkv', '.mov', '.mxf', '.avi', '.webm'] a
 
 function hasSupportedExtension(path: string): boolean {
   const lower = path.toLowerCase();
-  return SUPPORTED_EXTENSIONS.some(ext => lower.endsWith(ext));
+  return SUPPORTED_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
 
 // Dentro do componente
@@ -285,9 +307,9 @@ useEffect(() => {
   const unlistenLeave = listen('tauri://drag-leave', () => setIsDragging(false));
 
   return () => {
-    unlistenPromise.then(fn => fn());
-    unlistenEnter.then(fn => fn());
-    unlistenLeave.then(fn => fn());
+    unlistenPromise.then((fn) => fn());
+    unlistenEnter.then((fn) => fn());
+    unlistenLeave.then((fn) => fn());
   };
 }, [onFilesSelected]);
 ```
@@ -295,12 +317,15 @@ useEffect(() => {
 Manter o handler `onDrop` de HTML como fallback (caso o utilizador arraste de dentro do WebView), mas o caminho principal é via eventos Tauri.
 
 **Validação:**
+
 ```bash
 npm run typecheck                           # 0 erros
 ```
+
 Manual: arrastar um `.mp4` válido — toast/log deve mostrar o path; arrastar um `.txt` — toast de erro.
 
 **Commit:**
+
 ```bash
 git add src/components/DropZone.tsx
 git commit -m "fix(ui): implement drag-drop file handler with Tauri events (T04)"
@@ -315,11 +340,13 @@ git commit -m "fix(ui): implement drag-drop file handler with Tauri events (T04)
 **Causa-raiz:** `sidecar.rs` chama `Command::new(&sidecar_path)` apontando para um binário nativo (`binaries/nexora-sidecar-{target_triple}`) que nunca foi compilado. O sidecar real é um script `.cjs` em `sidecar/dist/`.
 
 **Ficheiros:**
+
 - `src-tauri/src/sidecar.rs` (apenas a função de spawn)
 
 **Implementação:**
 
 Substituir o bloco de spawn por:
+
 ```rust
 use std::process::{Command, Stdio};
 use tauri::Manager;
@@ -374,12 +401,15 @@ pub fn spawn_sidecar(app: &tauri::AppHandle) -> Result<std::process::Child> {
 ```
 
 **Validação:**
+
 ```bash
 cd src-tauri && cargo check
 ```
+
 Manual: `npm run tauri dev` — nos logs deve aparecer "[sidecar] arrancou com PID {n}". Sem essa linha, T05 não está concluída.
 
 **Commit:**
+
 ```bash
 git add src-tauri/src/sidecar.rs
 git commit -m "fix(sidecar): spawn Node.js script via 'node' command (T05)"
@@ -394,36 +424,45 @@ git commit -m "fix(sidecar): spawn Node.js script via 'node' command (T05)"
 **Causa-raiz:** `App.tsx` tem string `"Versão Desktop 0.2.0"` hardcoded.
 
 **Ficheiros:**
+
 - `src/App.tsx`
 
 **Implementação:**
 
 Adicionar no topo:
+
 ```tsx
 import { getVersion } from '@tauri-apps/api/app';
 import { useEffect, useState } from 'react';
 ```
 
 Dentro do componente:
+
 ```tsx
 const [version, setVersion] = useState<string>('—');
 useEffect(() => {
-  getVersion().then(setVersion).catch(() => setVersion('?'));
+  getVersion()
+    .then(setVersion)
+    .catch(() => setVersion('?'));
 }, []);
 ```
 
 Substituir o footer:
+
 ```tsx
 <span>Versão Desktop {version}</span>
 ```
 
 **Validação:**
+
 ```bash
 npm run typecheck
 ```
+
 Manual: no footer deve aparecer `Versão Desktop 0.17.0` (ou o que estiver no Cargo.toml).
 
 **Commit:**
+
 ```bash
 git add src/App.tsx
 git commit -m "fix(ui): show dynamic app version from Tauri API (T06)"
@@ -434,6 +473,7 @@ git commit -m "fix(ui): show dynamic app version from Tauri API (T06)"
 > ### `[PARA AQUI E AGUARDA APROVAÇÃO]`
 >
 > Antes de continuar para a FASE 2, executa `npm run tauri dev` e confirma manualmente que:
+>
 > 1. A app abre.
 > 2. O drag-drop funciona (arrastar um `.mp4`).
 > 3. O sidecar arranca (ver logs).
@@ -452,11 +492,13 @@ git commit -m "fix(ui): show dynamic app version from Tauri API (T06)"
 **Causa-raiz:** Com CSP `null`, qualquer recurso pode executar — risco real de XSS via metadados de ficheiros media (alguns codecs permitem comentários embedded).
 
 **Ficheiros:**
+
 - `src-tauri/tauri.conf.json`
 
 **Implementação:**
 
 Substituir `app.security`:
+
 ```json
 "security": {
   "csp": {
@@ -476,17 +518,21 @@ Substituir `app.security`:
 ```
 
 > Notas:
+>
 > - `'unsafe-inline'` em `style-src` é necessário para o Tailwind v4 com JIT. Se for removido, o build falha.
 > - `asset:` é necessário para mostrar thumbnails locais.
 > - Se aparecerem erros de CSP no DevTools console depois desta tarefa, **não relaxar a política** — investigar de onde vem o recurso bloqueado.
 
 **Validação:**
+
 ```bash
 npm run tauri build -- --debug
 ```
+
 A build deve completar. Em runtime, DevTools console não pode ter erros vermelhos de CSP nos fluxos principais (carregar lib, ver thumb, abrir settings).
 
 **Commit:**
+
 ```bash
 git add src-tauri/tauri.conf.json
 git commit -m "security(tauri): enforce strict CSP for production builds (T07)"
@@ -501,11 +547,13 @@ git commit -m "security(tauri): enforce strict CSP for production builds (T07)"
 **Causa-raiz:** `capabilities/default.json` usa o conjunto `*:default` (genérico). Tauri 2 permite granularidade muito superior.
 
 **Ficheiros:**
+
 - `src-tauri/capabilities/default.json`
 
 **Implementação:**
 
 Substituir o conteúdo por:
+
 ```json
 {
   "$schema": "../gen/schemas/desktop-schema.json",
@@ -544,12 +592,15 @@ Substituir o conteúdo por:
 > Comparado com o original: removidas as permissões de leitura/escrita do filesystem genéricas (o sidecar é quem mexe em ficheiros), de `shell:execute` (o spawn é feito pelo Rust), e de `http` (não há fetches do frontend).
 
 **Validação:**
+
 ```bash
 cd src-tauri && cargo check
 ```
+
 Manual: testar fluxos principais — guardar settings, abrir directoria de output, mostrar notificações, instalar update. Se algum falhar com `not allowed by capability`, adicionar a permissão específica em falta (sem voltar ao `*:default`).
 
 **Commit:**
+
 ```bash
 git add src-tauri/capabilities/default.json
 git commit -m "security(tauri): apply least-privilege capability set (T08)"
@@ -566,6 +617,7 @@ git commit -m "security(tauri): apply least-privilege capability set (T08)"
 **Causa-raiz:** O sidecar Node.js abre a mesma DB com `better-sqlite3` enquanto o Rust a abre com `rusqlite`. Em WAL ainda funciona, mas com cargas reais já apareceram "database is locked" — confirmado nos logs em `.logs/dev-session-20260514-074602.log` (procurar "SQLITE_BUSY").
 
 **Ficheiros:**
+
 - `sidecar/db.ts` (apagar)
 - `sidecar/orchestrator/NexoraDesktopOrchestrator.ts` (remover writes directos à DB)
 - `sidecar/workers/*.ts` (substituir writes por emit de eventos)
@@ -576,6 +628,7 @@ git commit -m "security(tauri): apply least-privilege capability set (T08)"
 1. **Apagar** `sidecar/db.ts`.
 
 2. Em cada worker, **remover** qualquer `import` ou uso de `db`. Substituir actualizações de estado por eventos:
+
 ```typescript
 // Antes (proibido):
 db.prepare('UPDATE jobs SET progress = ? WHERE id = ?').run(percent, jobId);
@@ -586,11 +639,12 @@ emitEvent({
   jobId,
   step: 'transcode',
   percent,
-  message: `Transcode em ${percent.toFixed(1)}%`
+  message: `Transcode em ${percent.toFixed(1)}%`,
 });
 ```
 
 3. Em `src-tauri/src/sidecar.rs`, garantir que o handler de stdout faz parsing de cada linha JSON e chama os repositórios Rust apropriados:
+
 ```rust
 // Já existe um pattern parecido — assegurar que cada evento tem write na DB:
 match event.event_type.as_str() {
@@ -605,17 +659,20 @@ match event.event_type.as_str() {
 ```
 
 4. **Remover** `better-sqlite3` e `@types/better-sqlite3` do `package.json` se nenhum outro código os usar:
+
 ```bash
 npm uninstall better-sqlite3 @types/better-sqlite3
 ```
 
 5. Actualizar o build do sidecar para não esperar a dependência:
+
 ```diff
 - "sidecar:build": "esbuild sidecar/index.ts --bundle --platform=node --target=node20 --external:better-sqlite3 --outfile=sidecar/dist/nexora-sidecar.cjs",
 + "sidecar:build": "esbuild sidecar/index.ts --bundle --platform=node --target=node20 --outfile=sidecar/dist/nexora-sidecar.cjs",
 ```
 
 **Validação:**
+
 ```bash
 npm run sidecar:check                       # 0 erros TS
 npm run sidecar:build                       # 0 warnings
@@ -624,6 +681,7 @@ cd src-tauri && cargo test                  # tests Rust passam
 ```
 
 **Commit:**
+
 ```bash
 git commit -m "refactor(sidecar): single SQLite writer; sidecar communicates via IPC only (T09)"
 ```
@@ -637,6 +695,7 @@ git commit -m "refactor(sidecar): single SQLite writer; sidecar communicates via
 **Causa-raiz:** `useJobStatus` faz `list_jobs` a cada 1 segundo. Com 0 jobs activos são 3 600 queries/hora a uma DB local — não é caro, mas latência de actualização da UI fica sempre presa nesse 1 segundo. `useDiskSpace` faz o mesmo a cada 10s.
 
 **Ficheiros:**
+
 - `src/hooks/useJobStatus.ts`
 - `src/hooks/useDiskSpace.ts`
 - `src-tauri/src/commands/metrics.rs` (emitir evento `disk-space` periódico)
@@ -645,6 +704,7 @@ git commit -m "refactor(sidecar): single SQLite writer; sidecar communicates via
 **Implementação:**
 
 1. Em `useJobStatus.ts`, substituir o polling por listener:
+
 ```tsx
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
@@ -666,7 +726,7 @@ export function useJobStatus() {
         updateJob(e.payload.jobId, {
           progress: e.payload.percent,
           step: e.payload.step,
-          status: 'processing'
+          status: 'processing',
         });
       }),
       listen<{ jobId: string }>('job-completed', (e) => {
@@ -679,7 +739,9 @@ export function useJobStatus() {
         updateJob(e.payload.jobId, { status: 'qc_quarantined', error: e.payload.reason });
       }),
     ];
-    return () => { unlisteners.forEach(p => p.then(fn => fn())); };
+    return () => {
+      unlisteners.forEach((p) => p.then((fn) => fn()));
+    };
   }, [updateJob]);
 
   return { jobs, loading: false };
@@ -689,13 +751,16 @@ export function useJobStatus() {
 2. Em `useDiskSpace.ts`, mesma estratégia. Adicionar no Rust uma thread que emite `disk-space` a cada 10s — já existe padrão similar em `metrics.rs` para `system-metrics`, replicar.
 
 **Validação:**
+
 ```bash
 npm run typecheck
 npm run test
 ```
+
 Manual: submeter um job, ver a progress bar a actualizar fluído (sem o "tique-tique" de 1s).
 
 **Commit:**
+
 ```bash
 git commit -m "perf(ui): replace polling with Tauri events in job and disk hooks (T10)"
 ```
@@ -709,6 +774,7 @@ git commit -m "perf(ui): replace polling with Tauri events in job and disk hooks
 **Causa-raiz:** `localStorage` é apagado quando o utilizador limpa o WebView ou reinstala. Settings deviam ser persistentes.
 
 **Ficheiros:**
+
 - `src-tauri/Cargo.toml` (adicionar plugin)
 - `src-tauri/src/lib.rs` (registar plugin)
 - `package.json` (adicionar `@tauri-apps/plugin-store`)
@@ -718,12 +784,14 @@ git commit -m "perf(ui): replace polling with Tauri events in job and disk hooks
 **Implementação:**
 
 1. `Cargo.toml`:
+
 ```toml
 [dependencies]
 tauri-plugin-store = "2"
 ```
 
 2. `lib.rs`:
+
 ```rust
 .plugin(tauri_plugin_store::Builder::default().build())
 ```
@@ -731,6 +799,7 @@ tauri-plugin-store = "2"
 3. `npm install @tauri-apps/plugin-store`
 
 4. Em `src/store/settings.ts`, criar storage adapter:
+
 ```tsx
 import { Store } from '@tauri-apps/plugin-store';
 import { create } from 'zustand';
@@ -755,16 +824,23 @@ const tauriStorage: StateStorage = {
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
-    (set) => ({ /* ... estado existente ... */ }),
+    (set) => ({
+      /* ... estado existente ... */
+    }),
     {
       name: 'nexora-settings',
-      storage: { getItem: tauriStorage.getItem, setItem: tauriStorage.setItem, removeItem: tauriStorage.removeItem },
-    }
-  )
+      storage: {
+        getItem: tauriStorage.getItem,
+        setItem: tauriStorage.setItem,
+        removeItem: tauriStorage.removeItem,
+      },
+    },
+  ),
 );
 ```
 
 > **Migração:** ao primeiro arranque após esta tarefa, ler do localStorage e gravar no store, depois apagar do localStorage. Adicionar essa migração no `App.tsx`:
+
 ```tsx
 useEffect(() => {
   const legacy = localStorage.getItem('nexora-settings');
@@ -778,17 +854,21 @@ useEffect(() => {
 ```
 
 **Validação:**
+
 ```bash
 npm run typecheck
 npm run tauri dev
 ```
+
 Manual:
+
 1. Mudar uma setting (ex.: tema dark).
 2. Fechar a app.
 3. Apagar o ficheiro de cache do WebView (DevTools → Application → Clear storage).
 4. Reabrir — a setting deve continuar lá.
 
 **Commit:**
+
 ```bash
 git commit -m "feat(settings): persist via tauri-plugin-store, migrate from localStorage (T11)"
 ```
@@ -800,6 +880,7 @@ git commit -m "feat(settings): persist via tauri-plugin-store, migrate from loca
 **Objectivo:** Substituir o logger manual por plugin oficial; ver logs no console em dev e em ficheiro em produção.
 
 **Ficheiros:**
+
 - `src-tauri/Cargo.toml`
 - `src-tauri/src/lib.rs`
 - `src-tauri/src/logger.rs` (manter apenas o que escreve na DB para o `LogsPage` UI; remover stdout duplicado)
@@ -807,11 +888,13 @@ git commit -m "feat(settings): persist via tauri-plugin-store, migrate from loca
 **Implementação:**
 
 1. `Cargo.toml`:
+
 ```toml
 tauri-plugin-log = { version = "2", features = ["colored"] }
 ```
 
 2. `lib.rs` (antes de `.run`):
+
 ```rust
 .plugin(
     tauri_plugin_log::Builder::new()
@@ -829,14 +912,18 @@ tauri-plugin-log = { version = "2", features = ["colored"] }
 3. Em `logger.rs`, manter apenas a função `write_to_db` que existe — remover qualquer `eprintln!` paralelo.
 
 **Validação:**
+
 ```bash
 npm run tauri dev
 ```
+
 Verificar:
+
 - DevTools → Console mostra logs com cores (vem do `Webview` target).
 - Em `%APPDATA%\com.nexora.desktop\logs\nexora-desktop.log` (Windows) existe um ficheiro com os logs do Rust.
 
 **Commit:**
+
 ```bash
 git commit -m "feat(logging): adopt tauri-plugin-log for unified logging (T12)"
 ```
@@ -848,6 +935,7 @@ git commit -m "feat(logging): adopt tauri-plugin-log for unified logging (T12)"
 **Objectivo:** `dependencies` só contém o que corre em produção.
 
 **Ficheiros:**
+
 - `package.json`
 
 **Implementação:**
@@ -874,15 +962,18 @@ npm install lucide-react@latest
 ```
 
 **Validação:**
+
 ```bash
 npm run typecheck
 npm run build
 ```
+
 A linha em `App.tsx` `import toast from 'react-hot-toast'` vai partir o build — corrigir em T15.
 
 > **Não fazer T15 ainda.** Esta tarefa apenas instala/desinstala. O build vai falhar até T15 estar feita. Por isso este commit pode ficar com `[skip-ci]`.
 
 **Commit:**
+
 ```bash
 git add package.json package-lock.json
 git commit -m "chore(deps): reclassify deps and install new toolchain (T13) [skip-ci]"
@@ -895,6 +986,7 @@ git commit -m "chore(deps): reclassify deps and install new toolchain (T13) [ski
 ## T14 — Migrar para `sonner` (toasts)
 
 **Ficheiros:**
+
 - `src/main.tsx` (montar `<Toaster />`)
 - Todos os ficheiros que importam `react-hot-toast` — usar grep:
 
@@ -905,6 +997,7 @@ grep -rln "react-hot-toast" src/
 **Implementação:**
 
 1. Em `src/main.tsx`:
+
 ```tsx
 import { Toaster } from 'sonner';
 // ...
@@ -913,6 +1006,7 @@ import { Toaster } from 'sonner';
 ```
 
 2. Em cada ficheiro encontrado, substituir:
+
 ```diff
 - import toast from 'react-hot-toast';
 + import { toast } from 'sonner';
@@ -921,12 +1015,14 @@ import { Toaster } from 'sonner';
 A API é quase idêntica: `toast.success`, `toast.error`, `toast()`. A única diferença comum: `toast.promise()` é mais limpo no sonner — vale a pena adoptar onde aplicável (ex.: `submit_job`).
 
 **Validação:**
+
 ```bash
 npm run typecheck
 npm run build                               # build agora passa
 ```
 
 **Commit:**
+
 ```bash
 git commit -m "feat(ui): migrate toasts to sonner (T14)"
 ```
@@ -938,16 +1034,24 @@ git commit -m "feat(ui): migrate toasts to sonner (T14)"
 **Objectivo:** Modal com focus trap, ESC para fechar, ARIA correcto.
 
 **Ficheiros:**
+
 - `src/components/HelpModal.tsx`
 
 **Implementação:**
 
 Reescrever o componente usando `@radix-ui/react-dialog`:
+
 ```tsx
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 
-export function HelpModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+export function HelpModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -955,7 +1059,10 @@ export function HelpModal({ open, onOpenChange }: { open: boolean; onOpenChange:
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(90vw,720px)] max-h-[85vh] overflow-y-auto rounded-lg bg-white dark:bg-neutral-900 shadow-xl p-6 focus:outline-none">
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="text-lg font-semibold">Manual do utilizador</Dialog.Title>
-            <Dialog.Close className="rounded p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800" aria-label="Fechar">
+            <Dialog.Close
+              className="rounded p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              aria-label="Fechar"
+            >
               <X size={18} />
             </Dialog.Close>
           </div>
@@ -971,12 +1078,15 @@ export function HelpModal({ open, onOpenChange }: { open: boolean; onOpenChange:
 ```
 
 **Validação:**
+
 ```bash
 npm run typecheck
 ```
+
 Manual: TAB dentro do modal não escapa para a UI por trás; ESC fecha; `aria-modal="true"` está presente no DevTools.
 
 **Commit:**
+
 ```bash
 git commit -m "feat(ui): accessible HelpModal with Radix Dialog (T15)"
 ```
@@ -988,11 +1098,13 @@ git commit -m "feat(ui): accessible HelpModal with Radix Dialog (T15)"
 **Objectivo:** Render só dos items visíveis. Necessário para bibliotecas grandes.
 
 **Ficheiros:**
+
 - `src/pages/LibraryPage.tsx`
 
 **Implementação:**
 
 Para a vista em lista, envolver com `useVirtualizer`:
+
 ```tsx
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef } from 'react';
@@ -1035,12 +1147,15 @@ export function LibraryPage() {
 Para a vista em grid, usar `useVirtualizer` com `count` igual ao número de linhas (não de items) e renderizar `columnsPerRow` cartões por linha.
 
 **Validação:**
+
 ```bash
 npm run typecheck
 ```
+
 Manual: criar 500 entradas fake na DB (script de seed em `scripts/seed-dev.ts`) e verificar que o scroll é instantâneo e o DOM tem ≤ 30 nós de asset visíveis.
 
 **Commit:**
+
 ```bash
 git commit -m "perf(ui): virtualize LibraryPage with TanStack Virtual (T16)"
 ```
@@ -1052,6 +1167,7 @@ git commit -m "perf(ui): virtualize LibraryPage with TanStack Virtual (T16)"
 **Objectivo:** Substituir as métricas estáticas/SVG manuais por gráficos profissionais.
 
 **Ficheiros:**
+
 - `src/pages/DashboardPage.tsx`
 - `src/components/VMAFGauge.tsx` (eventualmente remover/refactor)
 - `src/components/SystemMetricsBar.tsx` (substituir gauges por sparklines)
@@ -1059,6 +1175,7 @@ git commit -m "perf(ui): virtualize LibraryPage with TanStack Virtual (T16)"
 **Implementação:**
 
 1. **Histograma de VMAF:** substitui o componente actual por:
+
 ```tsx
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -1076,31 +1193,49 @@ const buckets = [
     <Tooltip />
     <Bar dataKey="count" fill="#4FB8A0" radius={[4, 4, 0, 0]} />
   </BarChart>
-</ResponsiveContainer>
+</ResponsiveContainer>;
 ```
 
 2. **Sparkline CPU/RAM em tempo real:** manter um buffer de 60 pontos (1 min a 1Hz) e desenhar com `AreaChart`:
+
 ```tsx
 const [history, setHistory] = useState<{ t: number; cpu: number; ram: number }[]>([]);
 useEffect(() => {
   if (!metrics) return;
-  setHistory(h => [...h.slice(-59), { t: Date.now(), cpu: metrics.cpuPercent, ram: metrics.memUsedBytes / metrics.memTotalBytes * 100 }]);
+  setHistory((h) => [
+    ...h.slice(-59),
+    {
+      t: Date.now(),
+      cpu: metrics.cpuPercent,
+      ram: (metrics.memUsedBytes / metrics.memTotalBytes) * 100,
+    },
+  ]);
 }, [metrics]);
 
 <ResponsiveContainer width="100%" height={60}>
   <AreaChart data={history}>
-    <Area type="monotone" dataKey="cpu" stroke="#1A6FD4" fill="#1A6FD4" fillOpacity={0.15} strokeWidth={1.5} />
+    <Area
+      type="monotone"
+      dataKey="cpu"
+      stroke="#1A6FD4"
+      fill="#1A6FD4"
+      fillOpacity={0.15}
+      strokeWidth={1.5}
+    />
   </AreaChart>
-</ResponsiveContainer>
+</ResponsiveContainer>;
 ```
 
 **Validação:**
+
 ```bash
 npm run typecheck
 ```
+
 Manual: dashboard mostra histograma com cores corretas; sparkline anima em tempo real.
 
 **Commit:**
+
 ```bash
 git commit -m "feat(dashboard): use recharts for VMAF histogram and system sparklines (T17)"
 ```
@@ -1112,6 +1247,7 @@ git commit -m "feat(dashboard): use recharts for VMAF histogram and system spark
 ## T18 — Configurar ESLint + Prettier
 
 **Ficheiros:**
+
 - `eslint.config.js` (novo, formato flat)
 - `.prettierrc.json` (novo)
 - `package.json` (scripts)
@@ -1119,6 +1255,7 @@ git commit -m "feat(dashboard): use recharts for VMAF histogram and system spark
 **Implementação:**
 
 1. `eslint.config.js`:
+
 ```javascript
 import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
@@ -1146,6 +1283,7 @@ export default [
 ```
 
 2. `.prettierrc.json`:
+
 ```json
 {
   "semi": true,
@@ -1158,6 +1296,7 @@ export default [
 ```
 
 3. Scripts no `package.json`:
+
 ```json
 "lint": "eslint . --max-warnings 0",
 "lint:fix": "eslint . --fix",
@@ -1166,12 +1305,14 @@ export default [
 ```
 
 **Validação:**
+
 ```bash
 npm run lint                                # PODE falhar — corrigir warnings antes de commit
 npm run format
 ```
 
 **Commit:**
+
 ```bash
 git commit -m "chore(quality): add ESLint + Prettier configs and scripts (T18)"
 ```
@@ -1181,22 +1322,26 @@ git commit -m "chore(quality): add ESLint + Prettier configs and scripts (T18)"
 ## T19 — Husky + lint-staged (pre-commit hooks)
 
 **Ficheiros:**
+
 - `.husky/pre-commit` (novo)
 - `package.json` (config)
 
 **Implementação:**
+
 ```bash
 npm install -D husky lint-staged
 npx husky init
 ```
 
 Editar `.husky/pre-commit`:
+
 ```bash
 #!/bin/sh
 npx lint-staged
 ```
 
 No `package.json`:
+
 ```json
 "lint-staged": {
   "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
@@ -1205,12 +1350,15 @@ No `package.json`:
 ```
 
 **Validação:**
+
 ```bash
 git add . && git commit -m "test: trigger husky"
 ```
+
 O hook deve correr eslint e prettier nos staged. Se passar, commit avança. Se falhar, commit cancela.
 
 **Commit:**
+
 ```bash
 git commit -m "chore(quality): pre-commit hooks via husky + lint-staged (T19)"
 ```
@@ -1220,11 +1368,13 @@ git commit -m "chore(quality): pre-commit hooks via husky + lint-staged (T19)"
 ## T20 — Bundle analyzer no Vite
 
 **Ficheiros:**
+
 - `vite.config.ts`
 
 **Implementação:**
 
 Adicionar plugin condicional:
+
 ```tsx
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
@@ -1233,12 +1383,13 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [
     react(),
-    process.env.ANALYZE && visualizer({
-      open: true,
-      gzipSize: true,
-      brotliSize: true,
-      filename: 'dist/stats.html',
-    }),
+    process.env.ANALYZE &&
+      visualizer({
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+        filename: 'dist/stats.html',
+      }),
   ].filter(Boolean),
   build: {
     target: 'esnext',
@@ -1248,9 +1399,19 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-tooltip', '@radix-ui/react-progress', 'lucide-react'],
+          'ui-vendor': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-progress',
+            'lucide-react',
+          ],
           'chart-vendor': ['recharts'],
-          'tauri-vendor': ['@tauri-apps/api', '@tauri-apps/plugin-dialog', '@tauri-apps/plugin-store', '@tauri-apps/plugin-log'],
+          'tauri-vendor': [
+            '@tauri-apps/api',
+            '@tauri-apps/plugin-dialog',
+            '@tauri-apps/plugin-store',
+            '@tauri-apps/plugin-log',
+          ],
           'i18n-vendor': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
         },
       },
@@ -1260,19 +1421,24 @@ export default defineConfig({
 ```
 
 Adicionar script:
+
 ```json
 "build:analyze": "ANALYZE=true vite build"
 ```
 
 **Validação:**
+
 ```bash
 npm run build:analyze
 ```
+
 Deve abrir o browser com o treemap. Procurar:
+
 - `react-vendor` deve ser ~140 KB gzipped.
 - Nenhum chunk único deve passar 300 KB gzipped.
 
 **Commit:**
+
 ```bash
 git commit -m "build(vite): manual chunks + bundle analyzer script (T20)"
 ```
@@ -1282,6 +1448,7 @@ git commit -m "build(vite): manual chunks + bundle analyzer script (T20)"
 ## T21 — Testes de componentes React
 
 **Ficheiros:**
+
 - `vitest.config.ts` (actualizar)
 - `tests/setup.ts` (novo)
 - `tests/components/DropZone.test.tsx` (novo)
@@ -1290,6 +1457,7 @@ git commit -m "build(vite): manual chunks + bundle analyzer script (T20)"
 **Implementação:**
 
 1. `vitest.config.ts`:
+
 ```ts
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
@@ -1310,6 +1478,7 @@ export default defineConfig({
 ```
 
 2. `tests/setup.ts`:
+
 ```ts
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
@@ -1324,6 +1493,7 @@ vi.mock('@tauri-apps/api/event', () => ({
 ```
 
 3. `tests/components/DropZone.test.tsx`:
+
 ```tsx
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -1349,12 +1519,15 @@ describe('DropZone', () => {
 ```
 
 **Validação:**
+
 ```bash
 npm run test:coverage
 ```
+
 Os 24 tests existentes mais 2 novos. Coverage ≥ 60%.
 
 **Commit:**
+
 ```bash
 git commit -m "test(components): add Testing Library setup and DropZone tests (T21)"
 ```
@@ -1364,68 +1537,73 @@ git commit -m "test(components): add Testing Library setup and DropZone tests (T
 ## T22 — Dependabot e CI mais robusta
 
 **Ficheiros:**
+
 - `.github/dependabot.yml` (novo)
 - `.github/workflows/ci.yml` (actualizar)
 
 **Implementação:**
 
 1. `.github/dependabot.yml`:
+
 ```yaml
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
+      interval: 'weekly'
     open-pull-requests-limit: 5
     groups:
       tauri:
-        patterns: ["@tauri-apps/*", "tauri-plugin-*"]
+        patterns: ['@tauri-apps/*', 'tauri-plugin-*']
       react:
-        patterns: ["react", "react-dom", "@types/react*"]
+        patterns: ['react', 'react-dom', '@types/react*']
       testing:
-        patterns: ["vitest", "@testing-library/*", "jsdom"]
-  - package-ecosystem: "cargo"
-    directory: "/src-tauri"
+        patterns: ['vitest', '@testing-library/*', 'jsdom']
+  - package-ecosystem: 'cargo'
+    directory: '/src-tauri'
     schedule:
-      interval: "weekly"
+      interval: 'weekly'
     open-pull-requests-limit: 5
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "monthly"
+      interval: 'monthly'
 ```
 
 2. Em `.github/workflows/ci.yml`, adicionar jobs (não remover os existentes):
-```yaml
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run format:check
 
-  test-rust:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with: { components: clippy }
-      - run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev
-      - run: cd src-tauri && cargo clippy --all-targets -- -D warnings
-      - run: cd src-tauri && cargo test
+```yaml
+lint:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with: { node-version: 20, cache: npm }
+    - run: npm ci
+    - run: npm run lint
+    - run: npm run format:check
+
+test-rust:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+      with: { components: clippy }
+    - run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev
+    - run: cd src-tauri && cargo clippy --all-targets -- -D warnings
+    - run: cd src-tauri && cargo test
 ```
 
 **Validação:**
+
 ```bash
 # push e ver no GitHub se os jobs aparecem verdes
 git push origin chore/audit-v0.18
 ```
 
 **Commit:**
+
 ```bash
 git commit -m "ci: dependabot + lint and rust jobs in CI (T22)"
 ```
@@ -1439,11 +1617,13 @@ git commit -m "ci: dependabot + lint and rust jobs in CI (T22)"
 **Objectivo:** Documentar o processo. Não há execução automática nesta tarefa — depende de certificados que o utilizador tem de adquirir/configurar como secrets.
 
 **Ficheiros:**
+
 - `docs/RELEASE.md` (novo)
 
 **Implementação:**
 
 Criar `docs/RELEASE.md` com:
+
 - Como gerar key pair de updater (`npm run tauri signer generate -- -w ~/.tauri/myapp.key`).
 - Quais secrets configurar no GitHub Actions (`TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`, `WINDOWS_CERTIFICATE`, `WINDOWS_CERTIFICATE_PASSWORD`).
 - Workflow de release: tag → build → assina → publica → updater pega.
@@ -1452,6 +1632,7 @@ Criar `docs/RELEASE.md` com:
 **Validação:** documento existe e está no índice do `README.md`.
 
 **Commit:**
+
 ```bash
 git commit -m "docs(release): document code signing workflow (T23)"
 ```
@@ -1463,6 +1644,7 @@ git commit -m "docs(release): document code signing workflow (T23)"
 **Objectivo:** Capturar crashes em produção, **apenas com consentimento explícito do utilizador**.
 
 **Ficheiros:**
+
 - `package.json` (`@sentry/react`)
 - `src/lib/telemetry.ts` (novo)
 - `src/main.tsx`
@@ -1473,6 +1655,7 @@ git commit -m "docs(release): document code signing workflow (T23)"
 1. Adicionar `@sentry/react` e `@sentry/tauri` (se disponível) ou usar apenas `@sentry/react`.
 
 2. `src/lib/telemetry.ts`:
+
 ```ts
 import * as Sentry from '@sentry/react';
 
@@ -1494,12 +1677,14 @@ export function initTelemetry(enabled: boolean) {
 ```
 
 3. Em `main.tsx`, ler a setting:
+
 ```tsx
-const telemetryEnabled = await store.get<boolean>('telemetryEnabled') ?? false;
+const telemetryEnabled = (await store.get<boolean>('telemetryEnabled')) ?? false;
 initTelemetry(telemetryEnabled);
 ```
 
 4. Em `SettingsPage.tsx`, adicionar toggle com descrição clara em PT-PT:
+
 ```tsx
 <Switch
   label="Enviar relatórios de erros anónimos"
@@ -1512,12 +1697,15 @@ initTelemetry(telemetryEnabled);
 > **Importante:** o toggle vem desactivado por defeito. A app **não** envia nada até o utilizador o ligar explicitamente.
 
 **Validação:**
+
 ```bash
 npm run typecheck
 ```
+
 Manual: toggle aparece desactivado; ao activar e provocar um erro (botão de debug), o evento aparece no dashboard Sentry.
 
 **Commit:**
+
 ```bash
 git commit -m "feat(telemetry): opt-in Sentry crash reporting (T24)"
 ```
@@ -1529,6 +1717,7 @@ git commit -m "feat(telemetry): opt-in Sentry crash reporting (T24)"
 ## T25 — Bump de versão e CHANGELOG
 
 **Ficheiros:**
+
 - `package.json`
 - `src-tauri/Cargo.toml`
 - `src-tauri/tauri.conf.json`
@@ -1537,24 +1726,29 @@ git commit -m "feat(telemetry): opt-in Sentry crash reporting (T24)"
 **Implementação:**
 
 Actualizar version para `0.18.0` nos três ficheiros. No `CHANGELOG.md`, adicionar:
+
 ```markdown
 ## [0.18.0] - 2026-MM-DD
 
 ### Corrigido
+
 - Drag-and-drop de ficheiros agora funciona em todas as plataformas (T03, T04)
 - Sidecar Node.js arranca correctamente em produção (T05)
 - Versão da aplicação mostrada dinamicamente na UI (T06)
 
 ### Segurança
+
 - CSP estrita configurada (T07)
 - Capabilities aplicam least-privilege (T08)
 
 ### Performance
+
 - Eliminada duplicação de conexões SQLite (T09)
 - Polling substituído por eventos Tauri (T10)
 - LibraryPage virtualizada com TanStack Virtual (T16)
 
 ### Melhorias
+
 - Settings persistidas via tauri-plugin-store (T11)
 - Logging unificado com tauri-plugin-log (T12)
 - Toasts modernizados com sonner (T14)
@@ -1562,6 +1756,7 @@ Actualizar version para `0.18.0` nos três ficheiros. No `CHANGELOG.md`, adicion
 - Dashboard com gráficos recharts (T17)
 
 ### Qualidade
+
 - ESLint + Prettier configurados (T18)
 - Pre-commit hooks via husky (T19)
 - Bundle analyzer integrado (T20)
@@ -1570,6 +1765,7 @@ Actualizar version para `0.18.0` nos três ficheiros. No `CHANGELOG.md`, adicion
 ```
 
 **Validação:**
+
 ```bash
 npm run typecheck
 npm run lint
@@ -1578,9 +1774,11 @@ npm run build
 cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test && cd ..
 npm run tauri build -- --debug
 ```
+
 **Todos** os comandos têm de passar antes de fazer merge.
 
 **Commit:**
+
 ```bash
 git add CHANGELOG.md package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json
 git commit -m "chore(release): bump version to 0.18.0 (T25)"
@@ -1600,16 +1798,19 @@ Implementa 24 tarefas (T01–T25) que cobrem bugs bloqueantes, segurança, perfo
 qualidade de código e UX.
 
 ## Bugs corrigidos
+
 - ✅ Drag-and-drop inoperante (T03, T04)
 - ✅ Sidecar nunca arrancava (T05)
 - ✅ Versão hardcoded (T06)
 
 ## Mudanças quebradoras (breaking)
+
 - Nenhuma para o utilizador final. Para developers:
   - Settings migradas automaticamente de localStorage para tauri-plugin-store.
   - `better-sqlite3` removido do sidecar — IPC via stdout é o único canal.
 
 ## Como testar
+
 1. `git checkout chore/audit-v0.18 && npm ci && npm run tauri dev`
 2. Arrastar `.mp4` para a janela → tem de aparecer na biblioteca.
 3. Submeter um job → progress bar tem de actualizar fluído.
@@ -1617,11 +1818,13 @@ qualidade de código e UX.
 5. DevTools console → zero erros de CSP nos fluxos principais.
 
 ## Métricas
+
 - Bundle JS: antes / depois (correr `npm run build:analyze` antes e depois)
 - Coverage: antes / depois
 - Tempo de arranque: antes / depois
 
 ## Checklist
+
 - [x] `npm run typecheck`
 - [x] `npm run lint`
 - [x] `npm run test:coverage` ≥ 60%
@@ -1629,8 +1832,8 @@ qualidade de código e UX.
 - [x] `cargo test`
 - [x] `npm run tauri build -- --debug`
 - [x] Testado manualmente em Windows
-- [ ] Testado manualmente em macOS  *(se aplicável)*
-- [ ] Testado manualmente em Linux  *(se aplicável)*
+- [ ] Testado manualmente em macOS _(se aplicável)_
+- [ ] Testado manualmente em Linux _(se aplicável)_
 ```
 
 ---

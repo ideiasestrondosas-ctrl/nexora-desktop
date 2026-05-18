@@ -5,71 +5,71 @@
 
 ---
 
-Actualizado: 2026-05-17 17:00
-Agente: Claude Code
+Actualizado: 2026-05-18
+Agente: OpenCode (Kimi k2.6)
 
 ## O que foi feito
 
-### Sessao Actual — v0.20.0 Melhorias + GitHub Cleanup — CONCLUIDO
+### Sessao 5 — Correção CI/CD (format:check, cargo clippy, placeholders) — CONCLUIDO
 
-**Commit mais recente:** `457fb6f` em `dev` (Videos_Tests)
+**Problema:** GitHub Actions `ci.yml` e `build.yml` com erros em TODAS as plataformas.
 
-**v0.20.0 completo — tudo concluido:**
+**Diagnóstico:**
 
-1. **v0.20.0-A** — settings.rs: `default_output_dir()` aponta para `Videos/Nexora Output` (Windows/macOS/Linux) em vez de temp
-2. **v0.20.0-B** — AssetDetailPage: toggle Original/Processado na aba Metadados com banner de caminho; MediaInfoPanel mostra metadata do ficheiro activo
-3. **v0.20.0-C** — Player inline: caminho do ficheiro visivel sob o toggle (path completo truncado)
-4. **v0.20.0-D** — GitHub cleanup COMPLETO:
-   - Merge dev → main (fast-forward, commit `30d968a`)
-   - Branch `chore/audit-v0.18` eliminada (local + remoto)
-   - 11 PRs Dependabot encerrados (#1–#11)
-   - 6 releases draft eliminadas (v0.17.0, v0.16.0, v0.15.0, v0.14.0, v0.3.5, v0.3.4)
-   - Repositorio limpo: apenas branches `main` e `dev`, sem releases nem PRs abertos
-5. **v0.20.0-E** — Videos_Tests/ adicionado ao git (18 samples: 5s/10s/15s/20s/30s em 360p/720p/1080p/2160p/H265/VP9)
+- `lint-and-test` (Ubuntu): `format:check` falhava — 63 ficheiros não formatados com Prettier
+- `rust-check` (Windows/macOS): `cargo clippy` falhava — `tauri_build::build()` exige binários `externalBin` (FFmpeg/FFprobe) que não existem no CI (estão no `.gitignore`)
+- `rust-check` (Linux): `cargo fmt --check` falhava — código Rust nunca formatado com `cargo fmt`
+- `rust-check` (macOS/Linux): `libc` não declarado em `Cargo.toml` — código Unix usava `libc::kill()` sem a crate
+- `build.yml`: usava `npm install` em vez de `npm ci`; tinha input inválido `includeUpdaterJson`; `bundle.targets: "all"` tentava `.rpm` no Linux sem tooling
 
-**Correcoes adicionais no AssetDetailPage:**
+**Correcções aplicadas:**
 
-- Duracao dos jobs calculada de `started_at`/`finished_at` (era hardcoded "2m 04s")
-- Data de inicio mostra `started_at` com hora (era `created_at` sem hora)
-- `output_path` no historico: path completo + botao ExternalLink
+1. `npm run format` + `cargo fmt` — formatados todos os ficheiros (63 Prettier + ~15 Rust)
+2. `ci.yml` — adicionado step "Create resource placeholders" no job `rust-check` (cria ficheiros vazios para FFmpeg/FFprobe + sidecar antes do `cargo clippy`)
+3. Código Rust — corrigidos 7 erros de Clippy:
+   - `drop(state)` removido (`State` não implementa `Drop`)
+   - `n % 100 == 0` → `n.is_multiple_of(100)`
+   - `.max(1).min(8)` → `.clamp(1, 8)`
+   - `#[allow(clippy::type_complexity)]` no tipo `Vec<(...11 tipos...)>`
+   - `#[allow(clippy::too_many_arguments)]` na função `run_job` (13 args)
+   - `nets.iter().map(|(_, n)| ...)` → `nets.values().map(...)` (2 ocorrências)
+4. `Cargo.toml` — adicionada dependência condicional `[target.'cfg(not(target_os = "windows"))'.dependencies] libc = "0.2"`
+5. `build.yml` — `npm install` → `npm ci`; removido `includeUpdaterJson: true`
+6. `tauri.conf.json` — `bundle.targets: "all"` → `["deb", "appimage", "msi", "nsis", "dmg", "app"]`
 
-**MediaInfoPanel — Copy All:**
+**Verificação local:**
 
-- Adicionados TAGS e SHA-256 na funcao `generateTextReport()`
+- `npm run format:check`: OK
+- `npm run lint`: OK
+- `cargo fmt --check`: OK
+- `cargo clippy -- -D warnings`: OK
 
-**Versao bumped:** 0.19.0 → 0.20.0 em package.json, Cargo.toml, tauri.conf.json, version.ts, CHANGELOG.md
+**Verificação GitHub Actions (run #92):**
 
----
-
-## Estado de compilacao
-
-- `tsc --noEmit`: **OK** (0 erros — verificar apos as alteracoes de hoje)
-- `cargo check`: **OK** (0 erros — v0.20.0)
-- `npm run lint`: **OK** (0 warnings)
-- `npm run sidecar:build`: **OK** (31.7kb)
-- `vitest run`: **OK** (15 testes)
-- Validacao JSON i18n: **OK** (15 linguas completas)
+- `lint-and-test` (Ubuntu): ✅ OK
+- `rust-check` Windows: ✅ OK
+- `rust-check` macOS: ✅ OK
+- `rust-check` Linux: ✅ OK
+- Todas as plataformas passaram
 
 ---
 
 ## Estado das branches
 
-- `dev`: commit `457fb6f` — v0.20.0 completo (ainda nao pushed — fazer `git push origin dev`)
-- `main`: commit `30d968a` — v0.20.0 merged
+- `dev`: Sessao 5 (CI/CD fixes) committed e pushed — em sincronia com remote
+- `main`: commit anterior (v0.20.0 area)
 - Remote: apenas `main` e `dev`
 
 ---
 
-## Proximos passos (v0.21.0 ou validacao manual)
+## Proximos passos (v0.22.0 ou seguinte)
 
-| Tarefa                                                                   | Prioridade |
-| ------------------------------------------------------------------------ | ---------- |
-| Fazer `git push origin dev` para sincronizar Videos_Tests + version bump | Critica    |
-| Testar fluxo real: tauri dev + drag-drop + processamento                 | Critica    |
-| Verificar se retry/reprocess funciona (job volta a processing)           | Alta       |
-| Actualizar screenshots e manual do utilizador (15 linguas)               | Media      |
-| Verificar que o main tem builds Windows/macOS/Linux para v0.19.0         | Media      |
-| Criar release v0.20.0 no GitHub com notas e binarios                     | Baixa      |
+| Tarefa                                                              | Prioridade | Plan item |
+| ------------------------------------------------------------------- | ---------- | --------- |
+| B6: dedup startup_checks — cachear resultado em AppState            | Baixa      | B6        |
+| Traducao profissional dos locales nao-pt (fallback em pt por agora) | Media      | -         |
+| Screenshots / documentacao visual actualizada                       | Baixa      | -         |
+| tauri dev golden path — testar drag-drop end-to-end                 | Alta       | -         |
 
 ---
 
@@ -79,7 +79,8 @@ Agente: Claude Code
 - **15 linguas i18n completas** — ao adicionar texto novo, traduzir SEMPRE todos os 15 locales em `src/i18n/locales/`
 - **FFmpeg execFile** — NUNCA usar `exec` com string; sempre `execFile` com array de argumentos
 - **VMAF model escaping no Windows** — no filtergraph `-lavfi`, os caminhos absolutos como `C:/path` no Windows geram erro. Substituir sempre por `C\:/path` no `libvmaf=model='path=...'`.
-- **QCPreWorker** — lanca erro se `!ctx.assetVideoCodec` (null/undefined); o IngestWorker garante que esta preenchido apos o passo 0
+- **active_pids** — `AppState` tem `active_pids: Mutex<HashMap<String, u32>>` para matar processos Node.js ao cancelar
+- **list_assets_slim** — usar em listagens (Dashboard, LibraryPage) em vez de `list_assets` para evitar metadata JSON pesado
+- **sidecar:event** — QueuePage e DashboardPage ouvem este evento para actualizacoes em tempo real; polling e fallback a 30s
 - **tauri-plugin-store** — settings persistem em ficheiro nativo; nao usar localStorage
-- **INSERT OR IGNORE em settings** — o `ensure_defaults()` so insere se a chave nao existir; utilizadores existentes MANTEM o output_dir anterior
-- **Videos_Tests/** — ja no git; nao ignorado; 18 samples de video de teste
+- **Videos_Tests/** — ja no git; 18 samples de video de teste

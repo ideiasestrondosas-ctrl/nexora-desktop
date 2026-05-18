@@ -1,5 +1,6 @@
 {
   "name": "web-hd",
+  "labelFriendly": "Web HD (YouTube / Vimeo)",
   "description": "Web / OTT HD 1080p — streaming",
   "videoCodec": "libx264",
   "videoBitrateK": 5000,

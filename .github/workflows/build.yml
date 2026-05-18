@@ -73,7 +73,7 @@ jobs:
             libssl-dev
 
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
 
       # Descarregar FFmpeg e FFprobe para a plataforma alvo
       - name: Download media binaries
@@ -116,4 +116,3 @@ jobs:
           releaseDraft: ${{ github.event.inputs.release_draft != 'false' }}
           prerelease: false
           args: ${{ matrix.args }}
-          includeUpdaterJson: true

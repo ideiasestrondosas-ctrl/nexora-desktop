@@ -24,19 +24,22 @@ const execAsync = promisify(exec);
 
 // ── Argumentos opcionais ─────────────────────────────────────────────────────
 
-const args  = process.argv.slice(2);
-const flag  = (f) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
+const args = process.argv.slice(2);
+const flag = (f) => {
+  const i = args.indexOf(f);
+  return i >= 0 ? args[i + 1] : null;
+};
 const argPlatform = flag('--platform') ?? process.platform;
-const argArch     = flag('--arch')     ?? process.arch;
+const argArch = flag('--arch') ?? process.arch;
 
 // ── Mapeamento plataforma → Rust target triple ───────────────────────────────
 
 const TARGET_MAP = {
-  'win32-x64':    'x86_64-pc-windows-msvc',
-  'darwin-x64':   'x86_64-apple-darwin',
+  'win32-x64': 'x86_64-pc-windows-msvc',
+  'darwin-x64': 'x86_64-apple-darwin',
   'darwin-arm64': 'aarch64-apple-darwin',
-  'linux-x64':    'x86_64-unknown-linux-gnu',
-  'linux-arm64':  'aarch64-unknown-linux-gnu',
+  'linux-x64': 'x86_64-unknown-linux-gnu',
+  'linux-arm64': 'aarch64-unknown-linux-gnu',
 };
 
 // ── URLs BtbN (Windows / Linux) ───────────────────────────────────────────────
@@ -44,16 +47,22 @@ const TARGET_MAP = {
 const BTBN = 'https://github.com/BtbN/FFmpeg-Builds/releases/latest/download';
 
 const BTBN_BUNDLES = {
-  'win32-x64':   { file: 'ffmpeg-master-latest-win64-gpl.zip',       type: 'zip' },
-  'win32-arm64': { file: 'ffmpeg-master-latest-win32-gpl.zip',        type: 'zip' },
-  'linux-x64':   { file: 'ffmpeg-master-latest-linux64-gpl.tar.xz',  type: 'tar' },
+  'win32-x64': { file: 'ffmpeg-master-latest-win64-gpl.zip', type: 'zip' },
+  'win32-arm64': { file: 'ffmpeg-master-latest-win32-gpl.zip', type: 'zip' },
+  'linux-x64': { file: 'ffmpeg-master-latest-linux64-gpl.tar.xz', type: 'tar' },
   'linux-arm64': { file: 'ffmpeg-master-latest-linuxarm64-gpl.tar.xz', type: 'tar' },
 };
 
 // evermeet.cx — binários estáticos macOS por arquitectura
 const EVERMEET = {
-  'arm64': { ffmpeg: 'https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip',  ffprobe: 'https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip' },
-  'x64':   { ffmpeg: 'https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip',  ffprobe: 'https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip' },
+  arm64: {
+    ffmpeg: 'https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip',
+    ffprobe: 'https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip',
+  },
+  x64: {
+    ffmpeg: 'https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip',
+    ffprobe: 'https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip',
+  },
 };
 
 // ── HTTP com redirect ─────────────────────────────────────────────────────────
@@ -87,7 +96,7 @@ async function extractZip(zipPath, outDir) {
   if (process.platform === 'win32') {
     await execAsync(
       `powershell -NoProfile -Command "Expand-Archive -Force '${zipPath}' '${outDir}'"`,
-      { timeout: 120_000 }
+      { timeout: 120_000 },
     );
   } else {
     await execAsync(`unzip -q -o "${zipPath}" -d "${outDir}"`, { timeout: 120_000 });
@@ -118,7 +127,7 @@ function findFile(dir, name) {
 
 async function downloadBinary(url, binName, extractType, tmpBase) {
   const archivePath = `${tmpBase}.${extractType === 'zip' ? 'zip' : 'tar.xz'}`;
-  const extractDir  = `${tmpBase}-out`;
+  const extractDir = `${tmpBase}-out`;
 
   await downloadTo(url, archivePath);
   if (extractType === 'zip') {
@@ -136,9 +145,9 @@ async function downloadBinary(url, binName, extractType, tmpBase) {
 
 async function main() {
   const platform = argPlatform;
-  const arch     = argArch;
-  const outDir   = join(process.cwd(), 'src-tauri', 'binaries');
-  const tmpBase  = join(tmpdir(), `nexora-ffmpeg-${Date.now()}`);
+  const arch = argArch;
+  const outDir = join(process.cwd(), 'src-tauri', 'binaries');
+  const tmpBase = join(tmpdir(), `nexora-ffmpeg-${Date.now()}`);
 
   mkdirSync(outDir, { recursive: true });
 
@@ -159,10 +168,10 @@ async function main() {
         if (!p) return null;
         const { stdout: fileInfo } = await execAsync(`file "${p}"`);
         const hasArm64 = fileInfo.includes('arm64');
-        const hasX64   = fileInfo.includes('x86_64');
+        const hasX64 = fileInfo.includes('x86_64');
         if (hasArm64 && hasX64) return { path: p, arch: 'universal' };
-        if (hasArm64)           return { path: p, arch: 'arm64' };
-        if (hasX64)             return { path: p, arch: 'x64' };
+        if (hasArm64) return { path: p, arch: 'arm64' };
+        if (hasX64) return { path: p, arch: 'x64' };
       } catch {}
       return null;
     }
@@ -198,8 +207,8 @@ async function main() {
       // Usado para o slot x64 e como fallback para arm64 se não houver binário do sistema
       let evermeetPath = null;
       {
-        const url     = EVERMEET.x64[tool];
-        const tmpDir  = `${tmpBase}-${tool}-evermeet`;
+        const url = EVERMEET.x64[tool];
+        const tmpDir = `${tmpBase}-${tool}-evermeet`;
         const { found, extractDir } = await downloadBinary(url, tool, 'zip', tmpDir);
         if (found) {
           evermeetPath = `${tmpBase}-${tool}-evermeet-bin`;
@@ -227,11 +236,13 @@ async function main() {
 
       // Criar binário universal com lipo
       const universalDest = join(outDir, `${tool}-universal-apple-darwin`);
-      const sliceList = ['arm64', 'x64'].map(a => slicePaths[a]).filter(Boolean);
+      const sliceList = ['arm64', 'x64'].map((a) => slicePaths[a]).filter(Boolean);
 
       if (sliceList.length === 2) {
         try {
-          await execAsync(`lipo -create -output "${universalDest}" ${sliceList.map(s => `"${s}"`).join(' ')}`);
+          await execAsync(
+            `lipo -create -output "${universalDest}" ${sliceList.map((s) => `"${s}"`).join(' ')}`,
+          );
           chmodSync(universalDest, 0o755);
           console.log(`  ✓ ${tool}-universal-apple-darwin (fat binary arm64+x86_64)`);
         } catch (e) {
@@ -261,9 +272,9 @@ async function main() {
 
   // ── Windows / Linux: bundle único da BtbN ────────────────────────────────
 
-  const key    = `${platform}-${arch}`;
+  const key = `${platform}-${arch}`;
   const triple = TARGET_MAP[key];
-  const ext    = platform === 'win32' ? '.exe' : '';
+  const ext = platform === 'win32' ? '.exe' : '';
 
   if (!triple) {
     console.error(`Plataforma não suportada: ${key}`);
@@ -281,11 +292,11 @@ async function main() {
 
   const bins = platform === 'win32' ? ['ffmpeg.exe', 'ffprobe.exe'] : ['ffmpeg', 'ffprobe'];
   const archivePath = `${tmpBase}.${bundle.type === 'zip' ? 'zip' : 'tar.xz'}`;
-  const extractDir  = `${tmpBase}-out`;
+  const extractDir = `${tmpBase}-out`;
 
   const urls = [
     `${BTBN}/${bundle.file}`,
-    `https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/${bundle.file}`
+    `https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/${bundle.file}`,
   ];
 
   let lastError;
@@ -311,7 +322,7 @@ async function main() {
   }
 
   for (const bin of bins) {
-    const src  = findFile(extractDir, bin);
+    const src = findFile(extractDir, bin);
     const dest = join(outDir, bin.replace(/\.exe$/, '') + `-${triple}${ext}`);
     if (src) {
       await copyFile(src, dest);

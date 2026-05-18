@@ -1,5 +1,6 @@
 {
   "name": "web-4k",
+  "labelFriendly": "Ultra HD 4K (OTT)",
   "description": "Web / OTT 4K UHD 2160p",
   "videoCodec": "libx264",
   "videoBitrateK": 20000,

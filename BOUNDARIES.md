@@ -13,15 +13,16 @@
 O mesmo repositorio GitHub (`nexora-desktop`) e usado em Windows, macOS e Linux.
 O Tauri nao suporta cross-compilation — cada instalador deve ser compilado no SO alvo.
 
-| SO | Workspace local | Script de sync | Instalador gerado |
-|---|---|---|---|
+| SO         | Workspace local         | Script de sync     | Instalador gerado     |
+| ---------- | ----------------------- | ------------------ | --------------------- |
 | Windows 11 | `C:\Dev\nexora-desktop` | `scripts\sync.ps1` | `.msi`, `.exe` (NSIS) |
-| macOS | `~/Dev/nexora-desktop` | `scripts/sync.sh` | `.dmg` (Universal) |
-| Linux | `~/Dev/nexora-desktop` | `scripts/sync.sh` | `.deb`, `.AppImage` |
+| macOS      | `~/Dev/nexora-desktop`  | `scripts/sync.sh`  | `.dmg` (Universal)    |
+| Linux      | `~/Dev/nexora-desktop`  | `scripts/sync.sh`  | `.deb`, `.AppImage`   |
 
 ### GitHub Actions — builds automaticos
 
 Os workflows em `.github/workflows/` tratam das builds de release:
+
 - `ci.yml` — verifica TypeScript + Rust (clippy/fmt/tests) em cada push para `main`/`dev`
 - `build.yml` — compila os instaladores para as 3 plataformas quando publicas uma tag `v*`
 
@@ -44,8 +45,8 @@ fn get_app_dir() -> PathBuf { dirs::data_dir().unwrap().join("nexora-desktop") }
 
 ```typescript
 // TypeScript — React
-import { platform } from '@tauri-apps/api/os'
-const os = await platform()  // 'win32' | 'darwin' | 'linux'
+import { platform } from '@tauri-apps/api/os';
+const os = await platform(); // 'win32' | 'darwin' | 'linux'
 ```
 
 ### Ao mudar de SO
@@ -60,40 +61,40 @@ const os = await platform()  // 'win32' | 'darwin' | 'linux'
 
 ## ZONA VERMELHA — Proibido a Todos os Agentes
 
-| Caminho | Razão |
-|---|---|
-| `C:\Dev\Nexora Media Processing\src\` | Servidor em produção |
-| `C:\Dev\Nexora Media Processing\prisma\` | Schema PostgreSQL |
-| `C:\Dev\Nexora Media Processing\docker-compose.yml` | Infra de produção |
-| `C:\Dev\Nexora Media Processing\.antigravity\` | Config Antigravity do servidor |
-| `C:\Dev\Nexora Media Processing\.agents\` | Skills do servidor |
-| `C:\Dev\Nexora Media Processing\PROGRESS.md` | Rastreamento do servidor |
-| `C:\Dev\Nexora Media Processing\.env` | Segredos de produção |
+| Caminho                                             | Razão                          |
+| --------------------------------------------------- | ------------------------------ |
+| `C:\Dev\Nexora Media Processing\src\`               | Servidor em produção           |
+| `C:\Dev\Nexora Media Processing\prisma\`            | Schema PostgreSQL              |
+| `C:\Dev\Nexora Media Processing\docker-compose.yml` | Infra de produção              |
+| `C:\Dev\Nexora Media Processing\.antigravity\`      | Config Antigravity do servidor |
+| `C:\Dev\Nexora Media Processing\.agents\`           | Skills do servidor             |
+| `C:\Dev\Nexora Media Processing\PROGRESS.md`        | Rastreamento do servidor       |
+| `C:\Dev\Nexora Media Processing\.env`               | Segredos de produção           |
 
 ---
 
 ## ZONA VERDE — Escrita Total (C:\Dev\nexora-desktop\)
 
-| Caminho | O que criar/modificar |
-|---|---|
-| `src\` | Componentes React, páginas, hooks, stores |
-| `src-tauri\src\` | Rust: commands, tray, sidecar, db |
-| `sidecar\` | Workers Node.js, queue, orchestrator |
-| `tests\` | Testes unitários e de integração |
-| `scripts\` | Scripts de automação |
-| `.github\workflows\` | CI/CD do desktop |
-| `PROGRESS-DESKTOP.md` | SEMPRE actualizar no fim |
-| `SYNC-STATE.md` | Actualizar no handoff |
+| Caminho               | O que criar/modificar                     |
+| --------------------- | ----------------------------------------- |
+| `src\`                | Componentes React, páginas, hooks, stores |
+| `src-tauri\src\`      | Rust: commands, tray, sidecar, db         |
+| `sidecar\`            | Workers Node.js, queue, orchestrator      |
+| `tests\`              | Testes unitários e de integração          |
+| `scripts\`            | Scripts de automação                      |
+| `.github\workflows\`  | CI/CD do desktop                          |
+| `PROGRESS-DESKTOP.md` | SEMPRE actualizar no fim                  |
+| `SYNC-STATE.md`       | Actualizar no handoff                     |
 
 ---
 
 ## Somente Leitura (Referência)
 
-| Caminho | Para que serve |
-|---|---|
-| `nexora-desktop-documento.md` | Especificação técnica completa |
+| Caminho                                       | Para que serve                  |
+| --------------------------------------------- | ------------------------------- |
+| `nexora-desktop-documento.md`                 | Especificação técnica completa  |
 | `C:\Dev\Nexora Media Processing\src\workers\` | Referência para adaptar workers |
-| `C:\Dev\Nexora Media Processing\arquitetura\` | Documentação do projecto base |
+| `C:\Dev\Nexora Media Processing\arquitetura\` | Documentação do projecto base   |
 
 ---
 
@@ -104,20 +105,25 @@ Ao terminar uma sessão, actualiza:
 **PROGRESS-DESKTOP.md** — marca o que ficou pronto
 
 **SYNC-STATE.md:**
+
 ```markdown
 Actualizado: YYYY-MM-DD HH:MM
 Agente: Claude Code / Antigravity
 
 ## Concluido
+
 - [lista]
 
 ## Proximo passo exacto
+
 1. [passo especifico]
 
 ## Ficheiros tocados
+
 - [paths]
 
 ## Estado de compilacao
+
 - cargo check: OK/FALHOU
 - tsc --noEmit: OK/FALHOU
 - esbuild: OK/FALHOU
@@ -128,31 +134,38 @@ Agente: Claude Code / Antigravity
 ## Protocolo Git — Regras de Sincronizacao
 
 ### Regra fundamental
+
 **Nunca dois agentes a escrever ao mesmo tempo.**
 Claude Code e Antigravity partilham o mesmo repositorio Git.
 Usa o `sync.ps1` para garantir que cada sessao comeca e acaba sincronizada.
 
 ### Inicio de sessao (OBRIGATORIO)
+
 ```powershell
 # A partir de C:\Dev\nexora-desktop
 powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -action start
 ```
+
 Este comando faz `git pull --rebase` e mostra o SYNC-STATE.md do outro agente.
 **Nao comeces a trabalhar sem correr isto.**
 
 ### Fim de sessao (OBRIGATORIO)
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -action end -message "feat: descricao do trabalho"
 ```
+
 Este comando faz `git add --all`, commit e `git push`.
 Avisa se o SYNC-STATE.md nao foi actualizado.
 
 ### Ver estado actual (a qualquer momento)
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -action status
 ```
 
 ### O que acontece se ambos trabalharem ao mesmo tempo
+
 - Git detecta o conflito no `push` do segundo agente
 - O segundo agente tem de correr `git pull --rebase` antes do push
 - Se houver conflito real num ficheiro, o `sync.ps1 -action start` avisa
@@ -164,10 +177,10 @@ powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -action status
 
 ### Os dois workspaces
 
-| Workspace | Caminho | IDE | Repositorio |
-|---|---|---|---|
-| Desktop (Tauri) | `C:\Dev\nexora-desktop` | Claude Code + Antigravity | `github.com/user/nexora-desktop` |
-| Servidor (Node) | `C:\Dev\Nexora Media Processing` | Antigravity | `github.com/user/nexora-media-processing` |
+| Workspace       | Caminho                          | IDE                       | Repositorio                               |
+| --------------- | -------------------------------- | ------------------------- | ----------------------------------------- |
+| Desktop (Tauri) | `C:\Dev\nexora-desktop`          | Claude Code + Antigravity | `github.com/user/nexora-desktop`          |
+| Servidor (Node) | `C:\Dev\Nexora Media Processing` | Antigravity               | `github.com/user/nexora-media-processing` |
 
 ### Como o Antigravity distingue os dois
 
@@ -176,10 +189,10 @@ Cada workspace tem o seu proprio `.antigravity\rules.md` com os caminhos permiti
 
 **REGRA: Abre sempre pelo ficheiro `.code-workspace`, nunca pela pasta directamente.**
 
-| Workspace | Ficheiro a abrir no Antigravity |
-|---|---|
-| Desktop | `C:\Dev\nexora-desktop\nexora-desktop.code-workspace` |
-| Servidor | `C:\Dev\Nexora Media Processing\nexora-server.code-workspace` (ou equivalente) |
+| Workspace | Ficheiro a abrir no Antigravity                                                |
+| --------- | ------------------------------------------------------------------------------ |
+| Desktop   | `C:\Dev\nexora-desktop\nexora-desktop.code-workspace`                          |
+| Servidor  | `C:\Dev\Nexora Media Processing\nexora-server.code-workspace` (ou equivalente) |
 
 Podes ter **duas janelas do Antigravity abertas ao mesmo tempo** — uma para cada workspace.
 O Antigravity carrega o `.antigravity\rules.md` da raiz do workspace activo.
@@ -199,6 +212,7 @@ claude
 ```
 
 O `.claude\settings.json` do desktop tem `deny` explicito para nao escrever no servidor:
+
 ```json
 "deny": ["Write(C:\\Dev\\Nexora Media Processing\\**)" ]
 ```
@@ -217,4 +231,4 @@ O `.claude\settings.json` do desktop tem `deny` explicito para nao escrever no s
 3. [ ] SYNC-STATE.md lido
 4. [ ] Primeira mensagem ao Claude: "Le PROGRESS-DESKTOP.md e SYNC-STATE.md e diz-me o estado actual."
 
-*Ultima revisao: Maio 2026*
+_Ultima revisao: Maio 2026_

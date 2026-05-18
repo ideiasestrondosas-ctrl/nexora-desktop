@@ -58,7 +58,13 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
         .env("NEXORA_DB_PATH", db_path)
         .env("NEXORA_FFMPEG_PATH", &ffmpeg_path)
         .env("NEXORA_FFPROBE_PATH", &ffprobe_path)
-        .env("NEXORA_RESOURCE_DIR", resource_dir.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default())
+        .env(
+            "NEXORA_RESOURCE_DIR",
+            resource_dir
+                .as_ref()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_default(),
+        )
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()
@@ -85,23 +91,60 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
                                 if let Some(t) = json.get("type").and_then(|v| v.as_str()) {
                                     match t {
                                         "log" => {
-                                            let level = json.get("level").and_then(|v| v.as_str()).unwrap_or("INFO");
-                                            let source = json.get("source").and_then(|v| v.as_str()).unwrap_or("sidecar");
-                                            let msg = json.get("message").and_then(|v| v.as_str()).unwrap_or("");
-                                            crate::logger::write(level, &format!("sidecar:{source}"), msg);
+                                            let level = json
+                                                .get("level")
+                                                .and_then(|v| v.as_str())
+                                                .unwrap_or("INFO");
+                                            let source = json
+                                                .get("source")
+                                                .and_then(|v| v.as_str())
+                                                .unwrap_or("sidecar");
+                                            let msg = json
+                                                .get("message")
+                                                .and_then(|v| v.as_str())
+                                                .unwrap_or("");
+                                            crate::logger::write(
+                                                level,
+                                                &format!("sidecar:{source}"),
+                                                msg,
+                                            );
                                         }
                                         "job:started" => {
-                                            let job_id = json.get("jobId").and_then(|v| v.as_str()).unwrap_or("?");
-                                            crate::logger::write("INFO", "sidecar:orchestrator", &format!("Job iniciado: {job_id}"));
+                                            let job_id = json
+                                                .get("jobId")
+                                                .and_then(|v| v.as_str())
+                                                .unwrap_or("?");
+                                            crate::logger::write(
+                                                "INFO",
+                                                "sidecar:orchestrator",
+                                                &format!("Job iniciado: {job_id}"),
+                                            );
                                         }
                                         "job:completed" => {
-                                            let job_id = json.get("jobId").and_then(|v| v.as_str()).unwrap_or("?");
-                                            crate::logger::write("INFO", "sidecar:orchestrator", &format!("Job concluido: {job_id}"));
+                                            let job_id = json
+                                                .get("jobId")
+                                                .and_then(|v| v.as_str())
+                                                .unwrap_or("?");
+                                            crate::logger::write(
+                                                "INFO",
+                                                "sidecar:orchestrator",
+                                                &format!("Job concluido: {job_id}"),
+                                            );
                                         }
                                         "job:failed" => {
-                                            let job_id = json.get("jobId").and_then(|v| v.as_str()).unwrap_or("?");
-                                            let err = json.get("error").and_then(|v| v.as_str()).unwrap_or("erro desconhecido");
-                                            crate::logger::write("ERROR", "sidecar:orchestrator", &format!("Job falhou: {job_id} — {err}"));
+                                            let job_id = json
+                                                .get("jobId")
+                                                .and_then(|v| v.as_str())
+                                                .unwrap_or("?");
+                                            let err = json
+                                                .get("error")
+                                                .and_then(|v| v.as_str())
+                                                .unwrap_or("erro desconhecido");
+                                            crate::logger::write(
+                                                "ERROR",
+                                                "sidecar:orchestrator",
+                                                &format!("Job falhou: {job_id} — {err}"),
+                                            );
                                         }
                                         _ => {}
                                     }
@@ -137,7 +180,10 @@ pub fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf
         // Tauri pode flattened o caminho ou manter a estrutura relativa
         for candidate in [
             resource_dir.join("nexora-sidecar.cjs"),
-            resource_dir.join("sidecar").join("dist").join("nexora-sidecar.cjs"),
+            resource_dir
+                .join("sidecar")
+                .join("dist")
+                .join("nexora-sidecar.cjs"),
         ] {
             if candidate.exists() {
                 return candidate;
@@ -173,7 +219,11 @@ pub fn resolve_script_path<R: Runtime>(app: &AppHandle<R>) -> std::path::PathBuf
 /// 2. resource_dir() do Tauri — producao (bundle do instalador)
 /// 3. Nome do comando no PATH (fallback)
 pub fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> PathBuf {
-    let ext = if cfg!(target_os = "windows") { ".exe" } else { "" };
+    let ext = if cfg!(target_os = "windows") {
+        ".exe"
+    } else {
+        ""
+    };
 
     // 1. Desenvolvimento: ao lado do executavel (Tauri copia os externalBin para target/debug/)
     if let Ok(exe) = std::env::current_exe() {

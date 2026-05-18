@@ -117,13 +117,17 @@ pub fn clear_logs(state: State<'_, AppState>) -> Result<(), String> {
 #[tauri::command]
 pub fn reset_database(state: State<'_, AppState>) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    
+
     // Apagar tabelas de dados mantendo settings e perfis
-    db.execute("DELETE FROM audit_log", []).map_err(|e| e.to_string())?;
-    db.execute("DELETE FROM jobs", []).map_err(|e| e.to_string())?;
-    db.execute("DELETE FROM assets", []).map_err(|e| e.to_string())?;
-    db.execute("DELETE FROM logs", []).map_err(|e| e.to_string())?;
-    
+    db.execute("DELETE FROM audit_log", [])
+        .map_err(|e| e.to_string())?;
+    db.execute("DELETE FROM jobs", [])
+        .map_err(|e| e.to_string())?;
+    db.execute("DELETE FROM assets", [])
+        .map_err(|e| e.to_string())?;
+    db.execute("DELETE FROM logs", [])
+        .map_err(|e| e.to_string())?;
+
     crate::logger::write("WARN", "sistema", "Base de dados resetada pelo utilizador");
     Ok(())
 }

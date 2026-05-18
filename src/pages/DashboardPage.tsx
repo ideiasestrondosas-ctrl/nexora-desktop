@@ -1,16 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke, convertFileSrc } from '@tauri-apps/api/core';
-import {
-  Archive,
-  Activity,
-  Gauge,
-  Clock,
-  Loader2,
-  Film,
-  ChevronRight,
-  ChevronDown,
-} from 'lucide-react';
+import { listen } from '@tauri-apps/api/event';
+import { logActivity } from '@/lib/activityLog';
+import { Archive, Activity, Gauge, Clock, Loader2, Film, ChevronRight, Upload } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -77,7 +70,6 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
   const { t, i18n } = useTranslation();
   const [stats, setStats] = useState<AppStats | null>(null);
   const [allJobs, setAllJobs] = useState<Job[]>([]);
-  const [showAllJobs, setShowAllJobs] = useState(false);
   const [assetMap, setAssetMap] = useState<AssetMap>({});
   const [loading, setLoading] = useState(true);
   const metrics = useSystemMetrics();
@@ -88,7 +80,9 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
       const [statsData, jobsData, assetsData] = await Promise.all([
         invoke<AppStats>('get_stats'),
         invoke<Job[]>('list_jobs'),
-        invoke<{ id: string; filename: string; thumbnail_path: string | null }[]>('list_assets'),
+        invoke<{ id: string; filename: string; thumbnail_path: string | null }[]>(
+          'list_assets_slim',
+        ),
       ]);
       setStats(statsData);
       setAllJobs(jobsData);
@@ -106,8 +100,19 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 10000);
+    // Fallback polling a 30s; actualizações em tempo real via evento sidecar:event
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
+  }, [fetchData]);
+
+  // Actualizar em tempo real quando o sidecar emite eventos de job
+  useEffect(() => {
+    const unlisten = listen('sidecar:event', () => {
+      fetchData();
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, [fetchData]);
 
   // Manter histórico de 60 amostras (1 min a 1 sample/2s)
@@ -118,7 +123,7 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
     setMetricsHistory((h) => [...h.slice(-59), { cpu: metrics.cpuPercent, ram: ramPct }]);
   }, [metrics]);
 
-  const recentJobs = showAllJobs ? allJobs : allJobs.slice(0, 5);
+  const recentJobs = allJobs;
 
   const getVmafColor = (score: number | null) => {
     if (score === null) return 'text-text-muted';
@@ -202,6 +207,25 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
         />
       </div>
 
+      {/* EMPTY STATE — primeiro uso */}
+      {stats?.totalAssets === 0 && !loading && (
+        <div className="flex flex-col items-center justify-center py-16 bg-bg-secondary border border-dashed border-border rounded-2xl gap-4">
+          <div className="w-20 h-20 bg-brand/10 rounded-full flex items-center justify-center">
+            <Upload size={36} className="text-brand" />
+          </div>
+          <div className="text-center">
+            <p className="text-base font-black text-text-primary">{t('dashboard.emptyTitle')}</p>
+            <p className="text-sm text-text-muted mt-1">{t('dashboard.emptyHint')}</p>
+          </div>
+          <button
+            onClick={() => onNavigate('library')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-colors"
+          >
+            <Upload size={16} /> {t('dashboard.addFirstVideo')}
+          </button>
+        </div>
+      )}
+
       {/* JOBS RECENTES — largura total */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -214,19 +238,6 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
             )}
           </h2>
           <div className="flex items-center gap-3">
-            {allJobs.length > 5 && (
-              <button
-                onClick={() => setShowAllJobs((v) => !v)}
-                className="text-[11px] font-bold text-text-muted hover:text-text-primary uppercase tracking-widest flex items-center gap-1"
-              >
-                {showAllJobs ? t('common.showLess') : t('common.showAll')}
-                {showAllJobs ? (
-                  <ChevronDown size={14} className="rotate-180" />
-                ) : (
-                  <ChevronDown size={14} />
-                )}
-              </button>
-            )}
             <button
               onClick={() => onNavigate('queue')}
               className="text-[11px] font-bold text-brand hover:underline uppercase tracking-widest flex items-center gap-1"
@@ -251,7 +262,14 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
                 <div
                   key={job.id}
                   className="p-4 flex items-center gap-4 hover:bg-bg-hover transition-colors cursor-pointer"
-                  onClick={() => onSelectAsset(job.asset_id)}
+                  onClick={() => {
+                    logActivity(
+                      'Job Recente — abrir asset',
+                      'navigate',
+                      `asset_id=${job.asset_id}`,
+                    );
+                    onSelectAsset(job.asset_id);
+                  }}
                 >
                   <div className="w-10 h-10 bg-bg-primary rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                     {assetMap[job.asset_id]?.thumbnail_path ? (

@@ -26,7 +26,11 @@ export function useLogs(level?: string, search?: string) {
     setLoading(true);
     try {
       const [entries, s] = await Promise.all([
-        invoke<LogEntry[]>('list_logs', { level: level ?? 'all', search: search ?? '', limit: 300 }),
+        invoke<LogEntry[]>('list_logs', {
+          level: level ?? 'all',
+          search: search ?? '',
+          limit: 300,
+        }),
         invoke<LogStats>('get_log_stats'),
       ]);
       setLogs(entries);
@@ -50,7 +54,10 @@ export function useLogs(level?: string, search?: string) {
     const promise = listen<LogEntry>('log-entry', (event) => {
       const entry = event.payload;
       const matchesLevel = !level || level === 'all' || entry.level === level.toUpperCase();
-      const matchesSearch = !search || entry.message.toLowerCase().includes(search.toLowerCase()) || entry.source.toLowerCase().includes(search.toLowerCase());
+      const matchesSearch =
+        !search ||
+        entry.message.toLowerCase().includes(search.toLowerCase()) ||
+        entry.source.toLowerCase().includes(search.toLowerCase());
       if (matchesLevel && matchesSearch) {
         setLogs((prev) => [entry, ...prev].slice(0, 300));
       }

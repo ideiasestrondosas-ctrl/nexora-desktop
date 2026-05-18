@@ -9,6 +9,7 @@ use uuid::Uuid;
 pub struct Profile {
     pub id: String,
     pub name: String,
+    pub label_friendly: Option<String>,
     pub description: String,
     pub container: String,
     pub video_codec: String,
@@ -21,12 +22,30 @@ pub struct Profile {
 
 // Perfis de sistema compilados no binário
 const PROFILES_RAW: &[(&str, &str)] = &[
-    ("broadcast-hd", include_str!("../../../sidecar/profiles/broadcast-hd.json")),
-    ("broadcast-sd", include_str!("../../../sidecar/profiles/broadcast-sd.json")),
-    ("proxy",        include_str!("../../../sidecar/profiles/proxy.json")),
-    ("social",       include_str!("../../../sidecar/profiles/social.json")),
-    ("web-4k",       include_str!("../../../sidecar/profiles/web-4k.json")),
-    ("web-hd",       include_str!("../../../sidecar/profiles/web-hd.json")),
+    (
+        "broadcast-hd",
+        include_str!("../../../sidecar/profiles/broadcast-hd.json"),
+    ),
+    (
+        "broadcast-sd",
+        include_str!("../../../sidecar/profiles/broadcast-sd.json"),
+    ),
+    (
+        "proxy",
+        include_str!("../../../sidecar/profiles/proxy.json"),
+    ),
+    (
+        "social",
+        include_str!("../../../sidecar/profiles/social.json"),
+    ),
+    (
+        "web-4k",
+        include_str!("../../../sidecar/profiles/web-4k.json"),
+    ),
+    (
+        "web-hd",
+        include_str!("../../../sidecar/profiles/web-hd.json"),
+    ),
 ];
 
 fn system_profiles() -> Vec<Profile> {
@@ -37,6 +56,7 @@ fn system_profiles() -> Vec<Profile> {
             Some(Profile {
                 id: id.to_string(),
                 name: v["name"].as_str().unwrap_or(id).to_string(),
+                label_friendly: v["labelFriendly"].as_str().map(|s| s.to_string()),
                 description: v["description"].as_str().unwrap_or("").to_string(),
                 container: "mp4".to_string(),
                 video_codec: v["videoCodec"].as_str().unwrap_or("libx264").to_string(),
@@ -54,6 +74,7 @@ fn row_to_profile(row: &rusqlite::Row) -> rusqlite::Result<Profile> {
     Ok(Profile {
         id: row.get(0)?,
         name: row.get(1)?,
+        label_friendly: None,
         description: row.get(2)?,
         container: row.get(3)?,
         video_codec: row.get(4)?,
@@ -120,6 +141,7 @@ pub fn create_profile(profile: ProfileInput, state: State<AppState>) -> Result<P
     Ok(Profile {
         id,
         name: profile.name,
+        label_friendly: None,
         description,
         container,
         video_codec: profile.video_codec,
@@ -162,10 +184,16 @@ pub fn update_profile(
              resolution=?5,fps=?6,bitrate_kbps=?7,vmaf_threshold=?8,updated_at=?9
              WHERE id=?10 AND is_system=0",
             params![
-                profile.name, description, container, profile.video_codec,
-                profile.resolution, profile.fps as i64,
+                profile.name,
+                description,
+                container,
+                profile.video_codec,
+                profile.resolution,
+                profile.fps as i64,
                 profile.bitrate_kbps.map(|n| n as i64),
-                vmaf_threshold as i64, now, id
+                vmaf_threshold as i64,
+                now,
+                id
             ],
         )
         .map_err(|e| e.to_string())?;

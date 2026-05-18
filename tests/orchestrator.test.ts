@@ -71,7 +71,7 @@ describe('NexoraDesktopOrchestrator', () => {
     await orch.run(baseCtx);
 
     expect(mockEmit).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'job:started', jobId: 'job-abc', assetId: 'asset-xyz' })
+      expect.objectContaining({ type: 'job:started', jobId: 'job-abc', assetId: 'asset-xyz' }),
     );
   });
 
@@ -80,7 +80,7 @@ describe('NexoraDesktopOrchestrator', () => {
     await orch.run(baseCtx);
 
     expect(mockEmit).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'job:completed', jobId: 'job-abc' })
+      expect.objectContaining({ type: 'job:completed', jobId: 'job-abc' }),
     );
   });
 
@@ -88,9 +88,7 @@ describe('NexoraDesktopOrchestrator', () => {
     const orch = new NexoraDesktopOrchestrator();
     await orch.run(baseCtx);
 
-    const progressCalls = mockEmit.mock.calls.filter(
-      ([arg]) => arg.type === 'job:progress'
-    );
+    const progressCalls = mockEmit.mock.calls.filter(([arg]) => arg.type === 'job:progress');
     expect(progressCalls.length).toBeGreaterThan(0);
   });
 
@@ -118,7 +116,7 @@ describe('NexoraDesktopOrchestrator', () => {
     await expect(orch.run(baseCtx)).rejects.toThrow('GPU falhou');
 
     expect(mockEmit).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'job:failed', jobId: 'job-abc' })
+      expect.objectContaining({ type: 'job:failed', jobId: 'job-abc' }),
     );
   });
 
@@ -128,7 +126,7 @@ describe('NexoraDesktopOrchestrator', () => {
     await orch.run(ctxWithOutput);
 
     expect(mockEmit).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'job:completed', jobId: 'job-abc' })
+      expect.objectContaining({ type: 'job:completed', jobId: 'job-abc' }),
     );
   });
 });

@@ -4,13 +4,13 @@ Aplicação nativa multiplataforma para processamento de media — Windows, macO
 
 ## Stack
 
-| Camada | Tecnologia |
-|---|---|
-| Shell nativa | Tauri 2.x (Rust) |
-| Frontend | React 19 + TypeScript + Tailwind CSS + Zustand |
-| Sidecar | Node.js 20 + TypeScript + esbuild |
-| Base de dados | SQLite (better-sqlite3 + rusqlite WAL) |
-| Build CI/CD | GitHub Actions + Tauri Action |
+| Camada        | Tecnologia                                     |
+| ------------- | ---------------------------------------------- |
+| Shell nativa  | Tauri 2.x (Rust)                               |
+| Frontend      | React 19 + TypeScript + Tailwind CSS + Zustand |
+| Sidecar       | Node.js 20 + TypeScript + esbuild              |
+| Base de dados | SQLite (better-sqlite3 + rusqlite WAL)         |
+| Build CI/CD   | GitHub Actions + Tauri Action                  |
 
 ## Pré-requisitos
 
@@ -117,14 +117,14 @@ sidecar/
 
 ## Perfis de Transcode
 
-| Perfil | Vídeo | LUFS | VMAF |
-|---|---|---|---|
-| `broadcast-hd` | 8000k H.264 1080p | -23 | ≥93 |
-| `broadcast-sd` | 3000k H.264 576p | -23 | ≥90 |
-| `web-4k` | 20000k H.264 2160p | -14 | ≥90 |
-| `web-hd` | 5000k H.264 1080p | -14 | ≥90 |
-| `proxy` | 800k H.264 960×540 | -23 | ≥85 |
-| `social` | 4000k H.264 1080×1080 | -14 | ≥85 |
+| Perfil         | Vídeo                 | LUFS | VMAF |
+| -------------- | --------------------- | ---- | ---- |
+| `broadcast-hd` | 8000k H.264 1080p     | -23  | ≥93  |
+| `broadcast-sd` | 3000k H.264 576p      | -23  | ≥90  |
+| `web-4k`       | 20000k H.264 2160p    | -14  | ≥90  |
+| `web-hd`       | 5000k H.264 1080p     | -14  | ≥90  |
+| `proxy`        | 800k H.264 960×540    | -23  | ≥85  |
+| `social`       | 4000k H.264 1080×1080 | -14  | ≥85  |
 
 ## Licença
 

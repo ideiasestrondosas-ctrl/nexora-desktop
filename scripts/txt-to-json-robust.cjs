@@ -41,8 +41,21 @@ while ((match = regex.exec(raw)) !== null) {
   text = text.replace(/\s+/g, ' ').trim();
 
   // Skip instruction headers
-  if (keyPath.includes('INSTRUCTIONS') || keyPath.includes('RULES') || keyPath.includes('REGLAS') || keyPath.includes('RÈGLES') || keyPath.includes('ANLEITUNG')) continue;
-  if (text.startsWith('NEXORA') || text.startsWith('====') || text.startsWith('-') || /^\d+\./.test(text)) continue;
+  if (
+    keyPath.includes('INSTRUCTIONS') ||
+    keyPath.includes('RULES') ||
+    keyPath.includes('REGLAS') ||
+    keyPath.includes('RÈGLES') ||
+    keyPath.includes('ANLEITUNG')
+  )
+    continue;
+  if (
+    text.startsWith('NEXORA') ||
+    text.startsWith('====') ||
+    text.startsWith('-') ||
+    /^\d+\./.test(text)
+  )
+    continue;
 
   const parts = keyPath.split('.');
   let current = result;

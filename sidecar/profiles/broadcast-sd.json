@@ -1,5 +1,6 @@
 {
   "name": "broadcast-sd",
+  "labelFriendly": "Broadcast SD (PAL legacy)",
   "description": "Broadcast SD 576p/25 — legado PAL",
   "videoCodec": "libx264",
   "videoBitrateK": 3000,

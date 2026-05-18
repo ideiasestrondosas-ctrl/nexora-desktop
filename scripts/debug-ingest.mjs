@@ -18,11 +18,11 @@ const t1 = Date.now();
 const sha256 = await new Promise((resolve, reject) => {
   const hash = createHash('sha256');
   const stream = createReadStream(filePath);
-  stream.on('data', chunk => hash.update(chunk));
+  stream.on('data', (chunk) => hash.update(chunk));
   stream.on('end', () => resolve(hash.digest('hex')));
   stream.on('error', reject);
 });
-console.log(`    OK em ${Date.now()-t1}ms — ${sha256.slice(0,16)}...`);
+console.log(`    OK em ${Date.now() - t1}ms — ${sha256.slice(0, 16)}...`);
 
 // Passo 2: ffprobe
 console.log('\n[2] ffprobe...');
@@ -31,12 +31,12 @@ try {
   const { stdout } = await execFileAsync(
     'ffprobe',
     ['-v', 'quiet', '-print_format', 'json', '-show_streams', '-show_format', filePath],
-    { timeout: 30_000 }
+    { timeout: 30_000 },
   );
   const data = JSON.parse(stdout);
-  const video = data.streams?.find(s => s.codec_type === 'video');
-  const audio = data.streams?.find(s => s.codec_type === 'audio');
-  console.log(`    OK em ${Date.now()-t2}ms`);
+  const video = data.streams?.find((s) => s.codec_type === 'video');
+  const audio = data.streams?.find((s) => s.codec_type === 'audio');
+  console.log(`    OK em ${Date.now() - t2}ms`);
   console.log(`    codec_video=${video?.codec_name} codec_audio=${audio?.codec_name}`);
   console.log(`    resolucao=${video?.width}x${video?.height} duracao=${data.format?.duration}s`);
 } catch (e) {
@@ -53,10 +53,12 @@ try {
 
   const id = randomUUID();
   const now = new Date().toISOString();
-  db.prepare("INSERT INTO assets (id, path, filename, status, size_bytes, created_at, updated_at) VALUES (?, ?, 'test.mov', 'ingested', 1000, ?, ?)").run(id, filePath, now, now);
-  db.prepare("DELETE FROM assets WHERE id = ?").run(id);
+  db.prepare(
+    "INSERT INTO assets (id, path, filename, status, size_bytes, created_at, updated_at) VALUES (?, ?, 'test.mov', 'ingested', 1000, ?, ?)",
+  ).run(id, filePath, now, now);
+  db.prepare('DELETE FROM assets WHERE id = ?').run(id);
   db.close();
-  console.log(`    OK em ${Date.now()-t3}ms`);
+  console.log(`    OK em ${Date.now() - t3}ms`);
 } catch (e) {
   console.log(`    ERRO: ${e.message}`);
 }
@@ -68,11 +70,23 @@ try {
   const out = process.env.TEMP + '\\nexora-debug-test.mp4';
   const { stderr } = await execFileAsync(
     'ffmpeg',
-    ['-i', filePath, '-t', '10', '-c:v', 'libx264', '-preset', 'ultrafast',
-     '-c:a', 'aac', '-y', out],
-    { timeout: 120_000 }
-  ).catch(e => ({ stderr: e.stderr || e.message }));
-  console.log(`    OK em ${Date.now()-t4}ms → ${out}`);
+    [
+      '-i',
+      filePath,
+      '-t',
+      '10',
+      '-c:v',
+      'libx264',
+      '-preset',
+      'ultrafast',
+      '-c:a',
+      'aac',
+      '-y',
+      out,
+    ],
+    { timeout: 120_000 },
+  ).catch((e) => ({ stderr: e.stderr || e.message }));
+  console.log(`    OK em ${Date.now() - t4}ms → ${out}`);
 } catch (e) {
   console.log(`    ERRO: ${e.message}`);
 }

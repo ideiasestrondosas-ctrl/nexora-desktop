@@ -22,11 +22,11 @@ const now = new Date().toISOString();
 const stat = statSync(filePath);
 
 db.prepare(
-  "INSERT INTO assets (id, path, filename, status, size_bytes, created_at, updated_at) VALUES (?, ?, ?, 'pending', ?, ?, ?)"
+  "INSERT INTO assets (id, path, filename, status, size_bytes, created_at, updated_at) VALUES (?, ?, ?, 'pending', ?, ?, ?)",
 ).run(assetId, filePath, basename(filePath), stat.size, now, now);
 
 db.prepare(
-  "INSERT INTO jobs (id, asset_id, profile, status, priority, progress, created_at, updated_at) VALUES (?, ?, 'broadcast-hd', 'queued', 0, 0.0, ?, ?)"
+  "INSERT INTO jobs (id, asset_id, profile, status, priority, progress, created_at, updated_at) VALUES (?, ?, 'broadcast-hd', 'queued', 0, 0.0, ?, ?)",
 ).run(jobId, assetId, now, now);
 
 db.close();
@@ -48,12 +48,20 @@ const child = spawn('node', ['sidecar/dist/nexora-sidecar.cjs'], {
 });
 
 child.stdout.on('data', (data) => {
-  const lines = data.toString().split('\n').filter(l => l.trim());
+  const lines = data
+    .toString()
+    .split('\n')
+    .filter((l) => l.trim());
   for (const line of lines) {
     try {
       const ev = JSON.parse(line);
       const ts = new Date().toLocaleTimeString();
-      console.log(`[${ts}] ${ev.type}`, ev.jobId ? `job=${ev.jobId.slice(0,8)}` : '', ev.progress ? `${(ev.progress*100).toFixed(1)}%` : '', ev.error || ev.message || ev.step || '');
+      console.log(
+        `[${ts}] ${ev.type}`,
+        ev.jobId ? `job=${ev.jobId.slice(0, 8)}` : '',
+        ev.progress ? `${(ev.progress * 100).toFixed(1)}%` : '',
+        ev.error || ev.message || ev.step || '',
+      );
     } catch {
       console.log(line);
     }
@@ -64,16 +72,23 @@ child.stdout.on('data', (data) => {
 const dbMonitor = new Database(dbPath, { readonly: true });
 const checkJob = setInterval(() => {
   try {
-    const job = dbMonitor.prepare('SELECT status, progress, step, error FROM jobs WHERE id = ?').get(jobId);
+    const job = dbMonitor
+      .prepare('SELECT status, progress, step, error FROM jobs WHERE id = ?')
+      .get(jobId);
     if (!job) return;
     const pct = (job.progress * 100).toFixed(1);
-    console.log(`[DB] status=${job.status} progress=${pct}% step=${job.step || '-'} error=${job.error || '-'}`);
+    console.log(
+      `[DB] status=${job.status} progress=${pct}% step=${job.step || '-'} error=${job.error || '-'}`,
+    );
     if (job.status === 'done' || job.status === 'error') {
       console.log('\n=== RESULTADO FINAL ===');
       console.log('Status:', job.status);
       if (job.error) console.log('Erro:', job.error);
       clearInterval(checkJob);
-      setTimeout(() => { child.kill(); process.exit(0); }, 2000);
+      setTimeout(() => {
+        child.kill();
+        process.exit(0);
+      }, 2000);
     }
   } catch {}
 }, 3000);

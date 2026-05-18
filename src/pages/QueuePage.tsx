@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { openPath } from '@tauri-apps/plugin-opener';
+import { listen } from '@tauri-apps/api/event';
+import { toast } from 'sonner';
+import { logActivity } from '@/lib/activityLog';
 import {
   X,
   CheckCircle2,
@@ -39,7 +41,7 @@ interface Job {
   vmaf_score: number | null;
   lufs: number | null;
   output_path: string | null;
-  filename: string;
+  filename: string | null;
 }
 
 interface QueueStats {
@@ -62,7 +64,17 @@ const PIPELINE_STEPS = [
   { key: 'delivery' },
 ];
 
-export default function QueuePage() {
+const PIPELINE_PHASES = [
+  { labelKey: 'queue.phaseAnalyse', steps: ['ingest', 'qc-pre'] },
+  { labelKey: 'queue.phaseConvert', steps: ['transcode', 'audio', 'proxy', 'thumbnail'] },
+  { labelKey: 'queue.phaseVerify', steps: ['qc-post', 'delivery'] },
+];
+
+export default function QueuePage({
+  onSelectAsset,
+}: {
+  onSelectAsset?: (assetId: string) => void;
+}) {
   const { t, i18n } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<QueueStats>({
@@ -73,14 +85,20 @@ export default function QueuePage() {
     quarantined: 0,
     rejectedToday: 0,
   });
+  const [availableProfiles, setAvailableProfiles] = useState<
+    { id: string; name: string; label_friendly: string | null }[]
+  >([]);
+  const [reprocessPopover, setReprocessPopover] = useState<string | null>(null); // job.id
   const fetchData = useCallback(async () => {
     try {
-      const [jobsData, statsData] = await Promise.all([
+      const [jobsData, statsData, profilesData] = await Promise.all([
         invoke<Job[]>('list_jobs'),
         invoke<QueueStats>('get_queue_stats'),
+        invoke<{ id: string; name: string; label_friendly: string | null }[]>('list_profiles'),
       ]);
       setJobs(jobsData);
       setStats(statsData);
+      setAvailableProfiles(profilesData);
     } catch (error) {
       console.error('Failed to fetch queue data:', error);
     }
@@ -88,13 +106,25 @@ export default function QueuePage() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 2000);
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
+  }, [fetchData]);
+
+  useEffect(() => {
+    const unlisten = listen('sidecar:event', () => {
+      fetchData();
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, [fetchData]);
 
   const handleCancel = async (jobId: string) => {
     try {
-      await invoke('cancel_job', { id: jobId });
+      const ok = await invoke<boolean>('cancel_job', { id: jobId });
+      if (!ok) {
+        toast.warning(t('queue.cannotCancelState'));
+      }
       fetchData();
     } catch (error) {
       console.error('Failed to cancel job:', error);
@@ -103,12 +133,40 @@ export default function QueuePage() {
 
   const handleRetry = async (jobId: string) => {
     try {
-      await invoke('retry_job', { id: jobId });
+      const ok = await invoke<boolean>('retry_job', { id: jobId });
+      if (!ok) {
+        toast.warning(t('queue.cannotRetryState'));
+      } else {
+        toast.success(t('queue.retryQueued'));
+      }
       fetchData();
     } catch (error) {
       console.error('Failed to retry job:', error);
     }
   };
+
+  const handleReprocessWithProfile = async (assetId: string, profile: string) => {
+    logActivity('Reprocessar com perfil', 'execute', `asset_id=${assetId} profile=${profile}`);
+    try {
+      await invoke('submit_job', { asset_id: assetId, profile, priority: 0 });
+      toast.success(t('queue.retryQueued'));
+      fetchData();
+    } catch (error) {
+      console.error('Failed to reprocess:', error);
+      toast.error(t('common.error', 'Ocorreu um erro'));
+    }
+    setReprocessPopover(null);
+  };
+
+  useEffect(() => {
+    if (!reprocessPopover) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-reprocess-popover]')) setReprocessPopover(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [reprocessPopover]);
 
   const handleApprove = async (jobId: string) => {
     try {
@@ -151,34 +209,6 @@ export default function QueuePage() {
     if (score >= 85) return 'text-green-500';
     if (score >= 70) return 'text-yellow-500';
     return 'text-red-500';
-  };
-
-  const StepIcon = ({
-    stepIdx,
-    currentStepIdx,
-    jobStatus,
-  }: {
-    stepIdx: number;
-    currentStepIdx: number;
-    jobStatus: string;
-  }) => {
-    if (stepIdx < currentStepIdx) {
-      return <CheckCircle2 size={16} className="text-green-500" />;
-    }
-    if (stepIdx === currentStepIdx && jobStatus === 'processing') {
-      return <div className="w-2 h-2 bg-brand rounded-full animate-pulse" />;
-    }
-    if (jobStatus === 'qc_quarantined' && stepIdx === 1) {
-      return <ShieldAlert size={16} className="text-yellow-500" />;
-    }
-    if (jobStatus === 'error' && stepIdx === currentStepIdx) {
-      return <AlertCircle size={16} className="text-red-500" />;
-    }
-    return (
-      <span className="text-[9px] font-bold text-text-muted">
-        {t(`pipeline.${PIPELINE_STEPS[stepIdx].key}`).slice(0, 2).toUpperCase()}
-      </span>
-    );
   };
 
   return (
@@ -278,60 +308,107 @@ export default function QueuePage() {
                       <Film className="text-text-muted" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-text-primary leading-tight mb-1">
-                        {job.filename}
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-bold text-text-primary leading-tight">
+                          {job.filename}
+                        </h3>
+                        {onSelectAsset && (
+                          <button
+                            onClick={() => onSelectAsset(job.asset_id)}
+                            title={t('queue.viewAsset')}
+                            className="text-text-muted hover:text-brand transition-colors shrink-0"
+                          >
+                            <ExternalLink size={14} />
+                          </button>
+                        )}
+                      </div>
                       <span className="px-2 py-0.5 bg-surface text-[10px] font-bold uppercase text-purple-400 rounded">
                         {job.profile}
                       </span>
                     </div>
                   </div>
 
-                  {/* PIPELINE VISUALIZER */}
-                  <div className="mb-8 overflow-x-auto">
-                    <div className="flex items-center justify-between min-w-[700px] px-2">
-                      {PIPELINE_STEPS.map((step, idx) => (
-                        <React.Fragment key={step.key}>
-                          <div className="flex flex-col items-center gap-2 relative z-10 group/step">
+                  {/* PIPELINE VISUALIZER — 3 FASES */}
+                  <div className="mb-8">
+                    <div className="flex items-stretch gap-2">
+                      {PIPELINE_PHASES.map((phase, phaseIdx) => {
+                        const stepIndices = phase.steps.map((s) =>
+                          PIPELINE_STEPS.findIndex((ps) => ps.key === s),
+                        );
+                        const phaseMin = Math.min(...stepIndices);
+                        const phaseMax = Math.max(...stepIndices);
+                        const isDone = currentStepIdx > phaseMax;
+                        const isActive = currentStepIdx >= phaseMin && currentStepIdx <= phaseMax;
+                        return (
+                          <React.Fragment key={phase.labelKey}>
                             <div
-                              className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${
-                                idx < currentStepIdx
-                                  ? 'bg-green-500 border-green-500'
-                                  : idx === currentStepIdx
-                                    ? 'border-brand'
-                                    : 'border-border'
+                              className={`flex-1 rounded-xl border p-3 flex flex-col gap-2 transition-all ${
+                                isDone
+                                  ? 'border-green-500/40 bg-green-500/5'
+                                  : isActive
+                                    ? 'border-brand/60 bg-brand/5'
+                                    : 'border-border bg-bg-primary'
                               }`}
                             >
-                              <StepIcon
-                                stepIdx={idx}
-                                currentStepIdx={currentStepIdx}
-                                jobStatus={job.status}
-                              />
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${
+                                    isDone ? 'bg-green-500' : isActive ? 'bg-brand' : 'bg-surface'
+                                  }`}
+                                >
+                                  {isDone ? (
+                                    <CheckCircle2 size={10} className="text-white" />
+                                  ) : isActive ? (
+                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                                  ) : null}
+                                </div>
+                                <span
+                                  className={`text-[10px] font-black uppercase tracking-widest ${
+                                    isDone
+                                      ? 'text-green-500'
+                                      : isActive
+                                        ? 'text-brand'
+                                        : 'text-text-muted'
+                                  }`}
+                                >
+                                  {t(phase.labelKey)}
+                                </span>
+                              </div>
+                              <div className="flex gap-1 flex-wrap">
+                                {phase.steps.map((stepKey) => {
+                                  const idx = PIPELINE_STEPS.findIndex((s) => s.key === stepKey);
+                                  const stepDone = idx < currentStepIdx;
+                                  const stepActive = idx === currentStepIdx;
+                                  return (
+                                    <span
+                                      key={stepKey}
+                                      title={`${t(`pipeline.${stepKey}`)}: ${t(`pipeline.${stepKey}Desc`)}`}
+                                      className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                        stepDone
+                                          ? 'bg-green-500/20 text-green-500'
+                                          : stepActive
+                                            ? 'bg-brand/20 text-brand'
+                                            : 'bg-surface text-text-muted'
+                                      }`}
+                                    >
+                                      {t(`pipeline.${stepKey}`)}
+                                    </span>
+                                  );
+                                })}
+                              </div>
                             </div>
-                            <span
-                              className={`text-[9px] font-bold uppercase ${
-                                idx === currentStepIdx ? 'text-brand' : 'text-text-muted'
-                              }`}
-                            >
-                              {t(`pipeline.${step.key}`)}
-                            </span>
-                            {/* Tooltip com descrição da fase */}
-                            <div className="absolute bottom-full mb-2 hidden group-hover/step:block w-48 bg-bg-primary border border-border rounded-lg p-2 text-[10px] text-text-secondary z-20">
-                              <p className="font-bold text-text-primary mb-0.5">
-                                {t(`pipeline.${step.key}`)}
-                              </p>
-                              <p>{t(`pipeline.${step.key}Desc`)}</p>
-                            </div>
-                          </div>
-                          {idx < PIPELINE_STEPS.length - 1 && (
-                            <div
-                              className={`flex-1 h-0.5 mx-[-2px] mb-6 transition-all ${
-                                idx < currentStepIdx ? 'bg-green-500' : 'bg-surface'
-                              }`}
-                            ></div>
-                          )}
-                        </React.Fragment>
-                      ))}
+                            {phaseIdx < PIPELINE_PHASES.length - 1 && (
+                              <div className="flex items-center">
+                                <div
+                                  className={`w-6 h-0.5 ${
+                                    currentStepIdx > phaseMax ? 'bg-green-500' : 'bg-surface'
+                                  }`}
+                                />
+                              </div>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -391,7 +468,15 @@ export default function QueuePage() {
                 {queuedJobs.map((job, idx) => (
                   <tr key={job.id} className="hover:bg-surface/30 transition-colors">
                     <td className="px-6 py-4 font-mono text-text-muted">{idx + 1}</td>
-                    <td className="px-6 py-4 font-bold text-text-primary">{job.filename}</td>
+                    <td className="px-6 py-4 font-bold text-text-primary">
+                      <button
+                        onClick={() => onSelectAsset?.(job.asset_id)}
+                        title={t('queue.viewAsset')}
+                        className="text-left hover:text-brand transition-colors"
+                      >
+                        {job.filename}
+                      </button>
+                    </td>
                     <td className="px-6 py-4">
                       <span className="px-2 py-0.5 bg-surface text-[10px] font-bold uppercase text-blue-400 rounded">
                         {job.profile}
@@ -451,10 +536,11 @@ export default function QueuePage() {
                   <tr key={job.id} className="hover:bg-surface/30 transition-colors">
                     <td className="px-6 py-4">
                       <div
-                        className="font-bold text-text-primary truncate max-w-[200px]"
-                        title={job.filename}
+                        className="font-bold text-text-primary truncate max-w-[200px] cursor-pointer hover:text-brand transition-colors"
+                        title={job.filename ?? undefined}
+                        onClick={() => onSelectAsset?.(job.asset_id)}
                       >
-                        {job.filename}
+                        {job.filename ?? job.asset_id.slice(0, 8)}
                       </div>
                       {job.output_path && (
                         <div
@@ -510,22 +596,66 @@ export default function QueuePage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        {job.output_path && (
-                          <button
-                            onClick={() => openPath(job.output_path!).catch(() => {})}
-                            title={t('queue.openProcessedFile') + ': ' + job.output_path}
-                            className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded transition-colors"
-                          >
-                            <ExternalLink size={14} />
-                          </button>
-                        )}
                         <button
-                          onClick={() => handleRetry(job.id)}
-                          title={t('queue.retry')}
-                          className="p-1.5 text-brand hover:text-white hover:bg-brand rounded transition-colors"
+                          onClick={() => {
+                            logActivity(
+                              'Abrir Asset da Fila',
+                              'navigate',
+                              `asset_id=${job.asset_id}`,
+                            );
+                            onSelectAsset?.(job.asset_id);
+                          }}
+                          title={t('queue.viewAsset')}
+                          className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface rounded transition-colors"
                         >
-                          <Repeat size={14} />
+                          <ExternalLink size={14} />
                         </button>
+                        <div className="relative" data-reprocess-popover>
+                          <button
+                            onClick={() => {
+                              logActivity('Menu reprocessar fila', 'click', `job_id=${job.id}`);
+                              setReprocessPopover(reprocessPopover === job.id ? null : job.id);
+                            }}
+                            title={t('queue.reprocessOptions', 'Opções de reprocessamento')}
+                            className="p-1.5 text-brand hover:text-white hover:bg-brand rounded transition-colors"
+                          >
+                            <Repeat size={14} />
+                          </button>
+                          {reprocessPopover === job.id && (
+                            <div className="absolute bottom-full right-0 mb-1 bg-bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden z-50 min-w-[200px]">
+                              <div className="px-3 py-1.5 border-b border-border">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-text-muted">
+                                  {t('queue.reprocessOptions', 'Opções de reprocessamento')}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  handleRetry(job.id);
+                                  setReprocessPopover(null);
+                                }}
+                                className="w-full text-left px-3 py-2 text-xs hover:bg-bg-hover transition-colors flex items-center gap-2"
+                              >
+                                <Repeat size={12} className="text-brand" />
+                                <span className="font-bold">
+                                  {t('assetDetail.sameProfile', 'Mesmo perfil')} — {job.profile}
+                                </span>
+                              </button>
+                              {availableProfiles
+                                .filter((p) => p.name !== job.profile)
+                                .map((p) => (
+                                  <button
+                                    key={p.id}
+                                    onClick={() => handleReprocessWithProfile(job.asset_id, p.name)}
+                                    className="w-full text-left px-3 py-2 text-xs hover:bg-bg-hover transition-colors"
+                                  >
+                                    <span className="font-bold text-text-primary">
+                                      {p.label_friendly ?? p.name}
+                                    </span>
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>

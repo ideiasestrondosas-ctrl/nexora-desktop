@@ -1,5 +1,6 @@
 {
   "name": "archive-hevc",
+  "labelFriendly": "Arquivo HEVC (máxima qualidade)",
   "description": "HEVC H.265 – Arquivo alta qualidade",
   "videoCodec": "libx265",
   "videoBitrateK": 0,

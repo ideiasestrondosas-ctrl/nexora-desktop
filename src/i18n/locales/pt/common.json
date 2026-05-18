@@ -147,7 +147,10 @@
     "vmaf85to95": "85 to 95",
     "vmafAbove95": "Above 95",
     "processedFiles": "Processed files",
-    "avgQuality": "Average quality"
+    "avgQuality": "Average quality",
+    "emptyTitle": "Começa por adicionar um vídeo",
+    "emptyHint": "Arraste vídeos para a janela ou clique no botão abaixo",
+    "addFirstVideo": "Adicionar Vídeo"
   },
   "library": {
     "searchPlaceholder": "Pesquisar na biblioteca...",
@@ -172,7 +175,9 @@
     "deleteError": "Erro ao apagar asset",
     "file": "Ficheiro",
     "duration": "Duração",
-    "actions": "Acções"
+    "actions": "Acções",
+    "gridView": "Vista em grelha",
+    "listView": "Vista em lista"
   },
   "queue": {
     "pipelineSummary": "Resumo do Pipeline",
@@ -203,10 +208,19 @@
     "finishedAt": "Finalizado",
     "actions": "Acções",
     "retry": "Tentar novamente",
-    "rejected": "Rejected",
-    "rejectedManual": "Rejected manually by operator",
+    "rejected": "Rejeitado",
+    "rejectedManual": "Rejeitado manualmente",
     "step": "{{step}}...",
-    "gpuNvenc": "GPU: NVENC"
+    "gpuNvenc": "GPU: NVENC",
+    "cannotCancelState": "Este job não pode ser cancelado no estado actual",
+    "cannotRetryState": "Este job não pode ser reprocessado no estado actual",
+    "retryQueued": "Job adicionado à fila novamente",
+    "openProcessedFile": "Abrir ficheiro processado",
+    "viewAsset": "Ver asset",
+    "phaseAnalyse": "A analisar",
+    "phaseConvert": "A converter",
+    "phaseVerify": "A verificar e guardar",
+    "reprocessOptions": "Opções de reprocessamento"
   },
   "profiles": {
     "create": "Criar",
@@ -487,7 +501,15 @@
     "started": "Iniciado",
     "jobDuration": "Duração",
     "openProcessedFile": "Abrir Ficheiro Processado",
-    "openInExplorer": "Abrir no Explorador"
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "Sem ficheiro processado disponível",
+    "downloadProcessed": "Descarregar Processado",
+    "downloadSuccess": "Ficheiro guardado em {{path}}",
+    "openOriginal": "Ver Original",
+    "openProcessed": "Ver Processado",
+    "reprocessProfile": "Reprocessar com perfil",
+    "reprocessQueued": "Job adicionado à fila",
+    "sameProfile": "Mesmo perfil"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -678,7 +700,14 @@
     "sampleFormat": "Formato de Sample",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analisar",
-    "reanalyze": "Re-analisar"
+    "reanalyze": "Re-analisar",
+    "fileName": "Ficheiro",
+    "filePath": "Caminho",
+    "tabAudio": "Áudio",
+    "tabGeneral": "Geral",
+    "tabSha256": "SHA-256",
+    "tabTags": "Etiquetas",
+    "tabVideo": "Vídeo"
   },
   "dropZone": {
     "dropHere": "Largue vídeos aqui",
@@ -737,5 +766,10 @@
     "resolution": "Resolução",
     "fps": "FPS",
     "size": "Tamanho"
+  },
+  "startup": {
+    "nodeMissing": "As ferramentas de processamento de vídeo não foram encontradas. Consulte a secção Ajuda para instalar os requisitos.",
+    "ffmpegMissing": "O motor de conversão de vídeo não está disponível. Consulte a secção Ajuda para instalar os requisitos.",
+    "sidecarMissing": "Componente interno em falta. Reinstale a aplicação ou contacte o suporte."
   }
 }

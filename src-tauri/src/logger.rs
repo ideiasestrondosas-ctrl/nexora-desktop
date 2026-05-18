@@ -55,7 +55,7 @@ pub fn write(level: &str, source: &str, message: &str) {
             );
             // Rotação: mantém apenas as últimas 2000 entradas (a cada 100 escritas)
             let n = LOG_COUNT.fetch_add(1, Ordering::Relaxed);
-            if n % 100 == 0 {
+            if n.is_multiple_of(100) {
                 let _ = conn.execute(
                     "DELETE FROM logs WHERE id NOT IN \
                      (SELECT id FROM logs ORDER BY ts DESC LIMIT 2000)",
@@ -79,7 +79,12 @@ impl Log for NexoraLogger {
         if !self.enabled(record.metadata()) {
             return;
         }
-        eprintln!("[{}] {} — {}", record.level(), record.target(), record.args());
+        eprintln!(
+            "[{}] {} — {}",
+            record.level(),
+            record.target(),
+            record.args()
+        );
         write(
             &record.level().to_string(),
             &format!("rust:{}", record.target()),

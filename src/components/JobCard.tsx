@@ -20,20 +20,21 @@ export const JobCard: React.FC<JobCardProps> = ({ job, filename, onCancel }) => 
   const isError = job.status === 'error';
 
   return (
-    <div className={cn(
-      "p-4 rounded-xl border transition-all duration-200 bg-white dark:bg-gray-900",
-      isProcessing ? "border-nexora-blue shadow-sm" : "border-gray-200 dark:border-gray-800"
-    )}>
+    <div
+      className={cn(
+        'p-4 rounded-xl border transition-all duration-200 bg-white dark:bg-gray-900',
+        isProcessing ? 'border-nexora-blue shadow-sm' : 'border-gray-200 dark:border-gray-800',
+      )}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className={cn(
-            "p-2 rounded-lg",
-            isDone ? "bg-green-50 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-800"
-          )}>
-            <FileVideo className={cn(
-              "w-5 h-5",
-              isDone ? "text-green-500" : "text-gray-500"
-            )} />
+          <div
+            className={cn(
+              'p-2 rounded-lg',
+              isDone ? 'bg-green-50 dark:bg-green-900/20' : 'bg-gray-100 dark:bg-gray-800',
+            )}
+          >
+            <FileVideo className={cn('w-5 h-5', isDone ? 'text-green-500' : 'text-gray-500')} />
           </div>
           <div className="min-w-0">
             <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
@@ -50,7 +51,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, filename, onCancel }) => 
         </div>
 
         {isProcessing && onCancel && (
-          <button 
+          <button
             onClick={() => onCancel(job.id)}
             className="text-gray-400 hover:text-red-500 transition-colors"
             title={t('jobCard.cancel')}
@@ -88,13 +89,21 @@ export const JobCard: React.FC<JobCardProps> = ({ job, filename, onCancel }) => 
               </div>
             )}
           </div>
-          
+
           <div className="text-[10px] text-gray-400 flex items-center gap-1">
-             {isDone ? (
-               <><CheckCircle className="w-3 h-3 text-green-500" /> {t('jobCard.completedAt', { date: job.finished_at ? new Date(job.finished_at).toLocaleTimeString() : '' })}</>
-             ) : isError ? (
-               <><AlertCircle className="w-3 h-3 text-red-500" /> {job.error || t('jobCard.unknownError')}</>
-             ) : null}
+            {isDone ? (
+              <>
+                <CheckCircle className="w-3 h-3 text-green-500" />{' '}
+                {t('jobCard.completedAt', {
+                  date: job.finished_at ? new Date(job.finished_at).toLocaleTimeString() : '',
+                })}
+              </>
+            ) : isError ? (
+              <>
+                <AlertCircle className="w-3 h-3 text-red-500" />{' '}
+                {job.error || t('jobCard.unknownError')}
+              </>
+            ) : null}
           </div>
         </div>
       )}

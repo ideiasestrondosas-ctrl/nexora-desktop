@@ -16,6 +16,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
@@ -27,10 +28,7 @@ pub fn run() {
 
             // Logger personalizado: escreve na DB + emite eventos Tauri
             logger::init(app.handle().clone(), &db_path);
-            log::info!(
-                "Nexora Desktop v{} a arrancar",
-                env!("CARGO_PKG_VERSION")
-            );
+            log::info!("Nexora Desktop v{} a arrancar", env!("CARGO_PKG_VERSION"));
 
             tray::setup(app)?;
 
@@ -41,21 +39,22 @@ pub fn run() {
 
             // Thread de espaço em disco — emite "disk-space" a cada 10 s
             let disk_handle = app.handle().clone();
-            std::thread::spawn(move || {
-                loop {
-                    std::thread::sleep(std::time::Duration::from_secs(10));
-                    let stats = disk_handle
-                        .path()
-                        .app_data_dir()
-                        .ok()
-                        .and_then(|p| p.to_str().map(str::to_string))
-                        .and_then(|path| commands::system::get_disk_space(path).ok());
-                    if let Some(s) = stats {
-                        let _ = disk_handle.emit("disk-space", serde_json::json!({
+            std::thread::spawn(move || loop {
+                std::thread::sleep(std::time::Duration::from_secs(10));
+                let stats = disk_handle
+                    .path()
+                    .app_data_dir()
+                    .ok()
+                    .and_then(|p| p.to_str().map(str::to_string))
+                    .and_then(|path| commands::system::get_disk_space(path).ok());
+                if let Some(s) = stats {
+                    let _ = disk_handle.emit(
+                        "disk-space",
+                        serde_json::json!({
                             "diskFreeBytes": s.free_bytes,
                             "diskTotalBytes": s.total_bytes,
-                        }));
-                    }
+                        }),
+                    );
                 }
             });
 
@@ -76,8 +75,8 @@ pub fn run() {
                     sys.refresh_memory();
                     nets.refresh();
 
-                    let rx: u64 = nets.iter().map(|(_, n)| n.received()).sum();
-                    let tx: u64 = nets.iter().map(|(_, n)| n.transmitted()).sum();
+                    let rx: u64 = nets.values().map(|n| n.received()).sum();
+                    let tx: u64 = nets.values().map(|n| n.transmitted()).sum();
 
                     let metrics = commands::metrics::SystemMetrics {
                         cpu_percent: sys.global_cpu_usage(),
@@ -96,6 +95,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::assets::ingest_asset,
             commands::assets::list_assets,
+            commands::assets::list_assets_slim,
             commands::assets::get_asset,
             commands::assets::delete_asset,
             commands::assets::scan_directory,
@@ -160,7 +160,10 @@ fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
     if script_path.exists() {
         log::info!("[startup] Sidecar: OK ({:?})", script_path);
     } else {
-        log::warn!("[startup] Sidecar script NÃO encontrado em {:?} — executa 'npm run sidecar:build'", script_path);
+        log::warn!(
+            "[startup] Sidecar script NÃO encontrado em {:?} — executa 'npm run sidecar:build'",
+            script_path
+        );
     }
 
     // 3. FFprobe
@@ -178,7 +181,9 @@ fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
     if ffprobe_ok {
         log::info!("[startup] FFprobe: OK");
     } else {
-        log::warn!("[startup] FFprobe NÃO encontrado — instala FFmpeg (inclui ffprobe) e adiciona ao PATH");
+        log::warn!(
+            "[startup] FFprobe NÃO encontrado — instala FFmpeg (inclui ffprobe) e adiciona ao PATH"
+        );
     }
 
     // 4. FFmpeg
@@ -215,12 +220,20 @@ fn get_startup_status(app: tauri::AppHandle) -> serde_json::Value {
     let sidecar_ok = script_path.exists();
 
     let ffprobe_path = sidecar::resolve_media_binary_path(&app, "ffprobe");
-    let ffprobe_ok = ffprobe_path.exists() || Command::new("ffprobe")
-        .arg("-version").output().map(|o| o.status.success()).unwrap_or(false);
+    let ffprobe_ok = ffprobe_path.exists()
+        || Command::new("ffprobe")
+            .arg("-version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
 
     let ffmpeg_path = sidecar::resolve_media_binary_path(&app, "ffmpeg");
-    let ffmpeg_ok = ffmpeg_path.exists() || Command::new("ffmpeg")
-        .arg("-version").output().map(|o| o.status.success()).unwrap_or(false);
+    let ffmpeg_ok = ffmpeg_path.exists()
+        || Command::new("ffmpeg")
+            .arg("-version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
 
     serde_json::json!({
         "nodeOk": node_ok,

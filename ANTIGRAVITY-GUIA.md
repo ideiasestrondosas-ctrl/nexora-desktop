@@ -1,4 +1,5 @@
 # Nexora Desktop — Guia Completo para Antigravity
+
 > Versão 1.0 — Maio 2026
 > Lê do início ao fim antes de começares.
 
@@ -29,6 +30,7 @@ O **Antigravity** é o teu editor de código com inteligência artificial integr
 Funciona como um assistente que **escreve código por ti** quando lhe dás instruções em texto.
 
 ### Como funciona em termos simples:
+
 1. Abres um ficheiro no Antigravity
 2. Abres o painel de chat da IA (geralmente no lado direito ou em baixo)
 3. Colas a "prompt" — um texto de instruções que descreve o que queres
@@ -36,6 +38,7 @@ Funciona como um assistente que **escreve código por ti** quando lhe dás instr
 5. Tu aceitas as alterações
 
 ### O que são os ficheiros .tsx?
+
 São ficheiros de código que criam os ecrãs visuais da aplicação.  
 Cada ecrã = 1 ficheiro .tsx.
 
@@ -59,16 +62,16 @@ C:\Dev\nexora-desktop\
 
 ### O que vamos criar/melhorar:
 
-| Ecrã | Ficheiro | Estado |
-|------|----------|--------|
-| Dashboard | `src/pages/DashboardPage.tsx` | Melhorar o que existe |
-| Biblioteca | `src/pages/LibraryPage.tsx` | Criar novo (substituir History) |
-| Fila | `src/pages/QueuePage.tsx` | Criar novo |
-| Detalhe Asset | `src/pages/AssetDetailPage.tsx` | Criar novo |
-| Perfis | `src/pages/ProfilesPage.tsx` | Criar novo |
-| Registos | `src/pages/LogsPage.tsx` | Criar novo |
-| Definições | `src/pages/SettingsPage.tsx` | Melhorar o que existe |
-| Navegação | `src/App.tsx` | Actualizar ligações |
+| Ecrã          | Ficheiro                        | Estado                          |
+| ------------- | ------------------------------- | ------------------------------- |
+| Dashboard     | `src/pages/DashboardPage.tsx`   | Melhorar o que existe           |
+| Biblioteca    | `src/pages/LibraryPage.tsx`     | Criar novo (substituir History) |
+| Fila          | `src/pages/QueuePage.tsx`       | Criar novo                      |
+| Detalhe Asset | `src/pages/AssetDetailPage.tsx` | Criar novo                      |
+| Perfis        | `src/pages/ProfilesPage.tsx`    | Criar novo                      |
+| Registos      | `src/pages/LogsPage.tsx`        | Criar novo                      |
+| Definições    | `src/pages/SettingsPage.tsx`    | Melhorar o que existe           |
+| Navegação     | `src/App.tsx`                   | Actualizar ligações             |
 
 ---
 
@@ -89,6 +92,7 @@ C:\Dev\nexora-desktop\
 ```
 
 ### Regras importantes:
+
 - **Não saltes ecrãs** — segue a ordem deste guia
 - **Copia a prompt completa** — do `---INÍCIO---` ao `---FIM---`
 - **Se a IA parar a meio**, pede-lhe: `"Continua o código a partir de onde paraste"`
@@ -99,13 +103,16 @@ C:\Dev\nexora-desktop\
 ## 4. ECRÃ 1 — Dashboard
 
 ### O que é este ecrã?
+
 É a página principal que aparece quando abres o Nexora.  
 Mostra um resumo de tudo: quantos vídeos processaste, o estado dos jobs activos, qualidade VMAF, espaço em disco.
 
 ### Ficheiro a modificar:
+
 `src/pages/DashboardPage.tsx`
 
 ### Passos:
+
 1. No Antigravity, abre o ficheiro `src/pages/DashboardPage.tsx`
 2. Selecciona todo (Ctrl+A)
 3. Abre o chat da IA
@@ -113,7 +120,7 @@ Mostra um resumo de tudo: quantos vídeos processaste, o estado dos jobs activos
 
 ---
 
-```
+````
 ---INÍCIO DA PROMPT PARA ANTIGRAVITY---
 
 Reescreve completamente o ficheiro DashboardPage.tsx para a aplicação Nexora Desktop.
@@ -139,14 +146,14 @@ ESTRUTURA DO ECRÃ (de cima para baixo):
 
 2. LINHA DE 4 CARDS DE ESTATÍSTICAS:
    Cada card tem: ícone (24px), label cinzento em cima, número grande branco, subtítulo pequeno cinzento
-   
+
    Card 1 — "Assets Totais": ícone Archive azul, número do total de assets, "ficheiros processados"
-   Card 2 — "Jobs Hoje": ícone Activity verde, número de jobs do dia, "concluídos hoje"  
+   Card 2 — "Jobs Hoje": ícone Activity verde, número de jobs do dia, "concluídos hoje"
    Card 3 — "VMAF Médio": ícone Gauge, número com 1 decimal (ex: "91.4"), cor verde se >85, amarelo se 70-85, vermelho se <70
    Card 4 — "Disco Livre": ícone HardDrive, valor em GB (ex: "234 GB"), barra de progresso fina abaixo mostrando uso
 
 3. LINHA COM DOIS PAINÉIS:
-   
+
    PAINEL ESQUERDO (65% de largura) — "Jobs Recentes":
    - Cabeçalho com título e link "Ver todos →" que navega para /queue
    - Lista dos últimos 5 jobs, cada linha:
@@ -166,7 +173,7 @@ ESTRUTURA DO ECRÃ (de cima para baixo):
      * GPU: label + nome da GPU detectada (ex: "NVIDIA RTX 3080") ou "CPU (sem GPU)"
    - Em baixo: card "Distribuição VMAF" — lista simples com contagem:
      * 🟥 Abaixo de 70: X jobs
-     * 🟨 70 a 85: X jobs  
+     * 🟨 70 a 85: X jobs
      * 🟩 85 a 95: X jobs
      * 💚 Acima de 95: X jobs
 
@@ -199,9 +206,10 @@ interface Job {
   vmaf_score: number | null;
   // filename vem do asset, mas para simplificar podes guardar no estado local
 }
-```
+````
 
 ESTILO:
+
 - Background da página: bg-[#0a0d14]
 - Cards: bg-[#141824] border border-[#1e2433] rounded-xl p-6
 - Texto principal: text-white
@@ -213,6 +221,7 @@ ESTILO:
 Gera o ficheiro TypeScript/React completo e funcional. Usa `export default function DashboardPage()`.
 
 ---FIM DA PROMPT PARA ANTIGRAVITY---
+
 ```
 
 ### O que verificar depois:
@@ -226,7 +235,7 @@ Gera o ficheiro TypeScript/React completo e funcional. Usa `export default funct
 ## 5. ECRÃ 2 — Biblioteca
 
 ### O que é este ecrã?
-É onde vês todos os vídeos que já adicionaste ao Nexora.  
+É onde vês todos os vídeos que já adicionaste ao Nexora.
 Podes filtrar por estado, arrastar novos vídeos, e clicar para ver detalhes de cada um.
 
 ### Ficheiro a criar:
@@ -240,22 +249,26 @@ Podes filtrar por estado, arrastar novos vídeos, e clicar para ver detalhes de 
 ---
 
 ```
+
 ---INÍCIO DA PROMPT PARA ANTIGRAVITY---
 
 Cria um ficheiro novo LibraryPage.tsx para a aplicação Nexora Desktop.
 
 CONTEXTO DA APLICAÇÃO:
+
 - Nexora Desktop: Tauri 2 + React 19 + TypeScript + Tailwind CSS
 - Tema escuro: fundo #0a0d14, cards #141824, bordas #1e2433, azul #1A6FD4
 - Comunicação via `invoke` do Tauri (sem HTTP)
 
 IMPORTS NECESSÁRIOS:
+
 - `invoke` de `@tauri-apps/api/core`
 - `open` de `@tauri-apps/plugin-dialog` para diálogo de ficheiros
 - Lucide React: Library, Upload, Search, Filter, Grid2X2, List, Film, Clock, CheckCircle2, AlertCircle, Loader2, FolderOpen, Play, ExternalLink, Trash2
 - `useCallback, useEffect, useState` de react
 
 INTERFACE DO ASSET (define no topo):
+
 ```typescript
 interface Asset {
   id: string;
@@ -295,18 +308,18 @@ ESTRUTURA DO ECRÃ:
    Cada card de asset:
    - THUMBNAIL: área 16:9 com fundo escuro; se thumbnail_path existe mostra imagem; senão mostra ícone Film centrado cinzento
    - BADGE DE ESTADO sobreposto no canto superior direito:
-     * pending=cinzento "Pendente"
-     * ingesting=azul pulsante "A processar..."
-     * qc_passed=verde "QC OK"
-     * processing=azul pulsante "A processar..."
-     * done=verde "Concluído"
-     * error=vermelho "Erro"
+     - pending=cinzento "Pendente"
+     - ingesting=azul pulsante "A processar..."
+     - qc_passed=verde "QC OK"
+     - processing=azul pulsante "A processar..."
+     - done=verde "Concluído"
+     - error=vermelho "Erro"
    - BADGE VMAF (se vmaf_score > 0): canto inferior direito, verde se >85, amarelo se >70
    - NOME DO FICHEIRO (2 linhas max, truncado)
    - METADATA LINE: tamanho formatado (ex: "2.3 GB") + duração formatada (ex: "9:52")
    - HOVER: overlay semi-transparente com 2 botões:
-     * "Detalhes" (ExternalLink) — navega para /asset/:id
-     * "Processar" (Play) — só se status=done ou status=error; abre modal de selecção de perfil
+     - "Detalhes" (ExternalLink) — navega para /asset/:id
+     - "Processar" (Play) — só se status=done ou status=error; abre modal de selecção de perfil
 
 5. VISTA LISTA (alternativa à grelha):
    Tabela com colunas: Nome | Estado | Tamanho | Duração | Codec | Criado em | Acções
@@ -323,6 +336,7 @@ ESTRUTURA DO ECRÃ:
    - Botão "Adicionar Vídeos" azul
 
 LÓGICA:
+
 - `invoke<Asset[]>('list_assets')` para buscar todos os assets
 - Filtragem e pesquisa feitas no frontend (não no backend)
 - Refresca a cada 5 segundos via setInterval (para apanhar mudanças de estado)
@@ -334,6 +348,7 @@ ESTILO igual ao DashboardPage: bg-[#0a0d14], cards bg-[#141824] border border-[#
 Gera o ficheiro completo. `export default function LibraryPage()`.
 
 ---FIM DA PROMPT PARA ANTIGRAVITY---
+
 ```
 
 ### O que verificar depois:
@@ -347,7 +362,7 @@ Gera o ficheiro completo. `export default function LibraryPage()`.
 ## 6. ECRÃ 3 — Fila de Processamento
 
 ### O que é este ecrã?
-Mostra em tempo real todos os jobs a correr, em espera e os já terminados.  
+Mostra em tempo real todos os jobs a correr, em espera e os já terminados.
 É como um painel de controlo da fila de processamento.
 
 ### Ficheiro a criar:
@@ -356,16 +371,19 @@ Mostra em tempo real todos os jobs a correr, em espera e os já terminados.
 ---
 
 ```
+
 ---INÍCIO DA PROMPT PARA ANTIGRAVITY---
 
 Cria um ficheiro novo QueuePage.tsx para o Nexora Desktop.
 
 CONTEXTO:
+
 - Tauri 2 + React 19 + TypeScript + Tailwind CSS
 - Tema escuro: fundo #0a0d14, cards #141824, bordas #1e2433, azul #1A6FD4
 - `invoke` do Tauri para comunicação com backend
 
 INTERFACES (define no topo do ficheiro):
+
 ```typescript
 interface Job {
   id: string;
@@ -393,16 +411,17 @@ interface QueueStats {
 ```
 
 OS 8 PASSOS DO PIPELINE (usa esta constante):
+
 ```typescript
 const PIPELINE_STEPS = [
-  { key: 'ingest',     label: 'Ingest',    short: 'IN' },
-  { key: 'qc-pre',     label: 'QC Pré',    short: 'QC' },
-  { key: 'transcode',  label: 'Transco.',  short: 'TR' },
-  { key: 'audio',      label: 'Áudio',     short: 'AU' },
-  { key: 'proxy',      label: 'Proxy',     short: 'PX' },
-  { key: 'thumbnail',  label: 'Thumb',     short: 'TH' },
-  { key: 'qc-post',    label: 'QC Pós',    short: 'QP' },
-  { key: 'delivery',   label: 'Entrega',   short: 'DL' },
+  { key: 'ingest', label: 'Ingest', short: 'IN' },
+  { key: 'qc-pre', label: 'QC Pré', short: 'QC' },
+  { key: 'transcode', label: 'Transco.', short: 'TR' },
+  { key: 'audio', label: 'Áudio', short: 'AU' },
+  { key: 'proxy', label: 'Proxy', short: 'PX' },
+  { key: 'thumbnail', label: 'Thumb', short: 'TH' },
+  { key: 'qc-post', label: 'QC Pós', short: 'QP' },
+  { key: 'delivery', label: 'Entrega', short: 'DL' },
 ];
 ```
 
@@ -411,22 +430,22 @@ ESTRUTURA DO ECRÃ:
 1. CABEÇALHO:
    - Título "Fila de Processamento"
    - 4 CHIPS DE ESTATÍSTICAS em linha:
-     * "Em fila: X" — badge cinzento
-     * "A processar: X" — badge azul com círculo pulsante antes do número
-     * "Concluídos hoje: X" — badge verde
-     * "Erros hoje: X" — badge vermelho (só aparece se X > 0)
+     - "Em fila: X" — badge cinzento
+     - "A processar: X" — badge azul com círculo pulsante antes do número
+     - "Concluídos hoje: X" — badge verde
+     - "Erros hoje: X" — badge vermelho (só aparece se X > 0)
 
 2. SECÇÃO "A PROCESSAR" (só aparece se há jobs com status=processing):
    Cabeçalho: "A Processar" + "X/2 slots a ser usados"
-   
+
    Para cada job processing — CARD GRANDE:
    - LINHA SUPERIOR: ícone Film + nome do ficheiro (bold) + badge do perfil (colorido por tipo)
    - INDICADOR DE PIPELINE (fila horizontal de 8 círculos ligados por linhas):
-     * Círculo concluído: preenchido verde com checkmark ✓
-     * Círculo actual (step actual): círculo azul pulsante com ponto
-     * Círculo futuro: círculo vazio cinzento
-     * Entre cada círculo: linha horizontal; verde se passado, cinzenta se futuro
-     * Abaixo de cada círculo: label curto (IN, QC, TR, etc.)
+     - Círculo concluído: preenchido verde com checkmark ✓
+     - Círculo actual (step actual): círculo azul pulsante com ponto
+     - Círculo futuro: círculo vazio cinzento
+     - Entre cada círculo: linha horizontal; verde se passado, cinzenta se futuro
+     - Abaixo de cada círculo: label curto (IN, QC, TR, etc.)
    - BARRA DE PROGRESSO: larga, mostra % e o step actual em texto abaixo ("A transcodificar... 67%")
    - LINHA DE MÉTRICAS: "Iniciado há X min" | "GPU: NVENC" (se disponível) | "Estimado: X min restantes"
    - BOTÃO CANCELAR: canto superior direito, ícone X, cinzento, vermelho no hover
@@ -434,7 +453,7 @@ ESTRUTURA DO ECRÃ:
 
 3. SECÇÃO "EM FILA" (jobs com status=queued):
    Cabeçalho: "Em Fila" + badge com contagem
-   
+
    TABELA COMPACTA com colunas:
    Pos. | Nome do ficheiro | Perfil | Tamanho | Estado | Acção
    - Pos.: número de posição na fila (1, 2, 3...)
@@ -443,7 +462,7 @@ ESTRUTURA DO ECRÃ:
 
 4. SECÇÃO "CONCLUÍDOS HOJE":
    Cabeçalho: "Concluídos Hoje" + link "Ver histórico completo →" que navega para /library
-   
+
    TABELA com colunas:
    Nome | Perfil | Duração | VMAF | Estado | Concluído há | Acção
    - VMAF: número colorido (verde >85, amarelo >70, vermelho <70)
@@ -453,13 +472,14 @@ ESTRUTURA DO ECRÃ:
 
 5. SECÇÃO "ERROS" (só se houver errors):
    Cabeçalho vermelho "Com Erros"
-   
+
    Para cada job com error:
    - Nome + perfil + mensagem de erro em texto vermelho (truncada, expansível)
    - Botão "Repetir" azul
    - Botão "Ignorar" cinzento
 
 LÓGICA:
+
 - `invoke<Job[]>('list_jobs')` — busca todos os jobs
 - `invoke<QueueStats>('get_queue_stats')` — busca estatísticas
 - Polling a cada 2 segundos para jobs activos
@@ -468,6 +488,7 @@ LÓGICA:
 - Função para determinar o índice do step actual no PIPELINE_STEPS
 
 ESTILO:
+
 - Cards de "A Processar": border-l-4 border-[#1A6FD4] bg-[#141824]
 - Círculo activo no pipeline: animate-pulse
 - Progresso de jobs em processamento: bg-[#1A6FD4] com transition-all duration-500
@@ -476,6 +497,7 @@ ESTILO:
 Gera o ficheiro completo. `export default function QueuePage()`.
 
 ---FIM DA PROMPT PARA ANTIGRAVITY---
+
 ```
 
 ### O que verificar depois:
@@ -489,7 +511,7 @@ Gera o ficheiro completo. `export default function QueuePage()`.
 ## 7. ECRÃ 4 — Detalhe do Asset
 
 ### O que é este ecrã?
-Quando clicas num asset na Biblioteca ou na Fila, abre este ecrã com toda a informação detalhada:  
+Quando clicas num asset na Biblioteca ou na Fila, abre este ecrã com toda a informação detalhada:
 metadados técnicos, relatório QC, histórico de todos os jobs desse vídeo.
 
 ### Ficheiro a criar:
@@ -498,16 +520,19 @@ metadados técnicos, relatório QC, histórico de todos os jobs desse vídeo.
 ---
 
 ```
+
 ---INÍCIO DA PROMPT PARA ANTIGRAVITY---
 
 Cria um ficheiro novo AssetDetailPage.tsx para o Nexora Desktop.
 
 CONTEXTO:
+
 - Tauri 2 + React 19 + TypeScript + Tailwind CSS
 - Tema escuro: fundo #0a0d14, cards #141824, bordas #1e2433, azul #1A6FD4
 - Este ecrã recebe um `assetId` como prop ou parâmetro de URL
 
 INTERFACES (define no topo):
+
 ```typescript
 interface Asset {
   id: string;
@@ -555,24 +580,24 @@ ESTRUTURA DO ECRÃ:
    - Clicar em "← Biblioteca" ou na seta volta para a página anterior (chama onBack())
 
 2. SECÇÃO HERO (layout duas colunas):
-   
+
    COLUNA ESQUERDA (40%):
    - Thumbnail grande (aspect ratio 16:9, rounded-xl, bg-[#0a0d14])
      Se thumbnail_path existe: mostra a imagem
      Se não existe: fundo escuro com ícone Film grande centrado
    - Abaixo: caminho do ficheiro em monospace pequeno cinzento + ícone copiar
-   - Se existe proxy (ficheiro _proxy na mesma pasta): botão "▶ Ver Proxy"
-   
+   - Se existe proxy (ficheiro \_proxy na mesma pasta): botão "▶ Ver Proxy"
+
    COLUNA DIREITA (60%):
    - Nome do ficheiro (título grande, bold)
    - Badge de estado colorido
    - GRELHA DE METADADOS (2 colunas, linhas alternadas):
-     * Tamanho: "2.3 GB"
-     * Duração: "9:52" ou "01:23:45"
-     * Vídeo: "H.264 / 1920×1080 / 25fps / 50 Mbps"
-     * Áudio: "AAC / 48kHz / Stereo / 256 kbps"
-     * Container: "QuickTime MOV"
-     * Adicionado: "há 2 horas" (com tooltip da data completa)
+     - Tamanho: "2.3 GB"
+     - Duração: "9:52" ou "01:23:45"
+     - Vídeo: "H.264 / 1920×1080 / 25fps / 50 Mbps"
+     - Áudio: "AAC / 48kHz / Stereo / 256 kbps"
+     - Container: "QuickTime MOV"
+     - Adicionado: "há 2 horas" (com tooltip da data completa)
    - Se VMAF disponível: badge verde grande "VMAF 91.4" com ícone shield
 
 3. CARD "RELATÓRIO QC" (expansível, aberto por padrão):
@@ -580,18 +605,18 @@ ESTRUTURA DO ECRÃ:
    - TABELA DE VERIFICAÇÕES:
      Colunas: Verificação | Resultado | Valor | Limite
      Linhas exemplo:
-     * "Codec suportado" | ✓ | "h264" | "—"
-     * "Resolução mínima" | ✓ | "1920×1080" | "≥ 720p"
-     * "VMAF Score" | ✓ | "91.4" | "≥ 85"
-     * "Níveis de áudio" | ✓ | "-23.1 LUFS" | "-23 ±1"
-     * Resultado ✓: ícone verde, ✗: ícone vermelho, ⚠: ícone amarelo
+     - "Codec suportado" | ✓ | "h264" | "—"
+     - "Resolução mínima" | ✓ | "1920×1080" | "≥ 720p"
+     - "VMAF Score" | ✓ | "91.4" | "≥ 85"
+     - "Níveis de áudio" | ✓ | "-23.1 LUFS" | "-23 ±1"
+     - Resultado ✓: ícone verde, ✗: ícone vermelho, ⚠: ícone amarelo
    - Rodapé: "Aprovado automaticamente pelo pipeline em [data]"
    - Se o QC falhou: mensagem de erro em vermelho
 
 4. SECÇÃO "HISTÓRICO DE PROCESSAMENTO":
    - Cabeçalho: "Histórico de Jobs" + badge com contagem
    - LINHA DO TEMPO VERTICAL: cada job = 1 card
-   
+
    Cada CARD DE JOB:
    - Cabeçalho: ID do job (primeiros 8 chars) + badge do perfil + badge de estado + botão "⋮" menu
    - INDICADOR DE PIPELINE (8 círculos, mesmo estilo da QueuePage):
@@ -602,7 +627,7 @@ ESTRUTURA DO ECRÃ:
    - Se status=error: caixa vermelha com mensagem de erro
    - Se status=done: botão "Processar novamente" (re-abre com mesmo perfil)
    - Menu "⋮": opções "Re-processar", "Copiar ID", "Ver logs deste job"
-   
+
    Linha de tempo vertical: linha cinzenta à esquerda, círculo em cada card
 
 5. BARRA DE ACÇÕES (fundo da página, sticky):
@@ -614,18 +639,21 @@ ESTRUTURA DO ECRÃ:
      On confirm: `invoke('delete_asset', { assetId })` + volta para Library
 
 LÓGICA:
+
 - `invoke<Asset>('get_asset', { assetId })` — busca o asset
 - `invoke<Job[]>('list_jobs', { assetId })` — busca todos os jobs deste asset
 - Cálculo de duração do job: diferença entre finished_at e started_at
 - Formatação de bytes em GB/MB/KB
 
 ESTILO:
+
 - Hover nos cards de job: borda esquerda azul
 - Timeline: linha vertical cinzenta #1e2433 à esquerda dos cards
 
 Gera o ficheiro completo. `export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProps)`.
 
 ---FIM DA PROMPT PARA ANTIGRAVITY---
+
 ```
 
 ### O que verificar depois:
@@ -639,7 +667,7 @@ Gera o ficheiro completo. `export default function AssetDetailPage({ assetId, on
 ## 8. ECRÃ 5 — Perfis de Codificação
 
 ### O que é este ecrã?
-Aqui podes ver e gerir os perfis de codificação.  
+Aqui podes ver e gerir os perfis de codificação.
 Os perfis definem como os teus vídeos vão ser processados (qualidade, resolução, formato).
 
 ### Ficheiro a criar:
@@ -648,15 +676,18 @@ Os perfis definem como os teus vídeos vão ser processados (qualidade, resoluç
 ---
 
 ```
+
 ---INÍCIO DA PROMPT PARA ANTIGRAVITY---
 
 Cria um ficheiro novo ProfilesPage.tsx para o Nexora Desktop.
 
 CONTEXTO:
+
 - Tauri 2 + React 19 + TypeScript + Tailwind CSS
 - Tema escuro: fundo #0a0d14, cards #141824, bordas #1e2433, azul #1A6FD4
 
 INTERFACES:
+
 ```typescript
 interface TranscodeProfile {
   id: string;
@@ -681,8 +712,9 @@ interface TranscodeProfile {
 ```
 
 OS 6 PERFIS DO SISTEMA (referência visual para as cores dos badges):
+
 - "broadcast-hd" → roxo escuro
-- "broadcast-sd" → roxo claro  
+- "broadcast-sd" → roxo claro
 - "web-4k" → azul escuro
 - "web-hd" → azul
 - "proxy" → cinzento
@@ -696,46 +728,46 @@ ESTRUTURA DO ECRÃ:
 
 2. GRELHA DE CARDS (3 colunas):
    Cada card de perfil:
-   
+
    CABEÇALHO DO CARD:
    - Nome em bold grande
    - Badge "PRESET" cinzento com ícone cadeado 🔒 (se is_system=true)
    - Badge "PERSONALIZADO" laranja (se is_system=false)
-   
+
    LINHA DE BADGES TÉCNICOS:
    - Badge container: "MOV" / "MP4" / "MXF"
    - Badge codec: "H.264" / "H.265" / "ProRes"
    - Badge resolução: "1920×1080" / "1280×720" etc.
-   
+
    GRELHA DE ESPECIFICAÇÕES (2 colunas, 5 linhas):
    FPS | Bitrate Vídeo
    Bitrate Áudio | LUFS Alvo
    VMAF Mínimo | — | —
    Cada item: label pequeno cinzento + valor branco
-   
+
    DESCRIÇÃO: 2 linhas de texto cinzento (truncadas)
-   
+
    RODAPÉ DO CARD:
    - Botão "Editar" (secondary) → abre painel lateral
    - Botão "Duplicar" (ghost) → cria cópia com nome "Cópia de X"
    - Botão "Apagar" (só se is_system=false, vermelho, com confirmação)
-   
+
    Hover no card: borda esquerda azul
 
 3. PAINEL LATERAL DE EDIÇÃO (Sheet/Drawer desliza da direita, 420px):
    Aparece ao clicar "Editar" ou "Novo Perfil"
-   
+
    CABEÇALHO: "Editar broadcast-hd" ou "Novo Perfil" + botão X para fechar
-   
+
    Se is_system=true: banner amarelo "⚠ Este é um preset do sistema e não pode ser modificado"
-   
+
    FORMULÁRIO EM SECÇÕES (accordion ou separadas por linha divisória):
-   
+
    GERAL:
    - Nome (text input, obrigatório)
    - Descrição (textarea, 3 linhas)
    - Container: select ["MOV", "MP4", "MXF", "TS"]
-   
+
    VÍDEO:
    - Codec: select ["H.264", "H.265 (HEVC)", "Apple ProRes 422"]
    - Resolução: select ["Original", "3840×2160 (4K)", "1920×1080 (Full HD)", "1280×720 (HD)", "720×576 (SD PAL)", "640×360 (Web)"]
@@ -747,23 +779,24 @@ ESTRUTURA DO ECRÃ:
    - Perfil H.264: select ["baseline", "main", "high"]
    - Nível H.264: select ["3.1", "4.0", "4.1", "4.2"]
    - Preset CPU: select ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"]
-   
+
    ÁUDIO:
    - Codec: select ["AAC", "MP3", "PCM (WAV)"]
    - Taxa de amostragem: select ["44100 Hz", "48000 Hz", "96000 Hz"]
    - Bitrate Áudio (kbps): number input
-   
+
    QUALIDADE:
    - VMAF Mínimo: slider 0-100 + número (default 85)
    - LUFS Alvo: select ["-23 LUFS (Broadcast)", "-16 LUFS (Streaming)", "-14 LUFS (Podcast/Social)"]
    - True Peak (dBTP): number input (ex: -1)
-   
+
    RODAPÉ DO PAINEL:
    - Botão "Guardar" azul (disabled se is_system=true)
    - Botão "Cancelar" ghost
    - On Guardar: `invoke('create_profile', { profile })` ou `invoke('update_profile', { id, profile })`
 
 LÓGICA:
+
 - `invoke<TranscodeProfile[]>('list_profiles')` — busca todos os perfis
 - Perfis do sistema vêm primeiro, depois os personalizados
 - Ao duplicar: cria novo perfil com nome "Cópia de [nome]" e is_system=false
@@ -772,6 +805,7 @@ LÓGICA:
 Gera o ficheiro completo. `export default function ProfilesPage()`.
 
 ---FIM DA PROMPT PARA ANTIGRAVITY---
+
 ```
 
 ### O que verificar depois:
@@ -785,7 +819,7 @@ Gera o ficheiro completo. `export default function ProfilesPage()`.
 ## 9. ECRÃ 6 — Registos do Sistema
 
 ### O que é este ecrã?
-Mostra todos os registos (logs) do sistema em tempo real.  
+Mostra todos os registos (logs) do sistema em tempo real.
 Útil para perceber o que está a acontecer internamente ou diagnosticar problemas.
 
 ### Ficheiro a criar:
@@ -794,23 +828,26 @@ Mostra todos os registos (logs) do sistema em tempo real.
 ---
 
 ```
+
 ---INÍCIO DA PROMPT PARA ANTIGRAVITY---
 
 Cria um ficheiro novo LogsPage.tsx para o Nexora Desktop.
 
 CONTEXTO:
+
 - Tauri 2 + React 19 + TypeScript + Tailwind CSS
 - Tema escuro: fundo #0a0d14, cards #141824, bordas #1e2433
 - Já existe o componente LogViewer em `@/components/LogViewer`
 - Já existe o hook `useLogs` em `@/hooks/useLogs`
 
 INTERFACE DE LOG (já definida no projecto, usa esta):
+
 ```typescript
 interface LogEntry {
   id: number;
-  ts: string;        // timestamp ISO
+  ts: string; // timestamp ISO
   level: 'debug' | 'info' | 'warn' | 'error';
-  source: string;    // ex: "sidecar", "tauri", "ffmpeg", "app"
+  source: string; // ex: "sidecar", "tauri", "ffmpeg", "app"
   message: string;
 }
 
@@ -827,12 +864,12 @@ ESTRUTURA DO ECRÃ:
 1. CABEÇALHO:
    - Título "Registos do Sistema"
    - LINHA DE CHIPS DE ESTADO (atualiza automaticamente):
-     * "Total: X" cinzento
-     * "Erros: X" vermelho (só se X > 0)
-     * "Avisos: X" amarelo (só se X > 0)
+     - "Total: X" cinzento
+     - "Erros: X" vermelho (só se X > 0)
+     - "Avisos: X" amarelo (só se X > 0)
    - BOTÕES no canto direito:
-     * "Exportar" (ícone Download) — exporta para ficheiro .txt via `invoke('export_logs', { path })`
-     * "Limpar" (ícone Trash, cinzento) — `invoke('clear_logs')` com confirmação
+     - "Exportar" (ícone Download) — exporta para ficheiro .txt via `invoke('export_logs', { path })`
+     - "Limpar" (ícone Trash, cinzento) — `invoke('clear_logs')` com confirmação
 
 2. BARRA DE FILTROS (linha horizontal, abaixo do cabeçalho):
    - Input de PESQUISA (ícone lupa): filtra por texto na mensagem
@@ -846,22 +883,21 @@ ESTRUTURA DO ECRÃ:
 
 3. TABELA DE LOGS (ocupa o restante da altura disponível, com scroll):
    Colunas: Hora | Nível | Fonte | Mensagem
-   
    - HORA: monospace, formato "HH:MM:SS.ms" em texto cinzento-400
    - NÍVEL: badge pill colorido:
-     * DEBUG → cinzento escuro
-     * INFO → azul escuro
-     * WARN → amarelo escuro
-     * ERROR → vermelho escuro
+     - DEBUG → cinzento escuro
+     - INFO → azul escuro
+     - WARN → amarelo escuro
+     - ERROR → vermelho escuro
    - FONTE: tag pequena monospace (ex: `sidecar`, `ffmpeg`)
    - MENSAGEM: texto que pode ter múltiplas linhas
      Se ERROR: borda esquerda vermelha na linha
      Se WARN: borda esquerda amarela na linha
    - HOVER: fundo ligeiramente mais claro
-   
+
    Linhas mais recentes aparecem em baixo (scroll to bottom automático se auto-scroll ON)
    Novas linhas aparecem com animação fade-in suave
-   
+
    Cada linha de ERROR é expansível: click revela stack trace (se disponível) em caixa monospace
 
 4. ESTADO VAZIO:
@@ -870,12 +906,14 @@ ESTRUTURA DO ECRÃ:
    - Se há filtros activos: "Tenta remover os filtros"
 
 LÓGICA:
+
 - Usa o hook `useLogs` existente que já faz o fetch inicial e subscreve eventos em tempo real
 - Filtragem feita no frontend sobre os logs recebidos
 - Auto-scroll: ref no elemento da lista, scroll to bottom quando novo log chega (se toggle ON)
 - Exportar: formata logs como texto e usa `save` dialog do Tauri para guardar
 
 ESTILO:
+
 - Tabela: fundo #0a0d14, sem bordas nas células, apenas padding
 - Monospace font: `font-mono text-xs` para timestamp e source
 - Linhas de erro: `border-l-2 border-red-500 pl-2`
@@ -884,6 +922,7 @@ ESTILO:
 Gera o ficheiro completo. `export default function LogsPage()`.
 
 ---FIM DA PROMPT PARA ANTIGRAVITY---
+
 ```
 
 ### O que verificar depois:
@@ -905,11 +944,13 @@ Onde configuras o Nexora: pasta de saída, número de jobs simultâneos, GPU, no
 ---
 
 ```
+
 ---INÍCIO DA PROMPT PARA ANTIGRAVITY---
 
 Reescreve o ficheiro SettingsPage.tsx para o Nexora Desktop.
 
 CONTEXTO:
+
 - Tauri 2 + React 19 + TypeScript + Tailwind CSS
 - Tema escuro: fundo #0a0d14, cards #141824, bordas #1e2433, azul #1A6FD4
 - Já existe o store `useSettingsStore` de `@/store/settings`
@@ -917,10 +958,11 @@ CONTEXTO:
 - Já existe o hook `useGPU` de `@/hooks/useGPU`
 
 INTERFACE DE SETTINGS:
+
 ```typescript
 interface Settings {
   output_dir: string;
-  max_concurrent_jobs: number;  // 1-4
+  max_concurrent_jobs: number; // 1-4
   gpu_acceleration: boolean;
   notifications_enabled: boolean;
   theme: 'system' | 'light' | 'dark';
@@ -943,6 +985,7 @@ ESTRUTURA DO ECRÃ:
 Container centrado, max-width 800px, com scroll vertical.
 
 SECÇÃO 1 — "Processamento" (card):
+
 - PASTA DE SAÍDA:
   Label "Pasta de saída"
   Row: input readonly mostrando o caminho actual + botão "Escolher pasta" (ícone FolderOpen)
@@ -963,27 +1006,32 @@ SECÇÃO 1 — "Processamento" (card):
   On change: guarda no store e `invoke`
 
 SECÇÃO 2 — "Qualidade" (card):
+
 - VMAF MÍNIMO: slider 0-100 + campo numérico + helper "Jobs abaixo deste valor são marcados com aviso"
 - LUFS ALVO: select [-23 (Broadcast), -16 (Streaming), -14 (Podcast/Social)]
 - TRUE PEAK: number input, default -1
 
 SECÇÃO 3 — "Aceleração de Hardware" (card):
+
 - GPU toggle: "Usar aceleração GPU quando disponível"
   Subtexto dinâmico baseado em useGPU():
-  * Se GPU detectada: "GPU detectada: NVIDIA RTX 3080 (NVENC ativo)"
-  * Se não: "Sem GPU compatível — a usar CPU (libx264)"
-  Nota informativa: "Desliga para forçar processamento CPU (pode ser necessário para compatibilidade)"
+  - Se GPU detectada: "GPU detectada: NVIDIA RTX 3080 (NVENC ativo)"
+  - Se não: "Sem GPU compatível — a usar CPU (libx264)"
+    Nota informativa: "Desliga para forçar processamento CPU (pode ser necessário para compatibilidade)"
 
 SECÇÃO 4 — "Notificações" (card):
+
 - "Notificações do sistema" toggle → notifica quando job conclui ou dá erro
 - "Som de conclusão" toggle
 
 SECÇÃO 5 — "Interface" (card):
+
 - TEMA: segmented control de 3 opções: [Sistema | Claro | Escuro]
   On change: aplica imediatamente
 - IDIOMA: select [Português (Portugal) | English]
 
 SECÇÃO 6 — "Sobre" (card):
+
 - Logo Nexora + "Nexora Media Processing" + "Desktop Edition"
 - Versão: "v0.6.0" em badge
 - CHANGELOG (accordion expansível):
@@ -992,13 +1040,15 @@ SECÇÃO 6 — "Sobre" (card):
 - Row de botões: "Verificar Actualizações" (azul) + "Abrir Dados" (secondary, abre pasta BD)
 
 SECÇÃO 7 — "Sistema" (card, colapsável por defeito):
-  Info técnica via `invoke<InstalledInfo>('get_installed_info')`:
-  - FFmpeg: versão instalada ou "Não encontrado"
-  - Node.js: versão
-  - GPU: nome ou "CPU only"
-  - Base de dados: caminho do ficheiro .db
+Info técnica via `invoke<InstalledInfo>('get_installed_info')`:
+
+- FFmpeg: versão instalada ou "Não encontrado"
+- Node.js: versão
+- GPU: nome ou "CPU only"
+- Base de dados: caminho do ficheiro .db
 
 SECÇÃO 8 — "Avançado" (card, colapsável, fundo ligeiramente mais escuro):
+
 - "Limpar base de dados" → botão vermelho + dialog: "Apaga todos os assets e jobs. Não pode ser desfeito."
 - "Exportar definições" → guarda settings.json
 - "Importar definições" → carrega settings.json
@@ -1007,6 +1057,7 @@ SECÇÃO 8 — "Avançado" (card, colapsável, fundo ligeiramente mais escuro):
 Gera o ficheiro completo. `export default function SettingsPage()`.
 
 ---FIM DA PROMPT PARA ANTIGRAVITY---
+
 ```
 
 ### O que verificar depois:
@@ -1020,7 +1071,7 @@ Gera o ficheiro completo. `export default function SettingsPage()`.
 ## 11. Navegação Principal — Actualizar App.tsx
 
 ### O que é este passo?
-Depois de criar todos os ecrãs, precisas de os "ligar" à navegação da aplicação.  
+Depois de criar todos os ecrãs, precisas de os "ligar" à navegação da aplicação.
 O App.tsx é o ficheiro que controla o que aparece quando carregas em cada item do menu.
 
 ### Ficheiro a modificar:
@@ -1029,16 +1080,19 @@ O App.tsx é o ficheiro que controla o que aparece quando carregas em cada item 
 ---
 
 ```
+
 ---INÍCIO DA PROMPT PARA ANTIGRAVITY---
 
 Reescreve o ficheiro App.tsx do Nexora Desktop para incluir os 7 novos ecrãs.
 
 CONTEXTO:
+
 - Tauri 2 + React 19 + TypeScript + Tailwind CSS
 - A navegação usa estado React simples (sem React Router — é uma aplicação nativa)
 - Os ecrãs existem como componentes importados de src/pages/
 
 PÁGINAS DISPONÍVEIS (importa todas):
+
 - DashboardPage de '@/pages/DashboardPage'
 - LibraryPage de '@/pages/LibraryPage'
 - QueuePage de '@/pages/QueuePage'
@@ -1048,15 +1102,18 @@ PÁGINAS DISPONÍVEIS (importa todas):
 - SettingsPage de '@/pages/SettingsPage'
 
 COMPONENTES EXISTENTES (mantém e usa):
+
 - SystemMetricsBar de '@/components/SystemMetricsBar'
 - HelpModal de '@/components/HelpModal'
 
 TIPO DA NAVEGAÇÃO:
+
 ```typescript
 type Page = 'dashboard' | 'library' | 'queue' | 'asset-detail' | 'profiles' | 'logs' | 'settings';
 ```
 
 ESTADO DA APLICAÇÃO:
+
 ```typescript
 const [currentPage, setCurrentPage] = useState<Page>('dashboard');
 const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
@@ -1066,50 +1123,53 @@ const [showHelp, setShowHelp] = useState(false);
 ESTRUTURA DO LAYOUT:
 
 SIDEBAR (esquerda, 220px, fixo, fundo #0f1117):
-  - Logo "N" em círculo azul + texto "Nexora" em bold branco (topo, 64px de altura)
-  - ITENS DE NAVEGAÇÃO (lista vertical, 48px cada):
-    * Dashboard (ícone LayoutDashboard) → setCurrentPage('dashboard')
-    * Biblioteca (ícone Library) → setCurrentPage('library')
-    * Fila (ícone ListVideo) → setCurrentPage('queue')
-    * Perfis (ícone Sliders) → setCurrentPage('profiles')
-    * Registos (ícone ScrollText) → setCurrentPage('logs')
-  - SEPARADOR
-  - Item activo: fundo azul-900/30, texto branco, barra azul à esquerda (4px)
-  - Item inactivo: texto cinzento-400, hover: fundo branco/5
-  - Em baixo da sidebar (posição absoluta bottom):
-    * Botão "?" circular cinzento (abre HelpModal)
-    * Botão "⚙" (Definições) → setCurrentPage('settings')
+
+- Logo "N" em círculo azul + texto "Nexora" em bold branco (topo, 64px de altura)
+- ITENS DE NAVEGAÇÃO (lista vertical, 48px cada):
+  - Dashboard (ícone LayoutDashboard) → setCurrentPage('dashboard')
+  - Biblioteca (ícone Library) → setCurrentPage('library')
+  - Fila (ícone ListVideo) → setCurrentPage('queue')
+  - Perfis (ícone Sliders) → setCurrentPage('profiles')
+  - Registos (ícone ScrollText) → setCurrentPage('logs')
+- SEPARADOR
+- Item activo: fundo azul-900/30, texto branco, barra azul à esquerda (4px)
+- Item inactivo: texto cinzento-400, hover: fundo branco/5
+- Em baixo da sidebar (posição absoluta bottom):
+  - Botão "?" circular cinzento (abre HelpModal)
+  - Botão "⚙" (Definições) → setCurrentPage('settings')
 
 ÁREA PRINCIPAL (direita, flex-1, fundo #0a0d14, overflow-y-auto):
-  TOPBAR (barra superior, 52px altura, border-bottom #1e2433):
-    Esquerda: título da página actual em branco + subtítulo cinzento (varia por página)
-    Direita: SystemMetricsBar (CPU/RAM/Rede)
-  
-  CONTEÚDO (padding 24px, render condicional):
-    currentPage === 'dashboard' → <DashboardPage onNavigate={setCurrentPage} onSelectAsset={(id) => { setSelectedAssetId(id); setCurrentPage('asset-detail'); }} />
-    currentPage === 'library' → <LibraryPage onSelectAsset={(id) => { setSelectedAssetId(id); setCurrentPage('asset-detail'); }} />
-    currentPage === 'queue' → <QueuePage onSelectAsset={(id) => { setSelectedAssetId(id); setCurrentPage('asset-detail'); }} />
-    currentPage === 'asset-detail' && selectedAssetId → <AssetDetailPage assetId={selectedAssetId} onBack={() => setCurrentPage('library')} />
-    currentPage === 'profiles' → <ProfilesPage />
-    currentPage === 'logs' → <LogsPage />
-    currentPage === 'settings' → <SettingsPage />
+TOPBAR (barra superior, 52px altura, border-bottom #1e2433):
+Esquerda: título da página actual em branco + subtítulo cinzento (varia por página)
+Direita: SystemMetricsBar (CPU/RAM/Rede)
 
-  HelpModal: <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} /> — renderizado fora do conteúdo principal
+CONTEÚDO (padding 24px, render condicional):
+currentPage === 'dashboard' → <DashboardPage onNavigate={setCurrentPage} onSelectAsset={(id) => { setSelectedAssetId(id); setCurrentPage('asset-detail'); }} />
+currentPage === 'library' → <LibraryPage onSelectAsset={(id) => { setSelectedAssetId(id); setCurrentPage('asset-detail'); }} />
+currentPage === 'queue' → <QueuePage onSelectAsset={(id) => { setSelectedAssetId(id); setCurrentPage('asset-detail'); }} />
+currentPage === 'asset-detail' && selectedAssetId → <AssetDetailPage assetId={selectedAssetId} onBack={() => setCurrentPage('library')} />
+currentPage === 'profiles' → <ProfilesPage />
+currentPage === 'logs' → <LogsPage />
+currentPage === 'settings' → <SettingsPage />
+
+HelpModal: <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} /> — renderizado fora do conteúdo principal
 
 TÍTULOS DAS PÁGINAS (para a topbar):
+
 ```typescript
 const PAGE_TITLES: Record<Page, { title: string; subtitle: string }> = {
-  'dashboard':    { title: 'Dashboard',                subtitle: 'Visão geral do sistema' },
-  'library':      { title: 'Biblioteca',               subtitle: 'Todos os teus assets de vídeo' },
-  'queue':        { title: 'Fila de Processamento',    subtitle: 'Jobs activos e histórico' },
-  'asset-detail': { title: 'Detalhe do Asset',         subtitle: 'Informação completa do ficheiro' },
-  'profiles':     { title: 'Perfis de Codificação',    subtitle: 'Configurações de processamento' },
-  'logs':         { title: 'Registos do Sistema',      subtitle: 'Actividade e diagnósticos' },
-  'settings':     { title: 'Definições',               subtitle: 'Configuração da aplicação' },
+  dashboard: { title: 'Dashboard', subtitle: 'Visão geral do sistema' },
+  library: { title: 'Biblioteca', subtitle: 'Todos os teus assets de vídeo' },
+  queue: { title: 'Fila de Processamento', subtitle: 'Jobs activos e histórico' },
+  'asset-detail': { title: 'Detalhe do Asset', subtitle: 'Informação completa do ficheiro' },
+  profiles: { title: 'Perfis de Codificação', subtitle: 'Configurações de processamento' },
+  logs: { title: 'Registos do Sistema', subtitle: 'Actividade e diagnósticos' },
+  settings: { title: 'Definições', subtitle: 'Configuração da aplicação' },
 };
 ```
 
 COMPORTAMENTO ESPECIAL:
+
 - Quando currentPage muda, a área de conteúdo faz scroll para o topo automaticamente
 - O item activo na sidebar corresponde sempre à currentPage
 - asset-detail não tem item de navegação directa na sidebar (acede-se pela Library/Queue)
@@ -1117,6 +1177,7 @@ COMPORTAMENTO ESPECIAL:
 Gera o ficheiro completo. `export default function App()`.
 
 ---FIM DA PROMPT PARA ANTIGRAVITY---
+
 ```
 
 ### O que verificar depois:
@@ -1132,18 +1193,20 @@ Gera o ficheiro completo. `export default function App()`.
 Faz exactamente nesta ordem para evitar erros:
 
 ```
-PASSO 1  →  ECRÃ 7 — Definições (SettingsPage) — melhora o que existe
-PASSO 2  →  ECRÃ 6 — Registos (LogsPage) — cria novo
-PASSO 3  →  ECRÃ 5 — Perfis (ProfilesPage) — cria novo
-PASSO 4  →  ECRÃ 3 — Fila (QueuePage) — cria novo
-PASSO 5  →  ECRÃ 2 — Biblioteca (LibraryPage) — cria novo
-PASSO 6  →  ECRÃ 4 — Detalhe do Asset (AssetDetailPage) — cria novo
-PASSO 7  →  ECRÃ 1 — Dashboard (DashboardPage) — melhora o que existe
-PASSO 8  →  Navegação (App.tsx) — actualiza por último
+
+PASSO 1 → ECRÃ 7 — Definições (SettingsPage) — melhora o que existe
+PASSO 2 → ECRÃ 6 — Registos (LogsPage) — cria novo
+PASSO 3 → ECRÃ 5 — Perfis (ProfilesPage) — cria novo
+PASSO 4 → ECRÃ 3 — Fila (QueuePage) — cria novo
+PASSO 5 → ECRÃ 2 — Biblioteca (LibraryPage) — cria novo
+PASSO 6 → ECRÃ 4 — Detalhe do Asset (AssetDetailPage) — cria novo
+PASSO 7 → ECRÃ 1 — Dashboard (DashboardPage) — melhora o que existe
+PASSO 8 → Navegação (App.tsx) — actualiza por último
+
 ```
 
-**Porquê esta ordem?**  
-Os ecrãs mais simples primeiro, os mais complexos (que dependem de outros) depois.  
+**Porquê esta ordem?**
+Os ecrãs mais simples primeiro, os mais complexos (que dependem de outros) depois.
 O App.tsx vai por último porque importa todos os outros.
 
 ---
@@ -1200,5 +1263,6 @@ Recebes uma mensagem a dizer que o backend está pronto. Nessa altura:
 
 ---
 
-*Guia criado em 2026-05-10 por Claude Sonnet 4.6*  
+*Guia criado em 2026-05-10 por Claude Sonnet 4.6*
 *Para o projecto Nexora Desktop v0.6.0*
+```

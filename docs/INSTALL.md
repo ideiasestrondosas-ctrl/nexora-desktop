@@ -21,33 +21,33 @@
 
 ### Minimum Requirements
 
-| Component | Specification |
-|-----------|--------------|
+| Component            | Specification                                               |
+| -------------------- | ----------------------------------------------------------- |
 | **Operating System** | Windows 10 (64-bit) / macOS 11 (Big Sur) / Ubuntu 20.04 LTS |
-| **Processor** | 64-bit dual-core CPU (Intel or AMD) |
-| **Memory** | 4 GB RAM |
-| **Storage** | 500 MB for application + working space for media |
-| **Display** | 1280×800 resolution |
-| **Internet** | Required for first-run binary download and updates |
+| **Processor**        | 64-bit dual-core CPU (Intel or AMD)                         |
+| **Memory**           | 4 GB RAM                                                    |
+| **Storage**          | 500 MB for application + working space for media            |
+| **Display**          | 1280×800 resolution                                         |
+| **Internet**         | Required for first-run binary download and updates          |
 
 ### Recommended Requirements
 
-| Component | Specification |
-|-----------|--------------|
-| **Operating System** | Windows 11 / macOS 14 (Sonoma) / Ubuntu 22.04 LTS |
-| **Processor** | 64-bit quad-core CPU or better |
-| **Memory** | 8 GB RAM or more |
-| **Storage** | SSD with 10 GB+ free space |
-| **GPU** | NVIDIA (GTX 10 series or newer), AMD (RX 500 series or newer), or Intel (Iris Xe or newer) |
-| **Display** | 1920×1080 resolution or higher |
+| Component            | Specification                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| **Operating System** | Windows 11 / macOS 14 (Sonoma) / Ubuntu 22.04 LTS                                          |
+| **Processor**        | 64-bit quad-core CPU or better                                                             |
+| **Memory**           | 8 GB RAM or more                                                                           |
+| **Storage**          | SSD with 10 GB+ free space                                                                 |
+| **GPU**              | NVIDIA (GTX 10 series or newer), AMD (RX 500 series or newer), or Intel (Iris Xe or newer) |
+| **Display**          | 1920×1080 resolution or higher                                                             |
 
 ### GPU Acceleration Support
 
-| Vendor | Minimum GPU | Encoder | Notes |
-|--------|------------|---------|-------|
-| **NVIDIA** | GTX 1050 / Quadro P1000 | NVENC (h264_nvenc) | Requires NVIDIA drivers 470+ |
-| **AMD** | RX 560 / Vega 8 | AMF (h264_amf) | Requires Adrenalin drivers |
-| **Intel** | UHD 630 / Iris Xe | QSV (h264_qsv) | Requires Intel Graphics drivers |
+| Vendor     | Minimum GPU             | Encoder            | Notes                           |
+| ---------- | ----------------------- | ------------------ | ------------------------------- |
+| **NVIDIA** | GTX 1050 / Quadro P1000 | NVENC (h264_nvenc) | Requires NVIDIA drivers 470+    |
+| **AMD**    | RX 560 / Vega 8         | AMF (h264_amf)     | Requires Adrenalin drivers      |
+| **Intel**  | UHD 630 / Iris Xe       | QSV (h264_qsv)     | Requires Intel Graphics drivers |
 
 > If no supported GPU is detected, Nexora falls back to CPU encoding with libx264.
 
@@ -122,18 +122,21 @@ Nexora-Desktop-0.17.0-x64-setup.exe /S /D=C:\Nexora
 macOS may block the app on first launch because it is not signed with an Apple Developer ID:
 
 **Option 1 — System Settings:**
+
 1. Open **System Settings** → **Privacy & Security**.
 2. Scroll to **Security** section.
 3. Click **"Open Anyway"** next to the Nexora Desktop block message.
 4. Confirm by clicking **"Open Anyway"** in the dialog.
 
 **Option 2 — Right-click:**
+
 1. Find Nexora Desktop in **Applications**.
 2. Right-click (or Control-click) the app icon.
 3. Select **"Open"** from the context menu.
 4. Click **"Open"** in the security dialog.
 
 **Option 3 — Terminal (advanced):**
+
 ```bash
 xattr -dr com.apple.quarantine /Applications/Nexora\ Desktop.app
 ```
@@ -168,6 +171,7 @@ sudo apt-get install -f
 ```
 
 Or using `gdebi` (handles dependencies automatically):
+
 ```bash
 sudo gdebi nexora-desktop_0.17.0_amd64.deb
 ```
@@ -316,17 +320,20 @@ Nexora includes a built-in auto-updater (Tauri updater):
 ### Windows
 
 **Via Settings:**
+
 1. Open **Windows Settings** → **Apps** → **Installed apps**.
 2. Find **Nexora Desktop** in the list.
 3. Click **⋯** → **Uninstall**.
 4. Follow the uninstaller wizard.
 
 **Via Control Panel:**
+
 1. Open **Control Panel** → **Programs and Features**.
 2. Find **Nexora Desktop**.
 3. Right-click → **Uninstall**.
 
 **Data cleanup (optional):**
+
 ```powershell
 # Remove application data
 Remove-Item -Recurse -Force "$env:APPDATA\com.nexora.desktop"
@@ -340,6 +347,7 @@ Remove-Item -Recurse -Force "$env:APPDATA\com.nexora.desktop"
 4. Empty Trash.
 
 **Data cleanup (optional):**
+
 ```bash
 # Remove application data
 rm -rf ~/Library/Application\ Support/com.nexora.desktop
@@ -390,6 +398,7 @@ rm -rf ~/.config/com.nexora.desktop
 **Cause:** No internet connection or firewall blocking GitHub.
 
 **Solution:**
+
 1. Check internet connection.
 2. Temporarily disable firewall/VPN.
 3. Manually download FFmpeg from [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html).
@@ -400,6 +409,7 @@ rm -rf ~/.config/com.nexora.desktop
 **Cause:** Missing WebKit dependency.
 
 **Solution:**
+
 ```bash
 # Debian/Ubuntu
 sudo apt-get install libwebkit2gtk-4.0-37
@@ -416,6 +426,7 @@ sudo pacman -S webkit2gtk
 **Cause:** GPU acceleration conflict or missing display drivers.
 
 **Solution:**
+
 1. Update GPU drivers.
 2. Try launching with software rendering:
    - Windows: set environment variable `WEBKIT_DISABLE_COMPOSITING_MODE=1`
@@ -429,4 +440,4 @@ sudo pacman -S webkit2gtk
 
 ---
 
-*Last updated: 2026-05-15 for Nexora Desktop v0.17.0*
+_Last updated: 2026-05-15 for Nexora Desktop v0.17.0_

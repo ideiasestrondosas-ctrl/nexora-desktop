@@ -140,7 +140,17 @@
     "inQueue": "In Queue",
     "processing": "Processing",
     "error": "Error",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "emptyTitle": "Start by adding a video",
+    "emptyHint": "Drag videos to the window or click the button below",
+    "addFirstVideo": "Add Video",
+    "noJobsHint": "Drag videos to process.",
+    "vmafBelow70": "Below 70",
+    "vmaf70to85": "70 to 85",
+    "vmaf85to95": "85 to 95",
+    "vmafAbove95": "Above 95",
+    "processedFiles": "Processed files",
+    "avgQuality": "Average quality"
   },
   "library": {
     "searchPlaceholder": "Search library...",
@@ -165,7 +175,9 @@
     "deleteError": "Error deleting asset",
     "file": "File",
     "duration": "Duration",
-    "actions": "Actions"
+    "actions": "Actions",
+    "gridView": "Grid view",
+    "listView": "List view"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -195,7 +207,20 @@
     "vmaf": "VMAF",
     "finishedAt": "Finished",
     "actions": "Actions",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cannotCancelState": "This job cannot be cancelled in its current state",
+    "cannotRetryState": "This job cannot be reprocessed in its current state",
+    "retryQueued": "Job queued for reprocessing",
+    "rejected": "Rejected",
+    "step": "{{step}}...",
+    "gpuNvenc": "GPU",
+    "rejectedManual": "Rejected manually",
+    "openProcessedFile": "Open processed file",
+    "viewAsset": "View asset",
+    "phaseAnalyse": "Analysing",
+    "phaseConvert": "Converting",
+    "phaseVerify": "Verifying & saving",
+    "reprocessOptions": "Reprocess options"
   },
   "profiles": {
     "create": "Create",
@@ -231,7 +256,25 @@
     "predefined": "Built-in Presets",
     "custom": "Custom Profiles",
     "selectProfile": "Select a profile...",
-    "systemPresetWarning": "This is a system preset and cannot be modified. Duplicate it if you want to make changes."
+    "systemPresetWarning": "This is a system preset and cannot be modified. Duplicate it if you want to make changes.",
+    "copyOf": "Copy of {{name}}",
+    "deleteConfirm": "Are you sure you want to delete this profile?",
+    "videoSection": "Video",
+    "audioSection": "Audio",
+    "qualitySection": "Quality",
+    "acceleration": "Acceleration",
+    "accelerationDefault": "GPU if available",
+    "accelerationCustom": "As per system",
+    "defaultDescription": "Profile description",
+    "predefinedLabel": "Predefined",
+    "audioAndQuality": "Audio & Quality",
+    "fallback": {
+      "broadcastHd": "Standard television profile",
+      "broadcastSd": "Standard Definition television",
+      "webHd": "Optimized for web and streaming",
+      "proxy": "Fast offline editing",
+      "social": "Social media — vertical and square"
+    }
   },
   "settings": {
     "tabs": {
@@ -262,7 +305,8 @@
       "gpuAvailable": "GPU: {{vendor}} ({{encoder}})",
       "noGpu": "No compatible GPU — using CPU (libx264)",
       "notifications": "Notifications",
-      "systemNotifications": "System notifications"
+      "systemNotifications": "System notifications",
+      "checkingGpu": "Checking..."
     },
     "interface": {
       "theme": "Theme",
@@ -271,7 +315,22 @@
       "dark": "Dark",
       "themeHint": "The \"System\" theme follows your operating system preference.",
       "language": "Language",
-      "languageHint": "Language changes are applied instantly."
+      "languageHint": "Language changes are applied instantly.",
+      "pt": "Portuguese (Portugal)",
+      "en": "English",
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "ar": "Arabic",
+      "it": "Italian",
+      "ja": "Japanese",
+      "ko": "Korean",
+      "nl": "Dutch",
+      "pl": "Polish",
+      "ru": "Russian",
+      "sv": "Swedish",
+      "tr": "Turkish",
+      "zh": "Chinese (Simplified)"
     },
     "system": {
       "systemInfo": "System Information",
@@ -301,7 +360,12 @@
       "dbLogs": "Logs",
       "loading": "Loading system information...",
       "errorTitle": "Error loading system information",
-      "retry": "Try again"
+      "retry": "Try again",
+      "notFound": "Not found",
+      "available": "Available",
+      "unavailable": "Unavailable",
+      "timeout": "Timeout loading system information (>5s)",
+      "unknownError": "Unknown error"
     },
     "advanced": {
       "telemetry": "Anonymous telemetry",
@@ -313,7 +377,21 @@
       "resetSettings": "Reset settings",
       "factoryReset": "Factory Reset",
       "importSuccess": "Settings imported",
-      "resetSuccess": "Settings reset"
+      "resetSuccess": "Settings reset",
+      "resetConfirm": "Reset all settings to default values?",
+      "resetTitle": "Reset Settings",
+      "factoryResetConfirm": "This will erase ALL data, settings, and history. The app will restart. This action cannot be undone.",
+      "factoryResetTitle": "Factory Reset",
+      "factoryResetPreparing": "Preparing full reset...",
+      "exportError": "Export error",
+      "checkUpdates": "Check for Updates",
+      "updateAvailable": "New version available: {{version}}",
+      "noUpdatesDev": "Update check not available in development mode",
+      "latestVersion": "You have the latest version",
+      "updateErrorSigned": "Update check only available in signed release builds",
+      "updateErrorNetwork": "Network error. Check your internet connection.",
+      "updateErrorGeneric": "Error checking for updates: {{msg}}",
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
     },
     "about": {
       "releaseNotes": "Release Notes",
@@ -324,7 +402,13 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "openData": "Open Data",
-      "versionHistory": "Version History"
+      "versionHistory": "Version History",
+      "installedError": "Error loading installed info",
+      "changelog": "Changelog",
+      "version": "Version",
+      "license": "License",
+      "platforms": "Platforms",
+      "year": "Year"
     },
     "sections": {
       "importation": "Importation",
@@ -335,6 +419,15 @@
       "privacy": "Privacy",
       "data": "Data",
       "maintenance": "Maintenance"
+    },
+    "toasts": {
+      "openDataDirError": "Error opening data folder",
+      "resetError": "Error performing reset",
+      "importError": "Import error",
+      "exportSuccess": "Backup exported"
+    },
+    "errors": {
+      "installedInfo": "Error loading installed info"
     }
   },
   "logs": {
@@ -353,7 +446,25 @@
     "source": "Source",
     "message": "Message",
     "noLogs": "No logs to show.",
-    "loading": "Loading logs..."
+    "loading": "Loading logs...",
+    "clearConfirm": "Are you sure you want to clear all logs?",
+    "filterAll": "All",
+    "filterSources": "Sources",
+    "filterTime": "Time Range",
+    "timeAll": "All",
+    "time1h": "Last hour",
+    "time6h": "Last 6 hours",
+    "time24h": "Last 24 hours",
+    "time7d": "7 days",
+    "sourceAll": "All",
+    "sourceSidecar": "sidecar",
+    "sourceTauri": "tauri",
+    "sourceFfmpeg": "ffmpeg",
+    "sourceApp": "app",
+    "tryRemoveFilters": "Try removing filters",
+    "expand": "... (click to expand)",
+    "entriesVisible": "{{count}} entry/entries visible",
+    "autoRotate": "Auto-rotation: 2,000 entries max"
   },
   "assetDetail": {
     "backToLibrary": "Back to Library",
@@ -365,7 +476,40 @@
     "processingHistory": "Processing History",
     "rawMetadata": "Raw Metadata",
     "close": "Close",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "loading": "A carregar detalhes do asset...",
+    "deleteConfirm": "Tem a certeza que deseja apagar este asset? Esta acção não pode ser desfeita.",
+    "size": "Tamanho",
+    "duration": "Duração",
+    "video": "Vídeo",
+    "audio": "Áudio",
+    "notAvailable": "N/D",
+    "bestQuality": "Melhor Qualidade (VMAF)",
+    "verification": "Verificação",
+    "result": "Resultado",
+    "value": "Valor",
+    "limit": "Limite",
+    "codecSupported": "Codec suportado",
+    "minResolution": "Resolução mínima",
+    "minResolutionValue": "≥ 720p",
+    "vmafScore": "Pontuação VMAF",
+    "vmafMinValue": "≥ 85",
+    "audioLevels": "Níveis de áudio",
+    "audioLevelsValue": "-23 ±1",
+    "approvedAt": "Aprovado automaticamente em {{date}}",
+    "noJobs": "Nenhum job processado para este asset.",
+    "started": "Iniciado",
+    "jobDuration": "Duração",
+    "openProcessedFile": "Abrir Ficheiro Processado",
+    "openInExplorer": "Abrir no Explorador",
+    "downloadNoOutput": "No processed file available",
+    "downloadProcessed": "Download Processed",
+    "downloadSuccess": "File saved to {{path}}",
+    "openOriginal": "View Original",
+    "openProcessed": "View Processed",
+    "reprocessProfile": "Reprocess with profile",
+    "reprocessQueued": "Job added to queue",
+    "sameProfile": "Same profile"
   },
   "pipeline": {
     "ingest": "Ingest",
@@ -504,7 +648,14 @@
     "sampleFormat": "Sample Format",
     "masteringDisplay": "Mastering Display",
     "analyze": "Analyze",
-    "reanalyze": "Re-analyze"
+    "reanalyze": "Re-analyze",
+    "fileName": "Filename",
+    "filePath": "Path",
+    "tabAudio": "Audio",
+    "tabGeneral": "General",
+    "tabSha256": "SHA-256",
+    "tabTags": "Tags",
+    "tabVideo": "Video"
   },
   "status": {
     "pending": "Pending",
@@ -562,5 +713,63 @@
     "resolution": "Resolution",
     "fps": "FPS",
     "size": "Size"
+  },
+  "startup": {
+    "nodeMissing": "Video processing tools not found. Check the Help section to install requirements.",
+    "ffmpegMissing": "Video conversion engine unavailable. Check the Help section to install requirements.",
+    "sidecarMissing": "Internal component missing. Reinstall the app or contact support."
+  },
+  "jobCard": {
+    "cancel": "Cancel Job",
+    "processing": "Processing...",
+    "completedAt": "Completed at {{date}}",
+    "unknownError": "Unknown error"
+  },
+  "systemMetrics": {
+    "loading": "Loading metrics..."
+  },
+  "assetDetailModal": {
+    "originalFileDetails": "Original File Details",
+    "size": "Size",
+    "duration": "Duration",
+    "video": "Video",
+    "audio": "Audio",
+    "processingHistory": "Processing History",
+    "profile": "Profile",
+    "status": "Status",
+    "vmaf": "VMAF",
+    "lufs": "LUFS",
+    "date": "Date",
+    "loadingJobs": "Loading jobs...",
+    "noJobs": "No processing found for this file.",
+    "rawMetadata": "Raw Metadata",
+    "close": "Close",
+    "reprocess": "Reprocess"
+  },
+  "logViewer": {
+    "title": "System Logs",
+    "error": "Error",
+    "warn": "Warning",
+    "info": "Info",
+    "all": "All",
+    "autoScrollActive": "Auto-scroll active",
+    "autoScrollInactive": "Auto-scroll inactive",
+    "auto": "Auto",
+    "refresh": "Refresh",
+    "clearLogs": "Clear logs",
+    "searchPlaceholder": "Search in message or source...",
+    "loading": "Loading logs...",
+    "noLogs": "No logs found.",
+    "entriesVisible": "{{count}} entry/entries visible",
+    "autoRotate": "Auto-rotation: 2,000 entries max."
+  },
+  "vmafGauge": {
+    "label": "VMAF",
+    "notAvailable": "N/A"
+  },
+  "confirmations": {
+    "yes": "Sim",
+    "no": "Não",
+    "cancel": "Cancelar"
   }
 }

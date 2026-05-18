@@ -23,27 +23,27 @@ C:\Dev\nexora-desktop\              ← Workspace final após migração (escrit
 
 ## Regras de Acesso
 
-| Caminho | Permissão |
-|---|---|
-| `C:\Dev\nexora-desktop\` (pós-migração) | ✅ ESCRITA TOTAL |
-| `C:\Dev\Nexora Media Processing\src\workers\` | 👁️ LEITURA — referência |
-| `C:\Dev\Nexora Media Processing\src\pipeline\` | 👁️ LEITURA — referência |
-| `C:\Dev\Nexora Media Processing\arquitetura\` | 👁️ LEITURA — documentação |
+| Caminho                                        | Permissão                 |
+| ---------------------------------------------- | ------------------------- |
+| `C:\Dev\nexora-desktop\` (pós-migração)        | ✅ ESCRITA TOTAL          |
+| `C:\Dev\Nexora Media Processing\src\workers\`  | 👁️ LEITURA — referência   |
+| `C:\Dev\Nexora Media Processing\src\pipeline\` | 👁️ LEITURA — referência   |
+| `C:\Dev\Nexora Media Processing\arquitetura\`  | 👁️ LEITURA — documentação |
 | `C:\Dev\Nexora Media Processing\.antigravity\` | 🚫 PROIBIDO — nunca tocar |
-| Todo o resto do projecto base | 🚫 PROIBIDO modificar |
+| Todo o resto do projecto base                  | 🚫 PROIBIDO modificar     |
 
 ---
 
 ## Stack Tecnológica
 
-| Camada | Tecnologia |
-|---|---|
-| Shell nativa | Tauri 2.x (Rust stable) |
-| Frontend | React 19 + TypeScript + Tailwind CSS + Zustand |
-| Sidecar | Node.js 20 + TypeScript + esbuild |
-| Base de dados | SQLite via better-sqlite3 |
-| Build CI/CD | GitHub Actions + Tauri Action |
-| Plataformas | Windows x64 · macOS Universal · Linux x64 |
+| Camada        | Tecnologia                                     |
+| ------------- | ---------------------------------------------- |
+| Shell nativa  | Tauri 2.x (Rust stable)                        |
+| Frontend      | React 19 + TypeScript + Tailwind CSS + Zustand |
+| Sidecar       | Node.js 20 + TypeScript + esbuild              |
+| Base de dados | SQLite via better-sqlite3                      |
+| Build CI/CD   | GitHub Actions + Tauri Action                  |
+| Plataformas   | Windows x64 · macOS Universal · Linux x64      |
 
 ---
 
@@ -62,15 +62,18 @@ C:\Dev\nexora-desktop\              ← Workspace final após migração (escrit
 ## Workflow por Sessão
 
 ### Início
+
 ```bash
 cd "C:\Dev\nexora-desktop"   # após migração
 claude
 ```
+
 1. Lê `PROGRESS-DESKTOP.md`
 2. Lê `SYNC-STATE.md`
 3. **Aprovação de Plano**: Após gerar um plano, **PARA** e aguarda aprovação explícita ("Pode prosseguir").
 
 ### Fim
+
 1. Actualiza `PROGRESS-DESKTOP.md`
 2. Actualiza `SYNC-STATE.md`
 3. `git add . && git commit -m "feat(desktop): ..."`
@@ -79,19 +82,19 @@ claude
 
 ## ADRs Desktop (Imutáveis)
 
-| ADR | Decisão |
-|---|---|
-| D001 | Tauri 2.x (não Electron) |
-| D002 | Node.js sidecar para media |
-| D003 | SQLite (sem PostgreSQL) |
-| D004 | Fila em memória + SQLite (sem Redis) |
-| D005 | Orchestrator local (sem Temporal.io) |
-| D006 | Binários incluídos no instalador |
-| D007 | GPU auto-detectada |
-| D008 | Notificações nativas do SO |
-| D009 | Auto-updater Tauri built-in |
+| ADR  | Decisão                               |
+| ---- | ------------------------------------- |
+| D001 | Tauri 2.x (não Electron)              |
+| D002 | Node.js sidecar para media            |
+| D003 | SQLite (sem PostgreSQL)               |
+| D004 | Fila em memória + SQLite (sem Redis)  |
+| D005 | Orchestrator local (sem Temporal.io)  |
+| D006 | Binários incluídos no instalador      |
+| D007 | GPU auto-detectada                    |
+| D008 | Notificações nativas do SO            |
+| D009 | Auto-updater Tauri built-in           |
 | D010 | Mesmos parâmetros FFmpeg que servidor |
-| D011 | IPC via Tauri Commands (sem HTTP) |
-| D012 | Deep links `nexora://` |
+| D011 | IPC via Tauri Commands (sem HTTP)     |
+| D012 | Deep links `nexora://`                |
 
-*Última revisão: Maio 2026 — Workspace: C:\Dev\nexora-desktop*
+_Última revisão: Maio 2026 — Workspace: C:\Dev\nexora-desktop_

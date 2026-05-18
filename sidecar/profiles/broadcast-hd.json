@@ -1,5 +1,6 @@
 {
   "name": "broadcast-hd",
+  "labelFriendly": "Alta Qualidade (TV / Arquivo)",
   "description": "Broadcast HD 1080p/25 — EBU R 103, Tier A",
   "videoCodec": "libx264",
   "videoBitrateK": 8000,

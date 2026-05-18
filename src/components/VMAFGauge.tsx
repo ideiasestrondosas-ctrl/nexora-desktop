@@ -8,7 +8,8 @@ interface VMAFGaugeProps {
 
 export const VMAFGauge: React.FC<VMAFGaugeProps> = ({ score, size = 'md' }) => {
   const { t } = useTranslation();
-  if (score === null) return <span className="text-gray-400 text-xs">{t('vmafGauge.notAvailable')}</span>;
+  if (score === null)
+    return <span className="text-gray-400 text-xs">{t('vmafGauge.notAvailable')}</span>;
 
   const getScoreColor = (val: number) => {
     if (val >= 93) return 'text-green-500';
@@ -25,9 +26,7 @@ export const VMAFGauge: React.FC<VMAFGaugeProps> = ({ score, size = 'md' }) => {
 
   return (
     <div className="flex items-center gap-1">
-      <span className={`${sizes[size]} ${getScoreColor(score)}`}>
-        {score.toFixed(2)}
-      </span>
+      <span className={`${sizes[size]} ${getScoreColor(score)}`}>{score.toFixed(2)}</span>
       <span className="text-[10px] text-gray-400 font-normal">{t('vmafGauge.label')}</span>
     </div>
   );

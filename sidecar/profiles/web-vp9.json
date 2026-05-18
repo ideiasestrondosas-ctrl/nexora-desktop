@@ -1,5 +1,6 @@
 {
   "name": "web-vp9",
+  "labelFriendly": "Web VP9 (open-source)",
   "description": "VP9 – Web delivery",
   "videoCodec": "libvpx-vp9",
   "videoBitrateK": 0,

@@ -1,5 +1,6 @@
 {
   "name": "proxy",
+  "labelFriendly": "Edição (ficheiro leve para editar)",
   "description": "Proxy offline — edição / revisão rápida",
   "videoCodec": "libx264",
   "videoBitrateK": 800,

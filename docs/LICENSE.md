@@ -1,20 +1,20 @@
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
- Copyright (C) 2026 Nexora Media Processing
+Copyright (C) 2026 Nexora Media Processing
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ---
 
@@ -22,15 +22,15 @@
 
 Nexora Desktop includes and depends on the following third-party software:
 
-| Component | License |
-|-----------|---------|
-| Tauri | MIT / Apache-2.0 |
-| React | MIT |
-| FFmpeg | LGPL-2.1+ / GPL-2.0+ |
-| Rust | MIT / Apache-2.0 |
-| Node.js | MIT |
-| better-sqlite3 | MIT |
-| Lucide Icons | ISC |
+| Component      | License              |
+| -------------- | -------------------- |
+| Tauri          | MIT / Apache-2.0     |
+| React          | MIT                  |
+| FFmpeg         | LGPL-2.1+ / GPL-2.0+ |
+| Rust           | MIT / Apache-2.0     |
+| Node.js        | MIT                  |
+| better-sqlite3 | MIT                  |
+| Lucide Icons   | ISC                  |
 
 For the full text of the GNU GPL v3 license, see below.
 
@@ -39,22 +39,22 @@ For the full text of the GNU GPL v3 license, see below.
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
- Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
- Everyone is permitted to copy and distribute verbatim copies
- of this license document, but changing it is not allowed.
+Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
 
                             Preamble
 
-  The GNU General Public License is a free, copyleft license for
+The GNU General Public License is a free, copyleft license for
 software and other kinds of works.
 
-  The licenses for most software and other practical works are designed
-to take away your freedom to share and change the works.  By contrast,
+The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works. By contrast,
 the GNU General Public License is intended to guarantee your freedom to
 share and change all versions of a program--to make sure it remains free
-software for all its users.  We, the Free Software Foundation, use the
+software for all its users. We, the Free Software Foundation, use the
 GNU General Public License for most of our software; it applies also to
-any other work released this way by its authors.  You can apply it to
+any other work released this way by its authors. You can apply it to
 your programs, too.
 
 [Full GPL v3 text continues...]

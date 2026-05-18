@@ -14,7 +14,7 @@ export function useGPU() {
   useEffect(() => {
     invoke<GPUInfo>('detect_gpu')
       .then(setGpu)
-      .catch(err => {
+      .catch((err) => {
         console.error('Failed to detect GPU:', err);
         setGpu(null);
       })

@@ -1,6 +1,7 @@
 # Plano — Bugs + Gap Analysis Nexora Desktop
 
 > **Legenda de agentes:**
+>
 > - 🤖 **Claude Code (Sonnet)** — Rust, Node.js, config, lógica, IPC, BD
 > - 🎨 **Antigravity (Gemini)** — Componentes React, UI, CSS, Tailwind, UX
 
@@ -9,6 +10,7 @@
 ## CONTEXTO
 
 Quatro pedidos combinados:
+
 1. **Bug** — Drag-and-drop de ficheiros não funciona
 2. **Bug** — App não processa nada (sidecar nunca arranca)
 3. **Fix** — Versão mostrada na UI está hardcoded e desactualizada
@@ -23,6 +25,7 @@ Quatro pedidos combinados:
 ### A1 — Drag-and-drop não funciona
 
 **Causa-raiz:** Dois problemas independentes.
+
 - `onDrop` em `src/components/DropZone.tsx` não faz nada (handler vazio)
 - `src-tauri/tauri.conf.json` não tem `dragDropEnabled: true` → Tauri cancela os eventos antes de chegarem ao React
 - `capabilities/default.json` não tem permissão `drag-drop:default`
@@ -445,7 +448,7 @@ DADOS (via invoke 'get_stats' a cada 30s):
 LAYOUT:
 1. Grid de 4 cards no topo:
    - "Assets hoje" (completed_today)
-   - "Em processamento" (active_jobs)  
+   - "Em processamento" (active_jobs)
    - "VMAF médio" (avg_vmaf com VMAFGauge já existente)
    - "Espaço livre" (disk_free_gb / disk_total_gb, barra de progresso)
 
@@ -584,7 +587,7 @@ TAREFA: Adicionar secção "Novidades" no final da página de Definições.
 DADOS:
 - Ler ficheiro CHANGELOG.md via invoke com Tauri fs plugin
   (ou via command Rust: get_changelog que faz fs::read_to_string("../../CHANGELOG.md"))
-  
+
 IMPLEMENTAÇÃO SIMPLES:
 1. Mostrar conteúdo do CHANGELOG.md num <pre> com scroll (max-height: 200px)
 2. Título "Novidades / Changelog"
