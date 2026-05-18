@@ -102,7 +102,7 @@
 
 ### Fase 7 - Integracao e Validacao
 
-- [ ] Testar localmente (tauri dev) em 3 plataformas
+- [x] Testar localmente (tauri dev) em 3 plataformas
 - [ ] Testes unitarios passam (>80% cobertura)
 - [ ] Build funciona para Windows (.exe/.msi)
 - [ ] Build funciona para macOS (.dmg universal)
@@ -128,11 +128,11 @@
 ## Em progresso agora
 
 ```
-Data:          2026-05-16
+Data:          2026-05-18
 Agente:        Claude Code (Sonnet 4.6)
-A trabalhar em: v0.18.0 concluido â€” aguarda validacao manual do utilizador
+A trabalhar em: v0.23.0 — sincronizacao de versoes, documentacao e screenshots
 Bloqueios:     Nenhum
-Proximo:       Merge chore/audit-v0.18 â†’ main, depois v0.19.0
+Proximo:       Push dev branch, merge para main, preparar v0.24.0
 ```
 
 ---

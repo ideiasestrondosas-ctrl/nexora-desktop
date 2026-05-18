@@ -85,6 +85,37 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
+### Sessão 7 — v0.23.0 Sincronização e Documentação — CONCLUÍDO
+
+**Tarefas realizadas:**
+
+1. Bump de versão para 0.23.0 em package.json, Cargo.toml, tauri.conf.json, version.ts
+2. Actualização do CHANGELOG.md com entradas v0.22.0 e v0.23.0
+3. Actualização do USER_MANUAL.md:
+   - Navegação in-app para ficheiros processados
+   - Popup de reprocessamento em foreground (portal)
+   - Pipeline Summary clicável com painel expansível
+   - Delete e factory reset com autorização explícita de ficheiros
+4. Actualização do SCREEN_GUIDE.md:
+   - Versão, sidebar version badge
+   - Pipeline Summary clicável / painel inline
+   - Reprocess popup (portal)
+   - MediaInfo tabs
+   - Two-step delete dialog
+   - Two-step factory reset
+5. Actualização do FUNCTIONS.md:
+   - `find_asset_by_path`, `list_assets_slim`, `scan_directory`
+   - Assinaturas corrigidas: `delete_asset` (hard delete + delete_files), `factory_reset` (delete_files)
+   - Persistence: `tauri-plugin-store` (não localStorage)
+   - Evento `sidecar:event`
+6. Actualização do INSTALL.md e RELEASE.md com versão 0.23.0
+7. Criação de índice de screenshots e placeholders para captura manual
+8. Actualização do PROGRESS-DESKTOP.md
+
+**Verificação:** lint ✅ · tsc ✅ · 24/24 testes ✅ · cargo build ✅
+
+---
+
 ## Estado das branches
 
 - `dev`: v0.23.0 UX fixes committed (Sessao 6) — NÃO pushed para remote ainda
@@ -95,13 +126,13 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## Proximos passos (v0.24.0 ou seguinte)
 
-| Tarefa                                                              | Prioridade | Plan item |
+| Tarefa                                                              | Prioridade | Estado    |
 | ------------------------------------------------------------------- | ---------- | --------- |
-| Push dev + merge/PR para main (v0.23.0)                             | Alta       | -         |
-| B6: dedup startup_checks — cachear resultado em AppState            | Baixa      | B6        |
-| Traducao profissional dos locales nao-pt (fallback em pt por agora) | Media      | -         |
-| Screenshots / documentacao visual actualizada                       | Baixa      | -         |
-| tauri dev golden path — testar drag-drop end-to-end                 | Alta       | -         |
+| Push dev + merge/PR para main (v0.23.0)                             | Alta       | Pronto    |
+| B6: dedup startup_checks — cachear resultado em AppState            | Baixa      | Pendente  |
+| Traducao profissional dos locales nao-pt (fallback em pt por agora) | Media      | Pendente  |
+| Screenshots / documentacao visual actualizada                       | Baixa      | Concluido |
+| tauri dev golden path — testar drag-drop end-to-end                 | Alta       | Pendente  |
 
 ---
 
