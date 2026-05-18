@@ -17,6 +17,7 @@ import {
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { logActivity } from '@/lib/activityLog';
 
 interface HelpOverlayProps {
   open: boolean;
@@ -45,7 +46,7 @@ const SCREENSHOTS: Record<Exclude<ScreenTab, 'intro'>, string> = {
   queue: '/screenshots/queue.png',
   profiles: '/screenshots/profiles.png',
   settings: '/screenshots/settings.png',
-  logs: '/screenshots/asset-detail.png',
+  logs: '/screenshots/logs.png',
 };
 
 function ScreenCard({
@@ -119,12 +120,13 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
   const { t } = useTranslation();
 
   const openFullGuide = async () => {
+    logActivity('Abrir Guia Completo', 'execute');
     try {
       await openUrl(
         'https://github.com/ideiasestrondosas-ctrl/nexora-desktop/blob/main/docs/USER_MANUAL.md',
       );
     } catch {
-      // falha silenciosa se o opener não estiver disponível
+      // URL indisponível — silencioso
     }
   };
 
