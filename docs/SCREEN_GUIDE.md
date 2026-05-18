@@ -40,7 +40,7 @@
 │ 🖥️  Logs            │  ← Bottom nav (border-top separator)
 │                     │
 │ VERSION             │  ← Version badge
-│ v0.17.0             │
+│ v0.23.0             │
 └─────────────────────┘
 ```
 
@@ -249,6 +249,30 @@ When dragging files over the Library:
 - Red dot = at least one job failed at that stage
 - Gray dot = no jobs reached that stage yet
 
+### Clickable Count Badges
+
+Each count badge (Queued, Processing, Done, Quarantined) is a `<button>`:
+
+- **Default state:** Text label with number
+- **Hover:** Underline, cursor pointer
+- **Click:** Expands inline panel below the summary bar
+
+**Expanded panel:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Queued (3) ▼                                                          │
+│ ┌─────────────────────────────────────────────────────────────────────┐ │
+│ │ video.mp4    [Broadcast HD]     →                                  │ │
+│ │ clip.mov     [Web HD]           →                                  │ │
+│ │ intro.mp4    [Proxy]            →                                  │ │
+│ └─────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+- File name + profile badge + navigation arrow (→)
+- Click row → navigates to Asset Detail
+
 ### Quarantine Banner
 
 ```
@@ -349,6 +373,28 @@ When dragging files over the Library:
 - Error: `AlertCircle` red
 - Rejected: `ShieldX` orange
 - Cancelled: `X` gray
+
+### Reprocess Popup (Portal)
+
+Rendered via `createPortal` to `document.body` to escape parent overflow:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                     [✕] │
+│ Reprocess — video.mp4                                                   │
+│                                                                         │
+│ Select Profile:                                                         │
+│ ┌─────────────────────────────────────────────────────────────────────┐ │
+│ │ 🔵 Broadcast HD                                                    │ │
+│ │ 🟣 Web 4K                                                          │ │
+│ │ 🔘 Proxy                                                           │ │
+│ └─────────────────────────────────────────────────────────────────────┘ │
+│                           [Cancel]  [Reprocess]                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+- Fixed position, z-index above all
+- Click outside or ✕ to close
 
 ---
 
@@ -651,13 +697,67 @@ When dragging files over the Library:
   - VMAF + LUFS scores
   - "Open Processed File" link (if output exists)
 
+### MediaInfo Tabs
+
+Below the hero section, tabbed interface for technical metadata:
+
+**Tabs:** QC Report | Technical Metadata | Technical Analysis | Job History
+
+**Technical Metadata sub-tabs:** General | Video | Audio | Tags | SHA-256
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ [QC Report] [Technical Metadata] [Technical Analysis] [Job History]  │
+│                                                                         │
+│ [General] [Video] [Audio] [Tags] [SHA-256]                             │
+│                                                                         │
+│ Format: MP4                                                             │
+│ Duration: 02:34:12                                                      │
+│ Bitrate: 15 Mbps                                                        │
+│ File size: 1.2 GB                                                       │
+│                                                                         │
+│ SHA-256: a3f5... (truncated)                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Toggle Original / Processed:**
+
+- Switch above the tabs changes which file's metadata is displayed
+- A banner shows the active file path
+
 ### Sticky Action Bar (Bottom)
 
 Fixed at bottom of page:
 
 - **Reprocess** — brand button, `Play` icon
-- **Open in Explorer** — `FolderOpen` icon
-- **Delete Asset** — red button, `Trash2` icon
+- **View Original** — `FolderOpen` icon (opens source location)
+- **View Processed** — `FolderOpen` icon (in-app navigation, fallback to Explorer)
+- **Download** — `Download` icon (saves processed file)
+- **Delete Asset** — red button, `Trash2` icon (two-step confirmation)
+
+### Two-Step Delete Dialog
+
+**Step 1 — Confirm asset removal:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Delete Asset                                                            │
+│ Are you sure you want to delete this asset and all associated jobs?   │
+│ This action cannot be undone.                                           │
+│                                    [Cancel]  [Delete]                   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Step 2 — Confirm file deletion (only if output exists):**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Delete Output File                                                      │
+│ Also delete the processed output file from disk?                        │
+│ C:\Users\...\Nexora Output\video_broadcast-hd.mp4                      │
+│                                    [Keep File]  [Delete File]           │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -784,4 +884,4 @@ Fixed at bottom of page:
 
 ---
 
-_Last updated: 2026-05-15 for Nexora Desktop v0.17.0_
+_Last updated: 2026-05-18 for Nexora Desktop v0.23.0_
