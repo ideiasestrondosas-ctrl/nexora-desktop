@@ -34,6 +34,7 @@ Agente: OpenCode (Kimi k2.6)
    - `nets.iter().map(|(_, n)| ...)` → `nets.values().map(...)` (2 ocorrências)
 4. `build.yml` — `npm install` → `npm ci`; removido `includeUpdaterJson: true`
 5. `tauri.conf.json` — `bundle.targets: "all"` → `["deb", "appimage", "msi", "nsis", "dmg", "app"]`
+6. `ci.yml` (fix adicional) — adicionado placeholder `sidecar/dist/nexora-sidecar.cjs` para `cargo clippy` passar (o build script valida resources também)
 
 **Verificação local:**
 
