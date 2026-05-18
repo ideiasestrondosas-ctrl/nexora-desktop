@@ -270,7 +270,11 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
             )}
 
             <div className="absolute bottom-3 left-3 right-3 bg-black/60 backdrop-blur-md p-2 rounded-lg border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <p className="text-[10px] font-mono text-text-secondary truncate">{asset.path}</p>
+              <p className="text-[10px] font-mono text-text-secondary truncate">
+                {heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
+                  ? (asset.output_path ?? jobs[0]?.output_path)
+                  : asset.path}
+              </p>
             </div>
           </div>
 
@@ -521,10 +525,16 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
               </div>
               <div className="p-6">
                 {mediaInfoSide === 'original' ? (
-                  <MediaInfoPanel
-                    metadata={asset.metadata as DetailedMediaInfo | null}
-                    compact={false}
-                  />
+                  <>
+                    <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-brand/5 border border-brand/20 rounded-xl text-[10px] font-mono text-brand/80 break-all">
+                      <FolderOpen size={12} className="shrink-0" />
+                      {asset.path}
+                    </div>
+                    <MediaInfoPanel
+                      metadata={asset.metadata as DetailedMediaInfo | null}
+                      compact={false}
+                    />
+                  </>
                 ) : (
                   <>
                     {/* Path do ficheiro processado */}
