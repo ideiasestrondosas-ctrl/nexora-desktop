@@ -17,6 +17,7 @@ import {
   Volume2,
   BarChart2,
   ChevronDown,
+  Download,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -170,6 +171,29 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [reprocessMenuOpen]);
+
+  const handleDownloadProcessed = async () => {
+    const outputPath = asset?.output_path ?? jobs.find((j) => j.output_path)?.output_path;
+    if (!outputPath) {
+      logActivity('Download Processado', 'attempt', 'sem output_path disponível');
+      toast.warning(t('assetDetail.downloadNoOutput', 'Sem ficheiro processado disponível'));
+      return;
+    }
+    logActivity('Download Processado', 'execute', `output_path=${outputPath}`);
+    try {
+      const { downloadFile } = await import('@/lib/fileUtils');
+      const filename = outputPath.split(/[/\\]/).pop() ?? 'output.mp4';
+      const dest = await downloadFile(outputPath, filename);
+      if (dest) {
+        toast.success(
+          t('assetDetail.downloadSuccess', { path: dest, defaultValue: `Guardado em ${dest}` }),
+        );
+      }
+    } catch (e: unknown) {
+      console.error('Download failed:', e);
+      toast.error(t('common.error', 'Ocorreu um erro'));
+    }
+  };
 
   const formatBytes = (bytes: number) => {
     const k = 1024;
@@ -396,7 +420,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
       {/* TAB NAVIGATION */}
       <div className="flex border-b border-border gap-2 shrink-0">
         <button
-          onClick={() => setActiveDetailTab('qc')}
+          onClick={() => {
+            logActivity('Separador QC', 'click');
+            setActiveDetailTab('qc');
+          }}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
             activeDetailTab === 'qc'
               ? 'border-brand text-brand'
@@ -407,7 +434,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
           {t('assetDetail.qualityReport', 'Relatório QC')}
         </button>
         <button
-          onClick={() => setActiveDetailTab('metadata')}
+          onClick={() => {
+            logActivity('Separador Metadados', 'click');
+            setActiveDetailTab('metadata');
+          }}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
             activeDetailTab === 'metadata'
               ? 'border-brand text-brand'
@@ -418,7 +448,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
           {t('mediaInfo.title', 'Metadados Técnicos')}
         </button>
         <button
-          onClick={() => setActiveDetailTab('media')}
+          onClick={() => {
+            logActivity('Separador Análise', 'click');
+            setActiveDetailTab('media');
+          }}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
             activeDetailTab === 'media'
               ? 'border-brand text-brand'
@@ -429,7 +462,10 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
           {t('analysis.title', 'Análise Técnica')}
         </button>
         <button
-          onClick={() => setActiveDetailTab('history')}
+          onClick={() => {
+            logActivity('Separador Histórico', 'click');
+            setActiveDetailTab('history');
+          }}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
             activeDetailTab === 'history'
               ? 'border-brand text-brand'
@@ -912,14 +948,42 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
             )}
           </div>
           <button
-            onClick={() => revealItemInDir(asset.path).catch(() => {})}
-            className="flex items-center gap-2 px-6 py-2 bg-surface hover:bg-surface-hover text-text-secondary rounded-xl font-bold transition-all"
+            onClick={() => {
+              logActivity('Abrir Original no Explorador', 'execute', `path=${asset.path}`);
+              revealItemInDir(asset.path).catch(() => {});
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-bg-hover text-text-secondary rounded-xl font-bold transition-all text-sm"
           >
-            <FolderOpen size={18} /> {t('assetDetail.openInExplorer')}
+            <FolderOpen size={16} /> {t('assetDetail.openOriginal', 'Ver Original')}
+          </button>
+          <button
+            onClick={() => {
+              const out = asset.output_path ?? jobs.find((j) => j.output_path)?.output_path;
+              if (!out) {
+                logActivity('Abrir Processado no Explorador', 'attempt', 'sem output_path');
+                return;
+              }
+              logActivity('Abrir Processado no Explorador', 'execute', `path=${out}`);
+              revealItemInDir(out).catch(() => {});
+            }}
+            disabled={!asset.output_path && !jobs.some((j) => j.output_path)}
+            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-bg-hover text-text-secondary rounded-xl font-bold transition-all text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <FolderOpen size={16} /> {t('assetDetail.openProcessed', 'Ver Processado')}
+          </button>
+          <button
+            onClick={handleDownloadProcessed}
+            disabled={!asset.output_path && !jobs.some((j) => j.output_path)}
+            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-bg-hover text-text-secondary rounded-xl font-bold transition-all text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download size={16} /> {t('assetDetail.downloadProcessed', 'Descarregar')}
           </button>
         </div>
         <button
-          onClick={handleDelete}
+          onClick={() => {
+            logActivity('Apagar Asset', 'click', `asset_id=${assetId}`);
+            handleDelete();
+          }}
           className="flex items-center gap-2 px-6 py-2 text-red-500 hover:bg-red-500/10 rounded-xl font-bold transition-all"
         >
           <Trash2 size={18} /> {t('assetDetail.deleteAsset')}
