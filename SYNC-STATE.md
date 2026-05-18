@@ -6,9 +6,40 @@
 ---
 
 Actualizado: 2026-05-18
-Agente: OpenCode (Kimi k2.6)
+Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 6 — v0.23.0 UX Fixes — CONCLUIDO
+
+**5 melhorias UX implementadas:**
+
+1. **Item 1 — "Abrir ficheiro processado" navega in-app**: novo comando Rust `find_asset_by_path` em `assets.rs`; `AssetDetailPage` tenta navegar para o asset de output; fallback para `revealItemInDir` se não estiver na biblioteca.
+
+2. **Item 2 — Job history filtrado por asset**: confirmado que já estava correcto (`list_jobs` já filtrava por `asset_id`). Sem alterações de código necessárias.
+
+3. **Item 3 — Reprocess popup em foreground**: `QueuePage` usa `createPortal` (react-dom) para renderizar o popup em `document.body` com `position: fixed`, escapando o `overflow-hidden` do container da tabela.
+
+4. **Item 4 — Pipeline Summary clicável**: badges de contagem tornados `<button>` que expandem painel inline com lista de ficheiros (nome + perfil + seta de navegação para o asset).
+
+5. **Item 5 — Delete com autorização explícita para ficheiros**: `delete_asset` e `factory_reset` Rust aceitam `delete_files: bool`; frontend apresenta segundo dialog nativo antes de apagar.
+
+**Ficheiros alterados:** `assets.rs`, `system.rs`, `lib.rs`, `App.tsx`, `AssetDetailPage.tsx`, `LibraryPage.tsx`, `SettingsPage.tsx`, `PipelineSummary.tsx`, `QueuePage.tsx`, 15 locales i18n.
+
+**Commits v0.23.0 (10 commits, branch dev):**
+
+- `0a6fc13` feat(i18n): 6 novas chaves para v0.23.0
+- `4412bd2` feat(queue): portal para popup de reprocessamento
+- `0a8204a` feat(pipeline-summary): painel expansível inline
+- `fca036f` feat(settings): factory reset com autorização de ficheiros
+- `fea4162` feat(library): delete com autorização de ficheiros
+- `949165d` feat(asset-detail): navegação in-app + delete 2 passos
+- `e5827b9` feat(app): pass onSelectAsset to AssetDetailPage
+- `2d459cb` + `a8cd47e` + `67d5354` Rust commands
+
+**Verificação:** lint ✅ · tsc ✅ · 24/24 testes ✅ · cargo build ✅
+
+---
 
 ### Sessao 5 — Correção CI/CD (format:check, cargo clippy, placeholders) — CONCLUIDO
 
@@ -56,16 +87,17 @@ Agente: OpenCode (Kimi k2.6)
 
 ## Estado das branches
 
-- `dev`: Sessao 5 (CI/CD fixes) committed e pushed — em sincronia com remote
+- `dev`: v0.23.0 UX fixes committed (Sessao 6) — NÃO pushed para remote ainda
 - `main`: commit anterior (v0.20.0 area)
 - Remote: apenas `main` e `dev`
 
 ---
 
-## Proximos passos (v0.22.0 ou seguinte)
+## Proximos passos (v0.24.0 ou seguinte)
 
 | Tarefa                                                              | Prioridade | Plan item |
 | ------------------------------------------------------------------- | ---------- | --------- |
+| Push dev + merge/PR para main (v0.23.0)                             | Alta       | -         |
 | B6: dedup startup_checks — cachear resultado em AppState            | Baixa      | B6        |
 | Traducao profissional dos locales nao-pt (fallback em pt por agora) | Media      | -         |
 | Screenshots / documentacao visual actualizada                       | Baixa      | -         |
