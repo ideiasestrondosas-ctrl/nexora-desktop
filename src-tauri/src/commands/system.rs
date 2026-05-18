@@ -489,30 +489,45 @@ pub async fn factory_reset(
     {
         if let Ok(db) = state.db.lock() {
             if delete_files {
-                // Obter todos os caminhos de ficheiros de saída registados nos jobs
+                // Recolher TODOS os caminhos ANTES de apagar a BD
+
+                // 1. Ficheiros de output transcodificados (jobs.output_path)
+                let mut output_paths: Vec<String> = Vec::new();
                 if let Ok(mut stmt) =
                     db.prepare("SELECT output_path FROM jobs WHERE output_path IS NOT NULL")
                 {
                     if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
-                        for path in paths.flatten() {
-                            let _ = std::fs::remove_file(path);
-                        }
+                        output_paths.extend(paths.flatten());
                     }
                 }
-                // Obter caminhos do audit_log (thumbnails e proxies que não estão na tabela jobs)
-                if let Ok(mut stmt) = db.prepare("SELECT data FROM audit_log WHERE event IN ('delivery:completed', 'thumbnail:completed', 'proxy:completed')") {
-                    if let Ok(rows) = stmt.query_map([], |r| r.get::<_, String>(0)) {
-                        for json_str in rows.flatten() {
-                            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
-                                // Tentar apagar campos comuns de caminhos
-                                for key in ["destination", "thumbnailPath", "proxyPath", "thumbPath", "finalPath"] {
-                                    if let Some(p) = json.get(key).and_then(|v| v.as_str()) {
-                                        let _ = std::fs::remove_file(p);
-                                    }
-                                }
-                            }
-                        }
+
+                // 2. Thumbnails (assets.thumbnail_output_path) — extrair ANTES do DELETE
+                let mut thumbnail_paths: Vec<String> = Vec::new();
+                if let Ok(mut stmt) =
+                    db.prepare("SELECT thumbnail_output_path FROM assets WHERE thumbnail_output_path IS NOT NULL")
+                {
+                    if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+                        thumbnail_paths.extend(paths.flatten());
                     }
+                }
+
+                // Apagar os ficheiros recolhidos
+                for path in &output_paths {
+                    let p = std::path::Path::new(path);
+                    let _ = std::fs::remove_file(p);
+
+                    // Apagar também o proxy adjacente: {stem}_proxy{ext} no mesmo directório
+                    if let (Some(parent), Some(stem), Some(ext)) = (
+                        p.parent(),
+                        p.file_stem().and_then(|s| s.to_str()),
+                        p.extension().and_then(|e| e.to_str()),
+                    ) {
+                        let proxy_name = format!("{}_proxy.{}", stem, ext);
+                        let _ = std::fs::remove_file(parent.join(&proxy_name));
+                    }
+                }
+                for path in &thumbnail_paths {
+                    let _ = std::fs::remove_file(path);
                 }
             }
 
