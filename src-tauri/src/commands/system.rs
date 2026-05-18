@@ -562,9 +562,11 @@ pub async fn factory_reset(
         }
     }
 
-    // 7. Reiniciar a aplicação
-    app.restart();
+    // 7. Agendar reinício — spawn para que Ok(()) seja enviado antes de o processo morrer
+    tokio::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+        app.restart();
+    });
 
-    #[allow(unreachable_code)]
     Ok(())
 }
