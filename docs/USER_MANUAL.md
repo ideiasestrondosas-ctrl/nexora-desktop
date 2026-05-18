@@ -98,12 +98,16 @@ The Queue monitors all processing jobs in real time.
 | Queued              | Jobs waiting to start                                     |
 | Completed & History | All finished jobs (done, error, cancelled, rejected)      |
 
+### Pipeline Summary
+
+At the top of the Queue page, a pipeline summary shows the overall state of all jobs. Click any count badge (Queued, Processing, Done, Quarantined) to expand an inline panel listing the files at that stage. Click the arrow (→) next to any file to navigate directly to its Asset Detail.
+
 ### Completed & History Actions
 
 Each finished job has two action icons:
 
 - **↗ Open Asset** — navigates to Asset Detail for that video
-- **⟳ Reprocess** — opens a profile picker to reprocess with the same or a different profile
+- **⟳ Reprocess** — opens a profile picker in a foreground popup (portal-rendered) to reprocess with the same or a different profile
 
 ---
 
@@ -116,6 +120,8 @@ Asset Detail is the main workspace for a single video file.
 - **Toggle Original / Processed** — switch the preview between source and output
 - **Play button** — plays the video inline; the path shown updates with the active view
 - **Open in player** — opens in the system default media player
+
+**In-App Navigation:** When viewing a processed file, clicking "View Processed" first attempts to navigate to the asset's detail page within the app. If the asset is not found in the library, it falls back to opening the file location in the system file manager.
 
 ### Tabs
 
@@ -150,13 +156,15 @@ Shows all processing jobs for this asset (creation and reprocessing). Each entry
 
 ### Action Bar
 
-| Button         | Action                                                     |
-| -------------- | ---------------------------------------------------------- |
-| Reprocess ▾    | Opens profile picker — select a profile to queue a new job |
-| View Original  | Opens the source file location in Explorer/Finder          |
-| View Processed | Opens the processed file location (disabled if no output)  |
-| Download       | Saves the processed file to a chosen destination           |
-| Delete         | Permanently removes the asset and all associated jobs      |
+**Delete Confirmation:** The Delete button shows a two-step confirmation. First, a native dialog asks to confirm asset removal. Second, if the asset has a processed output file, a second dialog asks whether to also delete that file from disk. This prevents accidental data loss.
+
+| Button         | Action                                                                  |
+| -------------- | ----------------------------------------------------------------------- |
+| Reprocess ▾    | Opens profile picker — select a profile to queue a new job              |
+| View Original  | Opens the source file location in Explorer/Finder                       |
+| View Processed | Tries to open the processed asset in-app; falls back to Explorer/Finder |
+| Download       | Saves the processed file to a chosen destination                        |
+| Delete         | Removes the asset and all jobs; asks whether to delete processed files  |
 
 ---
 
@@ -208,6 +216,8 @@ Shows hardware info (CPU, RAM, disk), FFmpeg version, and database statistics.
 ### Advanced
 
 Export settings to JSON, import from a backup, or reset to factory defaults.
+
+- **Factory Reset** — red destructive button; shows a first confirmation, then asks whether to delete output files, then clears all data, kills the sidecar, and restarts the app
 
 ---
 
