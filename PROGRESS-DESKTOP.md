@@ -130,7 +130,7 @@
 ```
 Data:          2026-05-19
 Agente:        Claude Code (Sonnet 4.6)
-A trabalhar em: v0.23.0 — remodelacao HelpModal + tauri-plugin-clipboard-manager
+A trabalhar em: v0.23.0 — fix opener scope para URLs externas (Abrir Guia Completo)
 Bloqueios:     Nenhum
 Proximo:       Push dev branch, merge para main, preparar v0.24.0
 ```

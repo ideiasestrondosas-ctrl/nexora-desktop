@@ -13,7 +13,10 @@
     "core:window:allow-set-focus",
     "core:webview:default",
     "core:webview:allow-set-webview-focus",
-    "opener:allow-open-url",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [{ "url": "https://*" }, { "url": "http://*" }]
+    },
     "opener:allow-open-path",
     "opener:allow-reveal-item-in-dir",
     "clipboard-manager:allow-write-text",

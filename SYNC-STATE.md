@@ -158,6 +158,27 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
+### Sessao 8b — Fix: opener scope para URLs externas — CONCLUIDO
+
+**Problema:** O botão "Abrir Guia Completo" no HelpModal falhava silenciosamente. Manualmente o URL funcionava, mas via `openUrl` do Tauri não.
+
+**Diagnóstico:** A permissão `opener:allow-open-url` em Tauri v2 exige um `scope` que define que URLs são permitidos. Sem scope, o comando IPC é rejeitado pelo router de segurança.
+
+**Correcção:** `src-tauri/capabilities/default.json` — `opener:allow-open-url` mudou de string simples para objecto com scope:
+
+```json
+{
+  "identifier": "opener:allow-open-url",
+  "allow": [{ "url": "https://*" }, { "url": "http://*" }]
+}
+```
+
+**Ficheiro alterado:** `src-tauri/capabilities/default.json`
+
+**Verificação:** lint ✅ · tsc ✅ · cargo check ✅ · capabilities.json gerado com scope ✅
+
+---
+
 ## Notas tecnicas para o proximo agente
 
 - **Sidecar dist nao esta no git** — correr `npm run sidecar:build` antes de cada `tauri dev`
