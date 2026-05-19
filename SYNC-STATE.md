@@ -124,6 +124,28 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
+### Sessao 8 — v0.23.0 HelpModal Remodelado — CONCLUIDO
+
+**Melhorias no HelpModal.tsx:**
+
+1. **Sidebar vertical remodelada**: w-48 (180px) com items empilhados verticalmente, indicador de activo com borda azul esquerda + fundo azul claro.
+2. **Badges numéricos na sidebar**: Tabs com múltiplos cards mostram contagem (Queue=3, Library=2, Settings=2).
+3. **Dimensões fixas do modal**: `h-[85vh]` + `min-h-[600px]` para evitar saltos entre tabs.
+4. **`openFullGuide` corrigido**: Toast de erro com botão "Copiar URL" via `tauri-plugin-clipboard-manager` (plugin nativo, não navigator.clipboard).
+5. **Tips nos 4 novos cards v0.23.0**: Delete Confirm, Pipeline Summary, Reprocess Popup, Factory Reset Confirm — todos com tips informativos descritivos.
+
+**Plugin instalado:**
+
+- `tauri-plugin-clipboard-manager` v2.3.2 (cargo + npm)
+- Registado em `lib.rs` (`tauri_plugin_clipboard_manager::init()`)
+- Permissão `clipboard-manager:allow-write-text` em `capabilities/default.json`
+
+**Ficheiros alterados:** `HelpModal.tsx`, `lib.rs`, `default.json`, `Cargo.toml`, `Cargo.lock`, `package.json`, `package-lock.json`.
+
+**Verificação:** lint ✅ · tsc ✅ · 24/24 testes ✅ · cargo check ✅
+
+---
+
 ## Proximos passos (v0.24.0 ou seguinte)
 
 | Tarefa                                                              | Prioridade | Estado    |

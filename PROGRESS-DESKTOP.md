@@ -128,9 +128,9 @@
 ## Em progresso agora
 
 ```
-Data:          2026-05-18
+Data:          2026-05-19
 Agente:        Claude Code (Sonnet 4.6)
-A trabalhar em: v0.23.0 — sincronizacao de versoes, documentacao e screenshots
+A trabalhar em: v0.23.0 — remodelacao HelpModal + tauri-plugin-clipboard-manager
 Bloqueios:     Nenhum
 Proximo:       Push dev branch, merge para main, preparar v0.24.0
 ```

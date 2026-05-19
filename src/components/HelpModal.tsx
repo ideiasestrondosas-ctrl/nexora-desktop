@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -40,6 +41,16 @@ const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] 
   { id: 'settings', labelKey: 'help.tabs.settings', icon: <Settings className="w-4 h-4" /> },
   { id: 'logs', labelKey: 'help.tabs.logs', icon: <Terminal className="w-4 h-4" /> },
 ];
+
+const TAB_COUNTS: Record<ScreenTab, number> = {
+  intro: 0,
+  dashboard: 1,
+  library: 2,
+  queue: 3,
+  profiles: 1,
+  settings: 2,
+  logs: 1,
+};
 
 const SCREENSHOTS = {
   dashboard: '/screenshots/dashboard.png',
@@ -131,19 +142,20 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
     logActivity('Abrir Guia Completo', 'execute');
     try {
       await openUrl(GUIDE_URL);
-      toast.success(t('help.guideOpened') || 'Guia aberto no browser');
+      toast.success(t('help.guideOpened'));
     } catch (err) {
-      console.error('Failed to open guide URL:', err);
-      toast.error(t('help.guideOpenFailed') || 'Não foi possível abrir o guia.', {
-        description: 'Verifique a sua ligação à internet.',
+      console.error('openUrl failed:', err);
+      toast.error(t('help.guideOpenFailed'), {
+        description: 'Clique em Copiar URL para usar manualmente.',
         action: {
           label: 'Copiar URL',
           onClick: async () => {
             try {
-              await navigator.clipboard.writeText(GUIDE_URL);
-              toast.success('URL copiado para a área de transferência');
-            } catch {
-              toast.error('Não foi possível copiar o URL');
+              await writeText(GUIDE_URL);
+              toast.success('URL copiado!');
+            } catch (clipErr) {
+              console.error('Clipboard failed:', clipErr);
+              toast.error('Falha ao copiar. Selecione e copie manualmente.');
             }
           },
         },
@@ -163,7 +175,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
             }
           }}
         >
-          <div className="bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-2xl w-full max-w-5xl h-[85vh] min-h-[600px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-gradient-to-r from-brand/5 to-transparent shrink-0">
               <div className="flex items-center gap-3 min-w-0">
@@ -204,7 +216,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
             {/* Main layout: sidebar + content */}
             <div className="flex flex-1 overflow-hidden">
               {/* Sidebar */}
-              <div className="w-48 shrink-0 border-r border-border/50 bg-bg-secondary/50 flex flex-col overflow-y-auto">
+              <div className="w-48 shrink-0 border-r border-border/50 bg-bg-secondary/50 flex flex-col overflow-y-auto h-full">
                 {SCREEN_TABS.map((tab) => (
                   <button
                     key={tab.id}
@@ -217,13 +229,18 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     )}
                   >
                     {tab.icon}
-                    <span>{t(tab.labelKey)}</span>
+                    <span className="flex-1">{t(tab.labelKey)}</span>
+                    {TAB_COUNTS[tab.id] > 1 && (
+                      <span className="text-[10px] font-bold bg-brand/20 text-brand px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+                        {TAB_COUNTS[tab.id]}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar h-full">
                 {activeTab === 'intro' && (
                   <div className="space-y-5">
                     <div className="bg-bg-secondary/80 backdrop-blur-sm rounded-xl border border-border/50 p-5">
@@ -320,6 +337,11 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       title={t('help.screens.library.deleteConfirmTitle')}
                       icon={<Library className="w-4 h-4" />}
                       onImageClick={() => setLightboxImage(SCREENSHOTS['delete-confirm'])}
+                      tips={[
+                        'Passo 1: Confirma remoção do asset e jobs associados',
+                        'Passo 2: Pergunta se apaga o ficheiro processado do disco',
+                        'Prevenção contra perda acidental de dados',
+                      ]}
                       screenshot={SCREENSHOTS['delete-confirm']}
                     >
                       <p>{t('help.screens.library.deleteConfirmDesc')}</p>
@@ -352,6 +374,11 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       title={t('help.screens.queue.pipelineSummaryTitle')}
                       icon={<ListVideo className="w-4 h-4" />}
                       onImageClick={() => setLightboxImage(SCREENSHOTS['pipeline-summary'])}
+                      tips={[
+                        'Clique em qualquer badge para expandir o painel inline',
+                        'Lista mostra nome do ficheiro, perfil e navegação →',
+                        'Válido para todos os estados: Queued, Processing, Done, Quarantined',
+                      ]}
                       screenshot={SCREENSHOTS['pipeline-summary']}
                     >
                       <p>{t('help.screens.queue.pipelineSummaryDesc')}</p>
@@ -360,6 +387,11 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       title={t('help.screens.queue.reprocessPopupTitle')}
                       icon={<ListVideo className="w-4 h-4" />}
                       onImageClick={() => setLightboxImage(SCREENSHOTS['reprocess-popup'])}
+                      tips={[
+                        'Renderizado via React Portal para document.body',
+                        'Escapa o overflow:hidden do container da tabela',
+                        'Fecha ao clicar fora, no ✕, ou ao selecionar perfil',
+                      ]}
                       screenshot={SCREENSHOTS['reprocess-popup']}
                     >
                       <p>{t('help.screens.queue.reprocessPopupDesc')}</p>
@@ -416,6 +448,11 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       title={t('help.screens.settings.factoryResetConfirmTitle')}
                       icon={<Settings className="w-4 h-4" />}
                       onImageClick={() => setLightboxImage(SCREENSHOTS['factory-reset'])}
+                      tips={[
+                        'Passo 1: Confirmação do reset total de dados',
+                        'Passo 2: Opção de apagar ficheiros do diretório de output',
+                        'A aplicação reinicia automaticamente após o reset',
+                      ]}
                       screenshot={SCREENSHOTS['factory-reset']}
                     >
                       <p>{t('help.screens.settings.factoryResetConfirmDesc')}</p>
