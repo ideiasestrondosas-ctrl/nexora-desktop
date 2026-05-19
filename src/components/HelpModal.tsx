@@ -40,14 +40,18 @@ const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] 
   { id: 'logs', labelKey: 'help.tabs.logs', icon: <Terminal className="w-4 h-4" /> },
 ];
 
-const SCREENSHOTS: Record<Exclude<ScreenTab, 'intro'>, string> = {
+const SCREENSHOTS = {
   dashboard: '/screenshots/dashboard.png',
   library: '/screenshots/library.png',
   queue: '/screenshots/queue.png',
   profiles: '/screenshots/profiles.png',
   settings: '/screenshots/settings.png',
   logs: '/screenshots/logs.png',
-};
+  'pipeline-summary': '/screenshots/pipeline-summary-expanded.png',
+  'reprocess-popup': '/screenshots/reprocess-popup.png',
+  'delete-confirm': '/screenshots/delete-confirm.png',
+  'factory-reset': '/screenshots/factory-reset-confirm.png',
+} as const;
 
 function ScreenCard({
   title,
@@ -292,6 +296,14 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       <li>{t('help.screens.library.reprocess')}</li>
                     </ul>
                   </ScreenCard>
+                  <ScreenCard
+                    title={t('help.screens.library.deleteConfirmTitle')}
+                    icon={<Library className="w-4 h-4" />}
+                    onImageClick={() => setLightboxImage(SCREENSHOTS['delete-confirm'])}
+                    screenshot={SCREENSHOTS['delete-confirm']}
+                  >
+                    <p>{t('help.screens.library.deleteConfirmDesc')}</p>
+                  </ScreenCard>
                 </div>
               )}
 
@@ -315,6 +327,22 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       <li>{t('help.screens.queue.approveReject')}</li>
                       <li>{t('help.screens.queue.retry')}</li>
                     </ul>
+                  </ScreenCard>
+                  <ScreenCard
+                    title={t('help.screens.queue.pipelineSummaryTitle')}
+                    icon={<ListVideo className="w-4 h-4" />}
+                    onImageClick={() => setLightboxImage(SCREENSHOTS['pipeline-summary'])}
+                    screenshot={SCREENSHOTS['pipeline-summary']}
+                  >
+                    <p>{t('help.screens.queue.pipelineSummaryDesc')}</p>
+                  </ScreenCard>
+                  <ScreenCard
+                    title={t('help.screens.queue.reprocessPopupTitle')}
+                    icon={<ListVideo className="w-4 h-4" />}
+                    onImageClick={() => setLightboxImage(SCREENSHOTS['reprocess-popup'])}
+                    screenshot={SCREENSHOTS['reprocess-popup']}
+                  >
+                    <p>{t('help.screens.queue.reprocessPopupDesc')}</p>
                   </ScreenCard>
                 </div>
               )}
@@ -363,6 +391,14 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       <li>{t('help.screens.settings.system')}</li>
                       <li>{t('help.screens.settings.advanced')}</li>
                     </ul>
+                  </ScreenCard>
+                  <ScreenCard
+                    title={t('help.screens.settings.factoryResetConfirmTitle')}
+                    icon={<Settings className="w-4 h-4" />}
+                    onImageClick={() => setLightboxImage(SCREENSHOTS['factory-reset'])}
+                    screenshot={SCREENSHOTS['factory-reset']}
+                  >
+                    <p>{t('help.screens.settings.factoryResetConfirmDesc')}</p>
                   </ScreenCard>
                 </div>
               )}
