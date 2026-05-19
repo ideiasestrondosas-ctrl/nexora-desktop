@@ -32,6 +32,7 @@ import { resolveVideoPaths } from '@/lib/scan';
 import { useSettingsStore } from '@/store/settings';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { cn } from '@/lib/utils';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 type Tab = 'dashboard' | 'library' | 'queue' | 'profiles' | 'settings' | 'logs' | 'detail';
 
@@ -323,34 +324,36 @@ function App() {
             activeTab === 'library' ? 'flex flex-col overflow-hidden' : 'overflow-y-auto',
           )}
         >
-          <Suspense
-            fallback={
-              <div className="h-full flex items-center justify-center text-text-muted animate-pulse">
-                <span className="text-sm">{t('common.loading')}</span>
-              </div>
-            }
-          >
-            {activeTab === 'dashboard' && (
-              <DashboardPage onNavigate={handleNavigate} onSelectAsset={handleSelectAsset} />
-            )}
-            {activeTab === 'library' && (
-              <LibraryPage
-                onImportRequest={handleImportRequest}
-                onSelectAsset={handleSelectAsset}
-              />
-            )}
-            {activeTab === 'queue' && <QueuePage onSelectAsset={handleSelectAsset} />}
-            {activeTab === 'profiles' && <ProfilesPage />}
-            {activeTab === 'settings' && <SettingsPage />}
-            {activeTab === 'logs' && <LogsPage />}
-            {activeTab === 'detail' && selectedAssetId && (
-              <AssetDetailPage
-                assetId={selectedAssetId}
-                onBack={() => setActiveTab('library')}
-                onSelectAsset={handleSelectAsset}
-              />
-            )}
-          </Suspense>
+          <ErrorBoundary key={activeTab}>
+            <Suspense
+              fallback={
+                <div className="h-full flex items-center justify-center text-text-muted animate-pulse">
+                  <span className="text-sm">{t('common.loading')}</span>
+                </div>
+              }
+            >
+              {activeTab === 'dashboard' && (
+                <DashboardPage onNavigate={handleNavigate} onSelectAsset={handleSelectAsset} />
+              )}
+              {activeTab === 'library' && (
+                <LibraryPage
+                  onImportRequest={handleImportRequest}
+                  onSelectAsset={handleSelectAsset}
+                />
+              )}
+              {activeTab === 'queue' && <QueuePage onSelectAsset={handleSelectAsset} />}
+              {activeTab === 'profiles' && <ProfilesPage />}
+              {activeTab === 'settings' && <SettingsPage />}
+              {activeTab === 'logs' && <LogsPage />}
+              {activeTab === 'detail' && selectedAssetId && (
+                <AssetDetailPage
+                  assetId={selectedAssetId}
+                  onBack={() => setActiveTab('library')}
+                  onSelectAsset={handleSelectAsset}
+                />
+              )}
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </main>
     </div>

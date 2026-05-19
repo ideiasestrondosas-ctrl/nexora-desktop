@@ -594,7 +594,9 @@ pub async fn factory_reset(
                     let path = entry.path();
                     if path.is_file() {
                         let name = path.file_name().unwrap_or_default().to_string_lossy();
-                        if !name.starts_with("nexora.db") {
+                        // Preservar nexora.db* (base de dados) e settings.json (store Zustand)
+                        // — apagar o store causaria crash na página de Logs após relaunch.
+                        if !name.starts_with("nexora.db") && name != "settings.json" {
                             let _ = std::fs::remove_file(&path);
                         }
                     } else if path.is_dir() {
@@ -603,6 +605,10 @@ pub async fn factory_reset(
                 }
             }
         }
+
+        // Reiniciar o store de settings para valores vazios (não apagar — evita erro LazyStore)
+        let store_path = data_dir.join("settings.json");
+        let _ = std::fs::write(&store_path, "{}");
     }
 
     // 6. Limpar directorias temporárias do sidecar
