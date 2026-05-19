@@ -131,7 +131,9 @@
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
       }
-    }
+    },
+    "guideOpened": "Guia aberto no browser",
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
   },
   "dashboard": {
     "assetsTotal": "Total Assets",

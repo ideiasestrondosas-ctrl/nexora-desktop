@@ -14,6 +14,8 @@ const newKeys = {
   'help.screens.library.deleteConfirmDesc': 'Diálogo de confirmação em dois passos. Primeiro confirma a remoção do asset; segundo pergunta se quer apagar o ficheiro processado do disco.',
   'help.screens.settings.factoryResetConfirmTitle': 'Factory Reset com Confirmação (v0.23.0)',
   'help.screens.settings.factoryResetConfirmDesc': 'Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output.',
+  'help.guideOpened': 'Guia aberto no browser',
+  'help.guideOpenFailed': 'Não foi possível abrir o guia. Verifique a sua ligação à internet.',
 };
 
 function setNested(obj, path, value) {

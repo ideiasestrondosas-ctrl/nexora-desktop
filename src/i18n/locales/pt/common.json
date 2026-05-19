@@ -31,6 +31,8 @@
     "title": "Manual do Utilizador",
     "subtitle": "Referência rápida para todos os ecrãs e funcionalidades",
     "openFullGuide": "Abrir Guia Completo",
+    "guideOpened": "Guia aberto no browser",
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet.",
     "tabs": {
       "intro": "Introdução",
       "dashboard": "Dashboard",
