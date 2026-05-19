@@ -16,7 +16,15 @@ export class DeliveryWorker {
     await mkdir(deliveryDir, { recursive: true });
 
     const destPath = join(deliveryDir, basename(source));
-    await copyFile(source, destPath);
+
+    // Evitar copyFile(src, src): o TranscodeWorker já escreveu o ficheiro para outputDir.
+    // No Windows, copiar um ficheiro para si mesmo falha com EBUSY.
+    const { resolve: resolvePath } = await import('path');
+    const srcNorm = resolvePath(source).toLowerCase();
+    const dstNorm = resolvePath(destPath).toLowerCase();
+    if (srcNorm !== dstNorm) {
+      await copyFile(source, destPath);
+    }
 
     onProgress(0.7);
 

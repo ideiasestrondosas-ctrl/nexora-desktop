@@ -505,6 +505,16 @@ pub async fn factory_reset(
     // 2. Limpar ficheiros gerados pela aplicação (transcodes, proxies, thumbnails)
     {
         if let Ok(db) = state.db.lock() {
+            // Capturar output_dir configurado ANTES de apagar as settings
+            let configured_output_dir: Option<String> = db
+                .query_row(
+                    "SELECT value FROM settings WHERE key = 'output_dir'",
+                    [],
+                    |r| r.get::<_, String>(0),
+                )
+                .ok()
+                .filter(|s| !s.trim().is_empty());
+
             if delete_files {
                 // Recolher TODOS os caminhos ANTES de apagar a BD
 
@@ -545,6 +555,15 @@ pub async fn factory_reset(
                 }
                 for path in &thumbnail_paths {
                     let _ = std::fs::remove_file(path);
+                }
+
+                // Apagar o directório de output configurado pelo utilizador
+                if let Some(ref dir) = configured_output_dir {
+                    if let Err(e) = std::fs::remove_dir_all(dir) {
+                        log::warn!("[factory_reset] falha ao apagar output_dir '{}': {}", dir, e);
+                    } else {
+                        log::info!("[factory_reset] output_dir apagado: {}", dir);
+                    }
                 }
             }
 
