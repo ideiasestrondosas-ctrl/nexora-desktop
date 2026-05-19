@@ -102,7 +102,7 @@ export class QCPostWorker {
       await execFileAsync(
         ffmpeg,
         ['-i', distorted, '-i', reference, '-lavfi', filter, '-f', 'null', '-'],
-        { timeout: 3600_000, maxBuffer: 50 * 1024 * 1024 },
+        { timeout: 300_000, maxBuffer: 50 * 1024 * 1024 },
       );
     } catch {
       // Ignora erro de exit code, vmaf pode ter escrito o json antes de falhar ou
