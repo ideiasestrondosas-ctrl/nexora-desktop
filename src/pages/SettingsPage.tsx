@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 import { APP_VERSION, VERSION_HISTORY } from '@/lib/version';
 import {
   FolderOpen,
@@ -287,10 +288,15 @@ export default function SettingsPage() {
       kind: 'warning',
     });
 
-    toast.loading(t('settings.advanced.factoryResetPreparing'));
-    await invoke('factory_reset', { delete_files: deleteFiles }).catch(() =>
-      toast.error(t('settings.toasts.resetError')),
-    );
+    const toastId = toast.loading(t('settings.advanced.factoryResetPreparing'));
+    try {
+      await invoke('factory_reset', { deleteFiles });
+      await relaunch();
+    } catch (err) {
+      console.error('[factory_reset] erro:', err);
+      toast.dismiss(toastId);
+      toast.error(t('settings.toasts.resetError'));
+    }
   };
 
   const handleExport = async () => {

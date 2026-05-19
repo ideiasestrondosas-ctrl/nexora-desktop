@@ -469,13 +469,11 @@ pub async fn factory_reset(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
-    // 1. Matar sidecar se estiver a correr
-    let pid = {
-        let pid_lock = state.sidecar_pid.lock().unwrap();
-        *pid_lock
-    };
+    log::info!("[factory_reset] iniciado (delete_files={})", delete_files);
+    // 1. Matar todos os processos activos (sidecar persistente + jobs Node.js em execução)
+    let sidecar_pid = state.sidecar_pid.lock().ok().and_then(|g| *g);
 
-    if let Some(p) = pid {
+    if let Some(p) = sidecar_pid {
         #[cfg(target_os = "windows")]
         let _ = Command::new("taskkill")
             .args(["/F", "/PID", &p.to_string()])
@@ -483,6 +481,25 @@ pub async fn factory_reset(
 
         #[cfg(not(target_os = "windows"))]
         let _ = Command::new("kill").arg("-9").arg(p.to_string()).status();
+    }
+
+    {
+        let pids: Vec<u32> = state
+            .active_pids
+            .lock()
+            .map(|m| m.values().copied().collect())
+            .unwrap_or_default();
+
+        for p in pids {
+            #[cfg(target_os = "windows")]
+            let _ = Command::new("taskkill").args(["/F", "/PID", &p.to_string()]).status();
+            #[cfg(not(target_os = "windows"))]
+            let _ = Command::new("kill").arg("-9").arg(p.to_string()).status();
+        }
+
+        if let Ok(mut m) = state.active_pids.lock() {
+            m.clear();
+        }
     }
 
     // 2. Limpar ficheiros gerados pela aplicação (transcodes, proxies, thumbnails)
@@ -590,11 +607,8 @@ pub async fn factory_reset(
         }
     }
 
-    // 7. Agendar reinício — spawn para que Ok(()) seja enviado antes de o processo morrer
-    tokio::spawn(async move {
-        tokio::time::sleep(std::time::Duration::from_millis(200)).await;
-        app.restart();
-    });
-
+    log::info!("[factory_reset] concluído com sucesso, a retornar Ok(())");
+    // 7. Sinalizar sucesso — o relaunch é feito pelo frontend após receber Ok(()),
+    // eliminando a race condition entre ExecuteScript() e std::process::exit().
     Ok(())
 }

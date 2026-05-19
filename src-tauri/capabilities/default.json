@@ -29,6 +29,7 @@
     "dialog:allow-confirm",
     "fs:allow-copy-file",
     "updater:allow-check",
-    "updater:allow-download-and-install"
+    "updater:allow-download-and-install",
+    "process:allow-restart"
   ]
 }
