@@ -114,7 +114,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
     try {
       const [assetData, jobsData, profilesData] = await Promise.all([
         invoke<Asset | null>('get_asset', { id: assetId }), // P6: backend retorna Option<Asset>; P11: param name é 'id'
-        invoke<Job[]>('list_jobs', { asset_id: assetId }), // P11: backend espera asset_id não assetId
+        invoke<Job[]>('list_jobs', { assetId }),
         invoke<Profile[]>('list_profiles'),
       ]);
       if (assetData) setAsset(assetData); // P6: verificar null
@@ -144,7 +144,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
     });
     setDeleteLoading(true);
     try {
-      await invoke('delete_asset', { id: assetId, delete_files: deleteFiles });
+      await invoke('delete_asset', { id: assetId, deleteFiles });
       removeAsset(assetId);
       removeJobsByAsset(assetId);
       onBack();
@@ -159,7 +159,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
   const handleReprocess = async (profile: string) => {
     logActivity('Processar Novamente', 'execute', `asset_id=${assetId} profile=${profile}`);
     try {
-      await invoke('submit_job', { asset_id: assetId, profile, priority: 0 });
+      await invoke('submit_job', { assetId, profile, priority: 0 });
       toast.success(t('assetDetail.reprocessQueued', 'Job adicionado à fila'));
       fetchData();
     } catch (e: unknown) {

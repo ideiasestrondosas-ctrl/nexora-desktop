@@ -172,9 +172,7 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
       if (isMulti) {
         // Multi-delete
         await Promise.all(
-          Array.from(selectedIds).map((id) =>
-            invoke('delete_asset', { id, delete_files: deleteFiles }),
-          ),
+          Array.from(selectedIds).map((id) => invoke('delete_asset', { id, deleteFiles })),
         );
         // Remover do store local imediatamente
         Array.from(selectedIds).forEach((id) => removeJobsByAsset(id));
@@ -184,7 +182,7 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
           t('library.deletedSuccessMultiple', { defaultValue: 'Assets apagados com sucesso!' }),
         );
       } else if (targetId) {
-        await invoke('delete_asset', { id: targetId, delete_files: deleteFiles });
+        await invoke('delete_asset', { id: targetId, deleteFiles });
         // Remover do store local imediatamente
         removeJobsByAsset(targetId);
         setAssets((prev) => prev.filter((a) => a.id !== targetId));

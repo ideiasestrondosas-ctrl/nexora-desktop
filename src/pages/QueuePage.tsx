@@ -150,7 +150,7 @@ export default function QueuePage({
   const handleReprocessWithProfile = async (assetId: string, profile: string) => {
     logActivity('Reprocessar com perfil', 'execute', `asset_id=${assetId} profile=${profile}`);
     try {
-      await invoke('submit_job', { asset_id: assetId, profile, priority: 0 });
+      await invoke('submit_job', { assetId, profile, priority: 0 });
       toast.success(t('queue.retryQueued'));
       fetchData();
     } catch (error) {
