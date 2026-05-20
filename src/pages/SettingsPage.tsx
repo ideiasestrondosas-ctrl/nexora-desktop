@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { open, confirm } from '@tauri-apps/plugin-dialog';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -103,12 +104,29 @@ interface FfmpegInfo {
   codecs: string[];
 }
 
+interface TempInfo {
+  transcode_dir: string;
+  thumbs_dir: string;
+  transcode_size_bytes: number;
+  thumbs_size_bytes: number;
+  transcode_file_count: number;
+  thumbs_file_count: number;
+}
+
 type SettingsTab = 'general' | 'interface' | 'system' | 'advanced' | 'about';
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
 
 export default function SettingsPage() {
   const settingsStore = useSettingsStore();
   const { gpu, loading: gpuLoading } = useGPU();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [localSettings, setLocalSettings] = useState<Partial<Settings>>({
@@ -128,6 +146,9 @@ export default function SettingsPage() {
   const [changelog, setChangelog] = useState<string>('');
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [isDev, setIsDev] = useState(false);
+  const [tempInfo, setTempInfo] = useState<TempInfo | null>(null);
+  const [clearingTranscode, setClearingTranscode] = useState(false);
+  const [clearingThumbs, setClearingThumbs] = useState(false);
 
   const systemTimedOut = useRef(false);
 
@@ -205,9 +226,43 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // executa apenas na montagem; settingsStore e t sao referencias estaveis
 
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    listen<{ key: string; value: string }>('settings:changed', async ({ payload }) => {
+      if (payload.key === 'language') {
+        await i18n.changeLanguage(payload.value);
+      }
+      if (payload.key === 'max_concurrent_jobs') {
+        await invoke('set_queue_concurrency', { max: parseInt(payload.value, 10) }).catch(() =>
+          toast.warning('Concorrência actualiza no próximo arranque'),
+        );
+      }
+    })
+      .then((fn) => {
+        unlisten = fn;
+      })
+      .catch(console.error);
+    return () => {
+      unlisten?.();
+    };
+  }, [i18n]);
+
+  useEffect(() => {
+    if (activeTab !== 'system') return;
+    let cancelled = false;
+    invoke<TempInfo>('get_temp_info')
+      .then((info) => {
+        if (!cancelled) setTempInfo(info);
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
+
   const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
     try {
-      await invoke('update_settings', { key, value }).catch(console.warn);
+      await invoke('update_settings', { key, value: String(value) }).catch(console.warn);
       if (key === 'output_dir') settingsStore.setOutputDir(value as string);
       if (key === 'max_concurrent_jobs') settingsStore.setMaxConcurrentJobs(value as number);
       if (key === 'gpu_acceleration') settingsStore.setGpuAcceleration(value as boolean);
@@ -357,6 +412,34 @@ export default function SettingsPage() {
     toast.success(t('settings.advanced.resetSuccess'));
     window.location.reload();
   };
+
+  async function handleClearTranscode() {
+    setClearingTranscode(true);
+    try {
+      await invoke('clear_transcode_cache');
+      const info = await invoke<TempInfo>('get_temp_info');
+      setTempInfo(info);
+      toast.success('Cache de processamento limpa');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setClearingTranscode(false);
+    }
+  }
+
+  async function handleClearThumbs() {
+    setClearingThumbs(true);
+    try {
+      await invoke('clear_thumbs_cache');
+      const info = await invoke<TempInfo>('get_temp_info');
+      setTempInfo(info);
+      toast.success('Cache de thumbnails limpa');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setClearingThumbs(false);
+    }
+  }
 
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
     { id: 'general', label: t('settings.tabs.general'), icon: Shield },
@@ -896,6 +979,81 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   )}
+                </div>
+              </section>
+
+              {/* Cache */}
+              <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+                <SectionTitle>Cache</SectionTitle>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Cache de Processamento */}
+                  <div className="p-4 bg-bg-primary rounded-lg border border-border space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Server size={14} className="text-brand shrink-0" />
+                      <span className="text-xs font-medium text-text-primary">
+                        Cache de Processamento
+                      </span>
+                    </div>
+                    <p className="text-xs text-text-muted font-mono break-all">
+                      {tempInfo?.transcode_dir ?? '—'}
+                    </p>
+                    <p className="text-xs text-text-muted font-mono">
+                      nexora-transcode-* · nexora-proxy-*
+                    </p>
+                    <p className="text-xs text-text-secondary">
+                      {tempInfo ? formatBytes(tempInfo.transcode_size_bytes) : '—'} ·{' '}
+                      {tempInfo?.transcode_file_count ?? 0} pastas
+                    </p>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => invoke('open_path', { path: tempInfo?.transcode_dir ?? '' })}
+                        disabled={!tempInfo}
+                        className="flex-1 py-1.5 text-xs bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        Abrir pasta
+                      </button>
+                      <button
+                        onClick={handleClearTranscode}
+                        disabled={clearingTranscode || !tempInfo}
+                        className="flex-1 py-1.5 text-xs bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {clearingTranscode ? '…' : 'Limpar'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cache de Thumbnails */}
+                  <div className="p-4 bg-bg-primary rounded-lg border border-border space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Database size={14} className="text-purple-500 shrink-0" />
+                      <span className="text-xs font-medium text-text-primary">
+                        Cache de Thumbnails
+                      </span>
+                    </div>
+                    <p className="text-xs text-text-muted font-mono break-all">
+                      {tempInfo?.thumbs_dir ?? '—'}
+                    </p>
+                    <p className="text-xs text-text-secondary">
+                      {tempInfo ? formatBytes(tempInfo.thumbs_size_bytes) : '—'} ·{' '}
+                      {tempInfo?.thumbs_file_count ?? 0} ficheiros
+                    </p>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => invoke('open_path', { path: tempInfo?.thumbs_dir ?? '' })}
+                        disabled={!tempInfo}
+                        className="flex-1 py-1.5 text-xs bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        Abrir pasta
+                      </button>
+                      <button
+                        onClick={handleClearThumbs}
+                        disabled={clearingThumbs || !tempInfo}
+                        className="flex-1 py-1.5 text-xs bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {clearingThumbs ? '…' : 'Limpar'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </section>
             </>

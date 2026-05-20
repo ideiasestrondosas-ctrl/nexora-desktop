@@ -637,3 +637,167 @@ pub async fn factory_reset(
     // eliminando a race condition entre ExecuteScript() e std::process::exit().
     Ok(())
 }
+
+// ── Cache temp dirs ──────────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize)]
+pub struct TempInfo {
+    pub transcode_dir: String,
+    pub thumbs_dir: String,
+    pub transcode_size_bytes: u64,
+    pub thumbs_size_bytes: u64,
+    pub transcode_file_count: u32,
+    pub thumbs_file_count: u32,
+}
+
+fn dir_size_recursive(path: &std::path::Path) -> u64 {
+    if path.is_file() {
+        return std::fs::metadata(path).map(|m| m.len()).unwrap_or(0);
+    }
+    let mut total = 0u64;
+    if let Ok(entries) = std::fs::read_dir(path) {
+        for entry in entries.flatten() {
+            total += dir_size_recursive(&entry.path());
+        }
+    }
+    total
+}
+
+fn calc_pattern_size(base: &std::path::Path, prefix: &str) -> (u64, u32) {
+    let mut size = 0u64;
+    let mut count = 0u32;
+    if let Ok(entries) = std::fs::read_dir(base) {
+        for entry in entries.flatten() {
+            if entry.file_name().to_string_lossy().starts_with(prefix) {
+                count += 1;
+                size += dir_size_recursive(&entry.path());
+            }
+        }
+    }
+    (size, count)
+}
+
+fn calc_dir_size(dir: &std::path::Path) -> (u64, u32) {
+    let mut size = 0u64;
+    let mut count = 0u32;
+    if !dir.exists() {
+        return (0, 0);
+    }
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_file() {
+                size += std::fs::metadata(&p).map(|m| m.len()).unwrap_or(0);
+                count += 1;
+            } else if p.is_dir() {
+                let (s, c) = calc_dir_size(&p);
+                size += s;
+                count += c;
+            }
+        }
+    }
+    (size, count)
+}
+
+#[tauri::command]
+pub fn get_temp_info() -> Result<TempInfo, String> {
+    let tmp = std::env::temp_dir();
+    let thumbs_dir = tmp.join("nexora-thumbs");
+    let (transcode_size, transcode_count) = calc_pattern_size(&tmp, "nexora-transcode-");
+    let (proxy_size, proxy_count) = calc_pattern_size(&tmp, "nexora-proxy-");
+    let transcode_size_bytes = transcode_size + proxy_size;
+    let transcode_file_count = transcode_count + proxy_count;
+    let (thumbs_size_bytes, thumbs_file_count) = calc_dir_size(&thumbs_dir);
+    Ok(TempInfo {
+        transcode_dir: tmp.to_string_lossy().into_owned(),
+        thumbs_dir: thumbs_dir.to_string_lossy().into_owned(),
+        transcode_size_bytes,
+        thumbs_size_bytes,
+        transcode_file_count,
+        thumbs_file_count,
+    })
+}
+
+fn has_active_jobs(state: &State<'_, AppState>) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let count: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM jobs WHERE status IN ('queued', 'processing')",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap_or(0);
+    Ok(count > 0)
+}
+
+#[tauri::command]
+pub fn clear_transcode_cache(state: State<'_, AppState>) -> Result<(), String> {
+    if has_active_jobs(&state)? {
+        return Err("Aguarda que os jobs terminem antes de limpar o cache".to_string());
+    }
+    let tmp = std::env::temp_dir();
+    if let Ok(entries) = std::fs::read_dir(&tmp) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with("nexora-transcode-") || name.starts_with("nexora-proxy-") {
+                let _ = std::fs::remove_dir_all(entry.path());
+            }
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn clear_thumbs_cache(state: State<'_, AppState>) -> Result<(), String> {
+    if has_active_jobs(&state)? {
+        return Err("Aguarda que os jobs terminem antes de limpar o cache".to_string());
+    }
+    let thumbs_dir = std::env::temp_dir().join("nexora-thumbs");
+    if thumbs_dir.exists() {
+        if let Ok(entries) = std::fs::read_dir(&thumbs_dir) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.is_file() {
+                    let _ = std::fs::remove_file(p);
+                } else {
+                    let _ = std::fs::remove_dir_all(p);
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn open_path(path: String) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_queue_concurrency(_max: u32) -> Result<(), String> {
+    // SQLite já foi actualizada por update_settings.
+    // O queue thread em queue.rs lê max_concurrent_jobs da BD a cada ciclo.
+    // Esta função serve de hook para futura integração com AppState em memória.
+    Ok(())
+}

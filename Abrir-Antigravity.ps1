@@ -1,5 +1,5 @@
 # Lança o Antigravity para Nexora Desktop (perfil padrão, partilhado com Claude)
-$antigravity = "$env:LOCALAPPDATA\Programs\Antigravity\Antigravity.exe"
+$antigravity = "$env:LOCALAPPDATA\Programs\Antigravity\Antigravity IDE.exe"
 $workspace   = "C:\Dev\nexora-desktop\nexora-desktop.code-workspace"
 
 if (-not (Test-Path $antigravity)) {
