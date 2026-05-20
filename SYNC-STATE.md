@@ -5,7 +5,7 @@
 
 ---
 
-Actualizado: 2026-05-18
+Actualizado: 2026-05-20
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
@@ -146,6 +146,52 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
+### Sessao 9 — v0.23.x Bugs Pós-Reset e Workers — CONCLUIDO
+
+**Problemas reportados:**
+
+1. Jobs ficavam presos em "processing" indefinidamente
+2. "Error performing reset" — toast de erro após factory reset (mesmo sem dados)
+3. Após reset + relaunch: jobs ficavam presos em "queued" sem processar
+4. Página Logs ficava com ecrã preto após reset — impossível navegar sem reiniciar a app
+
+**Diagnóstico e Causas Raiz:**
+
+- **Jobs em "processing"**: AudioWorker era crítico (sem try/catch) — qualquer falha de áudio (ficheiro sem stream de áudio, codec incomum) terminava o worker sem completar o job, que ficava preso em "processing" para sempre.
+- **Timeout excessivo**: AudioWorker usava 600s por pass (análise + normalização); QCPost VMAF usava 3600s — jobs podiam bloquear a fila durante horas.
+- **Ecrã preto após relaunch em dev mode**: `relaunch()` do `tauri-plugin-process` em Tauri dev mode faz o novo processo conectar ao Vite dev server, mas o Vite demora a re-servir chunks lazy. `DashboardPage`, `LogsPage` e outras páginas com `lazy()` falham a importar, crashando o React sem qualquer UI de recuperação.
+- **Jobs em "queued" após reset**: dois factores — (1) `settings.json` era apagado pelo factory_reset, causando crash do LazyStore no relaunch; (2) `relaunch()` em dev tornava a app inutilizável.
+- **Double clearLogs**: `LogsPage.tsx` chamava `invoke('clear_logs')` directamente E via `clearLogs()` hook em simultâneo.
+- **Mutex poison**: se um thread panicar enquanto segura o lock da DB na queue, o `Mutex` fica "poisoned" e todos os polls subsequentes falham com erro não recuperável.
+
+**Correcções (3 commits):**
+
+**`0347df9` fix(workers):**
+
+- `NexoraDesktopOrchestrator.ts`: AudioWorker envolvido em try/catch não-crítico (como Proxy, Thumbnail, QCPost)
+- `audio-worker.ts`: timeouts 600s → 120s (2 ocorrências: analysis pass + normalize pass)
+- `qc-post-worker.ts`: timeout VMAF 3600s → 300s
+- `sidecar/dist/nexora-sidecar.cjs`: reconstruído com `npm run sidecar:build`
+
+**`76f1dbd` fix(reset):**
+
+- `system.rs` (`factory_reset`): `settings.json` excluído da lista de ficheiros a apagar; após cleanup, escreve `{}` para reinicializar o store sem crash do LazyStore
+- `queue.rs` (`poll`): lock da DB usa `unwrap_or_else(|poison| poison.into_inner())` para recuperar de Mutex poisoned; log diagnóstico `[queue] N job(s) em fila` adicionado
+- `LogsPage.tsx`: removida chamada directa duplicada a `invoke('clear_logs')` (mantida apenas via `clearLogs()`)
+- `ErrorBoundary.tsx` (novo): componente React class-based com botão "Tentar novamente"
+- `App.tsx`: `<ErrorBoundary key={activeTab}>` envolve o `<Suspense>` — `key` reseta o boundary ao navegar entre tabs
+
+**`61590f9` fix(reset):**
+
+- `SettingsPage.tsx`: após `invoke('factory_reset')` resolver com sucesso, usa `import.meta.env.DEV` para bifurcar: dev → `exit(0)` + toast a pedir reinício manual; produção → `relaunch()`
+- `default.json`: adicionada permissão `process:allow-exit`
+
+**Ficheiros alterados:** `NexoraDesktopOrchestrator.ts`, `audio-worker.ts`, `qc-post-worker.ts`, `nexora-sidecar.cjs`, `system.rs`, `queue.rs`, `LogsPage.tsx`, `ErrorBoundary.tsx` (novo), `App.tsx`, `SettingsPage.tsx`, `default.json`
+
+**Verificação:** confirmado pelo utilizador ("works fine") após testes com múltiplos ficheiros e factory reset
+
+---
+
 ## Proximos passos (v0.24.0 ou seguinte)
 
 | Tarefa                                                              | Prioridade | Estado    |
@@ -190,3 +236,8 @@ Agente: Claude Code (claude-sonnet-4-6)
 - **sidecar:event** — QueuePage e DashboardPage ouvem este evento para actualizacoes em tempo real; polling e fallback a 30s
 - **tauri-plugin-store** — settings persistem em ficheiro nativo; nao usar localStorage
 - **Videos_Tests/** — ja no git; 18 samples de video de teste
+- **Workers não-críticos**: AudioWorker, Proxy, Thumbnail, QCPost — envolvidos em try/catch; falha não bloqueia o job
+- **Workers críticos**: Ingest, QCPre, Transcode, Delivery — falha termina o job com erro
+- **relaunch() em dev mode** — NUNCA usar `relaunch()` directamente; bifurcar em `import.meta.env.DEV`: dev → `exit(0)` + toast; prod → `relaunch()`
+- **settings.json** — factory_reset NUNCA apaga este ficheiro; escreve `{}` para reset limpo sem crash do LazyStore
+- **Mutex poison em queue.rs** — usar `unwrap_or_else(|poison| poison.into_inner())` no lock da DB
