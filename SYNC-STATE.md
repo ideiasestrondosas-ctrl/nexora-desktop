@@ -287,6 +287,16 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
+### Sessao 11b — Merge dev → main — CONCLUIDO
+
+**Merge realizado:** `dev` → `main` (commit `219c542`)
+
+- CI anterior em `main` falhava (formatacao)
+- Correcao aplicada em `dev` (commit `7ea36fc`), depois merge para `main`
+- Push `main` disparou novo CI run (#26182500765)
+
+---
+
 ## Notas tecnicas para o proximo agente
 
 - **Sidecar dist nao esta no git** — correr `npm run sidecar:build` antes de cada `tauri dev`

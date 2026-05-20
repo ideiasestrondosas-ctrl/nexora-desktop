@@ -130,9 +130,9 @@
 ```
 Data:          2026-05-20
 Agente:        Claude Code (Sonnet 4.6)
-A trabalhar em: Correcao CI — aplicar prettier e rustfmt (120 ficheiros)
+A trabalhar em: Merge dev → main + CI fix
 Bloqueios:     Nenhum
-Proximo:       Push dev branch, monitorizar GitHub Actions
+Proximo:       Monitorizar CI na main, preparar v0.24.0 release
 ```
 
 ---
