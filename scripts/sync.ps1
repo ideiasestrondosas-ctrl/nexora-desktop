@@ -65,6 +65,91 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
 }
 
 # ---------------------------------------------------------
+# FUNCAO: Monitorizar GitHub Actions apos release
+# ---------------------------------------------------------
+function Watch-GitHubActions($sha, $version, $token) {
+    $headers    = @{ "Authorization" = "token $token"; "Accept" = "application/vnd.github+json" }
+    $apiUrl     = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?head_sha=$sha"
+    $targets    = @("CI - Verificacao de Qualidade", "Build Nexora Desktop")
+    $startTime  = Get-Date
+
+    Write-Host ""
+    Write-Host "  [AGUARDAR] GitHub Actions - v$version  ·  Ctrl+C para sair" -ForegroundColor Cyan
+
+    while ($true) {
+        $runs = @()
+        try {
+            $resp = Invoke-RestMethod -Uri $apiUrl -Headers $headers -Method Get -ErrorAction Stop
+            $runs = @($resp.workflow_runs | Where-Object { $targets -contains $_.name })
+        } catch {
+            Write-Warn "Erro ao consultar API GitHub: $($_.Exception.Message)"
+        }
+
+        $elapsed    = [math]::Round(((Get-Date) - $startTime).TotalSeconds)
+        $elapsedStr = if ($elapsed -lt 60) { "${elapsed}s" } else { "$([math]::Floor($elapsed/60))m$($elapsed % 60)s" }
+
+        if ($runs.Count -eq 0) {
+            Write-Host "  A aguardar inicio dos Actions... (elapsed: $elapsedStr)" -ForegroundColor Gray
+            Start-Sleep -Seconds 30
+            continue
+        }
+
+        Write-Host ""
+        Write-Host "  [AGUARDAR] GitHub Actions - v$version  ·  elapsed: $elapsedStr  ·  Ctrl+C para sair" -ForegroundColor Cyan
+        Write-Host ""
+
+        $allDone   = $true
+        $anyFailed = $false
+
+        foreach ($wfName in $targets) {
+            $run = $runs | Where-Object { $_.name -eq $wfName } | Select-Object -First 1
+
+            if (-not $run) {
+                Write-Host ("  ⏳  " + $wfName.PadRight(42) + " em fila") -ForegroundColor Gray
+                $allDone = $false
+                continue
+            }
+
+            $runSec = [math]::Round(((Get-Date) - [datetime]$run.created_at).TotalSeconds)
+            $runStr = if ($runSec -lt 60) { "${runSec}s" } else { "$([math]::Floor($runSec/60))m$($runSec % 60)s" }
+
+            switch ($run.status) {
+                "queued" {
+                    Write-Host ("  ⏳  " + $wfName.PadRight(42) + " em fila        ($runStr)") -ForegroundColor Gray
+                    $allDone = $false
+                }
+                "in_progress" {
+                    Write-Host ("  ⏳  " + $wfName.PadRight(42) + " a correr       ($runStr)") -ForegroundColor Yellow
+                    $allDone = $false
+                }
+                "completed" {
+                    if ($run.conclusion -eq "success") {
+                        Write-Host ("  ✅  " + $wfName.PadRight(42) + " sucesso        ($runStr)") -ForegroundColor Green
+                    } else {
+                        $label = if ($run.conclusion) { $run.conclusion } else { "falhou" }
+                        Write-Host ("  ❌  " + $wfName.PadRight(42) + " $($label.PadRight(15)) ($runStr)") -ForegroundColor Red
+                        Write-Host "       $($run.html_url)" -ForegroundColor DarkRed
+                        $anyFailed = $true
+                    }
+                }
+            }
+        }
+
+        if ($allDone) {
+            Write-Host ""
+            if ($anyFailed) {
+                Write-Err "Um ou mais workflows falharam. Corrige os erros e volta a lancar."
+            } else {
+                Write-Success "Todos os Actions passaram! Release v$version concluida."
+            }
+            return
+        }
+
+        Start-Sleep -Seconds 30
+    }
+}
+
+# ---------------------------------------------------------
 # AJUDA (-Help)
 # ---------------------------------------------------------
 if ($Help) {
