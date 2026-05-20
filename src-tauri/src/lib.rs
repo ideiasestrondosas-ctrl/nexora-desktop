@@ -1,5 +1,6 @@
 mod commands;
 mod db;
+mod file_logger;
 mod logger;
 mod queue;
 mod sidecar;
