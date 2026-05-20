@@ -1,6 +1,6 @@
 use crate::state::AppState;
 use std::collections::HashMap;
-use tauri::State;
+use tauri::{Emitter, State};
 
 fn default_output_dir() -> String {
     // Tenta usar a pasta de Vídeos do utilizador; fallback para temp
@@ -73,7 +73,12 @@ pub fn get_settings(state: State<AppState>) -> Result<HashMap<String, String>, S
 }
 
 #[tauri::command]
-pub fn update_settings(key: String, value: String, state: State<AppState>) -> Result<bool, String> {
+pub fn update_settings(
+    app: tauri::AppHandle,
+    key: String,
+    value: String,
+    state: State<AppState>,
+) -> Result<bool, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute(
         "INSERT INTO settings (key, value) VALUES (?1, ?2)
@@ -81,5 +86,6 @@ pub fn update_settings(key: String, value: String, state: State<AppState>) -> Re
         rusqlite::params![key, value],
     )
     .map_err(|e| e.to_string())?;
+    let _ = app.emit("settings:changed", serde_json::json!({ "key": key, "value": value }));
     Ok(true)
 }
