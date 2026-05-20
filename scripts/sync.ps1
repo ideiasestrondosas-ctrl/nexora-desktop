@@ -110,7 +110,7 @@ function Watch-GitHubActions($sha, $version, $token) {
                 continue
             }
 
-            $runSec = [math]::Round(((Get-Date) - [datetime]$run.created_at).TotalSeconds)
+            $runSec = [math]::Round(((Get-Date) - [System.DateTimeOffset]::Parse($run.created_at).UtcDateTime).TotalSeconds)
             $runStr = if ($runSec -lt 60) { "${runSec}s" } else { "$([math]::Floor($runSec/60))m$($runSec % 60)s" }
 
             switch ($run.status) {
@@ -123,7 +123,7 @@ function Watch-GitHubActions($sha, $version, $token) {
                     $allDone = $false
                 }
                 "completed" {
-                    if ($run.conclusion -eq "success") {
+                    if ($run.conclusion -eq "success" -or $run.conclusion -eq "skipped") {
                         Write-Host ("  ✅  " + $wfName.PadRight(42) + " sucesso        ($runStr)") -ForegroundColor Green
                     } else {
                         $label = if ($run.conclusion) { $run.conclusion } else { "falhou" }
@@ -131,6 +131,10 @@ function Watch-GitHubActions($sha, $version, $token) {
                         Write-Host "       $($run.html_url)" -ForegroundColor DarkRed
                         $anyFailed = $true
                     }
+                }
+                default {
+                    Write-Warn ("  ?   " + $wfName.PadRight(42) + " estado desconhecido: $($run.status)")
+                    $allDone = $false
                 }
             }
         }
