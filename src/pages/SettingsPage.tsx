@@ -118,8 +118,8 @@ type SettingsTab = 'general' | 'interface' | 'system' | 'advanced' | 'about';
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
@@ -249,7 +249,15 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (activeTab !== 'system') return;
-    invoke<TempInfo>('get_temp_info').then(setTempInfo).catch(console.error);
+    let cancelled = false;
+    invoke<TempInfo>('get_temp_info')
+      .then((info) => {
+        if (!cancelled) setTempInfo(info);
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
   }, [activeTab]);
 
   const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
