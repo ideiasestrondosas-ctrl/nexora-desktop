@@ -228,6 +228,32 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
+### Sessao 11 — Correcao CI: Prettier + rustfmt — CONCLUIDO
+
+**Problema:** GitHub Actions `CI — Verificacao de Qualidade` falhou apos merge de `dev` e tag `v0.24.0`.
+
+**Diagnóstico:**
+
+- `format:check` — 120 ficheiros nao formatados (Prettier)
+- `cargo fmt --check` (Linux) — 3 ficheiros Rust mal formatados (`settings.rs`, `system.rs`)
+
+**Correcções aplicadas:**
+
+1. `npm run format` — formatados 120 ficheiros (`.ts`, `.tsx`, `.json`, `.md`, `.yml`, `.rs` em docs, scripts, src, sidecar, tests)
+2. `cargo fmt` em `src-tauri` — formatados 3 ficheiros Rust
+3. Verificacao local completa:
+   - `tsc --noEmit` ✅
+   - `sidecar:check` ✅
+   - `eslint . --max-warnings 0` ✅
+   - `prettier --check .` ✅
+   - `vitest run` — 24/24 passed ✅
+   - `cargo fmt --check` ✅
+   - `cargo clippy -- -D warnings` ✅
+
+**Ficheiros alterados:** ~120 ficheiros em todo o repo (apenas formatacao, nenhuma alteracao funcional)
+
+---
+
 ## Proximos passos (v0.24.0 ou seguinte)
 
 | Tarefa                                                              | Prioridade | Estado    |
