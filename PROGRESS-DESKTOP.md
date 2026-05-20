@@ -15,7 +15,7 @@
 | Campo                  | Valor                                                         |
 | ---------------------- | ------------------------------------------------------------- |
 | **Nome**               | Nexora Media Processing - Desktop Nativo                      |
-| **Versao**             | 0.24.0                                                        |
+| **Versao**             | 0.24.0 (script de release melhorado)                          |
 | **IDE**                | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT) |
 | **Stack Shell**        | Tauri 2.x (Rust)                                              |
 | **Stack Frontend**     | React 19 + TypeScript + Tailwind CSS + Zustand                |

@@ -65,6 +65,236 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
 }
 
 # ---------------------------------------------------------
+# FUNCAO: Gerar titulo automatico da release
+# ---------------------------------------------------------
+function Get-ReleaseTitle($version, $changelogSection) {
+    $lines = $changelogSection -split "`n"
+    $features = @()
+    $fixes = @()
+    $docs = @()
+    $infra = @()
+    $currentCategory = ""
+
+    foreach ($line in $lines) {
+        $trimmed = $line.Trim()
+        # Detectar categoria atual (secao ### Added, ### Fixed, etc.)
+        if ($trimmed -match "^###\s+(.+)$") {
+            $currentCategory = $matches[1].Trim().ToLower()
+            continue
+        }
+        if ($trimmed -match "^-\s*(.+)$") {
+            $item = $matches[1].Trim()
+            # Classificar primeiro pela categoria, depois pelo conteudo do item
+            switch -Regex ($currentCategory) {
+                "fix|security|bug" { $fixes += $item; continue }
+                "added|add|feature|feat|new" { $features += $item; continue }
+                "changed|change|updated|update|refactor|style" { $features += $item; continue }
+                "docs|doc|infrastructure|infra|i18n|test|build|ci" { $docs += $item; continue }
+            }
+            # Fallback: classificar pelo conteudo do item
+            if ($item -match "(?i)fix|corrig|bug|crash|falha|erro|timeout|mutex|poison|race|bloqueio") {
+                $fixes += $item
+            } elseif ($item -match "(?i)doc|manual|guia|screenshot|readme|changelog") {
+                $docs += $item
+            } elseif ($item -match "(?i)ci/cd|pipeline|workflow|dependabot|lint|format|build|infrastructure|plugin|depend") {
+                $infra += $item
+            } else {
+                $features += $item
+            }
+        }
+    }
+
+    # Extrair nome da feature principal (primeira feature ou primeiro item se so houver um tipo)
+    $featureName = ""
+    if ($features.Count -gt 0) {
+        $firstFeature = $features[0]
+        # Remover prefixos de conventional commits (feat:, fix:, docs:, etc.)
+        $firstFeature = $firstFeature -replace '^\s*(feat|fix|docs|style|refactor|chore|test|build|ci)(\([^)]*\))?:\s*', ''
+        # Extrair nome curto: ate primeira virgula, ponto, ou "com", "para", "no", "em"
+        if ($firstFeature -match "^(.*?)(?:,|\.|\s+com\s+|\s+para\s+|\s+no\s+|\s+em\s+|\s+—\s+)") {
+            $featureName = $matches[1].Trim()
+        } else {
+            $featureName = $firstFeature
+        }
+        # Limitar a 40 chars
+        if ($featureName.Length -gt 40) {
+            $featureName = $featureName.Substring(0, 40).TrimEnd()
+        }
+    }
+
+    # Determinar combinacao de tipos
+    $hasFeatures = $features.Count -gt 0
+    $hasFixes = $fixes.Count -gt 0
+    $hasDocs = $docs.Count -gt 0
+    $hasInfra = $infra.Count -gt 0
+
+    if ($hasFeatures -and $hasFixes) {
+        if ($featureName) {
+            return "$featureName, Bug Fixes & Platform Polish"
+        } else {
+            return "Bug Fixes & Platform Polish"
+        }
+    } elseif ($hasFeatures) {
+        if ($featureName) {
+            return "$featureName & Enhancements"
+        } else {
+            return "New Features & Enhancements"
+        }
+    } elseif ($hasFixes) {
+        return "Bug Fixes & Stability"
+    } elseif ($hasDocs -or $hasInfra) {
+        return "Documentation & Platform Updates"
+    } else {
+        return "Nexora Desktop v$version"
+    }
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Extrair secao da versao do CHANGELOG.md
+# ---------------------------------------------------------
+function Parse-ChangelogSection($version) {
+    $changelogPath = Join-Path $WORKSPACE "CHANGELOG.md"
+    if (-not (Test-Path $changelogPath)) {
+        return $null
+    }
+
+    $content = Get-Content $changelogPath -Raw
+    # Procurar secao ## [X.Y.Z] ate a proxima ## [ ou fim do ficheiro
+    # (?s) ativa single-line mode (. captura newlines); $ so matcha fim de string
+    $pattern = "(?s)## \[$version\].*?(?=## \[|$)"
+    if ($content -match $pattern) {
+        $section = $matches[0].Trim()
+        # Remover a linha de cabecalho (## [X.Y.Z] - data)
+        $lines = $section -split "`n"
+        $cleanLines = @()
+        $skipHeader = $true
+        foreach ($line in $lines) {
+            if ($skipHeader -and $line -match "^## \[$version\]") {
+                $skipHeader = $false
+                continue
+            }
+            $cleanLines += $line
+        }
+        return ($cleanLines -join "`n").Trim()
+    }
+    return $null
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Montar corpo estruturado da release
+# ---------------------------------------------------------
+function Build-ReleaseBody($version, $commitMsg) {
+    $body = ""
+
+    # Prioridade 1: release-notes-vX.Y.Z.md
+    $releaseNotesPath = Join-Path $WORKSPACE "release-notes-v$version.md"
+    if (Test-Path $releaseNotesPath) {
+        $notesContent = Get-Content $releaseNotesPath -Raw
+        # Remover o header "## What's New" se existir para evitar duplicacao
+        $notesContent = $notesContent -replace "^## What's New\s*`n+", ""
+        $body = $notesContent.Trim()
+        Write-Info "Corpo da release: release-notes-v$version.md (prioridade 1)"
+        return $body
+    }
+
+    # Prioridade 2: CHANGELOG.md
+    $changelogSection = Parse-ChangelogSection $version
+    if ($changelogSection) {
+        Write-Info "Corpo da release: CHANGELOG.md secao v$version (prioridade 2)"
+
+        # Analisar e categorizar itens
+        $lines = $changelogSection -split "`n"
+        $bugFixes = @()
+        $newFeatures = @()
+        $changed = @()
+        $docsInfra = @()
+        $currentCategory = ""
+
+        foreach ($line in $lines) {
+            $trimmed = $line.Trim()
+            if ($trimmed -match "^###\s+(.+)$") {
+                $currentCategory = $matches[1].Trim().ToLower()
+                continue
+            }
+            if ($trimmed -match "^-\s*(.+)$") {
+                $item = $matches[1].Trim()
+                switch -Regex ($currentCategory) {
+                    "fix|security" { $bugFixes += $item }
+                    "added|add|feature|feat|new" { $newFeatures += $item }
+                    "changed|change|updated|update|refactor|style" { $changed += $item }
+                    "docs|doc|infrastructure|infra|i18n|test|build|ci" { $docsInfra += $item }
+                    default {
+                        # Inferir do conteudo do item
+                        if ($item -match "(?i)fix|corrig|bug|crash|falha|erro") {
+                            $bugFixes += $item
+                        } elseif ($item -match "(?i)doc|manual|guia|screenshot|traduc|i18n|locale") {
+                            $docsInfra += $item
+                        } elseif ($item -match "(?i)ci/cd|pipeline|workflow|dependabot|build|plugin") {
+                            $docsInfra += $item
+                        } else {
+                            $newFeatures += $item
+                        }
+                    }
+                }
+            }
+        }
+
+        # Montar corpo estruturado
+        $parts = @()
+
+        if ($newFeatures.Count -gt 0) {
+            $parts += "### New Features"
+            foreach ($feat in $newFeatures) {
+                $parts += "- $feat"
+            }
+            $parts += ""
+        }
+
+        if ($bugFixes.Count -gt 0) {
+            $parts += "### Bug Fixes"
+            foreach ($fix in $bugFixes) {
+                $parts += "- $fix"
+            }
+            $parts += ""
+        }
+
+        if ($changed.Count -gt 0) {
+            $parts += "### Changed"
+            foreach ($chg in $changed) {
+                $parts += "- $chg"
+            }
+            $parts += ""
+        }
+
+        if ($docsInfra.Count -gt 0) {
+            $parts += "### Infrastructure & Documentation"
+            foreach ($di in $docsInfra) {
+                $parts += "- $di"
+            }
+            $parts += ""
+        }
+
+        $parts += "---"
+        $parts += ""
+        $parts += "### Installers"
+        $parts += ""
+        $parts += "| Platform | File |"
+        $parts += "| -------- | ---- |"
+        $parts += "| Windows | `.msi` or `.exe` (NSIS) |"
+        $parts += "| macOS | `.dmg` (Universal: Intel + Apple Silicon) |"
+        $parts += "| Linux | `.deb` (Debian/Ubuntu) or `.AppImage` |"
+        $parts += ""
+        $parts += "See [CHANGELOG.md](CHANGELOG.md) for full details."
+
+        return ($parts -join "`n")
+    }
+
+    # Prioridade 3: fallback com mensagem de commit
+    Write-Info "Corpo da release: fallback com mensagem de commit (prioridade 3)"
+    return "### Changes in this version`n`n- $commitMsg`n`nSee [CHANGELOG.md](CHANGELOG.md) for full details."
+}
+
+# ---------------------------------------------------------
 # AJUDA (-Help)
 # ---------------------------------------------------------
 if ($Help) {
@@ -842,10 +1072,17 @@ if ($LASTEXITCODE -eq 0) {
 
         if (-not $releaseExists) {
             try {
+                # Gerar titulo automatico e corpo estruturado da release
+                $changelogSection = Parse-ChangelogSection $newVersion
+                $releaseTitle = Get-ReleaseTitle $newVersion $changelogSection
+                $releaseBodyText = Build-ReleaseBody $newVersion $commitMsg
+
+                Write-Step "A criar GitHub Release: '$releaseTitle'"
+
                 $releaseBody = @{
                     tag_name   = "v$newVersion"
-                    name       = "Nexora Desktop v$newVersion"
-                    body       = "### Alteracoes nesta versao`n`n- $commitMsg`n`nConsulte o CHANGELOG.md para detalhes."
+                    name       = "$releaseTitle"
+                    body       = $releaseBodyText
                     draft      = $false
                     prerelease = $false
                 } | ConvertTo-Json

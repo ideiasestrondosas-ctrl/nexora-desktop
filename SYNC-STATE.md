@@ -10,6 +10,37 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 12 — Script sync.ps1: GitHub Release automatico com titulo e corpo inteligente — CONCLUIDO
+
+**Pedido:** Adicionar ao script `sync.ps1` (opcao 3, modo Release) a criacao automatica de GitHub Releases com titulo e corpo preenchidos automaticamente, ao mesmo genero do que se fez para v0.22.0 ("Media Info UX, Bug Fixes & Platform Polish").
+
+**Implementacao:**
+
+1. **Nova funcao `Parse-ChangelogSection($version)`** — extrai a secao da versao do `CHANGELOG.md` usando regex `(?s)` single-line mode.
+
+2. **Nova funcao `Get-ReleaseTitle($version, $changelogSection)`** — classifica itens por categoria (`### Added`, `### Fixed`, etc.), remove prefixos conventional commits (`feat:`, `fix:`), extrai nome curto da feature principal (ate 40 chars) e gera titulo automatico:
+   - Features + Fixes → `"FeatureName, Bug Fixes & Platform Polish"`
+   - Apenas Features → `"FeatureName & Enhancements"`
+   - Apenas Fixes → `"Bug Fixes & Stability"`
+   - Docs/Infra → `"Documentation & Platform Updates"`
+
+3. **Nova funcao `Build-ReleaseBody($version, $commitMsg)`** — monta corpo estruturado em Markdown com prioridade:
+   - **P1:** `release-notes-vX.Y.Z.md` (se existir)
+   - **P2:** `CHANGELOG.md` (secao da versao, categorizado em New Features / Bug Fixes / Changed / Infrastructure & Documentation + tabela de instaladores)
+   - **P3:** Fallback com mensagem de commit
+
+4. **Modificacao do bloco de criacao da release** — o `name` e `body` da GitHub API agora usam `$releaseTitle` e `$releaseBodyText` em vez do texto estatico.
+
+**Testes:**
+
+- v0.22.0 → titulo: `"MediaInfo, Bug Fixes & Platform Polish"` (23 features + 3 fixes detectados)
+- v0.24.0 → titulo: `"Settings: Apply Live + Cache Display & Enhancements"` (1 feature)
+- Corpo estruturado com secoes corretas e tabela de instaladores
+
+**Ficheiro alterado:** `scripts/sync.ps1` (~+120 linhas, 3 funcoes novas)
+
+---
+
 ### Sessao 6 — v0.23.0 UX Fixes — CONCLUIDO
 
 **5 melhorias UX implementadas:**
