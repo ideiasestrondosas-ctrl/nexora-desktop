@@ -885,7 +885,22 @@ if ($LASTEXITCODE -eq 0) {
     # ---------------------------------------------------------
     if ($Release) {
         $devBranch = $branch
-        Invoke-MergeToMain $newVersion $devBranch $authenticatedUrl | Out-Null
+        $mergeOk   = Invoke-MergeToMain $newVersion $devBranch $authenticatedUrl
+        if ($mergeOk) {
+            if ($script:GITHUB_TOKEN) {
+                Write-Host ""
+                $watchAns = Read-Host "  Queres aguardar pelos GitHub Actions? [S/N] (Padrao: N)"
+                if ($watchAns -match '^[Ss]$') {
+                    $mainSha = git rev-parse main 2>$null
+                    Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN
+                } else {
+                    Write-Info "Ver Actions em: https://github.com/$REPO_OWNER/$REPO_NAME/actions"
+                }
+            } else {
+                Write-Warn "GITHUB_TOKEN nao configurado -- nao e possivel monitorizar os Actions."
+                Write-Info "Ver Actions em: https://github.com/$REPO_OWNER/$REPO_NAME/actions"
+            }
+        }
     }
 
     # Criar GitHub Release se houver nova versao e token
