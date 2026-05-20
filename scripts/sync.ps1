@@ -74,7 +74,7 @@ function Watch-GitHubActions($sha, $version, $token) {
     $startTime  = Get-Date
 
     Write-Host ""
-    Write-Host "  [AGUARDAR] GitHub Actions - v$version  ·  Ctrl+C para sair" -ForegroundColor Cyan
+    Write-Host "  [AGUARDAR] GitHub Actions — v$version  ·  Ctrl+C para sair" -ForegroundColor Cyan
 
     while ($true) {
         $runs = @()
@@ -95,7 +95,7 @@ function Watch-GitHubActions($sha, $version, $token) {
         }
 
         Write-Host ""
-        Write-Host "  [AGUARDAR] GitHub Actions - v$version  ·  elapsed: $elapsedStr  ·  Ctrl+C para sair" -ForegroundColor Cyan
+        Write-Host "  [AGUARDAR] GitHub Actions — v$version  ·  elapsed: $elapsedStr  ·  Ctrl+C para sair" -ForegroundColor Cyan
         Write-Host ""
 
         $allDone   = $true
