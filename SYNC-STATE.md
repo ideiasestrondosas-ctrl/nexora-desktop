@@ -192,6 +192,42 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
+### Sessao 10 — Settings: Apply Live + Cache Display — CONCLUIDO
+
+**Funcionalidades implementadas:**
+
+1. **Settings aplicam ao vivo** — Alterações de idioma e concorrência da fila tomam efeito imediato sem reiniciar a app:
+   - `update_settings` (Rust) emite evento `settings:changed` após cada upsert SQLite
+   - `SettingsPage.tsx` ouve o evento e chama `i18n.changeLanguage()` para língua; `invoke('set_queue_concurrency')` para concorrência
+
+2. **Cache display na aba System** — Nova secção "Cache" com dois cards:
+   - **Cache de Processamento**: soma `nexora-transcode-*` + `nexora-proxy-*` em temp dir — tamanho, contagem, botões Abrir/Limpar
+   - **Cache de Thumbnails**: `nexora-thumbs/` — tamanho, contagem, botões Abrir/Limpar
+   - Limpeza guardada: Rust verifica jobs activos na BD antes de apagar (`queued` ou `processing`)
+
+3. **Fix de persistência de settings** — `handleUpdateSetting` passava `value` como número/booleano JS para Rust `String`, causando falha silenciosa do serde_json. Corrigido com `String(value)` — afectava `max_concurrent_jobs`, `gpu_acceleration`, `notifications_enabled`.
+
+**Novos comandos Rust (em `system.rs`):**
+
+- `get_temp_info` — devolve `TempInfo` (caminhos, tamanhos, contagens)
+- `clear_transcode_cache` — remove dirs `nexora-transcode-*` e `nexora-proxy-*`
+- `clear_thumbs_cache` — purga conteúdo de `nexora-thumbs/`
+- `open_path` — abre pasta no explorador de ficheiros do SO
+- `set_queue_concurrency` — stub (Ok(())) para notificar sidecar no futuro
+
+**Ficheiros alterados:** `settings.rs`, `system.rs`, `lib.rs`, `SettingsPage.tsx`
+
+**Commits (branch dev):**
+
+- `4f32c89` fix(system): include nexora-proxy-\* in transcode cache size and clear
+- `028a1ff` fix(settings-page): add TB support, fix useEffect cleanup, coerce types
+- `b4b2988` feat(settings-live-apply+cache): emit settings:changed event and system tab cache section
+- `4f11024` fix(settings): coerce value to String before invoke to fix settings persistence
+
+**Verificação:** todos os testes manuais confirmados pelo utilizador ✅
+
+---
+
 ## Proximos passos (v0.24.0 ou seguinte)
 
 | Tarefa                                                              | Prioridade | Estado    |
@@ -241,3 +277,4 @@ Agente: Claude Code (claude-sonnet-4-6)
 - **relaunch() em dev mode** — NUNCA usar `relaunch()` directamente; bifurcar em `import.meta.env.DEV`: dev → `exit(0)` + toast; prod → `relaunch()`
 - **settings.json** — factory_reset NUNCA apaga este ficheiro; escreve `{}` para reset limpo sem crash do LazyStore
 - **Mutex poison em queue.rs** — usar `unwrap_or_else(|poison| poison.into_inner())` no lock da DB
+- **invoke() com Rust String** — sempre converter com `String(value)` antes de passar número ou booleano para um comando Rust que espera `String`; serde_json falha silenciosamente caso contrário
