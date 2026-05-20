@@ -141,6 +141,11 @@ pub fn run() {
             commands::logs::get_log_stats,
             commands::logs::write_log,
             commands::logs::export_logs,
+            commands::logs::get_log_storage_info,
+            commands::logs::export_logs_bundle,
+            commands::logs::clear_log_files,
+            commands::logs::upload_logs_to_server,
+            commands::logs::log_user_action,
             commands::metrics::get_system_metrics,
             get_startup_status,
         ])
