@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { open, confirm } from '@tauri-apps/plugin-dialog';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -108,7 +109,7 @@ type SettingsTab = 'general' | 'interface' | 'system' | 'advanced' | 'about';
 export default function SettingsPage() {
   const settingsStore = useSettingsStore();
   const { gpu, loading: gpuLoading } = useGPU();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [localSettings, setLocalSettings] = useState<Partial<Settings>>({
@@ -204,6 +205,27 @@ export default function SettingsPage() {
     setIsDev(import.meta.env.DEV);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // executa apenas na montagem; settingsStore e t sao referencias estaveis
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    listen<{ key: string; value: string }>('settings:changed', async ({ payload }) => {
+      if (payload.key === 'language') {
+        await i18n.changeLanguage(payload.value);
+      }
+      if (payload.key === 'max_concurrent_jobs') {
+        await invoke('set_queue_concurrency', { max: parseInt(payload.value, 10) }).catch(() =>
+          toast.warning('Concorrência actualiza no próximo arranque'),
+        );
+      }
+    })
+      .then((fn) => {
+        unlisten = fn;
+      })
+      .catch(console.error);
+    return () => {
+      unlisten?.();
+    };
+  }, [i18n]);
 
   const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
     try {
