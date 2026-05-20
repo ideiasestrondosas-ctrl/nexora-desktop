@@ -262,7 +262,7 @@ export default function SettingsPage() {
 
   const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
     try {
-      await invoke('update_settings', { key, value }).catch(console.warn);
+      await invoke('update_settings', { key, value: String(value) }).catch(console.warn);
       if (key === 'output_dir') settingsStore.setOutputDir(value as string);
       if (key === 'max_concurrent_jobs') settingsStore.setMaxConcurrentJobs(value as number);
       if (key === 'gpu_acceleration') settingsStore.setGpuAcceleration(value as boolean);
