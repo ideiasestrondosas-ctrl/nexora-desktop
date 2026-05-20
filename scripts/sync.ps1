@@ -70,7 +70,7 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
 function Watch-GitHubActions($sha, $version, $token) {
     $headers    = @{ "Authorization" = "token $token"; "Accept" = "application/vnd.github+json" }
     $apiUrl     = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?head_sha=$sha"
-    $targets    = @("CI - Verificacao de Qualidade", "Build Nexora Desktop")
+    $targets    = @("CI — Verificacao de Qualidade", "Build Nexora Desktop")
     $startTime  = Get-Date
 
     Write-Host ""
