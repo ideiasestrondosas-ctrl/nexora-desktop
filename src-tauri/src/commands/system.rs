@@ -492,7 +492,9 @@ pub async fn factory_reset(
 
         for p in pids {
             #[cfg(target_os = "windows")]
-            let _ = Command::new("taskkill").args(["/F", "/PID", &p.to_string()]).status();
+            let _ = Command::new("taskkill")
+                .args(["/F", "/PID", &p.to_string()])
+                .status();
             #[cfg(not(target_os = "windows"))]
             let _ = Command::new("kill").arg("-9").arg(p.to_string()).status();
         }
@@ -560,7 +562,11 @@ pub async fn factory_reset(
                 // Apagar o directório de output configurado pelo utilizador
                 if let Some(ref dir) = configured_output_dir {
                     if let Err(e) = std::fs::remove_dir_all(dir) {
-                        log::warn!("[factory_reset] falha ao apagar output_dir '{}': {}", dir, e);
+                        log::warn!(
+                            "[factory_reset] falha ao apagar output_dir '{}': {}",
+                            dir,
+                            e
+                        );
                     } else {
                         log::info!("[factory_reset] output_dir apagado: {}", dir);
                     }

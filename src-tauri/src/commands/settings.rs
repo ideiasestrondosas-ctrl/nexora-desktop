@@ -86,6 +86,9 @@ pub fn update_settings(
         rusqlite::params![key, value],
     )
     .map_err(|e| e.to_string())?;
-    let _ = app.emit("settings:changed", serde_json::json!({ "key": key, "value": value }));
+    let _ = app.emit(
+        "settings:changed",
+        serde_json::json!({ "key": key, "value": value }),
+    );
     Ok(true)
 }

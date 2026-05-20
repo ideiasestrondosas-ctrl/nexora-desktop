@@ -9,8 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.24.0] - 2026-05-20
 
 ### Added
-- feat:  Settings: Apply Live + Cache Display
 
+- feat: Settings: Apply Live + Cache Display
 
 ## [0.23.0] - 2026-05-18
 
