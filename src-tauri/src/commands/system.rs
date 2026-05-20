@@ -703,8 +703,10 @@ fn calc_dir_size(dir: &std::path::Path) -> (u64, u32) {
 pub fn get_temp_info() -> Result<TempInfo, String> {
     let tmp = std::env::temp_dir();
     let thumbs_dir = tmp.join("nexora-thumbs");
-    let (transcode_size_bytes, transcode_file_count) =
-        calc_pattern_size(&tmp, "nexora-transcode-");
+    let (transcode_size, transcode_count) = calc_pattern_size(&tmp, "nexora-transcode-");
+    let (proxy_size, proxy_count) = calc_pattern_size(&tmp, "nexora-proxy-");
+    let transcode_size_bytes = transcode_size + proxy_size;
+    let transcode_file_count = transcode_count + proxy_count;
     let (thumbs_size_bytes, thumbs_file_count) = calc_dir_size(&thumbs_dir);
     Ok(TempInfo {
         transcode_dir: tmp.to_string_lossy().into_owned(),
