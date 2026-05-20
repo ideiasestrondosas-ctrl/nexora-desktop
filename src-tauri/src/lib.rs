@@ -31,6 +31,7 @@ pub fn run() {
 
             // Logger personalizado: escreve na DB + emite eventos Tauri
             logger::init(app.handle().clone(), &db_path);
+            file_logger::init(app.handle());
             log::info!("Nexora Desktop v{} a arrancar", env!("CARGO_PKG_VERSION"));
 
             tray::setup(app)?;
