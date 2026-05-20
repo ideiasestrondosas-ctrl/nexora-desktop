@@ -297,6 +297,30 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
+### Sessao 11c — Release v0.24.0 no GitHub — CONCLUIDO
+
+**Tag:** `v0.24.0` → commit `0d3b805` (inclui build.yml reescrito + release notes)
+
+**Actions tomadas:**
+
+1. Tag `v0.24.0` movida de `4e86384` → `0d3b805` (force push)
+2. `build.yml` reescrito com:
+   - Job `quality-gate` (tsc, lint, testes, cargo fmt, cargo clippy)
+   - Node.js 22 (era 20)
+   - Step `Create resource placeholders` em todas as plataformas
+   - `needs: quality-gate` no job `build`
+3. `ci.yml` atualizado para Node.js 22
+4. Release draft criado via `gh release create` com notas detalhadas (`release-notes-v0.24.0.md`)
+5. Workflow `Build Nexora Desktop` disparado automaticamente pelo push da tag
+6. Todos os 4 jobs passaram:
+   - Quality Gate: 2m57s ✅
+   - Build — macOS (Universal): 4m42s ✅
+   - Build — Windows: 10m16s ✅
+   - Build — Linux: 5m21s ✅
+7. Release publicado (draft → public): https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releases/tag/v0.24.0
+
+---
+
 ## Notas tecnicas para o proximo agente
 
 - **Sidecar dist nao esta no git** — correr `npm run sidecar:build` antes de cada `tauri dev`

@@ -130,9 +130,9 @@
 ```
 Data:          2026-05-20
 Agente:        Claude Code (Sonnet 4.6)
-A trabalhar em: Merge dev → main + CI fix
+A trabalhar em: Release v0.24.0 publicado no GitHub
 Bloqueios:     Nenhum
-Proximo:       Monitorizar CI na main, preparar v0.24.0 release
+Proximo:       Proxima feature
 ```
 
 ---
