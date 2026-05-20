@@ -48,8 +48,7 @@ export default function LogsPage() {
 
   const handleClear = async () => {
     if (confirm(t('logs.clearConfirm'))) {
-      await invoke('clear_logs').catch(console.error);
-      clearLogs();
+      await clearLogs();
     }
   };
 

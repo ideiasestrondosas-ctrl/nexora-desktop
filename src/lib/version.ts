@@ -3,7 +3,7 @@
  * Actualizar aqui em cada release — propaga automaticamente
  * para todos os sítios que mostram a versão.
  */
-export const APP_VERSION = '0.22.0';
+export const APP_VERSION = '0.23.0';
 
 export interface VersionEntry {
   version: string;
@@ -11,6 +11,11 @@ export interface VersionEntry {
 }
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: '0.23.0',
+    description:
+      'v0.23.0: navegação in-app para ficheiros processados, popup de reprocessamento em foreground (portal), Pipeline Summary clicável com painel expansível, delete e factory reset com autorização explícita de ficheiros, 6 novas chaves i18n.',
+  },
   {
     version: '0.22.0',
     description:

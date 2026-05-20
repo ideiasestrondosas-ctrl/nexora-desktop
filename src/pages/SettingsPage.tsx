@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { exit } from '@tauri-apps/plugin-process';
 import { APP_VERSION, VERSION_HISTORY } from '@/lib/version';
 import {
   FolderOpen,
@@ -279,9 +281,32 @@ export default function SettingsPage() {
       title: t('settings.advanced.factoryResetTitle'),
       kind: 'error',
     });
-    if (confirmed) {
-      toast.loading(t('settings.advanced.factoryResetPreparing'));
-      await invoke('factory_reset').catch(() => toast.error(t('settings.toasts.resetError')));
+    if (!confirmed) return;
+
+    // Segunda confirmação: também apagar os ficheiros de output do disco?
+    const deleteFiles = await confirm(t('settings.advanced.factoryResetDeleteFilesConfirm'), {
+      title: t('settings.advanced.factoryResetDeleteFilesTitle'),
+      kind: 'warning',
+    });
+
+    const toastId = toast.loading(t('settings.advanced.factoryResetPreparing'));
+    try {
+      await invoke('factory_reset', { deleteFiles });
+      // Em modo de desenvolvimento o Vite dev server demora a re-servir os módulos
+      // lazy após relaunch(), tornando a aplicação inutilizável. Saímos limpos e
+      // pedimos ao utilizador para reiniciar manualmente.
+      // Em produção, relaunch() funciona correctamente.
+      if (import.meta.env.DEV) {
+        toast.dismiss(toastId);
+        toast.success('Reset completo. Reinicia a aplicação para continuar.');
+        await exit(0);
+      } else {
+        await relaunch();
+      }
+    } catch (err) {
+      console.error('[factory_reset] erro:', err);
+      toast.dismiss(toastId);
+      toast.error(t('settings.toasts.resetError'));
     }
   };
 

@@ -81,8 +81,14 @@ export class NexoraDesktopOrchestrator {
       // Passo 2 — Transcode
       await new TranscodeWorker().run(ctx, (p) => stepProgress(2, p));
 
-      // Passo 3 — Audio
-      await new AudioWorker().run(ctx, (p) => stepProgress(3, p));
+      // Passo 3 — Audio (não-crítico: pode falhar em ficheiros sem áudio ou com codec incomum)
+      try {
+        await new AudioWorker().run(ctx, (p) => stepProgress(3, p));
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn(`Audio falhou (não-crítico): ${msg}`);
+        stepProgress(3, 1);
+      }
 
       // Passo 4 — Proxy (não-crítico)
       try {

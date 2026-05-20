@@ -88,7 +88,7 @@ Antes de qualquer release, actualizar a versão em **três ficheiros**:
 
 ```bash
 # 1. package.json
-npm version 0.18.0 --no-git-tag-version
+npm version 0.23.0 --no-git-tag-version
 
 # 2. src-tauri/Cargo.toml — campo version = "0.18.0"
 # 3. src-tauri/tauri.conf.json — campo "version": "0.18.0"
@@ -111,8 +111,8 @@ git pull origin main
 
 # 4. Commit e tag
 git add package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json CHANGELOG.md
-git commit -m "chore(release): v0.18.0"
-git tag v0.18.0
+git commit -m "chore(release): v0.23.0"
+git tag v0.23.0
 git push origin main --tags
 
 # 5. O workflow build.yml dispara automaticamente e cria o GitHub Release

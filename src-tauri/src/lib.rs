@@ -12,8 +12,10 @@ use tauri::{Emitter, Manager};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -99,6 +101,7 @@ pub fn run() {
             commands::assets::get_asset,
             commands::assets::delete_asset,
             commands::assets::scan_directory,
+            commands::assets::find_asset_by_path,
             commands::jobs::submit_job,
             commands::jobs::cancel_job,
             commands::jobs::get_job_status,

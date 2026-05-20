@@ -82,7 +82,7 @@ async function loudnessAnalysis(ffmpegPath: string, input: string): Promise<Loud
   const { stderr } = await execFileAsync(
     ffmpegPath,
     ['-i', input, '-af', 'loudnorm=print_format=json', '-f', 'null', '-'],
-    { timeout: 600_000 },
+    { timeout: 120_000 },
   ).catch((e: { stderr?: string }) => ({ stderr: e.stderr ?? '' }));
 
   const match = stderr.match(
@@ -118,6 +118,6 @@ async function loudnessNormalize(
       '-y',
       output,
     ],
-    { timeout: 600_000 },
+    { timeout: 120_000 },
   );
 }

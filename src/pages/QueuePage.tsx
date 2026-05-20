@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
@@ -89,6 +90,7 @@ export default function QueuePage({
     { id: string; name: string; label_friendly: string | null }[]
   >([]);
   const [reprocessPopover, setReprocessPopover] = useState<string | null>(null); // job.id
+  const [popoverPos, setPopoverPos] = useState<{ top: number; right: number } | null>(null);
   const fetchData = useCallback(async () => {
     try {
       const [jobsData, statsData, profilesData] = await Promise.all([
@@ -148,7 +150,7 @@ export default function QueuePage({
   const handleReprocessWithProfile = async (assetId: string, profile: string) => {
     logActivity('Reprocessar com perfil', 'execute', `asset_id=${assetId} profile=${profile}`);
     try {
-      await invoke('submit_job', { asset_id: assetId, profile, priority: 0 });
+      await invoke('submit_job', { assetId, profile, priority: 0 });
       toast.success(t('queue.retryQueued'));
       fetchData();
     } catch (error) {
@@ -162,7 +164,13 @@ export default function QueuePage({
     if (!reprocessPopover) return;
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest('[data-reprocess-popover]')) setReprocessPopover(null);
+      if (
+        !target.closest('[data-reprocess-popover]') &&
+        !target.closest('[data-reprocess-trigger]')
+      ) {
+        setReprocessPopover(null);
+        setPopoverPos(null);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -214,7 +222,7 @@ export default function QueuePage({
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* RESUMO DO PIPELINE */}
-      <PipelineSummary jobs={jobs} />
+      <PipelineSummary jobs={jobs} onSelectAsset={onSelectAsset} />
 
       {/* Quarentena badge se houver */}
       {stats.quarantined > 0 && (
@@ -610,51 +618,27 @@ export default function QueuePage({
                         >
                           <ExternalLink size={14} />
                         </button>
-                        <div className="relative" data-reprocess-popover>
+                        <div data-reprocess-trigger>
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
                               logActivity('Menu reprocessar fila', 'click', `job_id=${job.id}`);
-                              setReprocessPopover(reprocessPopover === job.id ? null : job.id);
+                              const newId = reprocessPopover === job.id ? null : job.id;
+                              if (newId) {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setPopoverPos({
+                                  top: rect.top - 4,
+                                  right: window.innerWidth - rect.right,
+                                });
+                              } else {
+                                setPopoverPos(null);
+                              }
+                              setReprocessPopover(newId);
                             }}
                             title={t('queue.reprocessOptions', 'Opções de reprocessamento')}
                             className="p-1.5 text-brand hover:text-white hover:bg-brand rounded transition-colors"
                           >
                             <Repeat size={14} />
                           </button>
-                          {reprocessPopover === job.id && (
-                            <div className="absolute bottom-full right-0 mb-1 bg-bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden z-50 min-w-[200px]">
-                              <div className="px-3 py-1.5 border-b border-border">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-text-muted">
-                                  {t('queue.reprocessOptions', 'Opções de reprocessamento')}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => {
-                                  handleRetry(job.id);
-                                  setReprocessPopover(null);
-                                }}
-                                className="w-full text-left px-3 py-2 text-xs hover:bg-bg-hover transition-colors flex items-center gap-2"
-                              >
-                                <Repeat size={12} className="text-brand" />
-                                <span className="font-bold">
-                                  {t('assetDetail.sameProfile', 'Mesmo perfil')} — {job.profile}
-                                </span>
-                              </button>
-                              {availableProfiles
-                                .filter((p) => p.name !== job.profile)
-                                .map((p) => (
-                                  <button
-                                    key={p.id}
-                                    onClick={() => handleReprocessWithProfile(job.asset_id, p.name)}
-                                    className="w-full text-left px-3 py-2 text-xs hover:bg-bg-hover transition-colors"
-                                  >
-                                    <span className="font-bold text-text-primary">
-                                      {p.label_friendly ?? p.name}
-                                    </span>
-                                  </button>
-                                ))}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </td>
@@ -665,6 +649,61 @@ export default function QueuePage({
           )}
         </div>
       </section>
+
+      {/* Portal do popover de reprocessamento — fora da tabela para evitar overflow:hidden */}
+      {reprocessPopover &&
+        popoverPos &&
+        (() => {
+          const popoverJob = finishedJobs.find((j) => j.id === reprocessPopover);
+          if (!popoverJob) return null;
+          return createPortal(
+            <div
+              style={{
+                position: 'fixed',
+                top: popoverPos.top,
+                right: popoverPos.right,
+                transform: 'translateY(-100%)',
+                zIndex: 9999,
+              }}
+              data-reprocess-popover
+            >
+              <div className="bg-bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden min-w-[200px]">
+                <div className="px-3 py-1.5 border-b border-border">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-text-muted">
+                    {t('queue.reprocessOptions', 'Opções de reprocessamento')}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    handleRetry(popoverJob.id);
+                    setReprocessPopover(null);
+                    setPopoverPos(null);
+                  }}
+                  className="w-full text-left px-3 py-2 text-xs hover:bg-bg-hover transition-colors flex items-center gap-2"
+                >
+                  <Repeat size={12} className="text-brand" />
+                  <span className="font-bold">
+                    {t('assetDetail.sameProfile', 'Mesmo perfil')} — {popoverJob.profile}
+                  </span>
+                </button>
+                {availableProfiles
+                  .filter((p) => p.name !== popoverJob.profile)
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => handleReprocessWithProfile(popoverJob.asset_id, p.name)}
+                      className="w-full text-left px-3 py-2 text-xs hover:bg-bg-hover transition-colors"
+                    >
+                      <span className="font-bold text-text-primary">
+                        {p.label_friendly ?? p.name}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            </div>,
+            document.body,
+          );
+        })()}
     </div>
   );
 }

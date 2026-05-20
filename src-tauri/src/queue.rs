@@ -36,10 +36,11 @@ fn poll<R: Runtime>(
     queue_state: &Arc<Mutex<QueueState>>,
 ) -> anyhow::Result<()> {
     let app_state = app.state::<AppState>();
+    // Recuperar de Mutex envenenado (panic de um ciclo anterior) em vez de falhar para sempre
     let db = app_state
         .db
         .lock()
-        .map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
+        .unwrap_or_else(|poison| poison.into_inner());
 
     // Recuperar jobs presos em 'processing' há mais de 15 minutos
     // (o sidecar pode ter crashado sem emitir job:failed)
@@ -123,6 +124,10 @@ fn poll<R: Runtime>(
         .collect();
 
     drop(stmt);
+
+    if !jobs.is_empty() {
+        info!("[queue] {} job(s) em fila, slots={}", jobs.len(), slots);
+    }
 
     // Marcar todos os jobs como 'processing' enquanto ainda temos o lock da BD —
     // elimina a race condition onde outro poll pode pegar no mesmo job antes de

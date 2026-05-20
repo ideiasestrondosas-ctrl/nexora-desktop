@@ -6,6 +6,40 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-05-18
+
+### Added
+
+- Navegação in-app para ficheiros processados: comando Rust `find_asset_by_path`; AssetDetailPage tenta navegar para o asset de output; fallback para `revealItemInDir` se não estiver na biblioteca.
+- Popup de reprocessamento em foreground: `QueuePage` usa `createPortal` (react-dom) para renderizar o popup em `document.body` com `position: fixed`, escapando o `overflow-hidden` do container da tabela.
+- Pipeline Summary clicável: badges de contagem tornados `<button>` que expandem painel inline com lista de ficheiros (nome + perfil + seta de navegação para o asset).
+- Delete com autorização explícita para ficheiros: `delete_asset` e `factory_reset` Rust aceitam `delete_files: bool`; frontend apresenta segundo dialog nativo antes de apagar ficheiros do disco.
+
+### Changed
+
+- i18n: adicionadas chaves `deleteFilesConfirm`, `deleteFilesTitle`, `factoryResetFilesTitle`, `factoryResetFilesConfirm`, `pipelineSummaryTitle`, `reprocessPortalTitle` em 15 línguas.
+
+## [0.22.0] - 2026-05-17
+
+### Added
+
+- MediaInfo no Detalhe de Asset com toggle Original/Processado e banner de caminho do ficheiro processado.
+- Caminho do ficheiro visível sob o toggle do player (original e processado).
+- SHA-256 e TAGS incluídos na função "Copiar Tudo" do MediaInfoPanel.
+- Reprocessar com selector de perfil no Asset Detail.
+- Botões explorador separados para original e processado.
+- Download de ficheiro processado.
+- Fila com navegação para asset.
+- Dashboard scrollável com lista de jobs recentes.
+- Registo de actividades (activity log) em todos os comandos principais.
+- 16 novas chaves i18n.
+
+### Fixed
+
+- Duração dos jobs no histórico calculada a partir de `started_at`/`finished_at` (não hardcoded).
+- Data de início no histórico mostra hora real (não só a data de criação).
+- Caminho do ficheiro processado no histórico de jobs mostra o path completo com botão abrir.
+
 ## [0.21.0] - 2026-05-17
 
 ### Fixed

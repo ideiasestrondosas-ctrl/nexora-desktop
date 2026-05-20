@@ -86,10 +86,10 @@ For IT administrators deploying via Group Policy or SCCM:
 
 ```powershell
 # MSI silent install
-msiexec /i "Nexora-Desktop-0.17.0-x64.msi" /qn /norestart INSTALLDIR="C:\Nexora"
+msiexec /i "Nexora-Desktop-0.23.0-x64.msi" /qn /norestart INSTALLDIR="C:\Nexora"
 
 # EXE silent install
-Nexora-Desktop-0.17.0-x64-setup.exe /S /D=C:\Nexora
+Nexora-Desktop-0.23.0-x64-setup.exe /S /D=C:\Nexora
 ```
 
 ### Post-Installation
@@ -164,7 +164,7 @@ xattr -dr com.apple.quarantine /Applications/Nexora\ Desktop.app
 
 ```bash
 # Install via dpkg
-sudo dpkg -i nexora-desktop_0.17.0_amd64.deb
+sudo dpkg -i nexora-desktop_0.23.0_amd64.deb
 
 # Fix any dependency issues
 sudo apt-get install -f
@@ -173,7 +173,7 @@ sudo apt-get install -f
 Or using `gdebi` (handles dependencies automatically):
 
 ```bash
-sudo gdebi nexora-desktop_0.17.0_amd64.deb
+sudo gdebi nexora-desktop_0.23.0_amd64.deb
 ```
 
 #### Launch
@@ -196,10 +196,10 @@ nexora-desktop
 
 ```bash
 # Make executable
-chmod +x Nexora-Desktop-0.17.0-x86_64.AppImage
+chmod +x Nexora-Desktop-0.23.0-x86_64.AppImage
 
 # Run directly
-./Nexora-Desktop-0.17.0-x86_64.AppImage
+./Nexora-Desktop-0.23.0-x86_64.AppImage
 ```
 
 #### Optional: Integrate with System
@@ -440,4 +440,4 @@ sudo pacman -S webkit2gtk
 
 ---
 
-_Last updated: 2026-05-15 for Nexora Desktop v0.17.0_
+_Last updated: 2026-05-18 for Nexora Desktop v0.23.0_

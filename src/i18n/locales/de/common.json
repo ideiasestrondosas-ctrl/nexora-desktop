@@ -77,7 +77,9 @@
         "reprocess": "Click any asset to reprocess with a different profile",
         "tip1": "Supported formats: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
         "tip2": "Hover over a grid card to reveal Open and Play buttons.",
-        "tip3": "The view mode (Grid/List) is remembered between sessions."
+        "tip3": "The view mode (Grid/List) is remembered between sessions.",
+        "deleteConfirmTitle": "Confirmação de Delete (v0.23.0)",
+        "deleteConfirmDesc": "Diálogo de confirmação em dois passos. Primeiro confirma a remoção do asset; segundo pergunta se quer apagar o ficheiro processado do disco."
       },
       "queue": {
         "title": "Queue — Job Monitoring",
@@ -88,7 +90,11 @@
         "retry": "Failed jobs can be retried with one click",
         "tip1": "The Queue auto-refreshes every 2 seconds.",
         "tip2": "Green check = done, Blue pulse = active, Yellow shield = quarantined, Red = error.",
-        "tip3": "Hover over any pipeline step to see its name and description."
+        "tip3": "Hover over any pipeline step to see its name and description.",
+        "pipelineSummaryTitle": "Pipeline Summary Clicável (v0.23.0)",
+        "pipelineSummaryDesc": "Clique nos badges de contagem (Queued, Processing, Done, Quarantined) para expandir um painel inline com a lista de ficheiros.",
+        "reprocessPopupTitle": "Popup de Reprocessamento (v0.23.0)",
+        "reprocessPopupDesc": "Popup renderizado via portal para o foreground, escapando o overflow do container da tabela."
       },
       "profiles": {
         "title": "Profiles — Transcode Configuration",
@@ -110,7 +116,9 @@
         "advanced": "Advanced — export/import settings, factory reset",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
-        "tip3": "Factory Reset wipes everything. Export your settings first if unsure."
+        "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
+        "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
+        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
       },
       "logs": {
         "title": "Logs — Diagnostics",
@@ -123,7 +131,9 @@
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
       }
-    }
+    },
+    "guideOpened": "Guia aberto no browser",
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
   },
   "dashboard": {
     "assetsTotal": "Total Assets",
@@ -220,7 +230,11 @@
     "phaseAnalyse": "Analysing",
     "phaseConvert": "Converting",
     "phaseVerify": "Verifying & saving",
-    "reprocessOptions": "Neuverarbeitungsoptionen"
+    "reprocessOptions": "Neuverarbeitungsoptionen",
+    "pipeline": {
+      "expandTooltip": "Klicken, um Dateien anzuzeigen",
+      "noFilesForStatus": "Keine Dateien für diesen Status"
+    }
   },
   "profiles": {
     "create": "Create",
@@ -391,7 +405,9 @@
       "updateErrorSigned": "Update check only available in signed release builds",
       "updateErrorNetwork": "Network error. Check your internet connection.",
       "updateErrorGeneric": "Error checking for updates: {{msg}}",
-      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\nâ€¢ All asset library\nâ€¢ Job and log history\nâ€¢ All custom profiles\nâ€¢ All your settings\n\nThe application will restart. This action is irreversible."
+      "factoryResetConfirmDetailed": "Are you sure you want to perform a TOTAL RESET?\n\nThis will erase ABSOLUTELY EVERYTHING:\n• All asset library\n• Job and log history\n• All custom profiles\n• All your settings\n\nThe application will restart. This action is irreversible.",
+      "factoryResetDeleteFilesTitle": "Auch Ausgabedateien löschen?",
+      "factoryResetDeleteFilesConfirm": "Alle verarbeiteten Ausgabedateien vom Datenträger löschen? (Transcodierungen, Proxys, Miniaturansichten). Wählen Sie Nein, um die Dateien zu behalten."
     },
     "about": {
       "releaseNotes": "Release Notes",
@@ -509,7 +525,9 @@
     "openProcessed": "Verarbeitete Datei anzeigen",
     "reprocessProfile": "Mit Profil erneut verarbeiten",
     "reprocessQueued": "Job zur Warteschlange hinzugefügt",
-    "sameProfile": "Gleiches Profil"
+    "sameProfile": "Gleiches Profil",
+    "deleteFilesTitle": "Verarbeitete Dateien löschen?",
+    "deleteFilesConfirm": "Möchten Sie auch die verarbeiteten Dateien vom Datenträger löschen? Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "pipeline": {
     "ingest": "Ingest",

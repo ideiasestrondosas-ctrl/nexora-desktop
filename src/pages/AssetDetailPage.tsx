@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { invoke, convertFileSrc } from '@tauri-apps/api/core';
 import { openPath, revealItemInDir } from '@tauri-apps/plugin-opener';
+import { confirm } from '@tauri-apps/plugin-dialog';
 import {
   ChevronLeft,
   Film,
@@ -75,6 +76,7 @@ interface Profile {
 interface AssetDetailPageProps {
   assetId: string;
   onBack: () => void;
+  onSelectAsset?: (id: string) => void;
 }
 
 const PIPELINE_STEPS = [
@@ -88,7 +90,7 @@ const PIPELINE_STEPS = [
   { key: 'delivery', short: 'DL' },
 ];
 
-export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProps) {
+export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: AssetDetailPageProps) {
   const [asset, setAsset] = useState<Asset | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,7 +114,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
     try {
       const [assetData, jobsData, profilesData] = await Promise.all([
         invoke<Asset | null>('get_asset', { id: assetId }), // P6: backend retorna Option<Asset>; P11: param name é 'id'
-        invoke<Job[]>('list_jobs', { asset_id: assetId }), // P11: backend espera asset_id não assetId
+        invoke<Job[]>('list_jobs', { assetId }),
         invoke<Profile[]>('list_profiles'),
       ]);
       if (assetData) setAsset(assetData); // P6: verificar null
@@ -134,9 +136,15 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   };
 
   const executeDelete = async () => {
+    setDeleteConfirmOpen(false);
+    // Segunda confirmação: apagar ficheiros do disco?
+    const deleteFiles = await confirm(t('assetDetail.deleteFilesConfirm'), {
+      title: t('assetDetail.deleteFilesTitle'),
+      kind: 'warning',
+    });
     setDeleteLoading(true);
     try {
-      await invoke('delete_asset', { id: assetId });
+      await invoke('delete_asset', { id: assetId, deleteFiles });
       removeAsset(assetId);
       removeJobsByAsset(assetId);
       onBack();
@@ -144,7 +152,6 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
       console.error('Failed to delete asset:', error);
     } finally {
       setDeleteLoading(false);
-      setDeleteConfirmOpen(false);
     }
   };
 
@@ -152,7 +159,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
   const handleReprocess = async (profile: string) => {
     logActivity('Processar Novamente', 'execute', `asset_id=${assetId} profile=${profile}`);
     try {
-      await invoke('submit_job', { asset_id: assetId, profile, priority: 0 });
+      await invoke('submit_job', { assetId, profile, priority: 0 });
       toast.success(t('assetDetail.reprocessQueued', 'Job adicionado à fila'));
       fetchData();
     } catch (e: unknown) {
@@ -160,6 +167,19 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
       toast.error(t('common.error', 'Ocorreu um erro'));
     }
     setReprocessMenuOpen(false);
+  };
+
+  const handleOpenProcessedFile = async (outputPath: string) => {
+    try {
+      const foundId = await invoke<string | null>('find_asset_by_path', { path: outputPath });
+      if (foundId && onSelectAsset) {
+        onSelectAsset(foundId);
+        return;
+      }
+    } catch {
+      // continuar para fallback
+    }
+    await revealItemInDir(outputPath).catch(() => {});
   };
 
   useEffect(() => {
@@ -918,7 +938,7 @@ export default function AssetDetailPage({ assetId, onBack }: AssetDetailPageProp
                           </span>
                         </div>
                         <button
-                          onClick={() => openPath(job.output_path!).catch(() => {})}
+                          onClick={() => handleOpenProcessedFile(job.output_path!)}
                           className="flex items-center gap-1.5 text-[10px] font-black text-brand uppercase tracking-widest hover:underline shrink-0"
                         >
                           <ExternalLink size={14} /> {t('assetDetail.openProcessedFile')}

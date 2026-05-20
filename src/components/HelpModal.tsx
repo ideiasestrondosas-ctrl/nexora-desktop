@@ -15,6 +15,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { logActivity } from '@/lib/activityLog';
@@ -40,14 +42,28 @@ const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] 
   { id: 'logs', labelKey: 'help.tabs.logs', icon: <Terminal className="w-4 h-4" /> },
 ];
 
-const SCREENSHOTS: Record<Exclude<ScreenTab, 'intro'>, string> = {
+const TAB_COUNTS: Record<ScreenTab, number> = {
+  intro: 0,
+  dashboard: 1,
+  library: 2,
+  queue: 3,
+  profiles: 1,
+  settings: 2,
+  logs: 1,
+};
+
+const SCREENSHOTS = {
   dashboard: '/screenshots/dashboard.png',
   library: '/screenshots/library.png',
   queue: '/screenshots/queue.png',
   profiles: '/screenshots/profiles.png',
   settings: '/screenshots/settings.png',
   logs: '/screenshots/logs.png',
-};
+  'pipeline-summary': '/screenshots/pipeline-summary-expanded.png',
+  'reprocess-popup': '/screenshots/reprocess-popup.png',
+  'delete-confirm': '/screenshots/delete-confirm.png',
+  'factory-reset': '/screenshots/factory-reset-confirm.png',
+} as const;
 
 function ScreenCard({
   title,
@@ -119,14 +135,31 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const { t } = useTranslation();
 
+  const GUIDE_URL =
+    'https://github.com/ideiasestrondosas-ctrl/nexora-desktop/blob/main/docs/USER_MANUAL.md';
+
   const openFullGuide = async () => {
     logActivity('Abrir Guia Completo', 'execute');
     try {
-      await openUrl(
-        'https://github.com/ideiasestrondosas-ctrl/nexora-desktop/blob/main/docs/USER_MANUAL.md',
-      );
-    } catch {
-      // URL indisponível — silencioso
+      await openUrl(GUIDE_URL);
+      toast.success(t('help.guideOpened'));
+    } catch (err) {
+      console.error('openUrl failed:', err);
+      toast.error(t('help.guideOpenFailed'), {
+        description: 'Clique em Copiar URL para usar manualmente.',
+        action: {
+          label: 'Copiar URL',
+          onClick: async () => {
+            try {
+              await writeText(GUIDE_URL);
+              toast.success('URL copiado!');
+            } catch (clipErr) {
+              console.error('Clipboard failed:', clipErr);
+              toast.error('Falha ao copiar. Selecione e copie manualmente.');
+            }
+          },
+        },
+      });
     }
   };
 
@@ -142,7 +175,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
             }
           }}
         >
-          <div className="bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-2xl w-full max-w-5xl h-[85vh] min-h-[600px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-gradient-to-r from-brand/5 to-transparent shrink-0">
               <div className="flex items-center gap-3 min-w-0">
@@ -180,216 +213,277 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
               </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex gap-1 px-4 py-2 border-b border-border/50 overflow-x-auto scrollbar-hide shrink-0">
-              {SCREEN_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all shrink-0',
-                    activeTab === tab.id
-                      ? 'bg-brand text-white'
-                      : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary',
-                  )}
-                >
-                  {tab.icon}
-                  {t(tab.labelKey)}
-                </button>
-              ))}
-            </div>
+            {/* Main layout: sidebar + content */}
+            <div className="flex flex-1 overflow-hidden">
+              {/* Sidebar */}
+              <div className="w-48 shrink-0 border-r border-border/50 bg-bg-secondary/50 flex flex-col overflow-y-auto h-full">
+                {SCREEN_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      'flex items-center gap-2 px-4 py-3 text-xs font-semibold transition-all text-left',
+                      activeTab === tab.id
+                        ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                        : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary border-l-2 border-transparent',
+                    )}
+                  >
+                    {tab.icon}
+                    <span className="flex-1">{t(tab.labelKey)}</span>
+                    {TAB_COUNTS[tab.id] > 1 && (
+                      <span className="text-[10px] font-bold bg-brand/20 text-brand px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+                        {TAB_COUNTS[tab.id]}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-              {activeTab === 'intro' && (
-                <div className="space-y-5">
-                  <div className="bg-bg-secondary/80 backdrop-blur-sm rounded-xl border border-border/50 p-5">
-                    <h3 className="text-sm font-bold text-text-primary mb-2">
-                      {t('help.intro.whatIs')}
-                    </h3>
-                    <p className="text-xs text-text-secondary leading-relaxed">
-                      {t('help.intro.description')}
-                    </p>
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar h-full">
+                {activeTab === 'intro' && (
+                  <div className="space-y-5">
+                    <div className="bg-bg-secondary/80 backdrop-blur-sm rounded-xl border border-border/50 p-5">
+                      <h3 className="text-sm font-bold text-text-primary mb-2">
+                        {t('help.intro.whatIs')}
+                      </h3>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        {t('help.intro.description')}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <ScreenCard
+                        title={t('help.intro.features.transcoding')}
+                        icon={<Film className="w-4 h-4" />}
+                      >
+                        {t('help.intro.features.transcodingDesc')}
+                      </ScreenCard>
+                      <ScreenCard
+                        title={t('help.intro.features.vmafAnalysis')}
+                        icon={<HelpCircle className="w-4 h-4" />}
+                      >
+                        {t('help.intro.features.vmafDesc')}
+                      </ScreenCard>
+                      <ScreenCard
+                        title={t('help.intro.features.profiles')}
+                        icon={<UserCircle className="w-4 h-4" />}
+                      >
+                        {t('help.intro.features.profilesDesc')}
+                      </ScreenCard>
+                      <ScreenCard
+                        title={t('help.intro.features.gpuAuto')}
+                        icon={<Settings className="w-4 h-4" />}
+                      >
+                        {t('help.intro.features.gpuAutoDesc')}
+                      </ScreenCard>
+                    </div>
+
+                    <div className="bg-brand/5 border border-brand/20 rounded-xl p-4">
+                      <p className="text-xs text-brand leading-relaxed">
+                        <strong>{t('help.intro.quickStart')}</strong>{' '}
+                        {t('help.intro.quickStartDesc')}
+                      </p>
+                    </div>
                   </div>
+                )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {activeTab === 'dashboard' && (
+                  <div className="space-y-4">
                     <ScreenCard
-                      title={t('help.intro.features.transcoding')}
-                      icon={<Film className="w-4 h-4" />}
+                      title={t('help.screens.dashboard.title')}
+                      icon={<LayoutDashboard className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS.dashboard)}
+                      tips={[
+                        t('help.screens.dashboard.tip1'),
+                        t('help.screens.dashboard.tip2'),
+                        t('help.screens.dashboard.tip3'),
+                      ]}
+                      screenshot={SCREENSHOTS.dashboard}
                     >
-                      {t('help.intro.features.transcodingDesc')}
+                      <p>{t('help.screens.dashboard.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.dashboard.stat1')}</li>
+                        <li>{t('help.screens.dashboard.stat2')}</li>
+                        <li>{t('help.screens.dashboard.stat3')}</li>
+                        <li>{t('help.screens.dashboard.recentJobs')}</li>
+                      </ul>
+                    </ScreenCard>
+                  </div>
+                )}
+
+                {activeTab === 'library' && (
+                  <div className="space-y-4">
+                    <ScreenCard
+                      title={t('help.screens.library.title')}
+                      icon={<Library className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS.library)}
+                      tips={[
+                        t('help.screens.library.tip1'),
+                        t('help.screens.library.tip2'),
+                        t('help.screens.library.tip3'),
+                      ]}
+                      screenshot={SCREENSHOTS.library}
+                    >
+                      <p>{t('help.screens.library.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.library.dragDrop')}</li>
+                        <li>{t('help.screens.library.gridList')}</li>
+                        <li>{t('help.screens.library.searchFilter')}</li>
+                        <li>{t('help.screens.library.reprocess')}</li>
+                      </ul>
                     </ScreenCard>
                     <ScreenCard
-                      title={t('help.intro.features.vmafAnalysis')}
-                      icon={<HelpCircle className="w-4 h-4" />}
+                      title={t('help.screens.library.deleteConfirmTitle')}
+                      icon={<Library className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['delete-confirm'])}
+                      tips={[
+                        'Passo 1: Confirma remoção do asset e jobs associados',
+                        'Passo 2: Pergunta se apaga o ficheiro processado do disco',
+                        'Prevenção contra perda acidental de dados',
+                      ]}
+                      screenshot={SCREENSHOTS['delete-confirm']}
                     >
-                      {t('help.intro.features.vmafDesc')}
+                      <p>{t('help.screens.library.deleteConfirmDesc')}</p>
+                    </ScreenCard>
+                  </div>
+                )}
+
+                {activeTab === 'queue' && (
+                  <div className="space-y-4">
+                    <ScreenCard
+                      title={t('help.screens.queue.title')}
+                      icon={<ListVideo className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS.queue)}
+                      tips={[
+                        t('help.screens.queue.tip1'),
+                        t('help.screens.queue.tip2'),
+                        t('help.screens.queue.tip3'),
+                      ]}
+                      screenshot={SCREENSHOTS.queue}
+                    >
+                      <p>{t('help.screens.queue.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.queue.pipeline')}</li>
+                        <li>{t('help.screens.queue.quarantine')}</li>
+                        <li>{t('help.screens.queue.approveReject')}</li>
+                        <li>{t('help.screens.queue.retry')}</li>
+                      </ul>
                     </ScreenCard>
                     <ScreenCard
-                      title={t('help.intro.features.profiles')}
+                      title={t('help.screens.queue.pipelineSummaryTitle')}
+                      icon={<ListVideo className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['pipeline-summary'])}
+                      tips={[
+                        'Clique em qualquer badge para expandir o painel inline',
+                        'Lista mostra nome do ficheiro, perfil e navegação →',
+                        'Válido para todos os estados: Queued, Processing, Done, Quarantined',
+                      ]}
+                      screenshot={SCREENSHOTS['pipeline-summary']}
+                    >
+                      <p>{t('help.screens.queue.pipelineSummaryDesc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.queue.reprocessPopupTitle')}
+                      icon={<ListVideo className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['reprocess-popup'])}
+                      tips={[
+                        'Renderizado via React Portal para document.body',
+                        'Escapa o overflow:hidden do container da tabela',
+                        'Fecha ao clicar fora, no ✕, ou ao selecionar perfil',
+                      ]}
+                      screenshot={SCREENSHOTS['reprocess-popup']}
+                    >
+                      <p>{t('help.screens.queue.reprocessPopupDesc')}</p>
+                    </ScreenCard>
+                  </div>
+                )}
+
+                {activeTab === 'profiles' && (
+                  <div className="space-y-4">
+                    <ScreenCard
+                      title={t('help.screens.profiles.title')}
                       icon={<UserCircle className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS.profiles)}
+                      tips={[
+                        t('help.screens.profiles.tip1'),
+                        t('help.screens.profiles.tip2'),
+                        t('help.screens.profiles.tip3'),
+                      ]}
+                      screenshot={SCREENSHOTS.profiles}
                     >
-                      {t('help.intro.features.profilesDesc')}
+                      <p>{t('help.screens.profiles.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.profiles.presets')}</li>
+                        <li>{t('help.screens.profiles.custom')}</li>
+                        <li>{t('help.screens.profiles.duplicate')}</li>
+                        <li>{t('help.screens.profiles.settings')}</li>
+                      </ul>
+                    </ScreenCard>
+                  </div>
+                )}
+
+                {activeTab === 'settings' && (
+                  <div className="space-y-4">
+                    <ScreenCard
+                      title={t('help.screens.settings.title')}
+                      icon={<Settings className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS.settings)}
+                      tips={[
+                        t('help.screens.settings.tip1'),
+                        t('help.screens.settings.tip2'),
+                        t('help.screens.settings.tip3'),
+                      ]}
+                      screenshot={SCREENSHOTS.settings}
+                    >
+                      <p>{t('help.screens.settings.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.settings.general')}</li>
+                        <li>{t('help.screens.settings.interface')}</li>
+                        <li>{t('help.screens.settings.system')}</li>
+                        <li>{t('help.screens.settings.advanced')}</li>
+                      </ul>
                     </ScreenCard>
                     <ScreenCard
-                      title={t('help.intro.features.gpuAuto')}
+                      title={t('help.screens.settings.factoryResetConfirmTitle')}
                       icon={<Settings className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['factory-reset'])}
+                      tips={[
+                        'Passo 1: Confirmação do reset total de dados',
+                        'Passo 2: Opção de apagar ficheiros do diretório de output',
+                        'A aplicação reinicia automaticamente após o reset',
+                      ]}
+                      screenshot={SCREENSHOTS['factory-reset']}
                     >
-                      {t('help.intro.features.gpuAutoDesc')}
+                      <p>{t('help.screens.settings.factoryResetConfirmDesc')}</p>
                     </ScreenCard>
                   </div>
+                )}
 
-                  <div className="bg-brand/5 border border-brand/20 rounded-xl p-4">
-                    <p className="text-xs text-brand leading-relaxed">
-                      <strong>{t('help.intro.quickStart')}</strong> {t('help.intro.quickStartDesc')}
-                    </p>
+                {activeTab === 'logs' && (
+                  <div className="space-y-4">
+                    <ScreenCard
+                      title={t('help.screens.logs.title')}
+                      icon={<Terminal className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS.logs)}
+                      tips={[
+                        t('help.screens.logs.tip1'),
+                        t('help.screens.logs.tip2'),
+                        t('help.screens.logs.tip3'),
+                      ]}
+                      screenshot={SCREENSHOTS.logs}
+                    >
+                      <p>{t('help.screens.logs.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.logs.filter')}</li>
+                        <li>{t('help.screens.logs.export')}</li>
+                        <li>{t('help.screens.logs.levels')}</li>
+                        <li>{t('help.screens.logs.autoScroll')}</li>
+                      </ul>
+                    </ScreenCard>
                   </div>
-                </div>
-              )}
-
-              {activeTab === 'dashboard' && (
-                <div className="space-y-4">
-                  <ScreenCard
-                    title={t('help.screens.dashboard.title')}
-                    icon={<LayoutDashboard className="w-4 h-4" />}
-                    onImageClick={() => setLightboxImage(SCREENSHOTS.dashboard)}
-                    tips={[
-                      t('help.screens.dashboard.tip1'),
-                      t('help.screens.dashboard.tip2'),
-                      t('help.screens.dashboard.tip3'),
-                    ]}
-                    screenshot={SCREENSHOTS.dashboard}
-                  >
-                    <p>{t('help.screens.dashboard.desc')}</p>
-                    <ul className="list-disc list-inside space-y-1 mt-2">
-                      <li>{t('help.screens.dashboard.stat1')}</li>
-                      <li>{t('help.screens.dashboard.stat2')}</li>
-                      <li>{t('help.screens.dashboard.stat3')}</li>
-                      <li>{t('help.screens.dashboard.recentJobs')}</li>
-                    </ul>
-                  </ScreenCard>
-                </div>
-              )}
-
-              {activeTab === 'library' && (
-                <div className="space-y-4">
-                  <ScreenCard
-                    title={t('help.screens.library.title')}
-                    icon={<Library className="w-4 h-4" />}
-                    onImageClick={() => setLightboxImage(SCREENSHOTS.library)}
-                    tips={[
-                      t('help.screens.library.tip1'),
-                      t('help.screens.library.tip2'),
-                      t('help.screens.library.tip3'),
-                    ]}
-                    screenshot={SCREENSHOTS.library}
-                  >
-                    <p>{t('help.screens.library.desc')}</p>
-                    <ul className="list-disc list-inside space-y-1 mt-2">
-                      <li>{t('help.screens.library.dragDrop')}</li>
-                      <li>{t('help.screens.library.gridList')}</li>
-                      <li>{t('help.screens.library.searchFilter')}</li>
-                      <li>{t('help.screens.library.reprocess')}</li>
-                    </ul>
-                  </ScreenCard>
-                </div>
-              )}
-
-              {activeTab === 'queue' && (
-                <div className="space-y-4">
-                  <ScreenCard
-                    title={t('help.screens.queue.title')}
-                    icon={<ListVideo className="w-4 h-4" />}
-                    onImageClick={() => setLightboxImage(SCREENSHOTS.queue)}
-                    tips={[
-                      t('help.screens.queue.tip1'),
-                      t('help.screens.queue.tip2'),
-                      t('help.screens.queue.tip3'),
-                    ]}
-                    screenshot={SCREENSHOTS.queue}
-                  >
-                    <p>{t('help.screens.queue.desc')}</p>
-                    <ul className="list-disc list-inside space-y-1 mt-2">
-                      <li>{t('help.screens.queue.pipeline')}</li>
-                      <li>{t('help.screens.queue.quarantine')}</li>
-                      <li>{t('help.screens.queue.approveReject')}</li>
-                      <li>{t('help.screens.queue.retry')}</li>
-                    </ul>
-                  </ScreenCard>
-                </div>
-              )}
-
-              {activeTab === 'profiles' && (
-                <div className="space-y-4">
-                  <ScreenCard
-                    title={t('help.screens.profiles.title')}
-                    icon={<UserCircle className="w-4 h-4" />}
-                    onImageClick={() => setLightboxImage(SCREENSHOTS.profiles)}
-                    tips={[
-                      t('help.screens.profiles.tip1'),
-                      t('help.screens.profiles.tip2'),
-                      t('help.screens.profiles.tip3'),
-                    ]}
-                    screenshot={SCREENSHOTS.profiles}
-                  >
-                    <p>{t('help.screens.profiles.desc')}</p>
-                    <ul className="list-disc list-inside space-y-1 mt-2">
-                      <li>{t('help.screens.profiles.presets')}</li>
-                      <li>{t('help.screens.profiles.custom')}</li>
-                      <li>{t('help.screens.profiles.duplicate')}</li>
-                      <li>{t('help.screens.profiles.settings')}</li>
-                    </ul>
-                  </ScreenCard>
-                </div>
-              )}
-
-              {activeTab === 'settings' && (
-                <div className="space-y-4">
-                  <ScreenCard
-                    title={t('help.screens.settings.title')}
-                    icon={<Settings className="w-4 h-4" />}
-                    onImageClick={() => setLightboxImage(SCREENSHOTS.settings)}
-                    tips={[
-                      t('help.screens.settings.tip1'),
-                      t('help.screens.settings.tip2'),
-                      t('help.screens.settings.tip3'),
-                    ]}
-                    screenshot={SCREENSHOTS.settings}
-                  >
-                    <p>{t('help.screens.settings.desc')}</p>
-                    <ul className="list-disc list-inside space-y-1 mt-2">
-                      <li>{t('help.screens.settings.general')}</li>
-                      <li>{t('help.screens.settings.interface')}</li>
-                      <li>{t('help.screens.settings.system')}</li>
-                      <li>{t('help.screens.settings.advanced')}</li>
-                    </ul>
-                  </ScreenCard>
-                </div>
-              )}
-
-              {activeTab === 'logs' && (
-                <div className="space-y-4">
-                  <ScreenCard
-                    title={t('help.screens.logs.title')}
-                    icon={<Terminal className="w-4 h-4" />}
-                    onImageClick={() => setLightboxImage(SCREENSHOTS.logs)}
-                    tips={[
-                      t('help.screens.logs.tip1'),
-                      t('help.screens.logs.tip2'),
-                      t('help.screens.logs.tip3'),
-                    ]}
-                    screenshot={SCREENSHOTS.logs}
-                  >
-                    <p>{t('help.screens.logs.desc')}</p>
-                    <ul className="list-disc list-inside space-y-1 mt-2">
-                      <li>{t('help.screens.logs.filter')}</li>
-                      <li>{t('help.screens.logs.export')}</li>
-                      <li>{t('help.screens.logs.levels')}</li>
-                      <li>{t('help.screens.logs.autoScroll')}</li>
-                    </ul>
-                  </ScreenCard>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 

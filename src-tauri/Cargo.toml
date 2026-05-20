@@ -1,6 +1,6 @@
 [package]
 name = "nexora-desktop"
-version = "0.22.0"
+version = "0.23.0"
 description = "Nexora Media Processing - Desktop Native"
 authors = ["Nexora"]
 edition = "2021"
@@ -31,6 +31,8 @@ num_cpus = "1"
 sysinfo = { version = "0.32", default-features = false, features = ["system", "network"] }
 tokio = { version = "1", features = ["time", "sync"] }
 walkdir = "2"
+tauri-plugin-clipboard-manager = "2.3.2"
+tauri-plugin-process = "2"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 libc = "0.2"

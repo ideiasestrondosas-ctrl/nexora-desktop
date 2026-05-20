@@ -90,6 +90,13 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 | ![Profiles](docs/screenshots/profiles.png) | ![Settings](docs/screenshots/settings.png) | ![Asset Detail](docs/screenshots/asset-detail.png) |
 | Transcode profile editor with presets      | System configuration and diagnostics       | Deep-dive into asset metadata and QC reports       |
 
+### What's New in v0.23.0
+
+| Pipeline Summary Expandido                                  | Reprocess Popup                                    | Delete Confirm                                 | Factory Reset Confirm                                |
+| ----------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------- |
+| ![Pipeline](docs/screenshots/pipeline-summary-expanded.png) | ![Reprocess](docs/screenshots/reprocess-popup.png) | ![Delete](docs/screenshots/delete-confirm.png) | ![Reset](docs/screenshots/factory-reset-confirm.png) |
+| Clickable count badges with inline file list                | Portal-rendered foreground popup                   | Two-step delete with file auth                 | Factory reset with file deletion option              |
+
 ---
 
 ## Architecture

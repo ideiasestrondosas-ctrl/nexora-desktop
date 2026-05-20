@@ -465,16 +465,15 @@ pub fn exit_app(app: tauri::AppHandle) {
 
 #[tauri::command]
 pub async fn factory_reset(
+    delete_files: bool,
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
-    // 1. Matar sidecar se estiver a correr
-    let pid = {
-        let pid_lock = state.sidecar_pid.lock().unwrap();
-        *pid_lock
-    };
+    log::info!("[factory_reset] iniciado (delete_files={})", delete_files);
+    // 1. Matar todos os processos activos (sidecar persistente + jobs Node.js em execução)
+    let sidecar_pid = state.sidecar_pid.lock().ok().and_then(|g| *g);
 
-    if let Some(p) = pid {
+    if let Some(p) = sidecar_pid {
         #[cfg(target_os = "windows")]
         let _ = Command::new("taskkill")
             .args(["/F", "/PID", &p.to_string()])
@@ -484,36 +483,91 @@ pub async fn factory_reset(
         let _ = Command::new("kill").arg("-9").arg(p.to_string()).status();
     }
 
+    {
+        let pids: Vec<u32> = state
+            .active_pids
+            .lock()
+            .map(|m| m.values().copied().collect())
+            .unwrap_or_default();
+
+        for p in pids {
+            #[cfg(target_os = "windows")]
+            let _ = Command::new("taskkill").args(["/F", "/PID", &p.to_string()]).status();
+            #[cfg(not(target_os = "windows"))]
+            let _ = Command::new("kill").arg("-9").arg(p.to_string()).status();
+        }
+
+        if let Ok(mut m) = state.active_pids.lock() {
+            m.clear();
+        }
+    }
+
     // 2. Limpar ficheiros gerados pela aplicação (transcodes, proxies, thumbnails)
     {
         if let Ok(db) = state.db.lock() {
-            // Obter todos os caminhos de ficheiros de saída registados nos jobs
-            if let Ok(mut stmt) =
-                db.prepare("SELECT output_path FROM jobs WHERE output_path IS NOT NULL")
-            {
-                if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
-                    for path in paths.flatten() {
-                        let _ = std::fs::remove_file(path);
+            // Capturar output_dir configurado ANTES de apagar as settings
+            let configured_output_dir: Option<String> = db
+                .query_row(
+                    "SELECT value FROM settings WHERE key = 'output_dir'",
+                    [],
+                    |r| r.get::<_, String>(0),
+                )
+                .ok()
+                .filter(|s| !s.trim().is_empty());
+
+            if delete_files {
+                // Recolher TODOS os caminhos ANTES de apagar a BD
+
+                // 1. Ficheiros de output transcodificados (jobs.output_path)
+                let mut output_paths: Vec<String> = Vec::new();
+                if let Ok(mut stmt) =
+                    db.prepare("SELECT output_path FROM jobs WHERE output_path IS NOT NULL")
+                {
+                    if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+                        output_paths.extend(paths.flatten());
                     }
                 }
-            }
-            // Obter caminhos do audit_log (thumbnails e proxies que não estão na tabela jobs)
-            if let Ok(mut stmt) = db.prepare("SELECT data FROM audit_log WHERE event IN ('delivery:completed', 'thumbnail:completed', 'proxy:completed')") {
-                if let Ok(rows) = stmt.query_map([], |r| r.get::<_, String>(0)) {
-                    for json_str in rows.flatten() {
-                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
-                            // Tentar apagar campos comuns de caminhos
-                            for key in ["destination", "thumbnailPath", "proxyPath", "thumbPath", "finalPath"] {
-                                if let Some(p) = json.get(key).and_then(|v| v.as_str()) {
-                                    let _ = std::fs::remove_file(p);
-                                }
-                            }
-                        }
+
+                // 2. Thumbnails (assets.thumbnail_output_path) — extrair ANTES do DELETE
+                let mut thumbnail_paths: Vec<String> = Vec::new();
+                if let Ok(mut stmt) =
+                    db.prepare("SELECT thumbnail_output_path FROM assets WHERE thumbnail_output_path IS NOT NULL")
+                {
+                    if let Ok(paths) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+                        thumbnail_paths.extend(paths.flatten());
+                    }
+                }
+
+                // Apagar os ficheiros recolhidos
+                for path in &output_paths {
+                    let p = std::path::Path::new(path);
+                    let _ = std::fs::remove_file(p);
+
+                    // Apagar também o proxy adjacente: {stem}_proxy{ext} no mesmo directório
+                    if let (Some(parent), Some(stem), Some(ext)) = (
+                        p.parent(),
+                        p.file_stem().and_then(|s| s.to_str()),
+                        p.extension().and_then(|e| e.to_str()),
+                    ) {
+                        let proxy_name = format!("{}_proxy.{}", stem, ext);
+                        let _ = std::fs::remove_file(parent.join(&proxy_name));
+                    }
+                }
+                for path in &thumbnail_paths {
+                    let _ = std::fs::remove_file(path);
+                }
+
+                // Apagar o directório de output configurado pelo utilizador
+                if let Some(ref dir) = configured_output_dir {
+                    if let Err(e) = std::fs::remove_dir_all(dir) {
+                        log::warn!("[factory_reset] falha ao apagar output_dir '{}': {}", dir, e);
+                    } else {
+                        log::info!("[factory_reset] output_dir apagado: {}", dir);
                     }
                 }
             }
 
-            // 3. Limpar a BD por dentro (DELETE)
+            // 3. Limpar a BD por dentro (DELETE) — sempre executa, independente de delete_files
             let _ = db.execute("PRAGMA foreign_keys = OFF", []);
             let _ = db.execute("DELETE FROM jobs", []);
             let _ = db.execute("DELETE FROM assets", []);
@@ -540,7 +594,9 @@ pub async fn factory_reset(
                     let path = entry.path();
                     if path.is_file() {
                         let name = path.file_name().unwrap_or_default().to_string_lossy();
-                        if !name.starts_with("nexora.db") {
+                        // Preservar nexora.db* (base de dados) e settings.json (store Zustand)
+                        // — apagar o store causaria crash na página de Logs após relaunch.
+                        if !name.starts_with("nexora.db") && name != "settings.json" {
                             let _ = std::fs::remove_file(&path);
                         }
                     } else if path.is_dir() {
@@ -549,17 +605,35 @@ pub async fn factory_reset(
                 }
             }
         }
+
+        // Reiniciar o store de settings para valores vazios (não apagar — evita erro LazyStore)
+        let store_path = data_dir.join("settings.json");
+        let _ = std::fs::write(&store_path, "{}");
     }
 
-    // 6. Limpar pasta temporária do sidecar se existir
-    let temp_dir = std::env::temp_dir().join("nexora-output");
-    if temp_dir.exists() {
-        let _ = std::fs::remove_dir_all(&temp_dir);
+    // 6. Limpar directorias temporárias do sidecar
+    let os_tmp = std::env::temp_dir();
+
+    if delete_files {
+        // nexora-output (outputDir por omissão)
+        let _ = std::fs::remove_dir_all(os_tmp.join("nexora-output"));
+
+        // nexora-thumbs (cache de thumbnails — sempre apagar em reset total)
+        let _ = std::fs::remove_dir_all(os_tmp.join("nexora-thumbs"));
     }
 
-    // 7. Reiniciar a aplicação
-    app.restart();
+    // Limpar temp dirs de transcode e proxy com prefixo nexora- (mesmo sem delete_files)
+    if let Ok(entries) = std::fs::read_dir(&os_tmp) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with("nexora-transcode-") || name.starts_with("nexora-proxy-") {
+                let _ = std::fs::remove_dir_all(entry.path());
+            }
+        }
+    }
 
-    #[allow(unreachable_code)]
+    log::info!("[factory_reset] concluído com sucesso, a retornar Ok(())");
+    // 7. Sinalizar sucesso — o relaunch é feito pelo frontend após receber Ok(()),
+    // eliminando a race condition entre ExecuteScript() e std::process::exit().
     Ok(())
 }
