@@ -1,4 +1,5 @@
 pub mod assets;
+pub mod cloud;
 pub mod jobs;
 pub mod logs;
 pub mod metrics;
