@@ -90,6 +90,8 @@ export const PROVIDER_FIELDS: Record<
   ],
   gdrive: [
     { key: 'base_path', label: 'Pasta no Drive', type: 'text', defaultValue: 'Nexora/Output/' },
+    { key: 'client_id', label: 'Client ID', type: 'text' },
+    { key: 'client_secret', label: 'Client Secret', type: 'password' },
   ],
   icloud: [
     {

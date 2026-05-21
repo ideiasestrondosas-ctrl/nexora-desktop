@@ -24,6 +24,9 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
   const [fields, setFields] = useState<Record<string, unknown>>({});
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [gdriveAuthUrl, setGdriveAuthUrl] = useState('');
+  const [gdriveUserCode, setGdriveUserCode] = useState('');
+  const [gdrivePolling, setGdrivePolling] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -50,7 +53,14 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     setFields((prev) => ({ ...prev, [key]: value }));
 
   const splitFields = () => {
-    const credKeys = ['username', 'password', 'access_key', 'secret_key', 'oauth_token'];
+    const credKeys = [
+      'username',
+      'password',
+      'access_key',
+      'secret_key',
+      'oauth_token',
+      'oauth_refresh',
+    ];
     const config: Record<string, unknown> = {};
     const creds: Record<string, unknown> = {};
     Object.entries(fields).forEach(([k, v]) => {
@@ -111,6 +121,48 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
       toast.error(`Erro ao guardar: ${e}`);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleGDriveAuth = async () => {
+    const clientId = String(fields['client_id'] ?? '');
+    if (!clientId) {
+      toast.error('Preencha o Client ID primeiro');
+      return;
+    }
+    try {
+      const challenge = await invoke<{
+        url: string;
+        userCode: string;
+        deviceCode: string;
+        expiresIn: number;
+      }>('gdrive_start_auth', { clientId });
+      setGdriveAuthUrl(challenge.url);
+      setGdriveUserCode(challenge.userCode);
+      setGdrivePolling(true);
+      // Verificar a cada 5 segundos se o utilizador autorizou
+      const interval = setInterval(async () => {
+        try {
+          const tokens = await invoke<Record<string, unknown>>('gdrive_poll_auth', {
+            deviceCode: challenge.deviceCode,
+            clientId,
+            clientSecret: String(fields['client_secret'] ?? ''),
+          });
+          clearInterval(interval);
+          setGdrivePolling(false);
+          setField('oauth_token', tokens['access_token']);
+          setField('oauth_refresh', tokens['refresh_token']);
+          toast.success('Google Drive autenticado com sucesso');
+        } catch (e) {
+          if (String(e) !== 'authorization_pending' && String(e) !== 'slow_down') {
+            clearInterval(interval);
+            setGdrivePolling(false);
+            toast.error(`Autenticação falhou: ${e}`);
+          }
+        }
+      }, 5000);
+    } catch (e) {
+      toast.error(`Erro ao iniciar autenticação: ${e}`);
     }
   };
 
@@ -188,6 +240,32 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
                 )}
               </div>
             ))}
+
+            {provider === 'gdrive' && (
+              <div className="bg-gray-800/50 rounded p-3 text-sm mt-2">
+                <p className="text-gray-400 mb-2 text-xs">
+                  Requer Client ID e Secret registados em console.cloud.google.com.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleGDriveAuth}
+                  disabled={gdrivePolling}
+                  className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-3 py-1.5 text-xs"
+                >
+                  {gdrivePolling ? 'A aguardar autorização...' : 'Autenticar com Google'}
+                </button>
+                {gdriveAuthUrl && (
+                  <div className="mt-2 text-xs text-gray-300 space-y-1">
+                    <p>
+                      Abra: <span className="text-blue-400 break-all">{gdriveAuthUrl}</span>
+                    </p>
+                    <p>
+                      Código: <strong className="text-white">{gdriveUserCode}</strong>
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-between mt-5">

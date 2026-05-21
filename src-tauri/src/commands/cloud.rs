@@ -329,3 +329,61 @@ pub fn add_cloud_asset(
 
     Ok(id)
 }
+
+// ── Google Drive OAuth Device Flow ───────────────────────────────────────────
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GDriveAuthChallenge {
+    pub url: String,
+    pub user_code: String,
+    pub device_code: String,
+    pub expires_in: u64,
+}
+
+#[tauri::command]
+pub async fn gdrive_start_auth(client_id: String) -> Result<GDriveAuthChallenge, String> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .post("https://oauth2.googleapis.com/device/code")
+        .form(&[
+            ("client_id", client_id.as_str()),
+            ("scope", "https://www.googleapis.com/auth/drive.file"),
+        ])
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    let body: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    Ok(GDriveAuthChallenge {
+        url: body["verification_url"].as_str().unwrap_or("").to_string(),
+        user_code: body["user_code"].as_str().unwrap_or("").to_string(),
+        device_code: body["device_code"].as_str().unwrap_or("").to_string(),
+        expires_in: body["expires_in"].as_u64().unwrap_or(300),
+    })
+}
+
+#[tauri::command]
+pub async fn gdrive_poll_auth(
+    device_code: String,
+    client_id: String,
+    client_secret: String,
+) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .post("https://oauth2.googleapis.com/token")
+        .form(&[
+            ("client_id", client_id.as_str()),
+            ("client_secret", client_secret.as_str()),
+            ("device_code", device_code.as_str()),
+            ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
+        ])
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    let body: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    if body.get("access_token").is_some() {
+        Ok(body)
+    } else {
+        Err(body["error"].as_str().unwrap_or("pending").to_string())
+    }
+}

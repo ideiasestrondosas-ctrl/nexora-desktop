@@ -156,6 +156,8 @@ pub fn run() {
             commands::cloud::process_cloud_destinations,
             commands::cloud::retry_cloud_upload,
             commands::cloud::add_cloud_asset,
+            commands::cloud::gdrive_start_auth,
+            commands::cloud::gdrive_poll_auth,
             commands::metrics::get_system_metrics,
             get_startup_status,
         ])

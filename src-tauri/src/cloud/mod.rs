@@ -1,4 +1,5 @@
 pub mod ftp;
+pub mod gdrive;
 pub mod icloud;
 pub mod provider;
 pub mod retry;
@@ -26,7 +27,9 @@ pub fn get_provider(
         "s3" => s3::S3Provider::new(config, creds)
             .map(|p| Box::new(p) as Box<dyn CloudProvider>)
             .map_err(|e| format!("Perfil S3 inválido: {e}")),
-        "gdrive" => Err("GDriveProvider será implementado na Fase 3".to_string()),
+        "gdrive" => gdrive::GDriveProvider::new(config, creds)
+            .map(|p| Box::new(p) as Box<dyn CloudProvider>)
+            .map_err(|e| format!("Perfil GDrive inválido: {e}")),
         "icloud" => icloud::ICloudProvider::new(config)
             .map(|p| Box::new(p) as Box<dyn CloudProvider>)
             .map_err(|e| format!("Perfil iCloud inválido: {e}")),
