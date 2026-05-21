@@ -60,6 +60,10 @@ interface Settings {
   default_profile: string;
   vmaf_threshold: number;
   target_lufs: number;
+  log_verbosity: 'basic' | 'normal' | 'debug';
+  log_retention_days: number;
+  log_max_size_mb: number;
+  log_upload_endpoint: string;
 }
 
 interface GpuInfo {
@@ -113,7 +117,14 @@ interface TempInfo {
   thumbs_file_count: number;
 }
 
-type SettingsTab = 'general' | 'interface' | 'system' | 'advanced' | 'about';
+interface LogStorageInfo {
+  logDir: string;
+  totalSizeBytes: number;
+  fileCount: number;
+  oldestFileDate: string | null;
+}
+
+type SettingsTab = 'general' | 'interface' | 'system' | 'logs' | 'advanced' | 'about';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -149,6 +160,8 @@ export default function SettingsPage() {
   const [tempInfo, setTempInfo] = useState<TempInfo | null>(null);
   const [clearingTranscode, setClearingTranscode] = useState(false);
   const [clearingThumbs, setClearingThumbs] = useState(false);
+  const [logInfo, setLogInfo] = useState<LogStorageInfo | null>(null);
+  const [logInfoLoading, setLogInfoLoading] = useState(false);
 
   const systemTimedOut = useRef(false);
 
@@ -164,6 +177,16 @@ export default function SettingsPage() {
           settingsStore.setNotificationsEnabled(backendSettings.notifications_enabled === 'true');
         if (backendSettings.theme)
           settingsStore.setTheme(backendSettings.theme as 'system' | 'light' | 'dark');
+        if (backendSettings.log_verbosity)
+          settingsStore.setLogVerbosity(
+            backendSettings.log_verbosity as 'basic' | 'normal' | 'debug',
+          );
+        if (backendSettings.log_retention_days)
+          settingsStore.setLogRetentionDays(Number(backendSettings.log_retention_days));
+        if (backendSettings.log_max_size_mb)
+          settingsStore.setLogMaxSizeMb(Number(backendSettings.log_max_size_mb));
+        if (backendSettings.log_upload_endpoint !== undefined)
+          settingsStore.setLogUploadEndpoint(backendSettings.log_upload_endpoint);
         setLocalSettings((prev) => ({
           ...prev,
           language: (backendSettings.language as Settings['language']) || 'pt',
@@ -258,6 +281,17 @@ export default function SettingsPage() {
     return () => {
       cancelled = true;
     };
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'logs') return;
+    setLogInfoLoading(true);
+    invoke<LogStorageInfo>('get_log_storage_info')
+      .then((info) => {
+        setLogInfo(info);
+        setLogInfoLoading(false);
+      })
+      .catch(() => setLogInfoLoading(false));
   }, [activeTab]);
 
   const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
@@ -445,6 +479,7 @@ export default function SettingsPage() {
     { id: 'general', label: t('settings.tabs.general'), icon: Shield },
     { id: 'interface', label: t('settings.tabs.interface'), icon: Palette },
     { id: 'system', label: t('settings.tabs.system'), icon: Server },
+    { id: 'logs', label: 'Logs', icon: Terminal },
     { id: 'advanced', label: t('settings.tabs.advanced'), icon: Globe },
     { id: 'about', label: t('settings.tabs.about'), icon: Info },
   ];
@@ -1058,6 +1093,200 @@ export default function SettingsPage() {
               </section>
             </>
           )}
+        </div>
+      )}
+
+      {/* TAB: LOGS */}
+      {activeTab === 'logs' && (
+        <div className="space-y-6">
+          {/* VERBOSIDADE */}
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+            <SectionTitle>Verbosidade</SectionTitle>
+            <p className="text-sm text-text-secondary mb-4">
+              Nível de detalhe dos logs de acção da interface
+            </p>
+            <div className="space-y-3">
+              {(
+                [
+                  { value: 'basic', label: 'Básico', desc: 'Erros e acções críticas' },
+                  {
+                    value: 'normal',
+                    label: 'Normal',
+                    desc: '+ Navegação e alterações de settings',
+                  },
+                  { value: 'debug', label: 'Debug', desc: '+ Todos os cliques e eventos de UI' },
+                ] as { value: 'basic' | 'normal' | 'debug'; label: string; desc: string }[]
+              ).map(({ value, label, desc }) => (
+                <label key={value} className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="log_verbosity"
+                    value={value}
+                    checked={settingsStore.logVerbosity === value}
+                    onChange={() => {
+                      settingsStore.setLogVerbosity(value);
+                      handleUpdateSetting('log_verbosity', value);
+                    }}
+                    className="mt-0.5 accent-brand"
+                  />
+                  <span>
+                    <span className="text-sm font-semibold text-text-primary">{label}</span>
+                    <span className="ml-2 text-xs text-text-muted">{desc}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          {/* ARMAZENAMENTO */}
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+            <SectionTitle>Armazenamento</SectionTitle>
+            {logInfoLoading && <p className="text-sm text-text-muted">A carregar...</p>}
+            {logInfo && !logInfoLoading && (
+              <div className="space-y-4">
+                <div className="text-sm text-text-secondary space-y-1">
+                  <p>
+                    <span className="font-medium text-text-primary">Pasta:</span> {logInfo.logDir}
+                  </p>
+                  <p>
+                    <span className="font-medium text-text-primary">Total:</span>{' '}
+                    {formatBytes(logInfo.totalSizeBytes)} · {logInfo.fileCount} ficheiro
+                    {logInfo.fileCount !== 1 ? 's' : ''}
+                    {logInfo.oldestFileDate && ` · mais antigo: ${logInfo.oldestFileDate}`}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <label className="flex items-center gap-2 text-sm text-text-secondary">
+                    Reter
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      defaultValue={settingsStore.logRetentionDays}
+                      onBlur={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        if (!isNaN(v) && v > 0) {
+                          settingsStore.setLogRetentionDays(v);
+                          handleUpdateSetting('log_retention_days', String(v));
+                        }
+                      }}
+                      className="w-16 rounded-lg border border-border bg-bg-primary px-2 py-1 text-sm text-text-primary text-center"
+                    />
+                    dias
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-text-secondary">
+                    Máximo
+                    <input
+                      type="number"
+                      min={10}
+                      max={2000}
+                      defaultValue={settingsStore.logMaxSizeMb}
+                      onBlur={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        if (!isNaN(v) && v > 0) {
+                          settingsStore.setLogMaxSizeMb(v);
+                          handleUpdateSetting('log_max_size_mb', String(v));
+                        }
+                      }}
+                      className="w-20 rounded-lg border border-border bg-bg-primary px-2 py-1 text-sm text-text-primary text-center"
+                    />
+                    MB
+                  </label>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() =>
+                      invoke('open_path', { path: logInfo.logDir }).catch(console.error)
+                    }
+                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors"
+                  >
+                    Abrir pasta
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const ok = await confirm('Apagar todos os ficheiros de log?', {
+                        title: 'Limpar logs',
+                        kind: 'warning',
+                      });
+                      if (!ok) return;
+                      await invoke('clear_log_files').catch((e: unknown) => toast.error(String(e)));
+                      const info = await invoke<LogStorageInfo>('get_log_storage_info').catch(
+                        () => null,
+                      );
+                      if (info) setLogInfo(info);
+                      toast.success('Logs apagados');
+                    }}
+                    className="rounded-lg border border-red-500/40 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    Limpar
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* ENVIAR AO DESENVOLVEDOR */}
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+            <SectionTitle>Enviar Logs ao Desenvolvedor</SectionTitle>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">
+                  Endpoint de upload
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  defaultValue={settingsStore.logUploadEndpoint}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    settingsStore.setLogUploadEndpoint(v);
+                    handleUpdateSetting('log_upload_endpoint', v);
+                  }}
+                  className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand"
+                />
+                <p className="mt-1 text-xs text-text-muted">
+                  Deixar vazio para desactivar o upload directo
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={async () => {
+                    try {
+                      const bundlePath = await invoke<string>('export_logs_bundle');
+                      const subject = `Nexora Logs v${APP_VERSION} — ${new Date().toISOString().slice(0, 10)}`;
+                      const body = `Logs exportados para:\n${bundlePath}`;
+                      window.open(
+                        `mailto:dev@nexora.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+                      );
+                    } catch (e: unknown) {
+                      toast.error(String(e));
+                    }
+                  }}
+                  className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors"
+                >
+                  <Upload size={14} />
+                  Enviar por email
+                </button>
+                <button
+                  disabled={!settingsStore.logUploadEndpoint}
+                  onClick={async () => {
+                    try {
+                      const result = await invoke<string>('upload_logs_to_server', {
+                        endpoint: settingsStore.logUploadEndpoint,
+                      });
+                      toast.success(`Logs enviados: ${result}`);
+                    } catch (e: unknown) {
+                      toast.error(String(e));
+                    }
+                  }}
+                  className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Server size={14} />
+                  Enviar para servidor
+                </button>
+              </div>
+            </div>
+          </section>
         </div>
       )}
 
