@@ -1,5 +1,6 @@
 mod commands;
 mod db;
+mod cloud;
 mod file_logger;
 mod logger;
 mod queue;
