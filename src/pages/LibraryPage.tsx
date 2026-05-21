@@ -18,9 +18,11 @@ import {
   Plus,
   FolderOpen,
   Download,
+  Cloud,
 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useJobsStore } from '@/store/jobs';
+import { useCloudStore } from '@/store/cloud';
 import { logActivity } from '@/lib/activityLog';
 
 interface Asset {
@@ -68,6 +70,11 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const removeJobsByAsset = useJobsStore((s) => s.removeJobsByAsset);
+  const { profiles: cloudProfiles } = useCloudStore();
+  const [cloudAddOpen, setCloudAddOpen] = useState(false);
+  const [selectedCloudProfile, setSelectedCloudProfile] = useState<string | null>(null);
+  const [cloudRemotePath, setCloudRemotePath] = useState('');
+  const [cloudAssetName, setCloudAssetName] = useState('');
 
   const fetchAssets = useCallback(async () => {
     try {
@@ -378,6 +385,71 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
             <Plus size={14} />
             {isIngesting ? t('library.adding') : t('library.addVideos')}
           </button>
+
+          {cloudProfiles.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setCloudAddOpen(!cloudAddOpen)}
+                className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-white border border-gray-600 rounded px-3 py-1.5"
+              >
+                <Cloud size={14} /> Da Cloud
+              </button>
+              {cloudAddOpen && (
+                <div className="absolute right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl z-50 w-72">
+                  <p className="text-xs text-gray-400 mb-2">Perfil</p>
+                  <select
+                    value={selectedCloudProfile ?? ''}
+                    onChange={(e) => setSelectedCloudProfile(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-2"
+                  >
+                    <option value="">Escolher perfil...</option>
+                    {cloudProfiles.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mb-1">Path remoto</p>
+                  <input
+                    type="text"
+                    value={cloudRemotePath}
+                    onChange={(e) => setCloudRemotePath(e.target.value)}
+                    placeholder="/pasta/ficheiro.mxf"
+                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-2"
+                  />
+                  <p className="text-xs text-gray-400 mb-1">Nome do asset</p>
+                  <input
+                    type="text"
+                    value={cloudAssetName}
+                    onChange={(e) => setCloudAssetName(e.target.value)}
+                    placeholder="ficheiro.mxf"
+                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-3"
+                  />
+                  <button
+                    disabled={!selectedCloudProfile || !cloudRemotePath || !cloudAssetName}
+                    onClick={async () => {
+                      try {
+                        await invoke('add_cloud_asset', {
+                          profileId: selectedCloudProfile,
+                          remotePath: cloudRemotePath,
+                          name: cloudAssetName,
+                        });
+                        toast.success('Asset cloud adicionado');
+                        setCloudAddOpen(false);
+                        setCloudRemotePath('');
+                        setCloudAssetName('');
+                      } catch (e) {
+                        toast.error(String(e));
+                      }
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm rounded px-3 py-1.5"
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
