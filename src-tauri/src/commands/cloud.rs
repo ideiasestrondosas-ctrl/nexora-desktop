@@ -169,7 +169,7 @@ pub async fn process_cloud_destinations(
                  WHERE jcd.job_id = ?1 AND jcd.status = 'pending'",
             )
             .map_err(|e| e.to_string())?;
-        let dests: Vec<_> = stmt
+        let dests: Vec<(String, String, String)> = stmt
             .query_map([&job_id], |row| {
                 Ok((
                     row.get::<_, String>(0)?,
@@ -178,8 +178,8 @@ pub async fn process_cloud_destinations(
                 ))
             })
             .map_err(|e| e.to_string())?
-            .filter_map(|r| r.ok())
-            .collect();
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
         (output, dests)
     };
 
@@ -195,8 +195,17 @@ pub async fn process_cloud_destinations(
         .to_string();
 
     for (profile_id, provider_type, config_str) in destinations {
-        let config: serde_json::Value =
-            serde_json::from_str(&config_str).unwrap_or_default();
+        let config: serde_json::Value = match serde_json::from_str(&config_str) {
+            Ok(v) => v,
+            Err(e) => {
+                let db = state.db.lock().map_err(|e2| e2.to_string())?;
+                let _ = db.execute(
+                    "UPDATE job_cloud_destinations SET status='failed', error_msg=?1 WHERE job_id=?2 AND profile_id=?3",
+                    rusqlite::params![format!("Config JSON inválido: {e}"), job_id, profile_id],
+                );
+                continue;
+            }
+        };
         let creds = serde_json::Value::Object(Default::default());
 
         // Marcar como a fazer upload
