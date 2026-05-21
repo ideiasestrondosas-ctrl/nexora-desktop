@@ -194,8 +194,6 @@ pub fn export_logs(path: String, state: State<'_, AppState>) -> Result<(), Strin
     Ok(())
 }
 
-use tauri::Manager;
-
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LogStorageInfo {

@@ -95,7 +95,7 @@ impl FtpProvider {
         Ok(remote.to_string())
     }
 
-    // Fix 1: lógica real de download separada para garantir quit() sempre executado
+    #[allow(dead_code)]
     async fn do_download(
         &self,
         ftp: &mut AsyncFtpStream,

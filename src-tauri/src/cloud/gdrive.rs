@@ -4,7 +4,6 @@ use std::path::Path;
 
 const GDRIVE_UPLOAD_URL: &str =
     "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
-const GDRIVE_FILES_URL: &str = "https://www.googleapis.com/drive/v3/files";
 
 pub struct GDriveProvider {
     access_token: String,
@@ -89,7 +88,7 @@ impl CloudProvider for GDriveProvider {
 
     async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
         let client = reqwest::Client::new();
-        let url = format!("{}/{}?alt=media", GDRIVE_FILES_URL, remote_path);
+        let url = format!("https://www.googleapis.com/drive/v3/files/{}?alt=media", remote_path);
         let resp = client
             .get(&url)
             .bearer_auth(&self.access_token)

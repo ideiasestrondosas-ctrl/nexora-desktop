@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+#[allow(dead_code)]
 pub async fn retry_with_backoff<F, Fut, T>(
     mut f: F,
     max_attempts: u32,
