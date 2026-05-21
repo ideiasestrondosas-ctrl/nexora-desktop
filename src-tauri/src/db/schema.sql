@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS assets (
     thumbnail_path          TEXT,
     thumbnail_output_path   TEXT,
     output_metadata         TEXT,
-    output_path             TEXT
+    output_path             TEXT,
+    cloud_source_profile    TEXT,
+    cloud_source_path       TEXT
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
