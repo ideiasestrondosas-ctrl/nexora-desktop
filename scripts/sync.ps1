@@ -422,7 +422,7 @@ function CategorizeCommits($commits) {
 # ---------------------------------------------------------
 # FUNCAO: Gerar ficheiro release-notes-vX.Y.Z.md
 # ---------------------------------------------------------
-function Generate-ReleaseNotesFile($version, $categorized) {
+function Generate-ReleaseNotesFile($version, $categorized, $sessionInfo) {
     $lines = @()
     $lines += "## What's New"
     $lines += ""
@@ -445,21 +445,72 @@ function Generate-ReleaseNotesFile($version, $categorized) {
         $lines += ""
     }
 
-    if ($categorized.Docs.Count -gt 0) {
-        $lines += "### Documentation"
-        foreach ($item in $categorized.Docs) { $lines += "- $item" }
+    if ($categorized.Deprecated.Count -gt 0) {
+        $lines += "### Deprecated"
+        foreach ($item in $categorized.Deprecated) { $lines += "- $item" }
         $lines += ""
     }
 
-    if ($categorized.Infra.Count -gt 0) {
+    if ($categorized.Removed.Count -gt 0) {
+        $lines += "### Removed"
+        foreach ($item in $categorized.Removed) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Security.Count -gt 0) {
+        $lines += "### Security"
+        foreach ($item in $categorized.Security) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.i18n.Count -gt 0) {
+        $lines += "### i18n"
+        foreach ($item in $categorized.i18n) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Documentation.Count -gt 0) {
+        $lines += "### Documentation"
+        foreach ($item in $categorized.Documentation) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Infrastructure.Count -gt 0) {
         $lines += "### Infrastructure"
-        foreach ($item in $categorized.Infra) { $lines += "- $item" }
+        foreach ($item in $categorized.Infrastructure) { $lines += "- $item" }
         $lines += ""
     }
 
     if ($categorized.Other.Count -gt 0) {
         $lines += "### Other"
         foreach ($item in $categorized.Other) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    # Session info enrichments
+    if ($sessionInfo -and ($sessionInfo.BreakingChanges.Count -gt 0 -or
+                          $sessionInfo.DependenciesAdded.Count -gt 0 -or
+                          $sessionInfo.DependenciesRemoved.Count -gt 0)) {
+        $lines += "---"
+        $lines += ""
+    }
+
+    if ($sessionInfo -and $sessionInfo.BreakingChanges.Count -gt 0) {
+        $lines += "### :warning: Breaking Changes"
+        foreach ($item in $sessionInfo.BreakingChanges) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($sessionInfo -and ($sessionInfo.DependenciesAdded.Count -gt 0 -or $sessionInfo.DependenciesRemoved.Count -gt 0)) {
+        $lines += "### Dependencies"
+        if ($sessionInfo.DependenciesAdded.Count -gt 0) {
+            $lines += "**Added:**"
+            foreach ($item in $sessionInfo.DependenciesAdded) { $lines += "- $item" }
+        }
+        if ($sessionInfo.DependenciesRemoved.Count -gt 0) {
+            $lines += "**Removed:**"
+            foreach ($item in $sessionInfo.DependenciesRemoved) { $lines += "- $item" }
+        }
         $lines += ""
     }
 
@@ -485,7 +536,7 @@ function Generate-ReleaseNotesFile($version, $categorized) {
 # ---------------------------------------------------------
 # FUNCAO: Atualizar SYNC-STATE.md com nova sessao
 # ---------------------------------------------------------
-function Update-SyncState($version, $agentInfo, $categorized, $filesChanged) {
+function Update-SyncState($version, $agentInfo, $categorized, $filesChanged, $sessionInfo) {
     $syncPath = Join-Path $WORKSPACE "SYNC-STATE.md"
     if (-not (Test-Path $syncPath)) {
         Write-Warn "SYNC-STATE.md nao encontrado. A criar..."
@@ -528,6 +579,7 @@ $(if ($categorized.Changed.Count -gt 0) { "**Alteracoes:**`n" + ($categorized.Ch
 $(if ($categorized.Infra.Count -gt 0) { "**Infraestrutura:**`n" + ($categorized.Infra | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
 $(if ($categorized.Docs.Count -gt 0) { "**Documentacao:**`n" + ($categorized.Docs | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
 $(if ($filesChanged.Count -gt 0) { "**Ficheiros alterados:** $(($filesChanged | Select-Object -First 10) -join ', ')$(if ($filesChanged.Count -gt 10) { " e mais $($filesChanged.Count - 10)" })`n`n" })
+$(if ($sessionInfo.NotesNextAgent) { "**Notas para o proximo agente:**`n$($sessionInfo.NotesNextAgent)`n`n" })
 ---
 
 "@
@@ -655,6 +707,160 @@ function Show-ReleasePreview($version, $agentInfo, $categorized, $filesChanged) 
             return "CONTINUE"
         }
     }
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Ler .session-info.md e extrair dados estruturados
+# ---------------------------------------------------------
+function Read-SessionInfo {
+    $sessionPath = Join-Path $WORKSPACE ".session-info.md"
+    $result = @{
+        HasData         = $false
+        Agente          = $null
+        Modelo          = $null
+        Data_Inicio     = $null
+        Data_Fim        = $null
+        Versao          = $null
+        Titulo          = $null
+        Descricao       = $null
+        Added           = @()
+        Fixed           = @()
+        Changed         = @()
+        Deprecated      = @()
+        Removed         = @()
+        Security        = @()
+        Infrastructure  = @()
+        Documentation   = @()
+        i18n            = @()
+        FilesChanged    = @()
+        BreakingChanges = @()
+        DependenciesAdded = @()
+        DependenciesRemoved = @()
+        Screenshots     = @()
+        NotesNextAgent  = $null
+    }
+
+    if (-not (Test-Path $sessionPath)) {
+        return $result
+    }
+
+    $content = Get-Content $sessionPath -Raw
+    if (-not $content) { return $result }
+
+    # Helper to extract section content
+    function Extract-Section($text, $header) {
+        $pattern = '(?ms)^#{2,3}\s+' + [regex]::Escape($header) + '\s*\n(.*?)(?=^#{2,3}\s+|\z)'
+        if ($text -match $pattern) {
+            return $matches[1].Trim()
+        }
+        return $null
+    }
+
+    # Helper to extract list items
+    function Extract-List($sectionText) {
+        if (-not $sectionText) { return @() }
+        $items = @()
+        foreach ($line in $sectionText -split "`n") {
+            $trimmed = $line.Trim()
+            if ($trimmed -match '^[-*]\s+(.+)$') {
+                $item = $matches[1].Trim()
+                if ($item -and $item -notmatch '^#{1,3}\s') {
+                    $items += $item
+                }
+            }
+        }
+        return $items
+    }
+
+    # Helper to extract key-value pairs
+    function Extract-KeyValue($text, $key) {
+        $pattern = '(?m)^' + [regex]::Escape($key) + ':\s*(.*)$'
+        if ($text -match $pattern) {
+            return $matches[1].Trim()
+        }
+        return $null
+    }
+
+    # Extract identity
+    $identitySection = Extract-Section $content "Identidade"
+    if ($identitySection) {
+        $result.Agente      = Extract-KeyValue $identitySection "Agente"
+        $result.Modelo      = Extract-KeyValue $identitySection "Modelo"
+        $result.Data_Inicio = Extract-KeyValue $identitySection "Data_Inicio"
+        $result.Data_Fim    = Extract-KeyValue $identitySection "Data_Fim"
+    }
+
+    # Extract task
+    $taskSection = Extract-Section $content "Tarefa"
+    if ($taskSection) {
+        $result.Versao    = Extract-KeyValue $taskSection "Versao"
+        $result.Titulo    = Extract-KeyValue $taskSection "Titulo"
+        $result.Descricao = Extract-KeyValue $taskSection "Descricao"
+    }
+
+    # Extract changes by category
+    $changesSection = Extract-Section $content "Alteracoes"
+    if ($changesSection) {
+        $result.Added          = Extract-List (Extract-Section $changesSection "Added (novas funcionalidades)")
+        $result.Fixed          = Extract-List (Extract-Section $changesSection "Fixed (correcoes de bugs)")
+        $result.Changed        = Extract-List (Extract-Section $changesSection "Changed (alteracoes/refactor)")
+        $result.Deprecated     = Extract-List (Extract-Section $changesSection "Deprecated (funcionalidades obsoletas)")
+        $result.Removed        = Extract-List (Extract-Section $changesSection "Removed (funcionalidades removidas)")
+        $result.Security       = Extract-List (Extract-Section $changesSection "Security (correcoes de seguranca)")
+        $result.Infrastructure = Extract-List (Extract-Section $changesSection "Infrastructure (build, CI/CD, deps)")
+        $result.Documentation  = Extract-List (Extract-Section $changesSection "Documentation (docs, screenshots, manual)")
+        $result.i18n           = Extract-List (Extract-Section $changesSection "i18n (traducoes, locales)")
+    }
+
+    # Extract other sections
+    $result.FilesChanged     = Extract-List (Extract-Section $content "Ficheiros Alterados")
+    $result.BreakingChanges  = Extract-List (Extract-Section $content "Breaking Changes")
+
+    $depsSection = Extract-Section $content "Dependencias"
+    if ($depsSection) {
+        $result.DependenciesAdded   = Extract-List (Extract-Section $depsSection "Adicionadas")
+        $result.DependenciesRemoved = Extract-List (Extract-Section $depsSection "Removidas")
+    }
+
+    $result.Screenshots     = Extract-List (Extract-Section $content "Screenshots / Links")
+    $result.NotesNextAgent  = Extract-Section $content "Notas para o proximo agente"
+
+    # Determine if we have meaningful data
+    $hasItems = $result.Added.Count -gt 0 -or
+                $result.Fixed.Count -gt 0 -or
+                $result.Changed.Count -gt 0 -or
+                $result.Descricao
+    $result.HasData = $hasItems
+
+    return $result
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Merge session info with git commits
+# ---------------------------------------------------------
+function Merge-SessionWithCommits($sessionInfo, $gitCommits) {
+    # If session info has data, use it as primary source
+    # If not, fall back to git commits
+    $merged = @{
+        Added           = if ($sessionInfo.Added.Count -gt 0) { $sessionInfo.Added } else { $gitCommits.Added }
+        Fixed           = if ($sessionInfo.Fixed.Count -gt 0) { $sessionInfo.Fixed } else { $gitCommits.Fixed }
+        Changed         = if ($sessionInfo.Changed.Count -gt 0) { $sessionInfo.Changed } else { $gitCommits.Changed }
+        Deprecated      = $sessionInfo.Deprecated
+        Removed         = $sessionInfo.Removed
+        Security        = $sessionInfo.Security
+        Infrastructure  = if ($sessionInfo.Infrastructure.Count -gt 0) { $sessionInfo.Infrastructure } else { $gitCommits.Infra }
+        Documentation   = if ($sessionInfo.Documentation.Count -gt 0) { $sessionInfo.Documentation } else { $gitCommits.Docs }
+        i18n            = $sessionInfo.i18n
+        FilesChanged    = if ($sessionInfo.FilesChanged.Count -gt 0) { $sessionInfo.FilesChanged } else { @() }
+        BreakingChanges = $sessionInfo.BreakingChanges
+        DependenciesAdded = $sessionInfo.DependenciesAdded
+        DependenciesRemoved = $sessionInfo.DependenciesRemoved
+        Screenshots     = $sessionInfo.Screenshots
+        NotesNextAgent  = $sessionInfo.NotesNextAgent
+        Descricao       = $sessionInfo.Descricao
+        Titulo          = $sessionInfo.Titulo
+    }
+    return $merged
 }
 
 # ---------------------------------------------------------
@@ -1281,6 +1487,34 @@ if (-not $SkipRelease -and -not $promoteExisting) {
                     Pop-Location; exit 0
                 }
             }
+
+            # Verificar se .session-info.md existe (recomendado mas nao obrigatorio)
+            $sessionInfoPath = Join-Path $WORKSPACE ".session-info.md"
+            if (-not (Test-Path $sessionInfoPath)) {
+                Write-Warn ".session-info.md nao encontrado!"
+                Write-Host "  Este ficheiro e preenchido pelo agente durante a sessao." -ForegroundColor Gray
+                Write-Host "  Sem ele, o release usara apenas as mensagens de commit." -ForegroundColor Gray
+                Write-Host "  Queres continuar mesmo assim? [S/N]" -ForegroundColor Yellow
+                $continueWithout = Read-Host "Escolha"
+                if ($continueWithout -notmatch '^[Ss]$') {
+                    Write-Host "A cancelar. Cria .session-info.md no root do projeto e corre de novo." -ForegroundColor Gray
+                    Pop-Location; exit 0
+                }
+            }
+
+            # Ler .session-info.md (se existir)
+            $sessionInfo = Read-SessionInfo
+            if ($sessionInfo.HasData) {
+                Write-Success ".session-info.md encontrado e carregado"
+                # Merge com dados dos commits
+                $categorizedForPreview = Merge-SessionWithCommits $sessionInfo $categorizedForPreview
+                # Usar descricao e titulo do session info se disponiveis
+                if ($sessionInfo.Descricao) { $commitMsg = $sessionInfo.Descricao }
+                if ($sessionInfo.Titulo) { $releaseTitle = $sessionInfo.Titulo }
+            } else {
+                Write-Warn ".session-info.md nao encontrado ou vazio. A usar apenas commits git."
+                Write-Host "  Dica: Cria .session-info.md no root para um release mais completo." -ForegroundColor Gray
+            }
         }
 
         Write-Step "Aplicando versao v$newVersion nos ficheiros Tauri..."
@@ -1409,11 +1643,11 @@ if (-not $SkipRelease -and -not $promoteExisting) {
             Write-Step "A gerar ficheiros de release automaticamente..."
 
             # 1. release-notes-vX.Y.Z.md
-            $releaseNotesPath = Generate-ReleaseNotesFile $newVersion $categorizedForPreview
+            $releaseNotesPath = Generate-ReleaseNotesFile $newVersion $categorizedForPreview $sessionInfo
             Write-Success "release-notes-v$newVersion.md criado"
 
             # 2. SYNC-STATE.md
-            Update-SyncState $newVersion $agentInfo $categorizedForPreview $filesChanged
+            Update-SyncState $newVersion $agentInfo $categorizedForPreview $filesChanged $sessionInfo
 
             # 3. version.ts
             Update-VersionTs $newVersion $categorizedForPreview

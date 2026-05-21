@@ -97,4 +97,37 @@ claude
 | D011 | IPC via Tauri Commands (sem HTTP)     |
 | D012 | Deep links `nexora://`                |
 
-_Última revisão: Maio 2026 — Workspace: C:\Dev\nexora-desktop_
+---
+
+## Regra Obrigatoria: Preencher `.session-info.md`
+
+Antes de comecar qualquer sessao de desenvolvimento no Nexora Desktop:
+
+1. **Verificar** se `.session-info.md` existe no root do projeto (`C:\Dev\nexora-desktop\.session-info.md`)
+2. **Se nao existir**, criar a partir do template em `scripts/session-info-template.md`
+3. **Preencher imediatamente** a secao `Identidade`:
+   - `Agente:` Claude Code
+   - `Modelo:` <modelo actual, ex: claude-sonnet-4-6>
+   - `Data_Inicio:` <data/hora actual ISO8601>
+   - `Versao:` <ver package.json ou versao em desenvolvimento>
+   - `Titulo:` <resumo curto da tarefa desta sessao>
+   - `Descricao:` <descricao mais detalhada do objetivo>
+
+Durante a sessao:
+
+- **Adicionar itens** nas seccoes `Alteracoes` conforme se implementa (nao acumular para o final)
+- **Actualizar `Ficheiros Alterados`** apos cada commit ou grupo de alteracoes
+- Se houver **breaking changes**, anotar imediatamente na secao correspondente
+- Se houver **novas dependencias**, anotar na secao `Dependencias`
+
+No final da sessao:
+
+- Preencher `Data_Fim`
+- Completar `Notas para o proximo agente` com contexto essencial
+- Garantir que o sync.ps1 podera gerar um release completo a partir deste ficheiro
+
+> **IMPORTANTE:** O `sync.ps1` (opcao 3, modo Release) le este ficheiro para gerar o CHANGELOG, release-notes e SYNC-STATE automaticamente. Sem isto, o release fica incompleto e o agente seguinte perde contexto.
+
+---
+
+_Ultima revisão: Maio 2026 — Workspace: C:\Dev\nexora-desktop_
