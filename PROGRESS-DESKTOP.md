@@ -128,12 +128,23 @@
 ## Em progresso agora
 
 ```
-Data:          2026-05-20
+Data:          2026-05-21
 Agente:        Claude Code (Sonnet 4.6)
-A trabalhar em: Release v0.24.0 publicado no GitHub
+A trabalhar em: Sistema de Logging Completo — CONCLUIDO
 Bloqueios:     Nenhum
-Proximo:       Proxima feature
+Proximo:       Sub-projecto A: Cloud Storage Integration (S3, Google Drive, iCloud, playout)
 ```
+
+### Fase 9 - Sistema de Logging Completo
+
+- [x] file_logger.rs — escrita diaria em AppData\Local\Nexora\logs\, compressao ZIP, retencao
+- [x] Dual-channel: SQLite (canal existente) + ficheiro (canal novo)
+- [x] 5 novos comandos Rust: get_log_storage_info, export_logs_bundle, clear_log_files, upload_logs_to_server, log_user_action
+- [x] Settings SQLite: log_verbosity, log_retention_days, log_max_size_mb, log_upload_endpoint
+- [x] Zustand store: logVerbosity, logRetentionDays, logMaxSizeMb, logUploadEndpoint
+- [x] Hook useActionLog.ts com filtragem por verbosidade (BASIC/NORMAL/DEBUG)
+- [x] Aba "Logs" nas Settings com verbosidade, info de armazenamento, retencao, envio
+- [x] Listener global de cliques em App.tsx para nivel Debug (data-log-id)
 
 ---
 

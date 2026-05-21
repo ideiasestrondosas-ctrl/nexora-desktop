@@ -285,6 +285,60 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
+### Sessao 13 — Sistema de Logging Completo — CONCLUIDO
+
+**Pedido:** Sistema completo de logging com: (1) ficheiros rotativos diários, (2) captura de acções UI com verbosidade configurável, (3) aba "Logs" nas Settings, (4) envio de logs ao desenvolvedor por email e upload.
+
+**Implementacao (9 tasks, 11 commits):**
+
+1. **`zip = "2"` e `reqwest = { version = "0.12", features = ["multipart"] }`** adicionados ao `Cargo.toml`
+
+2. **`src-tauri/src/file_logger.rs`** (novo) — escrita thread-safe via `OnceLock<Mutex<Option<FileLoggerState>>>`:
+   - `get_log_dir(app)` → `AppData\Local\Nexora\logs\`
+   - `init(app)` — abre ficheiro do dia, corre rotação + retenção no arranque; lê `log_retention_days`/`log_max_size_mb` das settings SQLite (fallback 30/200)
+   - `write(level, source, message)` — formato `{ISO8601} [{level}] {source} — {message}\n`; rola para novo ficheiro automaticamente ao mudar de dia
+   - `rotate_old_logs(dir)` — comprime `.log` antigos para `.log.zip` com `zip::CompressionMethod::Deflated`; apaga original
+   - `enforce_retention(dir, days, mb)` — apaga por idade e por tamanho total
+
+3. **`logger.rs`** — `crate::file_logger::write()` chamado no fim de `write()` → dual-channel (SQLite + ficheiro)
+
+4. **5 novos comandos Tauri** em `commands/logs.rs`:
+   - `get_log_storage_info` → `LogStorageInfo { logDir, totalSizeBytes, fileCount, oldestFileDate }`
+   - `export_logs_bundle` → ZIP em temp dir com todos os ficheiros nexora-\*.log e .log.zip
+   - `clear_log_files` → remove todos os ficheiros nexora-\* da pasta
+   - `upload_logs_to_server` → POST multipart/form-data com `reqwest`; retorna body da resposta
+   - `log_user_action` → filtra por verbosidade (BASIC=0, NORMAL=1, DEBUG=2); escreve `ACTION:{LEVEL}` em ambos os canais
+
+5. **4 novas settings** em `default_settings()`: `log_verbosity` ("normal"), `log_retention_days` ("30"), `log_max_size_mb` ("200"), `log_upload_endpoint` ("")
+
+6. **`src/store/settings.ts`** — `logVerbosity`, `logRetentionDays`, `logMaxSizeMb`, `logUploadEndpoint` + setters
+
+7. **`src/hooks/useActionLog.ts`** (novo) — `logAction(event, details?)` com `getEventLevel()` e `shouldLog()` por rank; invoca `log_user_action`
+
+8. **`src/pages/SettingsPage.tsx`** — nova aba "Logs" com:
+   - Verbosidade: 3 radio buttons (Básico/Normal/Debug)
+   - Armazenamento: path, tamanho, nº ficheiros, data mais antiga, inputs de retenção (dias/MB), botões Abrir/Limpar
+   - Enviar ao desenvolvedor: input de endpoint URL, botão email (mailto:), botão upload (disabled se sem endpoint)
+
+9. **`src/App.tsx`** — listener global `document.addEventListener('click', ...)` que lê `data-log-id` e chama `logAction('button:{id}')` — activo apenas a nível Debug
+
+**Commits:**
+
+- `0b3c886` build(deps): add zip and reqwest for logging system
+- `4a09763` feat(logging): create file_logger module
+- `a9007b9` feat(logging): integrate file_logger — dual-channel
+- `94af49d` feat(logging): add 5 new commands to commands/logs.rs
+- `32753ec` feat(logging): register log commands and add settings defaults
+- `0631db6` feat(logging): add log settings to Zustand store
+- `0303c17` feat(logging): add useActionLog hook with verbosity filtering
+- `3ccea62` feat(logging): add Logs settings tab
+- `839d5dd` feat(logging): add global Debug click listener in App.tsx
+- `7cba385` fix(logging): correct log dir path (Nexora segment)
+
+**Verificacao:** cargo check ✅ · tsc --noEmit ✅ · spec compliance review ✅
+
+---
+
 ## Proximos passos (v0.24.0 ou seguinte)
 
 | Tarefa                                                              | Prioridade | Estado    |
