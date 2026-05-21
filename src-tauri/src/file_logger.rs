@@ -14,7 +14,7 @@ struct FileLoggerState {
 static FILE_LOGGER: OnceLock<Mutex<Option<FileLoggerState>>> = OnceLock::new();
 
 pub fn get_log_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
-    app.path().local_data_dir().ok().map(|p| p.join("logs"))
+    app.path().local_data_dir().ok().map(|p| p.join("Nexora").join("logs"))
 }
 
 pub fn init(app: &tauri::AppHandle) {
