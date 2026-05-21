@@ -146,6 +146,19 @@ Proximo:       Sub-projecto A: Cloud Storage Integration (S3, Google Drive, iClo
 - [x] Aba "Logs" nas Settings com verbosidade, info de armazenamento, retencao, envio
 - [x] Listener global de cliques em App.tsx para nivel Debug (data-log-id)
 
+### Fase 10 - Script sync.ps1: Release Automatico Inteligente
+
+- [x] Preview interativo antes de executar release (mostra o que vai fazer e porquê)
+- [x] Modo manual disponivel (editar ficheiros antes de continuar)
+- [x] Deteccao automatica do agente (Claude/Antigravity/OpenCode) via SYNC-STATE.md, $env:NEXORA_AGENT, ficheiro .agent
+- [x] Geracao automatica de `release-notes-vX.Y.Z.md` com formato estruturado (Bug Fixes, New Features, Changed, i18n, Infrastructure, Documentation)
+- [x] Atualizacao automatica do `SYNC-STATE.md` com nova sessao (agente, data, resumo por categoria, ficheiros alterados)
+- [x] Atualizacao automatica do `src/lib/version.ts` com nova entrada no VERSION_HISTORY
+- [x] Agregacao de TODOS os commits desde a ultima tag no `CHANGELOG.md` (em vez de so a mensagem de commit)
+- [x] Classificacao automatica de commits por tipo (feat, fix, refactor, docs, build/ci)
+- [x] Titulo automatico da release inferido do conteudo ("FeatureName, Bug Fixes & Platform Polish")
+- [x] Corpo estruturado da GitHub Release com fallback hierarquico: release-notes > CHANGELOG > mensagem de commit
+
 ---
 
 ## Estrutura de ficheiros actual

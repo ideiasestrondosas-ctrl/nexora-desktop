@@ -111,7 +111,7 @@ function Get-ReleaseTitle($version, $changelogSection) {
         # Remover prefixos de conventional commits (feat:, fix:, docs:, etc.)
         $firstFeature = $firstFeature -replace '^\s*(feat|fix|docs|style|refactor|chore|test|build|ci)(\([^)]*\))?:\s*', ''
         # Extrair nome curto: ate primeira virgula, ponto, ou "com", "para", "no", "em"
-        if ($firstFeature -match "^(.*?)(?:,|\.|\s+com\s+|\s+para\s+|\s+no\s+|\s+em\s+|\s+—\s+)") {
+        if ($firstFeature -match '^(.*?)(?:,|\.|\s+com\s+|\s+para\s+|\s+no\s+|\s+em\s+|\s+—\s+)') {
             $featureName = $matches[1].Trim()
         } else {
             $featureName = $firstFeature
@@ -292,6 +292,369 @@ function Build-ReleaseBody($version, $commitMsg) {
     # Prioridade 3: fallback com mensagem de commit
     Write-Info "Corpo da release: fallback com mensagem de commit (prioridade 3)"
     return "### Changes in this version`n`n- $commitMsg`n`nSee [CHANGELOG.md](CHANGELOG.md) for full details."
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Detectar/Identificar Agente (Claude/Antigravity/OpenCode)
+# ---------------------------------------------------------
+function Get-AgentInfo {
+    $detectedAgent = $null
+    $detectedModel = $null
+
+    # 1. Tentar ler do SYNC-STATE.md (ultima sessao)
+    $syncStatePath = Join-Path $WORKSPACE "SYNC-STATE.md"
+    if (Test-Path $syncStatePath) {
+        $syncContent = Get-Content $syncStatePath -Raw
+        # Procurar "Agente: ..." na primeira parte do ficheiro
+        if ($syncContent -match '(?m)^Agente:\s*(.+)$') {
+            $detectedAgent = $matches[1].Trim()
+        }
+    }
+
+    # 2. Tentar variavel de ambiente NEXORA_AGENT
+    if (-not $detectedAgent -and $env:NEXORA_AGENT) {
+        $detectedAgent = $env:NEXORA_AGENT.Trim()
+    }
+
+    # 3. Tentar ficheiro .agent no workspace
+    $agentFile = Join-Path $WORKSPACE ".agent"
+    if (-not $detectedAgent -and (Test-Path $agentFile)) {
+        $agentContent = Get-Content $agentFile -Raw
+        if ($agentContent -match 'agent\s*=\s*"([^"]+)"') {
+            $detectedAgent = $matches[1].Trim()
+        } elseif ($agentContent -match '^(.+)$') {
+            $detectedAgent = $agentContent.Trim()
+        }
+    }
+
+    # 4. Pergunta interativa se nao detectou
+    if (-not $detectedAgent) {
+        Write-Host ""
+        Write-Host "Agente nao detectado automaticamente." -ForegroundColor Yellow
+        Write-Host "[1] Claude Code" -ForegroundColor Cyan
+        Write-Host "[2] Google Antigravity" -ForegroundColor Cyan
+        Write-Host "[3] OpenCode" -ForegroundColor Cyan
+        Write-Host "[4] Outro (especificar)" -ForegroundColor Cyan
+        Write-Host "[Enter] para continuar sem agente" -ForegroundColor Gray
+        $agentChoice = Read-Host "Escolha"
+        switch ($agentChoice) {
+            "1" { $detectedAgent = "Claude Code"; $detectedModel = Read-Host "Modelo (ex: claude-sonnet-4-6) [opcional, Enter para ignorar]" }
+            "2" { $detectedAgent = "Google Antigravity"; $detectedModel = Read-Host "Modelo [opcional]" }
+            "3" { $detectedAgent = "OpenCode"; $detectedModel = Read-Host "Modelo [opcional]" }
+            "4" { $detectedAgent = Read-Host "Nome do agente"; $detectedModel = Read-Host "Modelo [opcional]" }
+            default { $detectedAgent = "Agente nao especificado" }
+        }
+    } else {
+        # Confirmar agente detectado
+        Write-Host ""
+        Write-Host "Agente detectado: $detectedAgent" -ForegroundColor Cyan
+        if ($detectedModel) {
+            Write-Host "Modelo: $detectedModel" -ForegroundColor Gray
+        }
+        $confirm = Read-Host "Confirmar agente? [S/N] (Padrao: S)"
+        if ($confirm -match '^[Nn]$') {
+            $detectedAgent = Read-Host "Nome do agente"
+            $detectedModel = Read-Host "Modelo [opcional]"
+        }
+    }
+
+    $result = @{ Agent = $detectedAgent; Model = $detectedModel }
+    return $result
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Listar commits desde a ultima tag
+# ---------------------------------------------------------
+function Get-CommitsSinceLastTag {
+    $lastTag = git describe --tags --abbrev=0 2>$null
+    if (-not $lastTag) {
+        Write-Warn "Nenhuma tag encontrada. A usar todos os commits do branch."
+        $commits = git log --pretty=format:"%h|%s" --no-merges
+    } else {
+        $commits = git log "${lastTag}..HEAD" --pretty=format:"%h|%s" --no-merges
+    }
+
+    $commitList = @()
+    foreach ($line in $commits -split "`n") {
+        if ($line -match '^([^|]+)\|(.+)$') {
+            $commitList += @{
+                Hash    = $matches[1].Trim()
+                Message = $matches[2].Trim()
+            }
+        }
+    }
+    return $commitList
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Categorizar commits em Added/Fixed/Changed/Infra/Docs
+# ---------------------------------------------------------
+function CategorizeCommits($commits) {
+    $added   = @()
+    $fixed  = @()
+    $changed = @()
+    $infra   = @()
+    $docs    = @()
+    $other  = @()
+
+    foreach ($c in $commits) {
+        $msg = $c.Message
+        $cleanMsg = $msg -replace '^(feat|fix|docs|style|refactor|chore|test|build|ci)(\([^)]*\))?:\s*', ''
+
+        if ($msg -match '^(feat|feature)') { $added += $cleanMsg }
+        elseif ($msg -match '^(fix|bug|hotfix)') { $fixed += $cleanMsg }
+        elseif ($msg -match '^(refactor|style|perf|update)') { $changed += $cleanMsg }
+        elseif ($msg -match '^(docs|doc)') { $docs += $cleanMsg }
+        elseif ($msg -match '^(build|ci|chore|deps|infra|test)') { $infra += $cleanMsg }
+        else { $other += $cleanMsg }
+    }
+
+    return @{
+        Added   = $added
+        Fixed   = $fixed
+        Changed = $changed
+        Infra   = $infra
+        Docs    = $docs
+        Other   = $other
+    }
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Gerar ficheiro release-notes-vX.Y.Z.md
+# ---------------------------------------------------------
+function Generate-ReleaseNotesFile($version, $categorized) {
+    $lines = @()
+    $lines += "## What's New"
+    $lines += ""
+
+    if ($categorized.Fixed.Count -gt 0) {
+        $lines += "### Bug Fixes"
+        foreach ($item in $categorized.Fixed) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Added.Count -gt 0) {
+        $lines += "### New Features"
+        foreach ($item in $categorized.Added) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Changed.Count -gt 0) {
+        $lines += "### Changed"
+        foreach ($item in $categorized.Changed) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Docs.Count -gt 0) {
+        $lines += "### Documentation"
+        foreach ($item in $categorized.Docs) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Infra.Count -gt 0) {
+        $lines += "### Infrastructure"
+        foreach ($item in $categorized.Infra) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Other.Count -gt 0) {
+        $lines += "### Other"
+        foreach ($item in $categorized.Other) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    $lines += "---"
+    $lines += ""
+    $lines += "### Installers"
+    $lines += ""
+    $lines += "| Platform | File                                  |"
+    $lines += "| -------- | ------------------------------------- |"
+    $lines += "| Windows  | `.msi` ou `.exe` (NSIS)               |"
+    $lines += "| macOS    | `.dmg` (Universal: Intel + Apple Silicon) |"
+    $lines += "| Linux    | `.deb` (Debian/Ubuntu) ou `.AppImage` |"
+    $lines += ""
+    $lines += "Consulta o [CHANGELOG.md](CHANGELOG.md) para detalhes das alteracoes."
+
+    $content = $lines -join "`n"
+    $filePath = Join-Path $WORKSPACE "release-notes-v$version.md"
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText($filePath, $content, $utf8NoBom)
+    return $filePath
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Atualizar SYNC-STATE.md com nova sessao
+# ---------------------------------------------------------
+function Update-SyncState($version, $agentInfo, $categorized, $filesChanged) {
+    $syncPath = Join-Path $WORKSPACE "SYNC-STATE.md"
+    if (-not (Test-Path $syncPath)) {
+        Write-Warn "SYNC-STATE.md nao encontrado. A criar..."
+        $syncContent = "# Estado de Sincronizacao - Nexora Desktop`n`n"
+    } else {
+        $syncContent = Get-Content $syncPath -Raw
+    }
+
+    # Detectar proximo numero de sessao
+    $lastSession = 0
+    if ($syncContent -match '(?m)^### Sessao (\d+)') {
+        $lastSession = [int]$matches[1]
+        # Procurar o maior numero de sessao
+        $allSessions = [regex]::Matches($syncContent, '(?m)^### Sessao (\d+)')
+        foreach ($m in $allSessions) {
+            $num = [int]$m.Groups[1].Value
+            if ($num -gt $lastSession) { $lastSession = $num }
+        }
+    }
+    $newSessionNum = $lastSession + 1
+    $date = Get-Date -Format "yyyy-MM-dd"
+    $agentStr = $agentInfo.Agent
+    if ($agentInfo.Model) { $agentStr += " ($($agentInfo.Model))" }
+
+    # Contar itens por categoria
+    $totalItems = $categorized.Added.Count + $categorized.Fixed.Count + $categorized.Changed.Count + $categorized.Docs.Count + $categorized.Infra.Count + $categorized.Other.Count
+
+    # Construir nova entrada
+    $newEntry = @"
+### Sessao $newSessionNum — Release v$version — CONCLUIDO
+
+**Agente:** $agentStr  
+**Data:** $date
+
+**Resumo:** $(if ($totalItems -gt 0) { "$totalItems itens" } else { "Release v$version" })
+
+$(if ($categorized.Added.Count -gt 0) { "**Novas funcionalidades:**`n" + ($categorized.Added | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($categorized.Fixed.Count -gt 0) { "**Correcoes:**`n" + ($categorized.Fixed | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($categorized.Changed.Count -gt 0) { "**Alteracoes:**`n" + ($categorized.Changed | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($categorized.Infra.Count -gt 0) { "**Infraestrutura:**`n" + ($categorized.Infra | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($categorized.Docs.Count -gt 0) { "**Documentacao:**`n" + ($categorized.Docs | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($filesChanged.Count -gt 0) { "**Ficheiros alterados:** $(($filesChanged | Select-Object -First 10) -join ', ')$(if ($filesChanged.Count -gt 10) { " e mais $($filesChanged.Count - 10)" })`n`n" })
+---
+
+"@
+
+    # Inserir apos "## O que foi feito"
+    if ($syncContent -match '(?m)^## O que foi feito\s*$') {
+        $syncContent = $syncContent -replace '(?m)^## O que foi feito\s*$', "## O que foi feito`n`n$newEntry"
+    } else {
+        $syncContent = $newEntry + $syncContent
+    }
+
+    # Atualizar header
+    $syncContent = $syncContent -replace '(?m)^Actualizado:.*$', "Actualizado: $date"
+    $syncContent = $syncContent -replace '(?m)^Agente:.*$', "Agente: $agentStr"
+
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText($syncPath, $syncContent, $utf8NoBom)
+    Write-Success "SYNC-STATE.md actualizado (Sessao $newSessionNum)"
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Atualizar src/lib/version.ts
+# ---------------------------------------------------------
+function Update-VersionTs($version, $categorized) {
+    $versionPath = Join-Path $WORKSPACE "src\lib\version.ts"
+    if (-not (Test-Path $versionPath)) {
+        Write-Warn "src/lib/version.ts nao encontrado — a ignorar"
+        return
+    }
+
+    $content = Get-Content $versionPath -Raw
+    $date = Get-Date -Format "yyyy-MM-dd"
+
+    # Construir descricao resumida
+    $descParts = @()
+    if ($categorized.Added.Count -gt 0) {
+        $descParts += ($categorized.Added | Select-Object -First 2) -join ", "
+    }
+    if ($categorized.Fixed.Count -gt 0) {
+        $descParts += ($categorized.Fixed | Select-Object -First 2) -join ", "
+    }
+    $description = "v$version"
+    if ($descParts.Count -gt 0) {
+        $description += ": " + ($descParts -join ", ")
+    }
+    # Limitar descricao
+    if ($description.Length -gt 200) {
+        $description = $description.Substring(0, 197).TrimEnd() + "..."
+    }
+
+    # Verificar se entrada ja existe
+    if ($content -match "version:\s*'$version'") {
+        Write-Warn "Entrada v$version ja existe em version.ts — a ignorar"
+        return
+    }
+
+    # Atualizar APP_VERSION
+    $content = $content -replace "APP_VERSION\s*=\s*'[^']+'", "APP_VERSION = '$version'"
+
+    # Adicionar nova entrada no topo do array
+    $newEntry = @"
+  {
+    version: '$version',
+    description:
+      '$description.',
+  },
+"@
+
+    # Procurar inicio do array VERSION_HISTORY
+    $pattern = '(export const VERSION_HISTORY: VersionEntry\[\] = \[)'
+    $content = $content -replace $pattern, "$1`n$newEntry"
+
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText($versionPath, $content, $utf8NoBom)
+    Write-Success "src/lib/version.ts actualizado -> v$version"
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Preview interativo do release
+# ---------------------------------------------------------
+function Show-ReleasePreview($version, $agentInfo, $categorized, $filesChanged) {
+    Clear-Host
+    Write-Host ""
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host "  PREVIEW DO RELEASE v$version" -ForegroundColor Cyan
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Agente: $($agentInfo.Agent)$(if ($agentInfo.Model) { " ($($agentInfo.Model))" })" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  Ficheiros que serao criados/atualizados:" -ForegroundColor White
+    Write-Host "    CREATE  release-notes-v$version.md" -ForegroundColor Green
+    Write-Host "    UPDATE  CHANGELOG.md (agregar commits)" -ForegroundColor Yellow
+    Write-Host "    UPDATE  SYNC-STATE.md (adicionar sessao)" -ForegroundColor Yellow
+    Write-Host "    UPDATE  PROGRESS-DESKTOP.md (versao $version)" -ForegroundColor Yellow
+    Write-Host "    UPDATE  src/lib/version.ts" -ForegroundColor Yellow
+    Write-Host "    UPDATE  package.json, Cargo.toml, tauri.conf.json" -ForegroundColor Yellow
+    Write-Host ""
+
+    $totalItems = $categorized.Added.Count + $categorized.Fixed.Count + $categorized.Changed.Count + $categorized.Docs.Count + $categorized.Infra.Count + $categorized.Other.Count
+    Write-Host "  Commits desde ultima tag: $totalItems" -ForegroundColor White
+    if ($categorized.Added.Count -gt 0) { Write-Host "    + $($categorized.Added.Count) funcionalidades" -ForegroundColor Gray }
+    if ($categorized.Fixed.Count -gt 0) { Write-Host "    + $($categorized.Fixed.Count) correcoes" -ForegroundColor Gray }
+    if ($categorized.Changed.Count -gt 0) { Write-Host "    + $($categorized.Changed.Count) alteracoes" -ForegroundColor Gray }
+    if ($categorized.Infra.Count -gt 0) { Write-Host "    + $($categorized.Infra.Count) infraestrutura" -ForegroundColor Gray }
+    if ($categorized.Docs.Count -gt 0) { Write-Host "    + $($categorized.Docs.Count) documentacao" -ForegroundColor Gray }
+    Write-Host ""
+
+    $changelogSection = Parse-ChangelogSection $version
+    $releaseTitle = Get-ReleaseTitle $version $changelogSection
+    Write-Host "  Titulo gerado: $releaseTitle" -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  [Enter] Continuar com o release" -ForegroundColor Green
+    Write-Host "  [M]     Modo manual (editar ficheiros primeiro)" -ForegroundColor Yellow
+    Write-Host "  [C]     Cancelar" -ForegroundColor Red
+    Write-Host ""
+
+    $choice = Read-Host "  Escolha"
+    switch ($choice.Trim().ToUpper()) {
+        "" { return "CONTINUE" }
+        "M" { return "MANUAL" }
+        "C" { return "CANCEL" }
+        default {
+            Write-Warn "Opcao invalida. A continuar..."
+            return "CONTINUE"
+        }
+    }
 }
 
 # ---------------------------------------------------------
@@ -887,6 +1250,39 @@ if (-not $SkipRelease -and -not $promoteExisting) {
     }
 
     if ($newVersion) {
+        # ---------------------------------------------------------
+        # PREVIEW INTERATIVO (apenas modo Release)
+        # ---------------------------------------------------------
+        $agentInfo = $null
+        $categorizedForPreview = $null
+        $filesChanged = @()
+        if ($Release) {
+            $agentInfo = Get-AgentInfo
+            $commitsForPreview = Get-CommitsSinceLastTag
+            $categorizedForPreview = CategorizeCommits $commitsForPreview
+            $filesChanged = git diff --name-only HEAD~1..HEAD 2>$null
+            if (-not $filesChanged) { $filesChanged = git diff --cached --name-only 2>$null }
+            if (-not $filesChanged) { $filesChanged = @(git status --porcelain | ForEach-Object { ($_ -split '\s+', 2)[1] }) }
+
+            $previewResult = Show-ReleasePreview $newVersion $agentInfo $categorizedForPreview $filesChanged
+            switch ($previewResult) {
+                "CANCEL" {
+                    Write-Host "Release cancelado pelo utilizador." -ForegroundColor Yellow
+                    Pop-Location; exit 0
+                }
+                "MANUAL" {
+                    Write-Host ""
+                    Write-Host "Modo manual activo. Edita os ficheiros manualmente:" -ForegroundColor Yellow
+                    Write-Host "  - release-notes-v$newVersion.md" -ForegroundColor Cyan
+                    Write-Host "  - SYNC-STATE.md" -ForegroundColor Cyan
+                    Write-Host "  - CHANGELOG.md" -ForegroundColor Cyan
+                    Write-Host "  - src/lib/version.ts" -ForegroundColor Cyan
+                    Write-Host "Depois corre o script novamente com -Release." -ForegroundColor Gray
+                    Pop-Location; exit 0
+                }
+            }
+        }
+
         Write-Step "Aplicando versao v$newVersion nos ficheiros Tauri..."
 
         # package.json
@@ -935,18 +1331,59 @@ if (-not $SkipRelease -and -not $promoteExisting) {
             }
         }
 
-        # CHANGELOG.md -- criar se nao existir
-        $date     = Get-Date -Format "yyyy-MM-dd"
-        $newEntry = "## [$newVersion] - $date`n`n### Added`n- $commitMsg`n"
+        # CHANGELOG.md -- agregar commits desde ultima tag (modo Release) ou so a mensagem
+        $date = Get-Date -Format "yyyy-MM-dd"
+        if ($Release) {
+            # Modo Release: agregar TODOS os commits desde a ultima tag
+            Write-Step "A agregar commits no CHANGELOG.md..."
+            $allCommits = Get-CommitsSinceLastTag
+            $categorizedForChangelog = CategorizeCommits $allCommits
+
+            $changelogEntry = "## [$newVersion] - $date`n`n"
+            if ($categorizedForChangelog.Added.Count -gt 0) {
+                $changelogEntry += "### Added`n"
+                foreach ($item in $categorizedForChangelog.Added) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Fixed.Count -gt 0) {
+                $changelogEntry += "### Fixed`n"
+                foreach ($item in $categorizedForChangelog.Fixed) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Changed.Count -gt 0) {
+                $changelogEntry += "### Changed`n"
+                foreach ($item in $categorizedForChangelog.Changed) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Docs.Count -gt 0) {
+                $changelogEntry += "### Documentation`n"
+                foreach ($item in $categorizedForChangelog.Docs) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Infra.Count -gt 0) {
+                $changelogEntry += "### Infrastructure`n"
+                foreach ($item in $categorizedForChangelog.Infra) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Other.Count -gt 0) {
+                $changelogEntry += "### Other`n"
+                foreach ($item in $categorizedForChangelog.Other) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+        } else {
+            # Modo normal: apenas a mensagem de commit
+            $changelogEntry = "## [$newVersion] - $date`n`n### Added`n- $commitMsg`n`n"
+        }
+
         if (Test-Path "CHANGELOG.md") {
             $changelog = Get-Content "CHANGELOG.md" -Raw
             if ($changelog -match "## \[Unreleased\]") {
-                $changelog = $changelog -replace "## \[Unreleased\]", "## [Unreleased]`n`n$newEntry"
+                $changelog = $changelog -replace "## \[Unreleased\]", "## [Unreleased]`n`n$changelogEntry"
             } else {
-                $changelog = $changelog -replace "# Changelog", "# Changelog`n`n$newEntry"
+                $changelog = $changelog -replace "# Changelog", "# Changelog`n`n$changelogEntry"
             }
         } else {
-            $changelog = "# Changelog`n`n## [Unreleased]`n`n$newEntry"
+            $changelog = "# Changelog`n`n## [Unreleased]`n`n$changelogEntry"
             Write-Warn "CHANGELOG.md nao existia - criado automaticamente"
         }
         [System.IO.File]::WriteAllText(
@@ -966,8 +1403,30 @@ if (-not $SkipRelease -and -not $promoteExisting) {
             )
         }
 
+        # Modo Release: gerar ficheiros adicionais automaticamente
+        $releaseNotesPath = $null
+        if ($Release) {
+            Write-Step "A gerar ficheiros de release automaticamente..."
+
+            # 1. release-notes-vX.Y.Z.md
+            $releaseNotesPath = Generate-ReleaseNotesFile $newVersion $categorizedForPreview
+            Write-Success "release-notes-v$newVersion.md criado"
+
+            # 2. SYNC-STATE.md
+            Update-SyncState $newVersion $agentInfo $categorizedForPreview $filesChanged
+
+            # 3. version.ts
+            Update-VersionTs $newVersion $categorizedForPreview
+        }
+
         # Commit de release + tag (verificar se tag ja existe)
-        git add package.json src-tauri\Cargo.toml src-tauri\tauri.conf.json CHANGELOG.md PROGRESS-DESKTOP.md
+        $filesToAdd = @("package.json", "src-tauri\Cargo.toml", "src-tauri\tauri.conf.json", "CHANGELOG.md", "PROGRESS-DESKTOP.md")
+        if ($Release -and $releaseNotesPath) {
+            $filesToAdd += "release-notes-v$newVersion.md"
+            $filesToAdd += "SYNC-STATE.md"
+            $filesToAdd += "src\lib\version.ts"
+        }
+        git add $filesToAdd
         git commit -m "chore(release): v$newVersion" --no-verify
         $tagExists = git tag -l "v$newVersion" 2>$null
         if ($tagExists) {

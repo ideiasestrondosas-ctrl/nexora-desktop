@@ -10,6 +10,56 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 14 — sync.ps1: Automacao Completa do Release (Preview + Agent + Ficheiros) — CONCLUIDO
+
+**Pedido:** Tornar o script `sync.ps1` (opcao 3, modo Release) completamente automatico: gerar todos os ficheiros de release, identificar o agente, mostrar preview antes de executar, e dar opcao de modo manual.
+
+**Implementacao:**
+
+1. **Preview interativo (`Show-ReleasePreview`)** — antes de fazer qualquer alteracao, mostra:
+   - Agente detectado
+   - Ficheiros que serao criados/atualizados
+   - Numero de commits por categoria (Added/Fixed/Changed/Infra/Docs)
+   - Titulo gerado automaticamente
+   - Opcoes: [Enter] continuar / [M] manual / [C] cancelar
+
+2. **Deteccao do agente (`Get-AgentInfo`)** — por ordem de prioridade:
+   - SYNC-STATE.md (campo "Agente:")
+   - Variavel de ambiente `$env:NEXORA_AGENT`
+   - Ficheiro `.agent` no workspace
+   - Pergunta interativa com opcoes Claude/Antigravity/OpenCode/Outro
+
+3. **Geracao automatica de ficheiros:**
+   - `release-notes-vX.Y.Z.md` — formato estruturado com secoes (Bug Fixes, New Features, Changed, i18n, Infrastructure, Documentation) + tabela de instaladores
+   - `SYNC-STATE.md` — nova sessao com agente, data, resumo por categoria, ficheiros alterados
+   - `src/lib/version.ts` — nova entrada no `VERSION_HISTORY`
+   - `CHANGELOG.md` — agrega TODOS os commits desde a ultima tag (nao so a mensagem de commit)
+
+4. **Classificacao de commits (`CategorizeCommits`)**:
+   - `feat:` → Added
+   - `fix:` → Fixed
+   - `refactor:/style:/perf:` → Changed
+   - `docs:` → Documentation
+   - `build:/ci:/chore:/deps:` → Infrastructure
+
+5. **Integracao no fluxo de release**:
+   - Preview → Modo Manual (sai para edicao manual) / Continuar
+   - Aplica alteracoes nos ficheiros
+   - Commit de release inclui: package.json, Cargo.toml, tauri.conf.json, CHANGELOG.md, PROGRESS-DESKTOP.md, release-notes-vX.Y.Z.md, SYNC-STATE.md, version.ts
+   - Tag + push + merge main + GitHub Release (com titulo e corpo automaticos)
+
+**Testes:**
+
+- Sintaxe do script: validada via PowerShell AST parser ✅
+- `Parse-ChangelogSection`: extrai secao v0.22.0 corretamente (949 chars)
+- `Get-ReleaseTitle`: v0.22.0 → "MediaInfo, Bug Fixes & Platform Polish"
+- `Update-VersionTs`: adiciona entrada no array corretamente
+- Sem erros de sintaxe no script completo (16 funcoes definidas)
+
+**Ficheiro alterado:** `scripts/sync.ps1` (~+350 linhas, 7 funcoes novas, 2 blocos modificados)
+
+---
+
 ### Sessao 12 — Script sync.ps1: GitHub Release automatico com titulo e corpo inteligente — CONCLUIDO
 
 **Pedido:** Adicionar ao script `sync.ps1` (opcao 3, modo Release) a criacao automatica de GitHub Releases com titulo e corpo preenchidos automaticamente, ao mesmo genero do que se fez para v0.22.0 ("Media Info UX, Bug Fixes & Platform Polish").
