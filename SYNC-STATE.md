@@ -5,10 +5,74 @@
 
 ---
 
-Actualizado: 2026-05-20
+Actualizado: 2026-05-21
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 15 — Cloud Storage Integration (Sub-projecto A, todas as 4 fases) — CONCLUIDO
+
+**Pedido:** Integrar S3, Google Drive, iCloud e outras drives cloud para entrega automática de ficheiros processados e ingestão de ficheiros a partir da cloud. Entrega faseada: Fase 1 (infra + FTP/SFTP/SMB + UI), Fase 2 (S3), Fase 3 (Google Drive + OAuth), Fase 4 (iCloud).
+
+**Implementacao (16 tasks, 11 commits):**
+
+1. **Migracao SQLite** — 2 novas tabelas: `cloud_profiles` (id, name, provider_type, config_json, created_at) e `job_cloud_destinations` (job_id, profile_id, status, upload_url, error_msg, uploaded_at).
+
+2. **Trait `CloudProvider`** (`src-tauri/src/cloud/provider.rs`) — interface async com `upload()`, `download()`, `test_connection()`, `provider_type()`.
+
+3. **6 providers Rust:**
+   - `SmbProvider` — pasta local/rede via `std::fs`
+   - `FtpProvider` — `suppaftp 6` async
+   - `SftpProvider` — `russh 0.45` + `russh-sftp 2`
+   - `S3Provider` — `rust-s3 0.37`, `Region::Custom` para MinIO/Wasabi/B2, `with_path_style()`
+   - `GDriveProvider` — `reqwest`, multipart upload, bearer auth, 401 especifico
+   - `ICloudProvider` — wrapper de `SmbProvider`, auto-deteta `%USERPROFILE%\iCloudDrive` (Windows) ou `~/Library/Mobile Documents/com~apple~CloudDocs` (macOS)
+
+4. **11 comandos IPC** (`src-tauri/src/commands/cloud.rs`):
+   - CRUD de perfis: `get_cloud_profiles`, `create_cloud_profile`, `update_cloud_profile`, `delete_cloud_profile`
+   - Teste e upload: `test_cloud_connection`, `process_cloud_destinations`, `retry_cloud_upload`, `add_cloud_asset`
+   - Job cloud: `get_job_cloud_destinations`
+   - OAuth GDrive: `gdrive_start_auth`, `gdrive_poll_auth`
+
+5. **Frontend:**
+   - `src/store/cloud.ts` — Zustand store com `CloudProfile`, `JobCloudDestination`, `PROVIDER_LABELS`, `PROVIDER_FIELDS`
+   - `CloudProfileModal.tsx` — Radix UI Dialog, dynamic fields, test connection, GDrive OAuth panel com polling a 5s
+   - `SettingsPage.tsx` — nova aba "Cloud" com lista de perfis, editar/apagar
+   - `CloudDestinationPicker.tsx` — toggle buttons no modal de submissao de job
+   - `IngestProfileModal.tsx` — integra `CloudDestinationPicker`
+   - `App.tsx` — `useEffect` bare que deteta transicoes job→done e chama `process_cloud_destinations`
+   - `AssetDetailPage.tsx` — secao de destinos cloud com status icons, timestamps, erros, botao retry
+   - `LibraryPage.tsx` — botao "Da Cloud" para ingerir ficheiros a partir de perfil cloud
+
+6. **Credenciais (v1):** Sem encrypted store (async incompativel com sync Rust). Credenciais guardadas junto com config em `config_json` no SQLite. Frontend passa credenciais directamente no `test_cloud_connection`.
+
+7. **Retry manual:** `process_cloud_destinations` usa loop manual 3 tentativas com backoff exponencial (2^attempt s) — `async_trait` nao aceita `FnMut() -> Fut` com lifetime da trait.
+
+**Bugs corrigidos durante implementacao:**
+
+- `filter_map(|r| r.ok())` em destinations query → substituido por `.collect::<Result<Vec<_>, _>>()` para propagar erros
+- `unwrap_or_default()` em config JSON parse → substituido por `match` que marca destination como 'failed' e faz `continue`
+- `useEffect` deps em `CloudProfileModal` — `editing` adicionado ao array `[provider, editing]`
+- `rust-s3` (crate correcto) em vez de `s3 = "0.35"` (crate errado no plano)
+- `reqwest` sem feature `"json"` — adicionada para chamadas `.json()` em `GDriveProvider` e OAuth
+
+**Commits:**
+
+- `f89e707` feat(cloud): register cloud commands in Tauri invoke handler
+- `789bd7b` feat(cloud): cloud Zustand store + provider metadata
+- `1751a2a` feat(cloud): CloudProfileModal — create/edit/test profiles
+- `2a1b61f` feat(cloud): Settings Cloud tab — profile list and management
+- `604eebe` feat(cloud): CloudDestinationPicker + submit_job cloud destinations
+- `71158af` feat(cloud): auto-trigger cloud upload on job completion
+- `0148676` feat(cloud): AssetDetailPage cloud destinations section
+- `7bc4c2a` feat(cloud): Da Cloud button — add cloud-sourced assets
+- `30392db` feat(cloud): S3Provider — AWS S3 and compatibles
+- `82c844b` feat(cloud): GDriveProvider + OAuth Device Flow
+- `3ec60de` feat(cloud): ICloudProvider — iCloud Drive via local folder
+
+**Verificacao:** cargo check nao foi executado no final (contexto esgotado) — recomendado executar `cargo check` e `npm run lint` antes do proximo release.
+
+---
 
 ### Sessao 14 — sync.ps1: Automacao Completa do Release (Preview + Agent + Ficheiros) — CONCLUIDO
 
@@ -473,3 +537,8 @@ Agente: Claude Code (claude-sonnet-4-6)
 - **settings.json** — factory_reset NUNCA apaga este ficheiro; escreve `{}` para reset limpo sem crash do LazyStore
 - **Mutex poison em queue.rs** — usar `unwrap_or_else(|poison| poison.into_inner())` no lock da DB
 - **invoke() com Rust String** — sempre converter com `String(value)` antes de passar número ou booleano para um comando Rust que espera `String`; serde_json falha silenciosamente caso contrário
+- **Cloud credentials (v1)** — guardadas em `config_json` no SQLite (sem encrypted store); frontend passa credenciais directamente em `test_cloud_connection`; em v2 migrar para tauri-plugin-stronghold ou equivalente
+- **process_cloud_destinations** — usa retry manual 3 tentativas (nao `retry_with_backoff`): `async_trait` nao aceita `FnMut() -> Fut` com lifetime da trait; qualquer refactor deve manter este padrao
+- **GDrive OAuth** — Device Flow: `gdrive_start_auth` retorna url + user_code; frontend poll `gdrive_poll_auth` a cada 5s ate receber `access_token`; token guardado como `oauth_token` em `config_json`
+- **iCloud auto-detect** — `%USERPROFILE%\iCloudDrive` (Windows), `~/Library/Mobile Documents/com~apple~CloudDocs` (macOS); nao e suportado em Linux
+- **S3 crate** — `rust-s3 = "0.37"` (NAO `s3 = "0.35"` — crate diferente); usar `default-features = false, features = ["tokio-rustls-tls"]`

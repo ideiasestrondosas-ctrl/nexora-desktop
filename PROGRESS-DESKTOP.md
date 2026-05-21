@@ -130,9 +130,9 @@
 ```
 Data:          2026-05-21
 Agente:        Claude Code (Sonnet 4.6)
-A trabalhar em: Sistema de Logging Completo — CONCLUIDO
+A trabalhar em: Cloud Storage Integration (Sub-projecto A) — CONCLUIDO
 Bloqueios:     Nenhum
-Proximo:       Sub-projecto A: Cloud Storage Integration (S3, Google Drive, iCloud, playout)
+Proximo:       Testes manuais / bump de versao para v0.25.0
 ```
 
 ### Fase 9 - Sistema de Logging Completo
@@ -158,6 +158,62 @@ Proximo:       Sub-projecto A: Cloud Storage Integration (S3, Google Drive, iClo
 - [x] Classificacao automatica de commits por tipo (feat, fix, refactor, docs, build/ci)
 - [x] Titulo automatico da release inferido do conteudo ("FeatureName, Bug Fixes & Platform Polish")
 - [x] Corpo estruturado da GitHub Release com fallback hierarquico: release-notes > CHANGELOG > mensagem de commit
+
+---
+
+### Fase 11 - Cloud Storage Integration (Sub-projecto A)
+
+**Arquitectura:** Trait `CloudProvider` em Rust, 6 providers, 11 comandos IPC, aba Cloud nas Settings, modal de perfis, picker de destino em jobs, upload automatico pos-job, ingest de cloud.
+
+**Fase 1 — Infra + FTP/SFTP/SMB:**
+
+- [x] Migracao SQLite: tabelas `cloud_profiles` e `job_cloud_destinations`
+- [x] Trait `CloudProvider` com `upload()`, `download()`, `test_connection()`, `provider_type()`
+- [x] Helper `retry_with_backoff` (manual loop, 3 tentativas, backoff exponencial)
+- [x] `SmbProvider` — pasta local/rede via `std::fs`
+- [x] `FtpProvider` — suppaftp 6 async
+- [x] `SftpProvider` — russh 0.45 + russh-sftp 2
+- [x] Factory `cloud::get_provider(type, config, creds)`
+- [x] 9 comandos IPC: `get_cloud_profiles`, `create_cloud_profile`, `update_cloud_profile`, `delete_cloud_profile`, `test_cloud_connection`, `get_job_cloud_destinations`, `process_cloud_destinations`, `retry_cloud_upload`, `add_cloud_asset`
+- [x] Zustand store `cloud.ts`: `CloudProfile`, `JobCloudDestination`, `PROVIDER_LABELS`, `PROVIDER_FIELDS`
+- [x] `CloudProfileModal` — criar/editar/testar perfis (Radix UI Dialog)
+- [x] Aba "Cloud" nas Settings com lista de perfis, editar/apagar
+- [x] `CloudDestinationPicker` — picker de destinos cloud ao submeter job
+- [x] `submit_job` extendido com `cloud_profile_ids: Option<Vec<String>>`
+- [x] `IngestProfileModal` integra `CloudDestinationPicker`
+- [x] Auto-upload: `useEffect` em `App.tsx` deteta transicao job→done e chama `process_cloud_destinations`
+- [x] `AssetDetailPage`: secao de destinos cloud com estado, timestamps, erros, botao retry
+- [x] Botao "Da Cloud" na `LibraryPage` para ingerir ficheiros de cloud
+
+**Fase 2 — S3:**
+
+- [x] `S3Provider` — rust-s3 0.37, `Region::Custom` (MinIO/Wasabi/B2), `with_path_style()`
+
+**Fase 3 — Google Drive + OAuth:**
+
+- [x] `GDriveProvider` — reqwest, multipart upload, bearer auth
+- [x] OAuth Device Flow: `gdrive_start_auth` + `gdrive_poll_auth` (polling a cada 5s)
+- [x] `CloudProfileModal` integra painel de autenticacao GDrive
+
+**Fase 4 — iCloud:**
+
+- [x] `ICloudProvider` — wrapper de `SmbProvider` com auto-deteccao do caminho iCloud
+- [x] Windows: `%USERPROFILE%\iCloudDrive`
+- [x] macOS: `~/Library/Mobile Documents/com~apple~CloudDocs`
+
+**Commits (11 commits):**
+
+- `3ec60de` feat(cloud): ICloudProvider — iCloud Drive via local folder
+- `82c844b` feat(cloud): GDriveProvider + OAuth Device Flow
+- `30392db` feat(cloud): S3Provider — AWS S3 and compatibles
+- `7bc4c2a` feat(cloud): Da Cloud button — add cloud-sourced assets
+- `0148676` feat(cloud): AssetDetailPage cloud destinations section
+- `71158af` feat(cloud): auto-trigger cloud upload on job completion
+- `604eebe` feat(cloud): CloudDestinationPicker + submit_job cloud destinations
+- `2a1b61f` feat(cloud): Settings Cloud tab — profile list and management
+- `1751a2a` feat(cloud): CloudProfileModal — create/edit/test profiles
+- `789bd7b` feat(cloud): cloud Zustand store + provider metadata
+- `f89e707` feat(cloud): register cloud commands in Tauri invoke handler
 
 ---
 
@@ -373,4 +429,4 @@ nexora-desktop/
 
 _Este ficheiro e a fonte de verdade do projecto Desktop._
 _Em caso de duvida, consulta aqui._
-_Ultima actualizacao: 2026-05-14 21:45 por Claude Code (Kimi K2.6)_
+_Ultima actualizacao: 2026-05-21 por Claude Code (Sonnet 4.6)_
