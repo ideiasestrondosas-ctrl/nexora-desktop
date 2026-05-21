@@ -1,20 +1,93 @@
-// Implementação completa em Task 14
 use super::provider::CloudProvider;
 use async_trait::async_trait;
+use s3::{Bucket, Region};
+use s3::creds::Credentials;
 use std::path::Path;
 
-pub struct S3Provider;
+pub struct S3Provider {
+    bucket: Box<Bucket>,
+    base_path: String,
+}
 
 impl S3Provider {
-    pub fn new(_config: &serde_json::Value, _creds: &serde_json::Value) -> Result<Self, String> {
-        Err("S3 será implementado na Fase 2".to_string())
+    pub fn new(config: &serde_json::Value, _creds: &serde_json::Value) -> Result<Self, String> {
+        let bucket_name = config["bucket"].as_str().ok_or("bucket obrigatório")?;
+        let region_str = config["region"].as_str().unwrap_or("us-east-1");
+        let endpoint = config["endpoint"].as_str().unwrap_or("");
+        let base_path = config["base_path"].as_str().unwrap_or("").to_string();
+        // v1: credenciais armazenadas no config
+        let access_key = config["access_key"].as_str().unwrap_or("");
+        let secret_key = config["secret_key"].as_str().unwrap_or("");
+
+        let region = if endpoint.is_empty() {
+            region_str.parse::<Region>().map_err(|e| e.to_string())?
+        } else {
+            Region::Custom {
+                region: region_str.to_string(),
+                endpoint: endpoint.to_string(),
+            }
+        };
+
+        let credentials = Credentials::new(
+            Some(access_key),
+            Some(secret_key),
+            None,
+            None,
+            None,
+        )
+        .map_err(|e| e.to_string())?;
+
+        let bucket = Bucket::new(bucket_name, region, credentials)
+            .map_err(|e| e.to_string())?
+            .with_path_style();
+
+        Ok(Self { bucket, base_path })
+    }
+
+    fn full_path(&self, relative: &str) -> String {
+        let cleaned = relative.trim_start_matches('/');
+        if self.base_path.is_empty() {
+            cleaned.to_string()
+        } else {
+            format!("{}/{}", self.base_path.trim_end_matches('/'), cleaned)
+        }
     }
 }
 
 #[async_trait]
 impl CloudProvider for S3Provider {
-    fn provider_type(&self) -> &'static str { "s3" }
-    async fn test_connection(&self) -> Result<(), String> { Err("não implementado".to_string()) }
-    async fn upload(&self, _: &Path, _: &str) -> Result<String, String> { Err("não implementado".to_string()) }
-    async fn download(&self, _: &str, _: &Path) -> Result<(), String> { Err("não implementado".to_string()) }
+    fn provider_type(&self) -> &'static str {
+        "s3"
+    }
+
+    async fn test_connection(&self) -> Result<(), String> {
+        self.bucket
+            .list("/".to_string(), Some("/".to_string()))
+            .await
+            .map(|_| ())
+            .map_err(|e| format!("S3 ligação falhou: {e}"))
+    }
+
+    async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
+        let key = self.full_path(remote_path);
+        let data = tokio::fs::read(local_path).await.map_err(|e| e.to_string())?;
+        self.bucket
+            .put_object(&key, &data)
+            .await
+            .map_err(|e| format!("S3 upload falhou: {e}"))?;
+        Ok(format!("s3://{}/{}", self.bucket.name(), key))
+    }
+
+    async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
+        let key = self.full_path(remote_path);
+        let response = self.bucket
+            .get_object(&key)
+            .await
+            .map_err(|e| format!("S3 download falhou: {e}"))?;
+        if let Some(parent) = local_path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        tokio::fs::write(local_path, response.bytes()).await.map_err(|e| e.to_string())?;
+        Ok(())
+    }
 }
