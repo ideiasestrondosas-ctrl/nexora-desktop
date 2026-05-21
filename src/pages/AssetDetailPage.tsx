@@ -19,6 +19,9 @@ import {
   BarChart2,
   ChevronDown,
   Download,
+  Cloud,
+  XCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -66,6 +69,14 @@ interface Job {
   output_path: string | null;
 }
 
+interface CloudDestination {
+  profileId: string;
+  profileName: string;
+  status: 'pending' | 'uploading' | 'uploaded' | 'failed';
+  errorMsg: string | null;
+  uploadedAt: string | null;
+}
+
 interface Profile {
   id: string;
   name: string;
@@ -106,6 +117,16 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
   const [mediaInfoSide, setMediaInfoSide] = useState<'original' | 'processed'>('original');
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [reprocessMenuOpen, setReprocessMenuOpen] = useState(false);
+  const [cloudDestinations, setCloudDestinations] = useState<CloudDestination[]>([]);
+
+  const loadCloudDestinations = useCallback(async (jobId: string) => {
+    try {
+      const dests = await invoke<CloudDestination[]>('get_job_cloud_destinations', { jobId });
+      setCloudDestinations(dests);
+    } catch {
+      setCloudDestinations([]);
+    }
+  }, []);
 
   const removeAsset = useAssetsStore((s) => s.removeAsset);
   const removeJobsByAsset = useJobsStore((s) => s.removeJobsByAsset);
@@ -130,6 +151,15 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    const doneJob = jobs.find((j) => j.asset_id === assetId && j.status === 'done');
+    if (doneJob) {
+      loadCloudDestinations(doneJob.id);
+    } else {
+      setCloudDestinations([]);
+    }
+  }, [jobs, assetId, loadCloudDestinations]);
 
   const handleDelete = () => {
     setDeleteConfirmOpen(true);
@@ -949,6 +979,72 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                 ))
               )}
             </div>
+
+            {cloudDestinations.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-xs text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <Cloud size={12} /> Envios Cloud
+                </h3>
+                <div className="space-y-2">
+                  {cloudDestinations.map((dest) => {
+                    const doneJob = jobs.find((j) => j.asset_id === assetId && j.status === 'done');
+                    return (
+                      <div
+                        key={dest.profileId}
+                        className="flex items-center justify-between bg-gray-800/50 rounded px-3 py-2 text-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          {dest.status === 'uploaded' && (
+                            <CheckCircle2 size={14} className="text-green-400" />
+                          )}
+                          {dest.status === 'failed' && (
+                            <XCircle size={14} className="text-red-400" />
+                          )}
+                          {(dest.status === 'pending' || dest.status === 'uploading') && (
+                            <Clock size={14} className="text-yellow-400" />
+                          )}
+                          <span className="text-gray-200">{dest.profileName}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {dest.status === 'failed' && (
+                            <span
+                              className="text-xs text-red-400 max-w-[200px] truncate"
+                              title={dest.errorMsg ?? ''}
+                            >
+                              {dest.errorMsg}
+                            </span>
+                          )}
+                          {dest.status === 'uploaded' && dest.uploadedAt && (
+                            <span className="text-xs text-gray-500">
+                              {new Date(dest.uploadedAt).toLocaleTimeString('pt-PT')}
+                            </span>
+                          )}
+                          {dest.status === 'failed' && doneJob && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await invoke('retry_cloud_upload', {
+                                    jobId: doneJob.id,
+                                    profileId: dest.profileId,
+                                  });
+                                  await loadCloudDestinations(doneJob.id);
+                                  toast.success('A retentar envio...');
+                                } catch (e) {
+                                  toast.error(String(e));
+                                }
+                              }}
+                              className="flex items-center gap-1 text-xs text-gray-400 hover:text-white"
+                            >
+                              <RotateCcw size={12} /> Retentar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </section>
         )}
       </div>
