@@ -30,6 +30,8 @@ import { hasSupportedExtension } from '@/components/DropZone';
 import { resolveVideoPaths } from '@/lib/scan';
 
 import { useSettingsStore } from '@/store/settings';
+import { useJobsStore } from '@/store/jobs';
+import { useCloudStore } from '@/store/cloud';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { useActionLog } from '@/hooks/useActionLog';
 import { cn } from '@/lib/utils';
@@ -56,6 +58,8 @@ function App() {
   const theme = useSettingsStore((state) => state.theme);
   const defaultProfile = useSettingsStore((state) => state.defaultProfile ?? 'web-hd');
   const { logAction } = useActionLog();
+  const cloudProfiles = useCloudStore((s) => s.profiles);
+  const prevJobsRef = useRef<Map<string, string>>(new Map());
 
   // Refs para aceder ao tab activo e à função t sem re-registar listeners
   const activeTabRef = useRef<Tab>(activeTab);
@@ -74,6 +78,19 @@ function App() {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, [logAction]);
+
+  // Auto-trigger cloud upload quando um job transita para 'done'
+  useEffect(() => {
+    if (cloudProfiles.length === 0) return;
+    const jobs = useJobsStore.getState().jobs;
+    jobs.forEach((job) => {
+      const prevStatus = prevJobsRef.current.get(job.id);
+      if (prevStatus !== 'done' && job.status === 'done') {
+        invoke('process_cloud_destinations', { jobId: job.id }).catch(console.error);
+      }
+      prevJobsRef.current.set(job.id, job.status);
+    });
+  });
 
   // ── Drag-drop global centralizado ──────────────────────────────────────────
   // Um único listener tauri://drag-drop — intercepta drops em QUALQUER página
