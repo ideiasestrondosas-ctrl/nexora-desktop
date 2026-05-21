@@ -19,6 +19,15 @@ impl SmbProvider {
         let cleaned = remote_path.trim_start_matches(['/', '\\']);
         std::path::Path::new(&self.base_path).join(cleaned)
     }
+
+    fn copy_file(src: &Path, dst: &Path) -> Result<(), String> {
+        // Tenta fs::copy primeiro; em caso de falha cross-device usa read+write
+        if let Ok(_) = std::fs::copy(src, dst) {
+            return Ok(());
+        }
+        let data = std::fs::read(src).map_err(|e| format!("Leitura falhou: {e}"))?;
+        std::fs::write(dst, data).map_err(|e| format!("Escrita falhou: {e}"))
+    }
 }
 
 #[async_trait]
@@ -28,11 +37,15 @@ impl CloudProvider for SmbProvider {
     }
 
     async fn test_connection(&self) -> Result<(), String> {
-        if std::path::Path::new(&self.base_path).exists() {
-            Ok(())
-        } else {
-            Err(format!("Pasta inacessível: {}", self.base_path))
+        let base = std::path::Path::new(&self.base_path);
+        if !base.exists() {
+            return Err(format!("Pasta inacessível: {}", self.base_path));
         }
+        // Verifica permissão de escrita com ficheiro temporário
+        let probe = base.join(".nexora_probe");
+        std::fs::write(&probe, b"probe").map_err(|e| format!("Sem permissão de escrita: {e}"))?;
+        let _ = std::fs::remove_file(&probe);
+        Ok(())
     }
 
     async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
@@ -40,7 +53,7 @@ impl CloudProvider for SmbProvider {
         if let Some(parent) = dest.parent() {
             std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
-        std::fs::copy(local_path, &dest).map_err(|e| e.to_string())?;
+        Self::copy_file(local_path, &dest)?;
         Ok(dest.to_string_lossy().to_string())
     }
 
@@ -49,7 +62,6 @@ impl CloudProvider for SmbProvider {
         if let Some(parent) = local_path.parent() {
             std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
-        std::fs::copy(&src, local_path).map_err(|e| e.to_string())?;
-        Ok(())
+        Self::copy_file(&src, local_path)
     }
 }

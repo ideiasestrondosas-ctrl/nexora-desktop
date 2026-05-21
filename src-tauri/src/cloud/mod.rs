@@ -14,12 +14,22 @@ pub fn get_provider(
     creds: &serde_json::Value,
 ) -> Result<Box<dyn CloudProvider>, String> {
     match provider_type {
-        "smb" => Ok(Box::new(smb::SmbProvider::new(config)?)),
-        "ftp" | "ftps" => Ok(Box::new(ftp::FtpProvider::new(config, creds)?)),
-        "sftp" => Ok(Box::new(sftp::SftpProvider::new(config, creds)?)),
-        "s3" => Err("S3Provider será implementado na Fase 2".to_string()),
+        "smb" => smb::SmbProvider::new(config)
+            .map(|p| Box::new(p) as Box<dyn CloudProvider>)
+            .map_err(|e| format!("Perfil SMB inválido: {e}")),
+        "ftp" | "ftps" => ftp::FtpProvider::new(config, creds)
+            .map(|p| Box::new(p) as Box<dyn CloudProvider>)
+            .map_err(|e| format!("Perfil FTP inválido: {e}")),
+        "sftp" => sftp::SftpProvider::new(config, creds)
+            .map(|p| Box::new(p) as Box<dyn CloudProvider>)
+            .map_err(|e| format!("Perfil SFTP inválido: {e}")),
+        "s3" => s3::S3Provider::new(config, creds)
+            .map(|p| Box::new(p) as Box<dyn CloudProvider>)
+            .map_err(|e| format!("Perfil S3 inválido: {e}")),
         "gdrive" => Err("GDriveProvider será implementado na Fase 3".to_string()),
-        "icloud" => Ok(Box::new(icloud::ICloudProvider::new(config)?)),
+        "icloud" => icloud::ICloudProvider::new(config)
+            .map(|p| Box::new(p) as Box<dyn CloudProvider>)
+            .map_err(|e| format!("Perfil iCloud inválido: {e}")),
         other => Err(format!("Fornecedor desconhecido: {other}")),
     }
 }
