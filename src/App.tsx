@@ -31,6 +31,7 @@ import { resolveVideoPaths } from '@/lib/scan';
 
 import { useSettingsStore } from '@/store/settings';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
+import { useActionLog } from '@/hooks/useActionLog';
 import { cn } from '@/lib/utils';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -54,12 +55,25 @@ function App() {
 
   const theme = useSettingsStore((state) => state.theme);
   const defaultProfile = useSettingsStore((state) => state.defaultProfile ?? 'web-hd');
+  const { logAction } = useActionLog();
 
   // Refs para aceder ao tab activo e à função t sem re-registar listeners
   const activeTabRef = useRef<Tab>(activeTab);
   useEffect(() => {
     activeTabRef.current = activeTab;
   }, [activeTab]);
+
+  // Listener global de cliques para nível Debug — regista elementos com data-log-id
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const logId = target.closest('[data-log-id]')?.getAttribute('data-log-id');
+      if (!logId) return;
+      logAction(`button:${logId}`);
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [logAction]);
 
   // ── Drag-drop global centralizado ──────────────────────────────────────────
   // Um único listener tauri://drag-drop — intercepta drops em QUALQUER página
