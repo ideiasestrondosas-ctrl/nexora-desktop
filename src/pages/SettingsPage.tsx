@@ -33,7 +33,10 @@ import {
   Terminal,
   Info,
   AlertCircle,
+  Cloud,
 } from 'lucide-react';
+import { CloudProfileModal } from '@/components/CloudProfileModal';
+import { useCloudStore, CloudProfile, PROVIDER_LABELS } from '@/store/cloud';
 
 interface Settings {
   output_dir: string;
@@ -124,7 +127,7 @@ interface LogStorageInfo {
   oldestFileDate: string | null;
 }
 
-type SettingsTab = 'general' | 'interface' | 'system' | 'logs' | 'advanced' | 'about';
+type SettingsTab = 'general' | 'interface' | 'system' | 'logs' | 'cloud' | 'advanced' | 'about';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -162,6 +165,18 @@ export default function SettingsPage() {
   const [clearingThumbs, setClearingThumbs] = useState(false);
   const [logInfo, setLogInfo] = useState<LogStorageInfo | null>(null);
   const [logInfoLoading, setLogInfoLoading] = useState(false);
+
+  const {
+    profiles: cloudProfiles,
+    setProfiles: setCloudProfiles,
+    removeProfile: removeCloudProfile,
+  } = useCloudStore();
+  const [cloudModalOpen, setCloudModalOpen] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<CloudProfile | null>(null);
+
+  useEffect(() => {
+    invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
+  }, [setCloudProfiles]);
 
   const systemTimedOut = useRef(false);
 
@@ -480,6 +495,7 @@ export default function SettingsPage() {
     { id: 'interface', label: t('settings.tabs.interface'), icon: Palette },
     { id: 'system', label: t('settings.tabs.system'), icon: Server },
     { id: 'logs', label: 'Logs', icon: Terminal },
+    { id: 'cloud' as const, label: 'Cloud', icon: Cloud },
     { id: 'advanced', label: t('settings.tabs.advanced'), icon: Globe },
     { id: 'about', label: t('settings.tabs.about'), icon: Info },
   ];
@@ -1287,6 +1303,86 @@ export default function SettingsPage() {
               </div>
             </div>
           </section>
+        </div>
+      )}
+
+      {/* TAB: CLOUD */}
+      {activeTab === 'cloud' && (
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-300">Perfis de Cloud</h3>
+              <button
+                onClick={() => {
+                  setEditingProfile(null);
+                  setCloudModalOpen(true);
+                }}
+                className="flex items-center gap-2 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded px-3 py-1.5"
+              >
+                + Novo Perfil
+              </button>
+            </div>
+
+            {cloudProfiles.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Nenhum perfil configurado. Clique em &quot;+ Novo Perfil&quot; para começar.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {cloudProfiles.map((profile) => (
+                  <div
+                    key={profile.id}
+                    className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 border border-gray-700"
+                  >
+                    <div>
+                      <p className="text-sm text-white font-medium">{profile.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {PROVIDER_LABELS[profile.provider]}
+                        {profile.config.host ? ` · ${String(profile.config.host)}` : ''}
+                        {profile.config.bucket ? ` · ${String(profile.config.bucket)}` : ''}
+                        {profile.config.base_path ? ` · ${String(profile.config.base_path)}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingProfile(profile);
+                          setCloudModalOpen(true);
+                        }}
+                        className="text-xs text-gray-400 hover:text-white border border-gray-600 rounded px-2 py-1"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const ok = await confirm(
+                            `Apagar perfil "${profile.name}"? Os jobs existentes com este destino não serão afectados.`,
+                            { title: 'Apagar Perfil', kind: 'warning' },
+                          );
+                          if (!ok) return;
+                          await invoke('delete_cloud_profile', { id: profile.id });
+                          removeCloudProfile(profile.id);
+                          toast.success('Perfil apagado');
+                        }}
+                        className="text-xs text-red-400 hover:text-red-300 border border-gray-600 rounded px-2 py-1"
+                      >
+                        Apagar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <CloudProfileModal
+            open={cloudModalOpen}
+            onClose={() => {
+              setCloudModalOpen(false);
+              setEditingProfile(null);
+            }}
+            editing={editingProfile}
+          />
         </div>
       )}
 
