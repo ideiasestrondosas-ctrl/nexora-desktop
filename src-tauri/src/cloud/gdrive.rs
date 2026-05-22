@@ -9,10 +9,11 @@ const GDRIVE_FILES_URL: &str = "https://www.googleapis.com/drive/v3/files";
 pub struct GDriveProvider {
     access_token: String,
     base_folder_id: Option<String>,
+    base_path: String,
 }
 
 impl GDriveProvider {
-    pub fn new(_config: &serde_json::Value, creds: &serde_json::Value) -> Result<Self, String> {
+    pub fn new(config: &serde_json::Value, creds: &serde_json::Value) -> Result<Self, String> {
         let token = creds["oauth_token"]
             .as_str()
             .ok_or("oauth_token é obrigatório — autentique o perfil primeiro")?
@@ -21,7 +22,12 @@ impl GDriveProvider {
             .get("folder_id")
             .and_then(|v| v.as_str())
             .map(|s| s.to_string());
-        Ok(Self { access_token: token, base_folder_id: folder_id })
+        let base_path = config
+            .get("base_path")
+            .and_then(|v| v.as_str())
+            .unwrap_or("/")
+            .to_string();
+        Ok(Self { access_token: token, base_folder_id: folder_id, base_path })
     }
 
     /// Resolve o nome de uma pasta para o seu ID no Drive, dentro de um pai opcional.
@@ -64,19 +70,35 @@ impl GDriveProvider {
     }
 
     /// Resolve um caminho relativo (separado por `/`) a partir da pasta-raiz configurada.
+    /// Se `base_folder_id` não estiver em cache, resolve `base_path` segmento a segmento
+    /// a partir da raiz do Drive antes de descer o subpath.
     async fn resolve_path_id(
         &self,
         client: &reqwest::Client,
         subpath: &str,
     ) -> Result<String, String> {
-        let start_id = match &self.base_folder_id {
+        // Resolve pasta base: usa o ID em cache ou percorre base_path desde a raiz
+        let mut current_id = match &self.base_folder_id {
             Some(id) => id.clone(),
-            None => return Err("folder_id não configurado — reautentique o perfil".to_string()),
+            None => {
+                let segments: Vec<&str> = self.base_path
+                    .split('/')
+                    .filter(|s| !s.is_empty())
+                    .collect();
+                if segments.is_empty() {
+                    // base_path vazio ou "/" → raiz do Drive
+                    "root".to_string()
+                } else {
+                    let mut id = String::new();
+                    for segment in segments {
+                        let parent = if id.is_empty() { None } else { Some(id.as_str()) };
+                        id = self.resolve_folder_id(client, segment, parent).await?;
+                    }
+                    id
+                }
+            }
         };
-        if subpath.is_empty() {
-            return Ok(start_id);
-        }
-        let mut current_id = start_id;
+        // Desce o subpath de navegação
         for segment in subpath.split('/').filter(|s| !s.is_empty()) {
             current_id = self.resolve_folder_id(client, segment, Some(&current_id)).await?;
         }
