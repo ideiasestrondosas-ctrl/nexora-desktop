@@ -101,6 +101,17 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
       const configJson = JSON.stringify({ ...config, ...creds });
 
       if (editing) {
+        try {
+          await invoke('test_cloud_connection', {
+            id: editing.id,
+            provider,
+            configJson: JSON.stringify(config),
+            credentialsJson: JSON.stringify(creds),
+          });
+        } catch (e) {
+          toast.error(`Ligação falhou, perfil não actualizado: ${e}`);
+          return;
+        }
         await invoke('update_cloud_profile', {
           id: editing.id,
           name: name.trim(),
