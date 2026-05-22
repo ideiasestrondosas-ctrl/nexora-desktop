@@ -112,7 +112,7 @@ impl CloudProvider for S3Provider {
         let prefix = if path.is_empty() {
             if base.is_empty() { String::new() } else { format!("{base}/") }
         } else {
-            let rel = path.trim_end_matches('/');
+            let rel = path.trim_matches('/');
             if base.is_empty() { format!("{rel}/") } else { format!("{base}/{rel}/") }
         };
 
@@ -129,7 +129,7 @@ impl CloudProvider for S3Provider {
                 let folder_full = cp.prefix.trim_end_matches('/');
                 let name = folder_full.rsplit('/').next().unwrap_or("").to_string();
                 if name.is_empty() { continue; }
-                let rel = folder_full.trim_start_matches(base).trim_start_matches('/').to_string();
+                let rel = folder_full.strip_prefix(base).unwrap_or(folder_full).trim_start_matches('/').to_string();
                 files.push(RemoteFile { name, path: rel, size: None, modified: None, is_dir: true });
             }
             // Ficheiros (contents): ignora entradas "directório" que terminam em '/'
@@ -137,7 +137,7 @@ impl CloudProvider for S3Provider {
                 if obj.key.ends_with('/') { continue; }
                 let name = obj.key.rsplit('/').next().unwrap_or("").to_string();
                 if name.is_empty() { continue; }
-                let rel = obj.key.trim_start_matches(base).trim_start_matches('/').to_string();
+                let rel = obj.key.strip_prefix(base).unwrap_or(obj.key.as_str()).trim_start_matches('/').to_string();
                 files.push(RemoteFile {
                     name,
                     path: rel,
