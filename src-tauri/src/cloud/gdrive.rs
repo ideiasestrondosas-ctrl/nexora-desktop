@@ -2,8 +2,8 @@ use super::provider::{CloudProvider, RemoteFile};
 use async_trait::async_trait;
 use std::path::Path;
 
-const GDRIVE_UPLOAD_URL: &str =
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+const GDRIVE_UPLOAD_BASE: &str =
+    "https://www.googleapis.com/upload/drive/v3/files";
 const GDRIVE_FILES_URL: &str = "https://www.googleapis.com/drive/v3/files";
 
 pub struct GDriveProvider {
@@ -141,7 +141,43 @@ impl CloudProvider for GDriveProvider {
         let data = tokio::fs::read(local_path).await.map_err(|e| e.to_string())?;
 
         let client = reqwest::Client::new();
-        let metadata = serde_json::json!({ "name": filename });
+
+        // Resolver a pasta de destino (base_path configurada no perfil)
+        let parent_id = self.resolve_path_id(&client, "").await?;
+
+        // Verificar se já existe um ficheiro com o mesmo nome na pasta de destino
+        let q = format!(
+            "name='{}' and '{}' in parents and mimeType!='application/vnd.google-apps.folder' and trashed=false",
+            filename.replace('\'', "\\'"),
+            parent_id
+        );
+        let search = client
+            .get(GDRIVE_FILES_URL)
+            .bearer_auth(&self.access_token)
+            .query(&[("q", q.as_str()), ("fields", "files(id)"), ("pageSize", "1")])
+            .send()
+            .await
+            .map_err(|e| format!("Google Drive: pesquisa falhou: {e}"))?;
+        if search.status().as_u16() == 401 {
+            return Err("Token expirado — reautentique o perfil".to_string());
+        }
+        let search_body: serde_json::Value = search.json().await.map_err(|e| e.to_string())?;
+        let existing_id = search_body["files"][0]["id"].as_str().map(|s| s.to_string());
+
+        // Upsert: PATCH se já existe, POST se é novo
+        let (url, metadata, use_patch) = match &existing_id {
+            Some(id) => (
+                format!("{}/{}?uploadType=multipart", GDRIVE_UPLOAD_BASE, id),
+                serde_json::json!({ "name": filename }),
+                true,
+            ),
+            None => (
+                format!("{}?uploadType=multipart", GDRIVE_UPLOAD_BASE),
+                serde_json::json!({ "name": filename, "parents": [parent_id] }),
+                false,
+            ),
+        };
+
         let metadata_part = reqwest::multipart::Part::text(metadata.to_string())
             .mime_str("application/json")
             .map_err(|e| e.to_string())?;
@@ -152,8 +188,12 @@ impl CloudProvider for GDriveProvider {
             .part("metadata", metadata_part)
             .part("file", file_part);
 
-        let resp = client
-            .post(GDRIVE_UPLOAD_URL)
+        let req = if use_patch {
+            client.patch(&url)
+        } else {
+            client.post(&url)
+        };
+        let resp = req
             .bearer_auth(&self.access_token)
             .multipart(form)
             .send()
@@ -164,7 +204,9 @@ impl CloudProvider for GDriveProvider {
             let body: serde_json::Value = resp.json().await.unwrap_or_default();
             Ok(body["id"].as_str().unwrap_or("").to_string())
         } else {
-            Err(format!("Google Drive upload erro: {}", resp.status()))
+            let status = resp.status();
+            let detail = resp.text().await.unwrap_or_default();
+            Err(format!("Google Drive upload erro: {status} — {detail}"))
         }
     }
 
