@@ -142,22 +142,14 @@ pub fn get_job_cloud_destinations(
     Ok(destinations)
 }
 
-#[tauri::command]
-pub async fn process_cloud_destinations(
-    job_id: String,
-    app: tauri::AppHandle,
-    state: State<'_, AppState>,
-) -> Result<(), String> {
-    // Parâmetro reservado para emissão de eventos futura
-    let _ = &app;
-
-    // Obter o caminho de saída do job e os destinos pendentes
+/// Lógica interna de upload — chamada pelo comando Tauri e pelo queue após job:completed.
+pub(crate) async fn run_cloud_uploads(job_id: &str, state: &AppState) -> Result<(), String> {
     let (output_path, destinations): (Option<String>, Vec<(String, String, String)>) = {
         let db = state.db.lock().map_err(|e| e.to_string())?;
         let output: Option<String> = db
             .query_row(
                 "SELECT output_path FROM jobs WHERE id=?1",
-                [&job_id],
+                [job_id],
                 |row| row.get(0),
             )
             .map_err(|e| e.to_string())?;
@@ -170,7 +162,7 @@ pub async fn process_cloud_destinations(
             )
             .map_err(|e| e.to_string())?;
         let dests: Vec<(String, String, String)> = stmt
-            .query_map([&job_id], |row| {
+            .query_map([job_id], |row| {
                 Ok((
                     row.get::<_, String>(0)?,
                     row.get::<_, String>(1)?,
@@ -206,9 +198,9 @@ pub async fn process_cloud_destinations(
                 continue;
             }
         };
-        let creds = serde_json::Value::Object(Default::default());
+        // As credenciais (oauth_token, etc.) estão armazenadas no mesmo JSON que config
+        let creds = config.clone();
 
-        // Marcar como a fazer upload
         {
             let db = state.db.lock().map_err(|e| e.to_string())?;
             let _ = db.execute(
@@ -261,6 +253,16 @@ pub async fn process_cloud_destinations(
         }
     }
     Ok(())
+}
+
+#[tauri::command]
+pub async fn process_cloud_destinations(
+    job_id: String,
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let _ = &app;
+    run_cloud_uploads(&job_id, &state).await
 }
 
 #[tauri::command]
