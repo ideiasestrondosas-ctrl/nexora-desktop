@@ -134,6 +134,28 @@ impl FtpProvider {
     }
 }
 
+// Função livre — interpreta uma linha do comando LIST do FTP (formato UNIX ls -l)
+// Exemplo: "-rw-r--r-- 1 user group 12345 Jan 01 12:00 clip.mp4"
+fn parse_ftp_list_line(line: &str, subpath: &str) -> Option<super::provider::RemoteFile> {
+    use super::provider::RemoteFile;
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    if parts.len() < 9 {
+        return None;
+    }
+    let is_dir = parts[0].starts_with('d');
+    let size: Option<u64> = if is_dir { None } else { parts[4].parse().ok() };
+    let name = parts[8..].join(" ");
+    if name == "." || name == ".." || name.is_empty() {
+        return None;
+    }
+    let path = if subpath.is_empty() {
+        name.clone()
+    } else {
+        format!("{}/{}", subpath.trim_end_matches('/'), name)
+    };
+    Some(RemoteFile { name, path, size, modified: None, is_dir })
+}
+
 #[async_trait]
 impl CloudProvider for FtpProvider {
     fn provider_type(&self) -> &'static str {
@@ -164,5 +186,29 @@ impl CloudProvider for FtpProvider {
         let result = self.do_download(&mut ftp, &remote, local_path).await;
         let _ = ftp.quit().await;
         result
+    }
+
+    async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
+        let full = self.full_remote_path(path);
+        let mut ftp = self.connect().await?;
+        let lines = ftp
+            .list(Some(&full))
+            .await
+            .map_err(|e| format!("FTP LIST falhou em {full}: {e}"))?;
+        let _ = ftp.quit().await;
+        Ok(lines.iter().filter_map(|l| parse_ftp_list_line(l, path)).collect())
+    }
+
+    async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
+        let mut ftp = self.connect().await?;
+        let mut failed = Vec::new();
+        for path in paths {
+            let full = self.full_remote_path(path);
+            if let Err(e) = ftp.rm(&full).await {
+                failed.push(format!("{path}: {e}"));
+            }
+        }
+        let _ = ftp.quit().await;
+        Ok(failed)
     }
 }
