@@ -15,7 +15,7 @@
 | Campo                  | Valor                                                         |
 | ---------------------- | ------------------------------------------------------------- |
 | **Nome**               | Nexora Media Processing - Desktop Nativo                      |
-| **Versao**             | 0.24.0 (script de release melhorado)                          |
+| **Versao**             | 0.25.0 (Cloud File Browser + Cloud Upload Fix)                |
 | **IDE**                | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT) |
 | **Stack Shell**        | Tauri 2.x (Rust)                                              |
 | **Stack Frontend**     | React 19 + TypeScript + Tailwind CSS + Zustand                |
@@ -214,6 +214,43 @@ Proximo:       Testes manuais / bump de versao para v0.25.0
 - `1751a2a` feat(cloud): CloudProfileModal — create/edit/test profiles
 - `789bd7b` feat(cloud): cloud Zustand store + provider metadata
 - `f89e707` feat(cloud): register cloud commands in Tauri invoke handler
+
+### Fase 12 - Cloud File Browser + Cloud Upload Fix (v0.25.0)
+
+**Arquitectura:** `RemoteFile` struct + `list_files`/`delete_files` no trait `CloudProvider`, 3 novos comandos IPC, `CloudFileBrowserModal`, botão Browse em cada perfil, 18 chaves i18n, 13 testes.
+
+- [x] `RemoteFile` struct em `provider.rs` (name, path, size, modified, is_dir, camelCase serde)
+- [x] Métodos `list_files` e `delete_files` com implementação default `Err(...)` no trait
+- [x] `FtpProvider`: `list_files` (parser UNIX + DOS), `delete_files`, 7 unit tests, quit-safe
+- [x] `SftpProvider`: `list_files` (read_dir sync iterator), `delete_files`, session fechada em erro
+- [x] `SmbProvider`: `list_files` (std::fs::read_dir), `delete_files`, guarda de path traversal
+- [x] `S3Provider`: `list_files` (delimiter list, common_prefixes=pastas, contents=ficheiros), `delete_files`
+- [x] `GDriveProvider`: `list_files` (Drive v3 API, resolve folder ID), `delete_files`, `download` com HTTP check
+- [x] `ICloudProvider`: `list_files`/`delete_files`/`download` retornam `Err` explicito
+- [x] Comandos Tauri: `cloud_list_files`, `cloud_delete_files`, `cloud_download_file` + helper `load_profile_provider`
+- [x] `CloudFileBrowserModal.tsx`: modal completo (spinner, erro, vazio, tabela, breadcrumb, selecção, download, delete individual/seleccionados/todos)
+- [x] `SettingsPage.tsx`: botão Browse antes de Editar em cada perfil; disabled+tooltip para iCloud
+- [x] i18n: 18 chaves `cloudBrowser.*` em todos os 15 locales
+- [x] 13 testes de componente em `CloudFileBrowserModal.test.tsx`
+- [x] **CRÍTICO**: cloud upload agora accionado após `job:completed` via `tauri::async_runtime::spawn` em `queue.rs`
+- [x] **CRÍTICO**: corrigidas credenciais vazias em `run_cloud_uploads` (era `Default::default()`, agora `config.clone()`)
+- [x] GDrive upload: upsert (PATCH se ficheiro já existe por nome na pasta, POST se novo)
+- [x] GDrive Browse: resolve `base_path` segmento-a-segmento para folder ID quando `folder_id` não está em cache
+- [x] GDrive Browse: pesquisa raiz restrita a `'root' in parents`
+
+**Commits principais:**
+
+- `006a496` feat(cloud): RemoteFile type + list_files/delete_files trait defaults
+- `c230f0b` feat(cloud/ftp): list_files + delete_files
+- `aea68f8` feat(cloud/sftp): list_files + delete_files
+- `ac7348e` feat(cloud/smb): list_files + delete_files; icloud: explicit not-supported
+- `1c94bf0` feat(cloud/s3): list_files + delete_files
+- `6f163f5` feat(cloud/gdrive): list_files + delete_files via Drive v3 API
+- `151b4f0` feat(cloud): Tauri commands cloud_list_files, cloud_delete_files, cloud_download_file
+- `0fc4936` feat(ui): CloudFileBrowserModal
+- `0b9e1f1` feat(settings): Browse button per cloud profile + i18n cloudBrowser keys
+- `2febb7b` fix(cloud): disparar upload após job:completed + corrigir creds vazias
+- `377a75a` fix(cloud/gdrive): upsert no upload
 
 ---
 

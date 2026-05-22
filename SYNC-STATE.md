@@ -5,10 +5,61 @@
 
 ---
 
-Actualizado: 2026-05-21
+Actualizado: 2026-05-22
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 16 — Cloud File Browser + Cloud Upload Fix + GDrive Upsert (v0.25.0) — CONCLUIDO
+
+**Pedido:** (1) Cloud File Browser em cada perfil cloud nas Definições; (2) investigar porque ficheiros processados não são enviados para FTP/SMB; (3) GDrive upsert no upload.
+
+**Implementação:**
+
+1. **Cloud File Browser (10 tasks, 22 commits):**
+   - `RemoteFile` struct (`name, path, size, modified, is_dir`, camelCase serde) + `list_files`/`delete_files` defaults no trait `CloudProvider`
+   - `FtpProvider`: parser UNIX + DOS, quit-safe, 7 unit tests
+   - `SftpProvider`: `read_dir` sync iterator, sessão fechada em caso de erro
+   - `SmbProvider`: `std::fs::read_dir`, guarda de path traversal (`full.starts_with(base)`)
+   - `S3Provider`: `list_objects_v2` com delimiter `"/"`, `common_prefixes`=pastas, `contents`=ficheiros, strip_prefix exacto
+   - `GDriveProvider`: Drive v3 API, resolve `base_path` para folder ID, download com HTTP status check, file ID extraído de compound path
+   - `ICloudProvider`: `Err` explícito em `list_files`/`delete_files`/`download`
+   - 3 comandos Tauri: `cloud_list_files`, `cloud_delete_files`, `cloud_download_file` + helper `load_profile_provider`
+   - `CloudFileBrowserModal.tsx`: spinner, erro+retry, vazio, tabela, breadcrumb, selecção, download (diálogo nativo), delete individual/seleccionados/todos
+   - `SettingsPage.tsx`: botão Browse antes de Editar; disabled+tooltip para iCloud
+   - 18 chaves `cloudBrowser.*` em 15 locales; 13 testes de componente
+
+2. **CRÍTICO — Cloud upload nunca accionado:**
+   - `queue.rs`: `job:completed` actualizava a BD mas não chamava `process_cloud_destinations`
+   - Fix: `tauri::async_runtime::spawn` após emitir o evento, chama `run_cloud_uploads(&job_id, &state)`
+   - Extraída função `pub(crate) run_cloud_uploads` de `process_cloud_destinations` para reutilização
+
+3. **Credenciais vazias em process_cloud_destinations:**
+   - Linha 209: `let creds = serde_json::Value::Object(Default::default())` passava creds vazias
+   - Fix: `let creds = config.clone()` — credenciais estão no mesmo JSON que config
+
+4. **GDrive Browse bugs:**
+   - "folder_id não configurado": `folder_id` nunca é persistido, apenas `base_path`. Fix: resolver segmentos de `base_path` via Drive API quando `folder_id` é None; `""` ou `"/"` retorna `"root"`
+   - "Pasta não encontrada": pesquisa sem `parent_id` não restrita à raiz. Fix: `'root' in parents` quando `parent_id` is None
+
+5. **GDrive upsert:**
+   - Upload sempre criava duplicados (POST cria novo ID). Fix: pesquisar ficheiro por nome na pasta de destino; PATCH se existe, POST com `parents` se novo
+
+**Commits chave:**
+
+- `006a496` feat(cloud): RemoteFile + trait defaults
+- `c230f0b..6f163f5` feat(cloud/\*): list_files + delete_files por provider
+- `151b4f0` feat(cloud): comandos Tauri
+- `0fc4936` feat(ui): CloudFileBrowserModal
+- `0b9e1f1` feat(settings): Browse button + i18n
+- `067bdfa` fix(cloud/gdrive): resolve base_path segments
+- `091c045` fix(cloud/gdrive): 'root' in parents
+- `2febb7b` fix(cloud): disparar upload + creds fix
+- `377a75a` fix(cloud/gdrive): upsert upload
+
+**Verificação:** cargo check limpo · 48 testes passam · confirmado por utilizador (FTP/SMB upload funciona)
+
+---
 
 ### Sessao 15 — Cloud Storage Integration (Sub-projecto A, todas as 4 fases) — CONCLUIDO
 

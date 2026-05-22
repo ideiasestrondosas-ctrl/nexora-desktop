@@ -6,6 +6,31 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-05-22
+
+### Added
+
+- Cloud File Browser: botão Browse em cada perfil cloud nas Definições → Cloud; modal com listagem, navegação em subdirectórios, download e eliminação de ficheiros para FTP, FTPS, SFTP, SMB, S3 e Google Drive (iCloud: mensagem clara de não suportado).
+- 18 novas chaves i18n `cloudBrowser.*` em todos os 15 locales.
+- 13 testes de componente para CloudFileBrowserModal (spinner, tabela, navegação, breadcrumb, selecção, delete, download, erro, pasta vazia).
+
+### Fixed
+
+- Cloud upload após processamento: `process_cloud_destinations` nunca era chamado após `job:completed` — ficheiros ficavam sempre locais em vez de serem enviados para FTP/SMB/S3/GDrive.
+- Credenciais vazias em `process_cloud_destinations`: creds era objecto vazio, falhando no GDrive (oauth_token ausente). Corrigido para usar `config.clone()`.
+- GDrive Browse — "folder_id não configurado": base_path (nome de pasta) agora resolvido para folder ID via Drive API quando folder_id não está em cache.
+- GDrive Browse — "Pasta não encontrada": pesquisa sem parent_id agora restrita à raiz do My Drive (`'root' in parents`).
+- GDrive download: extraído apenas o file ID do remote_path composto (ex: "pasta/FILE_ID").
+- GDrive download: bytes já não escritos para disco quando a API retorna erro HTTP.
+- SMB: adicionada guarda de path traversal no resolve().
+- S3: trim de path e strip_prefix corrigidos para evitar prefixos duplos e remoção incorrecta.
+- SFTP: sessão fechada correctamente quando read_dir falha (eliminado leak).
+- FTP: conexão fechada correctamente quando LIST falha; suporte adicionado ao formato DOS/Windows.
+
+### Changed
+
+- GDrive upload: upsert — usa PATCH se já existe ficheiro com o mesmo nome (elimina duplicados em reprocessamentos); POST com parents se é novo.
+
 ## [0.24.0] - 2026-05-20
 
 ### Added

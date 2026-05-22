@@ -3,7 +3,7 @@
  * Actualizar aqui em cada release — propaga automaticamente
  * para todos os sítios que mostram a versão.
  */
-export const APP_VERSION = '0.23.0';
+export const APP_VERSION = '0.25.0';
 
 export interface VersionEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface VersionEntry {
 }
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: '0.25.0',
+    description:
+      'v0.25.0: Cloud File Browser — navegar, descarregar e apagar ficheiros em FTP/SFTP/SMB/S3/GDrive directamente nas definições; cloud upload para destinos agora accionado automaticamente após processamento; GDrive upsert (PATCH se ficheiro já existe); correcções GDrive Browse (base_path → folder ID, raiz My Drive).',
+  },
+  {
+    version: '0.24.0',
+    description:
+      'v0.24.0: sistema de logging completo (ficheiros rotativos, verbosidade, aba Logs nas Settings, envio ao developer); settings aplicam ao vivo (idioma e concorrência); cache display na aba System; GDrive OAuth melhorado (URL clicável + código copiável); CloudDestinationPicker no BatchSubmitModal; MinIO local isolado para desenvolvimento.',
+  },
   {
     version: '0.23.0',
     description:
