@@ -1,4 +1,4 @@
-use super::provider::CloudProvider;
+use super::provider::{CloudProvider, RemoteFile};
 use async_trait::async_trait;
 use std::path::Path;
 use suppaftp::AsyncFtpStream;
@@ -134,11 +134,34 @@ impl FtpProvider {
     }
 }
 
-// Função livre — interpreta uma linha do comando LIST do FTP (formato UNIX ls -l)
-// Exemplo: "-rw-r--r-- 1 user group 12345 Jan 01 12:00 clip.mp4"
-fn parse_ftp_list_line(line: &str, subpath: &str) -> Option<super::provider::RemoteFile> {
-    use super::provider::RemoteFile;
+// Função livre — interpreta uma linha do comando LIST do FTP
+// Suporta formato UNIX (ls -l) e formato DOS/Windows (IIS/FileZilla Server)
+//
+// Formato UNIX:  "-rw-r--r-- 1 user group 12345 Jan 01 12:00 clip.mp4"
+// Formato DOS:   "01-22-26  03:00PM               12345 clip.mp4"
+//                "01-22-26  03:00PM       <DIR>          footage"
+fn parse_ftp_list_line(line: &str, subpath: &str) -> Option<RemoteFile> {
     let parts: Vec<&str> = line.split_whitespace().collect();
+
+    // Formato DOS/Windows: "MM-DD-YY  HH:MMAM  <DIR>|size  name"
+    // parts: ["01-22-26", "03:00PM", "<DIR>", "footage"]
+    //     ou ["01-22-26", "03:00PM", "12345", "clip.mp4"]
+    if parts.len() >= 4 && parts[0].contains('-') && parts[0].len() == 8 && parts[1].contains(':') {
+        let is_dir = parts[2] == "<DIR>";
+        let size: Option<u64> = if is_dir { None } else { parts[2].parse().ok() };
+        let name = parts[3..].join(" ");
+        if name.is_empty() {
+            return None;
+        }
+        let path = if subpath.is_empty() {
+            name.clone()
+        } else {
+            format!("{}/{}", subpath.trim_end_matches('/'), name)
+        };
+        return Some(RemoteFile { name, path, size, modified: None, is_dir });
+    }
+
+    // Formato UNIX: "-rwxr-xr-x 1 user group 12345 Jan 01 12:00 clip.mp4"
     if parts.len() < 9 {
         return None;
     }
@@ -191,12 +214,13 @@ impl CloudProvider for FtpProvider {
     async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
         let full = self.full_remote_path(path);
         let mut ftp = self.connect().await?;
-        let lines = ftp
+        // Guardar resultado antes de quit() para garantir que a ligação é sempre encerrada
+        let result = ftp
             .list(Some(&full))
             .await
-            .map_err(|e| format!("FTP LIST falhou em {full}: {e}"))?;
+            .map_err(|e| format!("FTP LIST falhou em {full}: {e}"));
         let _ = ftp.quit().await;
-        Ok(lines.iter().filter_map(|l| parse_ftp_list_line(l, path)).collect())
+        result.map(|lines| lines.iter().filter_map(|l| parse_ftp_list_line(l, path)).collect())
     }
 
     async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
@@ -210,5 +234,62 @@ impl CloudProvider for FtpProvider {
         }
         let _ = ftp.quit().await;
         Ok(failed)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_ftp_list_line;
+
+    #[test]
+    fn unix_file_line() {
+        let r = parse_ftp_list_line("-rw-r--r-- 1 user group 12345 Jan 01 12:00 clip.mp4", "").unwrap();
+        assert_eq!(r.name, "clip.mp4");
+        assert_eq!(r.path, "clip.mp4");
+        assert_eq!(r.size, Some(12345));
+        assert!(!r.is_dir);
+    }
+
+    #[test]
+    fn unix_dir_line() {
+        let r = parse_ftp_list_line("drwxr-xr-x 2 user group 4096 Jan 01 12:00 footage", "videos").unwrap();
+        assert_eq!(r.name, "footage");
+        assert_eq!(r.path, "videos/footage");
+        assert!(r.is_dir);
+        assert!(r.size.is_none());
+    }
+
+    #[test]
+    fn unix_file_with_spaces() {
+        let r = parse_ftp_list_line("-rw-r--r-- 1 user group 999 Jan 01 12:00 my clip final.mp4", "").unwrap();
+        assert_eq!(r.name, "my clip final.mp4");
+    }
+
+    #[test]
+    fn unix_dot_entries_skipped() {
+        assert!(parse_ftp_list_line("drwxr-xr-x 2 user group 4096 Jan 01 12:00 .", "").is_none());
+        assert!(parse_ftp_list_line("drwxr-xr-x 2 user group 4096 Jan 01 12:00 ..", "").is_none());
+    }
+
+    #[test]
+    fn short_line_skipped() {
+        assert!(parse_ftp_list_line("-rw-r--r-- 1 user group", "").is_none());
+    }
+
+    #[test]
+    fn dos_file_line() {
+        let r = parse_ftp_list_line("01-22-26  03:00PM               12345 clip.mp4", "").unwrap();
+        assert_eq!(r.name, "clip.mp4");
+        assert_eq!(r.size, Some(12345));
+        assert!(!r.is_dir);
+    }
+
+    #[test]
+    fn dos_dir_line() {
+        let r = parse_ftp_list_line("01-22-26  03:00PM       <DIR>          footage", "sub").unwrap();
+        assert_eq!(r.name, "footage");
+        assert_eq!(r.path, "sub/footage");
+        assert!(r.is_dir);
+        assert!(r.size.is_none());
     }
 }
