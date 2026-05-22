@@ -166,10 +166,10 @@ function nxFreePort {
     param([int]$Port = 1420)
     $conn = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($conn) {
-        $pid = $conn.OwningProcess
-        $name = (Get-Process -Id $pid -ErrorAction SilentlyContinue).ProcessName
-        nxWarn "Porta $Port ocupada por '$name' (PID $pid). A libertar..."
-        Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+        $procId = $conn.OwningProcess
+        $procName = (Get-Process -Id $procId -ErrorAction SilentlyContinue).ProcessName
+        nxWarn "Porta $Port ocupada por '$procName' (PID $procId). A libertar..."
+        Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
         Start-Sleep -Milliseconds 500
         nxOk "Porta $Port libertada"
     }
