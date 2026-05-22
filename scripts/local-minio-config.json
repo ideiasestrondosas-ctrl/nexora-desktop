@@ -1,0 +1,12 @@
+{
+  "containerName": "nexora-desktop-minio",
+  "apiPort": 9010,
+  "consolePort": 9011,
+  "bucket": "nexora-desktop",
+  "region": "us-east-1",
+  "endpoint": "http://localhost:9010",
+  "basePath": "uploads/",
+  "accessKey": "desktopadmin",
+  "secretKey": "desktop_secret_key",
+  "volumeName": "nexora-desktop-minio-data"
+}

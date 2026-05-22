@@ -30,6 +30,25 @@ $RootPassword  = "desktop_secret_key"
 $BucketName    = "nexora-desktop"
 $BasePrefix    = "uploads/"
 
+# Ensure local-minio-config.json exists (used by list-minio-content.ps1)
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$ConfigPath = Join-Path $ScriptDir "local-minio-config.json"
+if (-not (Test-Path $ConfigPath)) {
+    $defaultConfig = @{
+        containerName = $ContainerName
+        apiPort       = $ApiPort
+        consolePort   = $ConsolePort
+        bucket        = $BucketName
+        region        = "us-east-1"
+        endpoint      = "http://localhost:$ApiPort"
+        basePath      = $BasePrefix
+        accessKey     = $RootUser
+        secretKey     = $RootPassword
+        volumeName    = $DataVolume
+    } | ConvertTo-Json -Depth 3
+    $defaultConfig | Set-Content $ConfigPath -Encoding UTF8
+}
+
 function Write-Header($text) {
     Write-Host "`n========================================" -ForegroundColor Cyan
     Write-Host "  $text" -ForegroundColor Cyan
