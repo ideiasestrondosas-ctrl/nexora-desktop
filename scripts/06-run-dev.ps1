@@ -162,7 +162,21 @@ function nxTest {
     npm test
 }
 
+function nxFreePort {
+    param([int]$Port = 1420)
+    $conn = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($conn) {
+        $pid = $conn.OwningProcess
+        $name = (Get-Process -Id $pid -ErrorAction SilentlyContinue).ProcessName
+        nxWarn "Porta $Port ocupada por '$name' (PID $pid). A libertar..."
+        Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 500
+        nxOk "Porta $Port libertada"
+    }
+}
+
 function nxDev {
+    nxFreePort 1420
     nxVerifyEnvironment
     nxStep "A arrancar Tauri Dev Server  [Ctrl+C para parar]"
     Write-Host "     Frontend: http://localhost:1420" -ForegroundColor DarkGray

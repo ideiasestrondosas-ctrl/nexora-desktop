@@ -31,7 +31,7 @@ import { resolveVideoPaths } from '@/lib/scan';
 
 import { useSettingsStore } from '@/store/settings';
 import { useJobsStore } from '@/store/jobs';
-import { useCloudStore } from '@/store/cloud';
+import { useCloudStore, type CloudProfile } from '@/store/cloud';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { useActionLog } from '@/hooks/useActionLog';
 import { cn } from '@/lib/utils';
@@ -59,7 +59,13 @@ function App() {
   const defaultProfile = useSettingsStore((state) => state.defaultProfile ?? 'web-hd');
   const { logAction } = useActionLog();
   const cloudProfiles = useCloudStore((s) => s.profiles);
+  const setCloudProfiles = useCloudStore((s) => s.setProfiles);
   const prevJobsRef = useRef<Map<string, string>>(new Map());
+
+  // Carrega perfis cloud do backend uma vez no arranque da app
+  useEffect(() => {
+    invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
+  }, [setCloudProfiles]);
 
   // Refs para aceder ao tab activo e à função t sem re-registar listeners
   const activeTabRef = useRef<Tab>(activeTab);
