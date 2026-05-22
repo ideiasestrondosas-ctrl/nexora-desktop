@@ -4,7 +4,6 @@ use std::path::Path;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-#[allow(dead_code)]
 pub struct RemoteFile {
     pub name: String,
     pub path: String,
@@ -17,17 +16,13 @@ pub struct RemoteFile {
 pub trait CloudProvider: Send + Sync {
     async fn test_connection(&self) -> Result<(), String>;
     async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String>;
-    #[allow(dead_code)]
     async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String>;
-    #[allow(dead_code)]
     fn provider_type(&self) -> &'static str;
 
-    #[allow(dead_code)]
     async fn list_files(&self, _path: &str) -> Result<Vec<RemoteFile>, String> {
         Err("Listagem de ficheiros não suportada para este fornecedor.".to_string())
     }
 
-    #[allow(dead_code)]
     async fn delete_files(&self, _paths: &[String]) -> Result<Vec<String>, String> {
         Err("Eliminação de ficheiros não suportada para este fornecedor.".to_string())
     }
