@@ -58,9 +58,7 @@ function App() {
   const theme = useSettingsStore((state) => state.theme);
   const defaultProfile = useSettingsStore((state) => state.defaultProfile ?? 'web-hd');
   const { logAction } = useActionLog();
-  const cloudProfiles = useCloudStore((s) => s.profiles);
   const setCloudProfiles = useCloudStore((s) => s.setProfiles);
-  const prevJobsRef = useRef<Map<string, string>>(new Map());
 
   // Carrega perfis cloud do backend uma vez no arranque da app
   useEffect(() => {
@@ -86,17 +84,18 @@ function App() {
   }, [logAction]);
 
   // Auto-trigger cloud upload quando um job transita para 'done'
+  // Usa subscribe() em vez de useEffect para disparar independentemente de re-renders
   useEffect(() => {
-    if (cloudProfiles.length === 0) return;
-    const jobs = useJobsStore.getState().jobs;
-    jobs.forEach((job) => {
-      const prevStatus = prevJobsRef.current.get(job.id);
-      if (prevStatus !== 'done' && job.status === 'done') {
+    const unsubscribe = useJobsStore.subscribe((state, prevState) => {
+      state.jobs.forEach((job) => {
+        if (job.status !== 'done') return;
+        const prev = prevState.jobs.find((j) => j.id === job.id);
+        if (!prev || prev.status === 'done') return;
         invoke('process_cloud_destinations', { jobId: job.id }).catch(console.error);
-      }
-      prevJobsRef.current.set(job.id, job.status);
+      });
     });
-  });
+    return unsubscribe;
+  }, []);
 
   // ── Drag-drop global centralizado ──────────────────────────────────────────
   // Um único listener tauri://drag-drop — intercepta drops em QUALQUER página
