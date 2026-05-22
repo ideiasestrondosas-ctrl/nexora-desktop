@@ -43,8 +43,9 @@ impl GDriveProvider {
                 name.replace('\'', "\\'"),
                 pid
             ),
+            // Sem parent explícito: pesquisa na raiz do My Drive
             None => format!(
-                "name='{}' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+                "name='{}' and mimeType='application/vnd.google-apps.folder' and 'root' in parents and trashed=false",
                 name.replace('\'', "\\'")
             ),
         };
@@ -66,7 +67,9 @@ impl GDriveProvider {
         body["files"][0]["id"]
             .as_str()
             .map(|s| s.to_string())
-            .ok_or_else(|| format!("Pasta '{name}' não encontrada no Google Drive"))
+            .ok_or_else(|| format!(
+                "Pasta '{name}' não encontrada no Google Drive. Verifique o campo 'Pasta no Drive' nas definições do perfil (use '/' para navegar desde a raiz)."
+            ))
     }
 
     /// Resolve um caminho relativo (separado por `/`) a partir da pasta-raiz configurada.
