@@ -797,5 +797,25 @@
     "yes": "Sim",
     "no": "Não",
     "cancel": "Cancelar"
+  },
+  "cloudBrowser": {
+    "title": "Ficheiros em {{profile}}",
+    "selectAll": "Sel. Todos",
+    "selected": "{{count}} sel.",
+    "download": "Download",
+    "deleteSelected": "Apagar Seleccionados",
+    "deleteAll": "Apagar Tudo",
+    "confirmDeleteSelected": "Apagar {{count}} ficheiros de {{profile}}? Esta acção não pode ser desfeita.",
+    "confirmDeleteAll": "Apagar TODOS os ficheiros em {{path}} de {{profile}}? Esta acção não pode ser desfeita.",
+    "refresh": "Actualizar",
+    "empty": "Pasta vazia",
+    "connectionError": "Não foi possível ligar ao servidor.",
+    "retry": "Tentar novamente",
+    "downloadSuccess": "Ficheiro descarregado: {{name}}",
+    "deletePartialError": "{{count}} ficheiros não foram apagados: {{names}}",
+    "size": "Tamanho",
+    "modified": "Modificado",
+    "notSupported": "Navegação não suportada para iCloud",
+    "browseTooltipDisabled": "Navegação não suportada para iCloud"
   }
 }

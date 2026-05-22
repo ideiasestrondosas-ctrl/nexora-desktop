@@ -36,7 +36,9 @@ import {
   Cloud,
 } from 'lucide-react';
 import { CloudProfileModal } from '@/components/CloudProfileModal';
+import { CloudFileBrowserModal } from '@/components/CloudFileBrowserModal';
 import { useCloudStore, CloudProfile, PROVIDER_LABELS } from '@/store/cloud';
+import { cn } from '@/lib/utils';
 
 interface Settings {
   output_dir: string;
@@ -173,6 +175,7 @@ export default function SettingsPage() {
   } = useCloudStore();
   const [cloudModalOpen, setCloudModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<CloudProfile | null>(null);
+  const [browseProfile, setBrowseProfile] = useState<CloudProfile | null>(null);
 
   useEffect(() => {
     invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
@@ -1345,6 +1348,26 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex gap-2">
                       <button
+                        onClick={() =>
+                          profile.provider !== 'icloud' ? setBrowseProfile(profile) : undefined
+                        }
+                        disabled={profile.provider === 'icloud'}
+                        title={
+                          profile.provider === 'icloud'
+                            ? t('cloudBrowser.browseTooltipDisabled')
+                            : 'Navegar ficheiros'
+                        }
+                        className={cn(
+                          'flex items-center gap-1.5 text-xs border border-gray-600 rounded px-2 py-1 transition-colors',
+                          profile.provider === 'icloud'
+                            ? 'text-gray-600 cursor-not-allowed opacity-40'
+                            : 'text-gray-400 hover:text-white',
+                        )}
+                      >
+                        <FolderOpen size={12} />
+                        Browse
+                      </button>
+                      <button
                         onClick={() => {
                           setEditingProfile(profile);
                           setCloudModalOpen(true);
@@ -1383,6 +1406,7 @@ export default function SettingsPage() {
             }}
             editing={editingProfile}
           />
+          <CloudFileBrowserModal profile={browseProfile} onClose={() => setBrowseProfile(null)} />
         </div>
       )}
 

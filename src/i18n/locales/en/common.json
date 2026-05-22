@@ -797,5 +797,25 @@
     "yes": "Sim",
     "no": "Não",
     "cancel": "Cancelar"
+  },
+  "cloudBrowser": {
+    "title": "Files in {{profile}}",
+    "selectAll": "Select All",
+    "selected": "{{count}} selected",
+    "download": "Download",
+    "deleteSelected": "Delete Selected",
+    "deleteAll": "Delete All",
+    "confirmDeleteSelected": "Delete {{count}} files from {{profile}}? This action cannot be undone.",
+    "confirmDeleteAll": "Delete ALL files in {{path}} from {{profile}}? This action cannot be undone.",
+    "refresh": "Refresh",
+    "empty": "Empty folder",
+    "connectionError": "Could not connect to the server.",
+    "retry": "Try again",
+    "downloadSuccess": "File downloaded: {{name}}",
+    "deletePartialError": "{{count}} files could not be deleted: {{names}}",
+    "size": "Size",
+    "modified": "Modified",
+    "notSupported": "Navigation not supported for iCloud",
+    "browseTooltipDisabled": "Navigation not supported for iCloud"
   }
 }
