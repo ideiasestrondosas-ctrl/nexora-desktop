@@ -753,7 +753,13 @@
     "status": "Estado",
     "successToast": "{{count}} ficheiro(s) submetidos com sucesso",
     "outputDirTitle": "Pasta de destino dos ficheiros processados",
-    "outputDirDefault": "Pasta Temporária"
+    "outputDirDefault": "Pasta Temporária",
+    "cloudDestLabel": "Destino cloud",
+    "cloudDestSubtitle": "— padrão para todos os ficheiros",
+    "cloudNoneConfigured": "Sem perfis cloud configurados.",
+    "cloudAddProfile": "+ Adicionar perfil cloud →",
+    "cloudOverrideLabel": "Override para este ficheiro",
+    "cloudDestColumn": "Destino"
   },
   "detail": {
     "thumbnailOrig": "Original",

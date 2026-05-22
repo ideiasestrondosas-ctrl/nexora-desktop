@@ -700,7 +700,13 @@
     "status": "Status",
     "successToast": "{{count}} Datei(en) erfolgreich übermittelt",
     "outputDirTitle": "Zielordner für verarbeitete Dateien",
-    "outputDirDefault": "Temporärer Ordner"
+    "outputDirDefault": "Temporärer Ordner",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "Original",

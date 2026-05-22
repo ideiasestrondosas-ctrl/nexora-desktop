@@ -700,7 +700,13 @@
     "status": "Stato",
     "successToast": "{{count}} file inviati con successo",
     "outputDirTitle": "Cartella di destinazione dei file elaborati",
-    "outputDirDefault": "Cartella temporanea"
+    "outputDirDefault": "Cartella temporanea",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "Originale",

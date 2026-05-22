@@ -247,6 +247,10 @@ function App() {
         paths={batchPaths}
         defaultProfileId={defaultProfile}
         onClose={() => setBatchOpen(false)}
+        onOpenCloudSettings={() => {
+          setBatchOpen(false);
+          setActiveTab('settings');
+        }}
         onComplete={(count) => {
           setBatchOpen(false);
           setActiveTab('library');

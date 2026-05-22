@@ -700,7 +700,13 @@
     "status": "Durum",
     "successToast": "{{count}} dosya başarıyla gönderildi",
     "outputDirTitle": "İşlenen dosyalar için hedef klasör",
-    "outputDirDefault": "Geçici Klasör"
+    "outputDirDefault": "Geçici Klasör",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "Orijinal",

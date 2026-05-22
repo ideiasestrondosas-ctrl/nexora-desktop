@@ -700,7 +700,13 @@
     "status": "ステータス",
     "successToast": "{{count}} 件のファイルを送信しました",
     "outputDirTitle": "処理済みファイルの保存先フォルダ",
-    "outputDirDefault": "一時フォルダ"
+    "outputDirDefault": "一時フォルダ",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "オリジナル",

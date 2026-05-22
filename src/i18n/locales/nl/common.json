@@ -700,7 +700,13 @@
     "status": "Status",
     "successToast": "{{count}} bestand(en) succesvol ingediend",
     "outputDirTitle": "Doelmap voor verwerkte bestanden",
-    "outputDirDefault": "Tijdelijke map"
+    "outputDirDefault": "Tijdelijke map",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "Origineel",

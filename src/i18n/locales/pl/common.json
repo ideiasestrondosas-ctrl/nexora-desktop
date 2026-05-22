@@ -700,7 +700,13 @@
     "status": "Status",
     "successToast": "{{count}} plik(ów) przesłany(-ych) pomyślnie",
     "outputDirTitle": "Folder docelowy przetworzonych plików",
-    "outputDirDefault": "Folder tymczasowy"
+    "outputDirDefault": "Folder tymczasowy",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "Oryginał",

@@ -700,7 +700,13 @@
     "status": "الحالة",
     "successToast": "تم إرسال {{count}} ملف بنجاح",
     "outputDirTitle": "مجلد ملفات المعالجة",
-    "outputDirDefault": "مجلد مؤقت"
+    "outputDirDefault": "مجلد مؤقت",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "الأصل",

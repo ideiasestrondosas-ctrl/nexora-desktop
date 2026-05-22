@@ -700,7 +700,13 @@
     "status": "Status",
     "successToast": "{{count}} fil(er) skickades",
     "outputDirTitle": "Målmapp för bearbetade filer",
-    "outputDirDefault": "Tillfällig mapp"
+    "outputDirDefault": "Tillfällig mapp",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "Original",

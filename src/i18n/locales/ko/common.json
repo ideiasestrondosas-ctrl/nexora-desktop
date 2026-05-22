@@ -700,7 +700,13 @@
     "status": "상태",
     "successToast": "{{count}}개 파일이 제출되었습니다",
     "outputDirTitle": "처리된 파일의 대상 폴더",
-    "outputDirDefault": "임시 폴더"
+    "outputDirDefault": "임시 폴더",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "원본",
