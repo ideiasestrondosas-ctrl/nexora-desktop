@@ -189,10 +189,13 @@ impl CloudProvider for SftpProvider {
         let sftp = self.open_sftp().await?;
 
         // read_dir devolve um iterador síncrono ReadDir; já omite "." e ".."
-        let read_dir = sftp
-            .read_dir(&dir_path)
-            .await
-            .map_err(|e| format!("SFTP readdir falhou em {dir_path}: {e}"))?;
+        let read_dir = match sftp.read_dir(&dir_path).await {
+            Ok(rd) => rd,
+            Err(e) => {
+                let _ = sftp.close().await;
+                return Err(format!("SFTP readdir falhou em {dir_path}: {e}"));
+            }
+        };
 
         let mut files = Vec::new();
         for entry in read_dir {
@@ -226,9 +229,7 @@ impl CloudProvider for SftpProvider {
             });
         }
 
-        sftp.close()
-            .await
-            .map_err(|e| format!("Fecho de sessão SFTP falhou: {e}"))?;
+        let _ = sftp.close().await;
 
         Ok(files)
     }
