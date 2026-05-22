@@ -6,6 +6,49 @@ use std::path::Path;
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
+// Módulo de testes unitários para funções puras do SftpProvider
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_provider(host: &str, base_path: &str) -> SftpProvider {
+        SftpProvider {
+            host: host.to_string(),
+            port: 22,
+            username: "user".to_string(),
+            password: "pass".to_string(),
+            base_path: base_path.to_string(),
+        }
+    }
+
+    #[test]
+    fn full_remote_path_com_base_e_relativo() {
+        // base_path com barra final não deve duplicar a barra
+        let p = make_provider("host", "/uploads/");
+        assert_eq!(p.full_remote_path("videos/foo.mp4"), "/uploads/videos/foo.mp4");
+    }
+
+    #[test]
+    fn full_remote_path_base_vazia_usa_raiz() {
+        let p = make_provider("host", "");
+        assert_eq!(p.full_remote_path("media/bar.mkv"), "/media/bar.mkv");
+    }
+
+    #[test]
+    fn full_remote_path_relativo_com_barra_inicial_e_removido() {
+        // O método trim_start_matches('/') deve remover a barra inicial do relativo
+        let p = make_provider("host", "/home/user");
+        assert_eq!(p.full_remote_path("/sub/file.mp4"), "/home/user/sub/file.mp4");
+    }
+
+    #[test]
+    fn full_remote_path_relativo_vazio() {
+        let p = make_provider("host", "/srv/sftp");
+        // Relativo vazio deve resultar em base + "/"
+        assert_eq!(p.full_remote_path(""), "/srv/sftp/");
+    }
+}
+
 pub struct SftpProvider {
     host: String,
     port: u16,
@@ -137,5 +180,73 @@ impl CloudProvider for SftpProvider {
         tokio::fs::write(local_path, data)
             .await
             .map_err(|e| format!("Escrita local falhou: {e}"))
+    }
+
+    async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
+        use super::provider::RemoteFile;
+
+        let dir_path = self.full_remote_path(path);
+        let sftp = self.open_sftp().await?;
+
+        // read_dir devolve um iterador síncrono ReadDir; já omite "." e ".."
+        let read_dir = sftp
+            .read_dir(&dir_path)
+            .await
+            .map_err(|e| format!("SFTP readdir falhou em {dir_path}: {e}"))?;
+
+        let mut files = Vec::new();
+        for entry in read_dir {
+            let name = entry.file_name();
+            let meta = entry.metadata();
+            let is_dir = entry.file_type().is_dir();
+
+            // Tamanho só faz sentido para ficheiros
+            let size = if is_dir { None } else { meta.size };
+
+            // mtime é Option<u32> — segundos Unix
+            let modified = meta.mtime.map(|t| {
+                chrono::DateTime::from_timestamp(t as i64, 0)
+                    .map(|dt| dt.to_rfc3339())
+                    .unwrap_or_default()
+            });
+
+            // Caminho relativo à base_path (sem barra inicial)
+            let rel_path = if path.is_empty() {
+                name.clone()
+            } else {
+                format!("{}/{}", path.trim_end_matches('/'), name)
+            };
+
+            files.push(RemoteFile {
+                name,
+                path: rel_path,
+                size,
+                modified,
+                is_dir,
+            });
+        }
+
+        sftp.close()
+            .await
+            .map_err(|e| format!("Fecho de sessão SFTP falhou: {e}"))?;
+
+        Ok(files)
+    }
+
+    async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
+        let sftp = self.open_sftp().await?;
+        let mut failed = Vec::new();
+
+        for path in paths {
+            let full = self.full_remote_path(path);
+            if let Err(e) = sftp.remove_file(&full).await {
+                failed.push(format!("{path}: {e}"));
+            }
+        }
+
+        // Fechar a sessão independentemente dos erros
+        let _ = sftp.close().await;
+
+        Ok(failed)
     }
 }
