@@ -85,7 +85,7 @@ pub fn submit_job(
     )
     .map_err(|e| e.to_string())?;
 
-    if let Some(ids) = cloud_profile_ids {
+    let cloud_dest_count = if let Some(ref ids) = cloud_profile_ids {
         for profile_id in ids {
             db.execute(
                 "INSERT OR IGNORE INTO job_cloud_destinations (job_id, profile_id, status) VALUES (?1,?2,'pending')",
@@ -93,14 +93,17 @@ pub fn submit_job(
             )
             .map_err(|e| e.to_string())?;
         }
-    }
+        ids.len()
+    } else {
+        0
+    };
 
     crate::logger::write(
         "INFO",
         "jobs",
         &format!(
-            "Job {} submetido — asset: {}, perfil: {}",
-            id, asset_id, profile
+            "Job {} submetido — asset: {}, perfil: {}, destinos_cloud: {}",
+            id, asset_id, profile, cloud_dest_count
         ),
     );
 

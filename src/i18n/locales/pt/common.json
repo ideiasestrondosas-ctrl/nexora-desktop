@@ -480,7 +480,9 @@
     "tryRemoveFilters": "Try removing filters",
     "expand": "... (click to expand)",
     "entriesVisible": "{{count}} entry/entries visible",
-    "autoRotate": "Auto-rotation: 2,000 entries max"
+    "autoRotate": "Auto-rotation: 2,000 entries max",
+    "copy": "Copiar",
+    "copied": "Copiado!"
   },
   "assetDetail": {
     "backToLibrary": "Voltar à Biblioteca",

@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Download, Trash2, Search, ScrollText } from 'lucide-react';
+import { Download, Trash2, Search, ScrollText, Clipboard, Check } from 'lucide-react';
 import { useLogs } from '@/hooks/useLogs';
 import { save } from '@tauri-apps/plugin-dialog';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ export default function LogsPage() {
   const [timeFilter, setTimeFilter] = useState<string>('Tudo');
   const [autoScroll, setAutoScroll] = useState(true);
   const [expandedErrors, setExpandedErrors] = useState<Record<string, boolean>>({});
+  const [copied, setCopied] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { t, i18n } = useTranslation();
@@ -34,6 +35,26 @@ export default function LogsPage() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [filteredLogs, autoScroll]);
+
+  const handleCopy = useCallback(async () => {
+    const text = filteredLogs
+      .map((log) => {
+        const time =
+          new Date(log.ts).toLocaleTimeString(i18n.language, {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }) +
+          '.' +
+          new Date(log.ts).getMilliseconds().toString().padStart(3, '0');
+        return `[${time}] [${log.level.toUpperCase()}] [${log.source}] ${log.message}`;
+      })
+      .join('\n');
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [filteredLogs, i18n.language]);
 
   const handleExport = async () => {
     try {
@@ -100,6 +121,17 @@ export default function LogsPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-2 px-4 py-2 bg-bg-secondary border border-border hover:bg-surface text-text-secondary rounded-lg text-sm font-medium transition-colors"
+          >
+            {copied ? (
+              <Check className="w-4 h-4 text-green-400" />
+            ) : (
+              <Clipboard className="w-4 h-4" />
+            )}
+            {copied ? t('logs.copied') : t('logs.copy')}
+          </button>
           <button
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 bg-bg-secondary border border-border hover:bg-surface text-text-secondary rounded-lg text-sm font-medium transition-colors"
