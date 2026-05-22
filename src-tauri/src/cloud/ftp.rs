@@ -19,10 +19,7 @@ impl FtpProvider {
                 .ok_or_else(|| "host é obrigatório".to_string())?
                 .to_string(),
             port: config["port"].as_u64().unwrap_or(21) as u16,
-            base_path: config["base_path"]
-                .as_str()
-                .unwrap_or("/")
-                .to_string(),
+            base_path: config["base_path"].as_str().unwrap_or("/").to_string(),
             username: creds["username"]
                 .as_str()
                 .unwrap_or("anonymous")
@@ -73,9 +70,12 @@ impl FtpProvider {
         }
 
         // Fix 4: verificar tamanho antes de carregar o ficheiro inteiro em memória
-        let metadata = tokio::fs::metadata(local_path)
-            .await
-            .map_err(|e| format!("Não foi possível ler metadados de {}: {e}", local_path.display()))?;
+        let metadata = tokio::fs::metadata(local_path).await.map_err(|e| {
+            format!(
+                "Não foi possível ler metadados de {}: {e}",
+                local_path.display()
+            )
+        })?;
         if metadata.len() > 2 * 1024 * 1024 * 1024 {
             return Err(format!(
                 "Ficheiro demasiado grande para FTP ({} GB). Use S3 ou SMB para ficheiros > 2 GB",
@@ -158,7 +158,13 @@ fn parse_ftp_list_line(line: &str, subpath: &str) -> Option<RemoteFile> {
         } else {
             format!("{}/{}", subpath.trim_end_matches('/'), name)
         };
-        return Some(RemoteFile { name, path, size, modified: None, is_dir });
+        return Some(RemoteFile {
+            name,
+            path,
+            size,
+            modified: None,
+            is_dir,
+        });
     }
 
     // Formato UNIX: "-rwxr-xr-x 1 user group 12345 Jan 01 12:00 clip.mp4"
@@ -176,7 +182,13 @@ fn parse_ftp_list_line(line: &str, subpath: &str) -> Option<RemoteFile> {
     } else {
         format!("{}/{}", subpath.trim_end_matches('/'), name)
     };
-    Some(RemoteFile { name, path, size, modified: None, is_dir })
+    Some(RemoteFile {
+        name,
+        path,
+        size,
+        modified: None,
+        is_dir,
+    })
 }
 
 #[async_trait]
@@ -220,7 +232,12 @@ impl CloudProvider for FtpProvider {
             .await
             .map_err(|e| format!("FTP LIST falhou em {full}: {e}"));
         let _ = ftp.quit().await;
-        result.map(|lines| lines.iter().filter_map(|l| parse_ftp_list_line(l, path)).collect())
+        result.map(|lines| {
+            lines
+                .iter()
+                .filter_map(|l| parse_ftp_list_line(l, path))
+                .collect()
+        })
     }
 
     async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
@@ -243,7 +260,8 @@ mod tests {
 
     #[test]
     fn unix_file_line() {
-        let r = parse_ftp_list_line("-rw-r--r-- 1 user group 12345 Jan 01 12:00 clip.mp4", "").unwrap();
+        let r =
+            parse_ftp_list_line("-rw-r--r-- 1 user group 12345 Jan 01 12:00 clip.mp4", "").unwrap();
         assert_eq!(r.name, "clip.mp4");
         assert_eq!(r.path, "clip.mp4");
         assert_eq!(r.size, Some(12345));
@@ -252,7 +270,11 @@ mod tests {
 
     #[test]
     fn unix_dir_line() {
-        let r = parse_ftp_list_line("drwxr-xr-x 2 user group 4096 Jan 01 12:00 footage", "videos").unwrap();
+        let r = parse_ftp_list_line(
+            "drwxr-xr-x 2 user group 4096 Jan 01 12:00 footage",
+            "videos",
+        )
+        .unwrap();
         assert_eq!(r.name, "footage");
         assert_eq!(r.path, "videos/footage");
         assert!(r.is_dir);
@@ -261,7 +283,11 @@ mod tests {
 
     #[test]
     fn unix_file_with_spaces() {
-        let r = parse_ftp_list_line("-rw-r--r-- 1 user group 999 Jan 01 12:00 my clip final.mp4", "").unwrap();
+        let r = parse_ftp_list_line(
+            "-rw-r--r-- 1 user group 999 Jan 01 12:00 my clip final.mp4",
+            "",
+        )
+        .unwrap();
         assert_eq!(r.name, "my clip final.mp4");
     }
 
@@ -286,7 +312,8 @@ mod tests {
 
     #[test]
     fn dos_dir_line() {
-        let r = parse_ftp_list_line("01-22-26  03:00PM       <DIR>          footage", "sub").unwrap();
+        let r =
+            parse_ftp_list_line("01-22-26  03:00PM       <DIR>          footage", "sub").unwrap();
         assert_eq!(r.name, "footage");
         assert_eq!(r.path, "sub/footage");
         assert!(r.is_dir);

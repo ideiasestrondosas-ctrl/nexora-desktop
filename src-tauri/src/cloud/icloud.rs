@@ -16,30 +16,37 @@ impl ICloudProvider {
             .to_string_lossy()
             .to_string();
         let smb_config = serde_json::json!({ "base_path": full_base });
-        Ok(Self { inner: SmbProvider::new(&smb_config)? })
+        Ok(Self {
+            inner: SmbProvider::new(&smb_config)?,
+        })
     }
 }
 
 fn detect_icloud_path() -> Result<String, String> {
     #[cfg(target_os = "windows")]
     {
-        let userprofile = std::env::var("USERPROFILE")
-            .map_err(|_| "USERPROFILE não definido".to_string())?;
+        let userprofile =
+            std::env::var("USERPROFILE").map_err(|_| "USERPROFILE não definido".to_string())?;
         let path = std::path::Path::new(&userprofile).join("iCloudDrive");
         if path.exists() {
             return Ok(path.to_string_lossy().to_string());
         }
-        Err("iCloud Drive não encontrado. Instale o iCloud para Windows em apple.com/icloud".to_string())
+        Err(
+            "iCloud Drive não encontrado. Instale o iCloud para Windows em apple.com/icloud"
+                .to_string(),
+        )
     }
     #[cfg(target_os = "macos")]
     {
         let home = std::env::var("HOME").map_err(|_| "HOME não definido".to_string())?;
-        let path = std::path::Path::new(&home)
-            .join("Library/Mobile Documents/com~apple~CloudDocs");
+        let path = std::path::Path::new(&home).join("Library/Mobile Documents/com~apple~CloudDocs");
         if path.exists() {
             return Ok(path.to_string_lossy().to_string());
         }
-        Err("iCloud Drive não encontrado. Activa o iCloud Drive nas Preferências do Sistema".to_string())
+        Err(
+            "iCloud Drive não encontrado. Activa o iCloud Drive nas Preferências do Sistema"
+                .to_string(),
+        )
     }
     #[cfg(not(any(target_os = "windows", target_os = "macos")))]
     {

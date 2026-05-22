@@ -244,9 +244,7 @@ pub async fn get_log_storage_info(app: tauri::AppHandle) -> Result<LogStorageInf
         total_size_bytes += entry.metadata().map(|m| m.len()).unwrap_or(0);
         match &oldest {
             None => oldest = Some(date_str.to_string()),
-            Some(current) if date_str < current.as_str() => {
-                oldest = Some(date_str.to_string())
-            }
+            Some(current) if date_str < current.as_str() => oldest = Some(date_str.to_string()),
             _ => {}
         }
     }
@@ -299,7 +297,8 @@ pub async fn export_logs_bundle(app: tauri::AppHandle) -> Result<String, String>
     }
 
     if added == 0 {
-        zip.start_file("README.txt", options).map_err(|e| e.to_string())?;
+        zip.start_file("README.txt", options)
+            .map_err(|e| e.to_string())?;
         zip.write_all(b"Nenhum ficheiro de log encontrado.\n")
             .map_err(|e| e.to_string())?;
     }
@@ -329,7 +328,11 @@ pub async fn clear_log_files(app: tauri::AppHandle) -> Result<(), String> {
         }
     }
 
-    crate::logger::write("INFO", "sistema", "Ficheiros de log apagados pelo utilizador");
+    crate::logger::write(
+        "INFO",
+        "sistema",
+        "Ficheiros de log apagados pelo utilizador",
+    );
     Ok(())
 }
 
@@ -369,10 +372,7 @@ pub async fn upload_logs_to_server(
         return Err(format!("Servidor respondeu com {}", response.status()));
     }
 
-    let body = response
-        .text()
-        .await
-        .unwrap_or_else(|_| "OK".to_string());
+    let body = response.text().await.unwrap_or_else(|_| "OK".to_string());
 
     std::fs::remove_file(&bundle_path).ok();
 

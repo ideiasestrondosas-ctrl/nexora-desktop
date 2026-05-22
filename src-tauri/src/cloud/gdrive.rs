@@ -2,8 +2,7 @@ use super::provider::{CloudProvider, RemoteFile};
 use async_trait::async_trait;
 use std::path::Path;
 
-const GDRIVE_UPLOAD_BASE: &str =
-    "https://www.googleapis.com/upload/drive/v3/files";
+const GDRIVE_UPLOAD_BASE: &str = "https://www.googleapis.com/upload/drive/v3/files";
 const GDRIVE_FILES_URL: &str = "https://www.googleapis.com/drive/v3/files";
 
 pub struct GDriveProvider {
@@ -27,7 +26,11 @@ impl GDriveProvider {
             .and_then(|v| v.as_str())
             .unwrap_or("/")
             .to_string();
-        Ok(Self { access_token: token, base_folder_id: folder_id, base_path })
+        Ok(Self {
+            access_token: token,
+            base_folder_id: folder_id,
+            base_path,
+        })
     }
 
     /// Resolve o nome de uma pasta para o seu ID no Drive, dentro de um pai opcional.
@@ -84,7 +87,8 @@ impl GDriveProvider {
         let mut current_id = match &self.base_folder_id {
             Some(id) => id.clone(),
             None => {
-                let segments: Vec<&str> = self.base_path
+                let segments: Vec<&str> = self
+                    .base_path
                     .split('/')
                     .filter(|s| !s.is_empty())
                     .collect();
@@ -94,7 +98,11 @@ impl GDriveProvider {
                 } else {
                     let mut id = String::new();
                     for segment in segments {
-                        let parent = if id.is_empty() { None } else { Some(id.as_str()) };
+                        let parent = if id.is_empty() {
+                            None
+                        } else {
+                            Some(id.as_str())
+                        };
                         id = self.resolve_folder_id(client, segment, parent).await?;
                     }
                     id
@@ -103,7 +111,9 @@ impl GDriveProvider {
         };
         // Desce o subpath de navegação
         for segment in subpath.split('/').filter(|s| !s.is_empty()) {
-            current_id = self.resolve_folder_id(client, segment, Some(&current_id)).await?;
+            current_id = self
+                .resolve_folder_id(client, segment, Some(&current_id))
+                .await?;
         }
         Ok(current_id)
     }
@@ -138,7 +148,9 @@ impl CloudProvider for GDriveProvider {
             .unwrap_or_default()
             .to_string_lossy()
             .to_string();
-        let data = tokio::fs::read(local_path).await.map_err(|e| e.to_string())?;
+        let data = tokio::fs::read(local_path)
+            .await
+            .map_err(|e| e.to_string())?;
 
         let client = reqwest::Client::new();
 
@@ -154,7 +166,11 @@ impl CloudProvider for GDriveProvider {
         let search = client
             .get(GDRIVE_FILES_URL)
             .bearer_auth(&self.access_token)
-            .query(&[("q", q.as_str()), ("fields", "files(id)"), ("pageSize", "1")])
+            .query(&[
+                ("q", q.as_str()),
+                ("fields", "files(id)"),
+                ("pageSize", "1"),
+            ])
             .send()
             .await
             .map_err(|e| format!("Google Drive: pesquisa falhou: {e}"))?;
@@ -162,7 +178,9 @@ impl CloudProvider for GDriveProvider {
             return Err("Token expirado — reautentique o perfil".to_string());
         }
         let search_body: serde_json::Value = search.json().await.map_err(|e| e.to_string())?;
-        let existing_id = search_body["files"][0]["id"].as_str().map(|s| s.to_string());
+        let existing_id = search_body["files"][0]["id"]
+            .as_str()
+            .map(|s| s.to_string());
 
         // Upsert: PATCH se já existe, POST se é novo
         let (url, metadata, use_patch) = match &existing_id {
@@ -223,13 +241,18 @@ impl CloudProvider for GDriveProvider {
             .map_err(|e| format!("Google Drive download falhou: {e}"))?;
         // C2: Verificar o estado HTTP antes de consumir o corpo (evita escrever JSON de erro no disco)
         if !resp.status().is_success() {
-            return Err(format!("Google Drive download falhou: HTTP {}", resp.status()));
+            return Err(format!(
+                "Google Drive download falhou: HTTP {}",
+                resp.status()
+            ));
         }
         let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
         if let Some(parent) = local_path.parent() {
             std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
-        tokio::fs::write(local_path, bytes).await.map_err(|e| e.to_string())?;
+        tokio::fs::write(local_path, bytes)
+            .await
+            .map_err(|e| e.to_string())?;
         Ok(())
     }
 

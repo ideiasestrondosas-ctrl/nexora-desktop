@@ -444,8 +444,16 @@ fn run_job<R: Runtime>(
                                         let jid_cloud = job_id_owned.clone();
                                         tauri::async_runtime::spawn(async move {
                                             let state = app_for_cloud.state::<AppState>();
-                                            if let Err(e) = crate::commands::cloud::run_cloud_uploads(&jid_cloud, &state).await {
-                                                error!("[cloud] Upload falhou para job {}: {}", jid_cloud, e);
+                                            if let Err(e) =
+                                                crate::commands::cloud::run_cloud_uploads(
+                                                    &jid_cloud, &state,
+                                                )
+                                                .await
+                                            {
+                                                error!(
+                                                    "[cloud] Upload falhou para job {}: {}",
+                                                    jid_cloud, e
+                                                );
                                             }
                                         });
                                     }

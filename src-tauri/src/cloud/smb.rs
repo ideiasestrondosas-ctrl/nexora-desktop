@@ -86,15 +86,22 @@ impl CloudProvider for SmbProvider {
             let meta = entry.metadata().map_err(|e| e.to_string())?;
             let is_dir = meta.is_dir();
             let size = if is_dir { None } else { Some(meta.len()) };
-            let modified = meta.modified().ok().map(|t| {
-                chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339()
-            });
+            let modified = meta
+                .modified()
+                .ok()
+                .map(|t| chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339());
             let rel_path = if path.is_empty() {
                 name.clone()
             } else {
                 format!("{}/{}", path.trim_end_matches('/'), name)
             };
-            files.push(RemoteFile { name, path: rel_path, size, modified, is_dir });
+            files.push(RemoteFile {
+                name,
+                path: rel_path,
+                size,
+                modified,
+                is_dir,
+            });
         }
         Ok(files)
     }

@@ -69,7 +69,13 @@ pub fn create_cloud_profile(
         rusqlite::params![id, name, provider, config_json, now],
     )
     .map_err(|e| e.to_string())?;
-    Ok(CloudProfile { id, name, provider, config, created_at: now })
+    Ok(CloudProfile {
+        id,
+        name,
+        provider,
+        config,
+        created_at: now,
+    })
 }
 
 #[tauri::command]
@@ -413,8 +419,7 @@ fn load_profile_provider(
         )
         .map_err(|_| format!("Perfil '{}' não encontrado", profile_id))?;
     drop(db);
-    let config: serde_json::Value =
-        serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
+    let config: serde_json::Value = serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
     let provider = cloud::get_provider(&provider_type, &config, &config)?;
     Ok((provider, provider_type))
 }
@@ -448,5 +453,7 @@ pub async fn cloud_download_file(
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
     let (provider, _) = load_profile_provider(&profile_id, &state)?;
-    provider.download(&remote_path, std::path::Path::new(&local_path)).await
+    provider
+        .download(&remote_path, std::path::Path::new(&local_path))
+        .await
 }

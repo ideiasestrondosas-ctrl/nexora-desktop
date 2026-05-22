@@ -14,7 +14,10 @@ struct FileLoggerState {
 static FILE_LOGGER: OnceLock<Mutex<Option<FileLoggerState>>> = OnceLock::new();
 
 pub fn get_log_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
-    app.path().local_data_dir().ok().map(|p| p.join("Nexora").join("logs"))
+    app.path()
+        .local_data_dir()
+        .ok()
+        .map(|p| p.join("Nexora").join("logs"))
 }
 
 pub fn init(app: &tauri::AppHandle) {
@@ -167,7 +170,8 @@ fn compress_to_zip(log_path: &Path, zip_path: &Path, entry_name: &str) -> Result
     let mut zip = zip::ZipWriter::new(file);
     let options = SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
 
-    zip.start_file(entry_name, options).map_err(|e| e.to_string())?;
+    zip.start_file(entry_name, options)
+        .map_err(|e| e.to_string())?;
     let content = fs::read(log_path).map_err(|e| e.to_string())?;
     zip.write_all(&content).map_err(|e| e.to_string())?;
     zip.finish().map_err(|e| e.to_string())?;
@@ -215,7 +219,10 @@ pub fn enforce_retention(log_dir: &Path, retention_days: u32, max_size_mb: u64) 
             if fs::remove_file(path).is_ok() {
                 total_bytes = total_bytes.saturating_sub(*size);
             } else {
-                eprintln!("[file_logger] Não foi possível apagar ficheiro antigo: {:?}", path);
+                eprintln!(
+                    "[file_logger] Não foi possível apagar ficheiro antigo: {:?}",
+                    path
+                );
             }
         }
     }

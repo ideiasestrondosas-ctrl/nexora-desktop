@@ -25,7 +25,10 @@ mod tests {
     fn full_remote_path_com_base_e_relativo() {
         // base_path com barra final não deve duplicar a barra
         let p = make_provider("host", "/uploads/");
-        assert_eq!(p.full_remote_path("videos/foo.mp4"), "/uploads/videos/foo.mp4");
+        assert_eq!(
+            p.full_remote_path("videos/foo.mp4"),
+            "/uploads/videos/foo.mp4"
+        );
     }
 
     #[test]
@@ -38,7 +41,10 @@ mod tests {
     fn full_remote_path_relativo_com_barra_inicial_e_removido() {
         // O método trim_start_matches('/') deve remover a barra inicial do relativo
         let p = make_provider("host", "/home/user");
-        assert_eq!(p.full_remote_path("/sub/file.mp4"), "/home/user/sub/file.mp4");
+        assert_eq!(
+            p.full_remote_path("/sub/file.mp4"),
+            "/home/user/sub/file.mp4"
+        );
     }
 
     #[test]
@@ -65,10 +71,7 @@ impl SftpProvider {
                 .ok_or_else(|| "host é obrigatório".to_string())?
                 .to_string(),
             port: config["port"].as_u64().unwrap_or(22) as u16,
-            base_path: config["base_path"]
-                .as_str()
-                .unwrap_or("/")
-                .to_string(),
+            base_path: config["base_path"].as_str().unwrap_or("/").to_string(),
             username: creds["username"]
                 .as_str()
                 .ok_or_else(|| "username é obrigatório".to_string())?

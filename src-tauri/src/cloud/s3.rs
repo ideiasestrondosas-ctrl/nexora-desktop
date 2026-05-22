@@ -1,7 +1,7 @@
 use super::provider::CloudProvider;
 use async_trait::async_trait;
-use s3::{Bucket, Region};
 use s3::creds::Credentials;
+use s3::{Bucket, Region};
 use std::path::Path;
 
 pub struct S3Provider {
@@ -16,10 +16,12 @@ impl S3Provider {
         let endpoint = config["endpoint"].as_str().unwrap_or("");
         let base_path = config["base_path"].as_str().unwrap_or("").to_string();
         // Credenciais: lê de creds (teste) ou de config (perfil guardado com merge)
-        let access_key = creds["access_key"].as_str()
+        let access_key = creds["access_key"]
+            .as_str()
             .or_else(|| config["access_key"].as_str())
             .unwrap_or("");
-        let secret_key = creds["secret_key"].as_str()
+        let secret_key = creds["secret_key"]
+            .as_str()
             .or_else(|| config["secret_key"].as_str())
             .unwrap_or("");
 
@@ -32,14 +34,8 @@ impl S3Provider {
             }
         };
 
-        let credentials = Credentials::new(
-            Some(access_key),
-            Some(secret_key),
-            None,
-            None,
-            None,
-        )
-        .map_err(|e| e.to_string())?;
+        let credentials = Credentials::new(Some(access_key), Some(secret_key), None, None, None)
+            .map_err(|e| e.to_string())?;
 
         let bucket = Bucket::new(bucket_name, region, credentials)
             .map_err(|e| e.to_string())?
@@ -83,7 +79,9 @@ impl CloudProvider for S3Provider {
 
     async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
         let key = self.full_path(remote_path);
-        let data = tokio::fs::read(local_path).await.map_err(|e| e.to_string())?;
+        let data = tokio::fs::read(local_path)
+            .await
+            .map_err(|e| e.to_string())?;
         self.bucket
             .put_object(&key, &data)
             .await
@@ -93,14 +91,17 @@ impl CloudProvider for S3Provider {
 
     async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
         let key = self.full_path(remote_path);
-        let response = self.bucket
+        let response = self
+            .bucket
             .get_object(&key)
             .await
             .map_err(|e| format!("S3 download falhou: {e}"))?;
         if let Some(parent) = local_path.parent() {
             std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
-        tokio::fs::write(local_path, response.bytes()).await.map_err(|e| e.to_string())?;
+        tokio::fs::write(local_path, response.bytes())
+            .await
+            .map_err(|e| e.to_string())?;
         Ok(())
     }
 
@@ -110,10 +111,18 @@ impl CloudProvider for S3Provider {
         // Constrói o prefixo S3 para o subpath pedido
         let base = self.base_path.trim_end_matches('/');
         let prefix = if path.is_empty() {
-            if base.is_empty() { String::new() } else { format!("{base}/") }
+            if base.is_empty() {
+                String::new()
+            } else {
+                format!("{base}/")
+            }
         } else {
             let rel = path.trim_matches('/');
-            if base.is_empty() { format!("{rel}/") } else { format!("{base}/{rel}/") }
+            if base.is_empty() {
+                format!("{rel}/")
+            } else {
+                format!("{base}/{rel}/")
+            }
         };
 
         let results = self
@@ -128,16 +137,37 @@ impl CloudProvider for S3Provider {
             for cp in page.common_prefixes.unwrap_or_default() {
                 let folder_full = cp.prefix.trim_end_matches('/');
                 let name = folder_full.rsplit('/').next().unwrap_or("").to_string();
-                if name.is_empty() { continue; }
-                let rel = folder_full.strip_prefix(base).unwrap_or(folder_full).trim_start_matches('/').to_string();
-                files.push(RemoteFile { name, path: rel, size: None, modified: None, is_dir: true });
+                if name.is_empty() {
+                    continue;
+                }
+                let rel = folder_full
+                    .strip_prefix(base)
+                    .unwrap_or(folder_full)
+                    .trim_start_matches('/')
+                    .to_string();
+                files.push(RemoteFile {
+                    name,
+                    path: rel,
+                    size: None,
+                    modified: None,
+                    is_dir: true,
+                });
             }
             // Ficheiros (contents): ignora entradas "directório" que terminam em '/'
             for obj in page.contents {
-                if obj.key.ends_with('/') { continue; }
+                if obj.key.ends_with('/') {
+                    continue;
+                }
                 let name = obj.key.rsplit('/').next().unwrap_or("").to_string();
-                if name.is_empty() { continue; }
-                let rel = obj.key.strip_prefix(base).unwrap_or(obj.key.as_str()).trim_start_matches('/').to_string();
+                if name.is_empty() {
+                    continue;
+                }
+                let rel = obj
+                    .key
+                    .strip_prefix(base)
+                    .unwrap_or(obj.key.as_str())
+                    .trim_start_matches('/')
+                    .to_string();
                 files.push(RemoteFile {
                     name,
                     path: rel,
