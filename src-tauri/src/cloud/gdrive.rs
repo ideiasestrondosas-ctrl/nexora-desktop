@@ -145,13 +145,19 @@ impl CloudProvider for GDriveProvider {
 
     async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
         let client = reqwest::Client::new();
-        let url = format!("https://www.googleapis.com/drive/v3/files/{}?alt=media", remote_path);
+        // C1: O remote_path pode ser "subpasta/FILE_ID" — a API do Drive requer apenas o ID
+        let file_id = remote_path.rsplit('/').next().unwrap_or(remote_path);
+        let url = format!("{}/{file_id}?alt=media", GDRIVE_FILES_URL);
         let resp = client
             .get(&url)
             .bearer_auth(&self.access_token)
             .send()
             .await
             .map_err(|e| format!("Google Drive download falhou: {e}"))?;
+        // C2: Verificar o estado HTTP antes de consumir o corpo (evita escrever JSON de erro no disco)
+        if !resp.status().is_success() {
+            return Err(format!("Google Drive download falhou: HTTP {}", resp.status()));
+        }
         let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
         if let Some(parent) = local_path.parent() {
             std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;

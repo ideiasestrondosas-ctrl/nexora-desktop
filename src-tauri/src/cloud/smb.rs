@@ -17,7 +17,15 @@ impl SmbProvider {
 
     fn resolve(&self, remote_path: &str) -> std::path::PathBuf {
         let cleaned = remote_path.trim_start_matches(['/', '\\']);
-        std::path::Path::new(&self.base_path).join(cleaned)
+        let full = std::path::Path::new(&self.base_path).join(cleaned);
+        // I1: Prevenir path traversal via segmentos ".." — garantir que o caminho resolvido
+        // permanece dentro de base_path (starts_with faz comparação por componentes, não por prefixo de string)
+        let base = std::path::Path::new(&self.base_path);
+        if !full.starts_with(base) {
+            // Fallback seguro: devolve base_path, que falhará graciosamente em read_dir/remove_file
+            return base.to_path_buf();
+        }
+        full
     }
 
     fn copy_file(src: &Path, dst: &Path) -> Result<(), String> {
