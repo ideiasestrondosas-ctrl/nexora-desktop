@@ -10,14 +10,18 @@ pub struct S3Provider {
 }
 
 impl S3Provider {
-    pub fn new(config: &serde_json::Value, _creds: &serde_json::Value) -> Result<Self, String> {
+    pub fn new(config: &serde_json::Value, creds: &serde_json::Value) -> Result<Self, String> {
         let bucket_name = config["bucket"].as_str().ok_or("bucket obrigatório")?;
         let region_str = config["region"].as_str().unwrap_or("us-east-1");
         let endpoint = config["endpoint"].as_str().unwrap_or("");
         let base_path = config["base_path"].as_str().unwrap_or("").to_string();
-        // v1: credenciais armazenadas no config
-        let access_key = config["access_key"].as_str().unwrap_or("");
-        let secret_key = config["secret_key"].as_str().unwrap_or("");
+        // Credenciais: lê de creds (teste) ou de config (perfil guardado com merge)
+        let access_key = creds["access_key"].as_str()
+            .or_else(|| config["access_key"].as_str())
+            .unwrap_or("");
+        let secret_key = creds["secret_key"].as_str()
+            .or_else(|| config["secret_key"].as_str())
+            .unwrap_or("");
 
         let region = if endpoint.is_empty() {
             region_str.parse::<Region>().map_err(|e| e.to_string())?
@@ -61,11 +65,20 @@ impl CloudProvider for S3Provider {
     }
 
     async fn test_connection(&self) -> Result<(), String> {
-        self.bucket
-            .list("/".to_string(), Some("/".to_string()))
+        // head_object usa response_header() sem XML parsing — list() falha porque
+        // list_page() não verifica o HTTP status antes de deserializar, e quando
+        // o MinIO retorna um erro XML (<Error>) o serde falha com "missing field Name"
+        let status = self
+            .bucket
+            .head_object("_nexora_probe")
             .await
-            .map(|_| ())
-            .map_err(|e| format!("S3 ligação falhou: {e}"))
+            .map(|(_, s)| s)
+            .map_err(|e| format!("S3 ligação falhou: {e}"))?;
+        match status {
+            200 | 404 => Ok(()),
+            403 => Err("S3 ligação falhou: credenciais inválidas ou acesso negado".to_string()),
+            s => Err(format!("S3 ligação falhou: HTTP {s}")),
+        }
     }
 
     async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
