@@ -354,10 +354,18 @@ pub async fn gdrive_start_auth(client_id: String) -> Result<GDriveAuthChallenge,
         .await
         .map_err(|e| e.to_string())?;
     let body: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    // Google devolve {"error": "...", "error_description": "..."} em caso de falha
+    if let Some(err) = body["error"].as_str() {
+        let desc = body["error_description"].as_str().unwrap_or(err);
+        return Err(format!("Google recusou autenticação: {desc}"));
+    }
+    let device_code = body["device_code"].as_str()
+        .ok_or("Google não devolveu device_code — verifique o tipo de cliente OAuth (deve ser 'TV e dispositivos de entrada limitada')")?
+        .to_string();
     Ok(GDriveAuthChallenge {
         url: body["verification_url"].as_str().unwrap_or("").to_string(),
         user_code: body["user_code"].as_str().unwrap_or("").to_string(),
-        device_code: body["device_code"].as_str().unwrap_or("").to_string(),
+        device_code,
         expires_in: body["expires_in"].as_u64().unwrap_or(300),
     })
 }
