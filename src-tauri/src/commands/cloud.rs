@@ -395,3 +395,56 @@ pub async fn gdrive_poll_auth(
         Err(body["error"].as_str().unwrap_or("pending").to_string())
     }
 }
+
+// ── File browser commands ─────────────────────────────────────────────────────
+
+fn load_profile_provider(
+    profile_id: &str,
+    state: &tauri::State<AppState>,
+) -> Result<(Box<dyn cloud::provider::CloudProvider>, String), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let (provider_type, config_str): (String, String) = db
+        .query_row(
+            "SELECT provider, config FROM cloud_profiles WHERE id=?1",
+            [profile_id],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .map_err(|_| format!("Perfil '{}' não encontrado", profile_id))?;
+    drop(db);
+    let config: serde_json::Value =
+        serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
+    let provider = cloud::get_provider(&provider_type, &config, &config)?;
+    Ok((provider, provider_type))
+}
+
+#[tauri::command]
+pub async fn cloud_list_files(
+    profile_id: String,
+    subpath: Option<String>,
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<cloud::provider::RemoteFile>, String> {
+    let (provider, _) = load_profile_provider(&profile_id, &state)?;
+    let path = subpath.as_deref().unwrap_or("");
+    provider.list_files(path).await
+}
+
+#[tauri::command]
+pub async fn cloud_delete_files(
+    profile_id: String,
+    paths: Vec<String>,
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<String>, String> {
+    let (provider, _) = load_profile_provider(&profile_id, &state)?;
+    provider.delete_files(&paths).await
+}
+
+#[tauri::command]
+pub async fn cloud_download_file(
+    profile_id: String,
+    remote_path: String,
+    local_path: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    let (provider, _) = load_profile_provider(&profile_id, &state)?;
+    provider.download(&remote_path, std::path::Path::new(&local_path)).await
+}
