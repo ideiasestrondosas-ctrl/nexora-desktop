@@ -103,4 +103,61 @@ impl CloudProvider for S3Provider {
         tokio::fs::write(local_path, response.bytes()).await.map_err(|e| e.to_string())?;
         Ok(())
     }
+
+    async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
+        use super::provider::RemoteFile;
+
+        // Constrói o prefixo S3 para o subpath pedido
+        let base = self.base_path.trim_end_matches('/');
+        let prefix = if path.is_empty() {
+            if base.is_empty() { String::new() } else { format!("{base}/") }
+        } else {
+            let rel = path.trim_end_matches('/');
+            if base.is_empty() { format!("{rel}/") } else { format!("{base}/{rel}/") }
+        };
+
+        let results = self
+            .bucket
+            .list(prefix.clone(), Some("/".to_string()))
+            .await
+            .map_err(|e| format!("S3 list falhou: {e}"))?;
+
+        let mut files = Vec::new();
+        for page in results {
+            // Pastas (common_prefixes): retira o prefixo completo para obter caminho relativo
+            for cp in page.common_prefixes.unwrap_or_default() {
+                let folder_full = cp.prefix.trim_end_matches('/');
+                let name = folder_full.rsplit('/').next().unwrap_or("").to_string();
+                if name.is_empty() { continue; }
+                let rel = folder_full.trim_start_matches(base).trim_start_matches('/').to_string();
+                files.push(RemoteFile { name, path: rel, size: None, modified: None, is_dir: true });
+            }
+            // Ficheiros (contents): ignora entradas "directório" que terminam em '/'
+            for obj in page.contents {
+                if obj.key.ends_with('/') { continue; }
+                let name = obj.key.rsplit('/').next().unwrap_or("").to_string();
+                if name.is_empty() { continue; }
+                let rel = obj.key.trim_start_matches(base).trim_start_matches('/').to_string();
+                files.push(RemoteFile {
+                    name,
+                    path: rel,
+                    size: Some(obj.size),
+                    modified: Some(obj.last_modified.clone()),
+                    is_dir: false,
+                });
+            }
+        }
+        Ok(files)
+    }
+
+    async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
+        let mut failed = Vec::new();
+        for path in paths {
+            let key = self.full_path(path);
+            if let Err(e) = self.bucket.delete_object(&key).await {
+                failed.push(format!("{path}: {e}"));
+            }
+        }
+        Ok(failed)
+    }
 }
