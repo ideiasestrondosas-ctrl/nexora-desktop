@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
-import { X, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, Loader2, CheckCircle2, Copy, ExternalLink } from 'lucide-react';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import {
   CloudProfile,
   CloudProviderType,
@@ -255,13 +256,30 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
                   {gdrivePolling ? 'A aguardar autorização...' : 'Autenticar com Google'}
                 </button>
                 {gdriveAuthUrl && (
-                  <div className="mt-2 text-xs text-gray-300 space-y-1">
-                    <p>
-                      Abra: <span className="text-blue-400 break-all">{gdriveAuthUrl}</span>
-                    </p>
-                    <p>
-                      Código: <strong className="text-white">{gdriveUserCode}</strong>
-                    </p>
+                  <div className="mt-2 text-xs text-gray-300 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400">Abra:</span>
+                      <button
+                        type="button"
+                        onClick={() => openUrl(gdriveAuthUrl)}
+                        className="flex items-center gap-1 text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all text-left"
+                      >
+                        {gdriveAuthUrl}
+                        <ExternalLink size={11} className="shrink-0" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400">Código:</span>
+                      <strong className="text-white tracking-widest">{gdriveUserCode}</strong>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(gdriveUserCode)}
+                        title="Copiar código"
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <Copy size={12} />
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
