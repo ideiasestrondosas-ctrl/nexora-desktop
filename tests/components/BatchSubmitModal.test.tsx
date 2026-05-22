@@ -182,7 +182,9 @@ describe('BatchSubmitModal — cloud destinations', () => {
       const submitCalls = vi.mocked(invoke).mock.calls.filter(([cmd]) => cmd === 'submit_job');
       expect(submitCalls).toHaveLength(1);
       expect(submitCalls[0][1]).toMatchObject({ cloudProfileIds: ['gd-work'] });
-      expect((submitCalls[0][1] as { cloudProfileIds: string[] }).cloudProfileIds).toEqual(['gd-work']);
+      expect((submitCalls[0][1] as { cloudProfileIds: string[] }).cloudProfileIds).toEqual([
+        'gd-work',
+      ]);
     });
   });
 

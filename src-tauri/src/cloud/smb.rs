@@ -30,7 +30,7 @@ impl SmbProvider {
 
     fn copy_file(src: &Path, dst: &Path) -> Result<(), String> {
         // Tenta fs::copy primeiro; em caso de falha cross-device usa read+write
-        if let Ok(_) = std::fs::copy(src, dst) {
+        if std::fs::copy(src, dst).is_ok() {
             return Ok(());
         }
         let data = std::fs::read(src).map_err(|e| format!("Leitura falhou: {e}"))?;

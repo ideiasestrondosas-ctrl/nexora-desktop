@@ -232,10 +232,8 @@ pub fn enforce_retention(log_dir: &Path, retention_days: u32, max_size_mb: u64) 
         if total_bytes <= max_bytes {
             break;
         }
-        if path.exists() {
-            if fs::remove_file(path).is_ok() {
-                total_bytes = total_bytes.saturating_sub(*size);
-            }
+        if path.exists() && fs::remove_file(path).is_ok() {
+            total_bytes = total_bytes.saturating_sub(*size);
         }
     }
 }

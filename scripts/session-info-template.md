@@ -77,9 +77,7 @@ Removidas:
 
 ## Notas para o proximo agente
 
--
-
----
+- ***
 
 # INSTRUCOES DE PREENCHIMENTO
 
