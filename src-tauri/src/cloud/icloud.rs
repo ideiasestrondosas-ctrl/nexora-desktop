@@ -61,4 +61,12 @@ impl CloudProvider for ICloudProvider {
     async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
         self.inner.download(remote_path, local_path).await
     }
+
+    async fn list_files(&self, _path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
+        Err("Navegação de ficheiros não suportada para iCloud nesta versão.".to_string())
+    }
+
+    async fn delete_files(&self, _paths: &[String]) -> Result<Vec<String>, String> {
+        Err("Eliminação de ficheiros não suportada para iCloud nesta versão.".to_string())
+    }
 }

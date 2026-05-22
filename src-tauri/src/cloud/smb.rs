@@ -64,4 +64,41 @@ impl CloudProvider for SmbProvider {
         }
         Self::copy_file(&src, local_path)
     }
+
+    async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
+        use super::provider::RemoteFile;
+        let dir = self.resolve(path);
+        let entries = std::fs::read_dir(&dir)
+            .map_err(|e| format!("Leitura de directório SMB falhou em {}: {e}", dir.display()))?;
+
+        let mut files = Vec::new();
+        for entry in entries {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let name = entry.file_name().to_string_lossy().to_string();
+            let meta = entry.metadata().map_err(|e| e.to_string())?;
+            let is_dir = meta.is_dir();
+            let size = if is_dir { None } else { Some(meta.len()) };
+            let modified = meta.modified().ok().map(|t| {
+                chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339()
+            });
+            let rel_path = if path.is_empty() {
+                name.clone()
+            } else {
+                format!("{}/{}", path.trim_end_matches('/'), name)
+            };
+            files.push(RemoteFile { name, path: rel_path, size, modified, is_dir });
+        }
+        Ok(files)
+    }
+
+    async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
+        let mut failed = Vec::new();
+        for path in paths {
+            let full = self.resolve(path);
+            if let Err(e) = std::fs::remove_file(&full) {
+                failed.push(format!("{path}: {e}"));
+            }
+        }
+        Ok(failed)
+    }
 }
