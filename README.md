@@ -58,21 +58,23 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 
 ## Features
 
-| Feature                         | Description                                                                           |
-| ------------------------------- | ------------------------------------------------------------------------------------- |
-| **GPU-Accelerated Transcoding** | Auto-detects NVIDIA NVENC, AMD AMF, Intel QSV, or falls back to CPU (libx264)         |
-| **8-Stage Pipeline**            | Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post → Delivery          |
-| **VMAF Quality Scoring**        | Perceptual quality measurement comparing source vs. output                            |
-| **EBU R128 Loudness**           | Broadcast-standard audio normalization with true peak limiting                        |
-| **QC Quarantine**               | Automatic quarantine of files failing pre-QC checks; manual approve/reject workflow   |
-| **6 System Profiles**           | Broadcast HD/SD, Web 4K/HD, Proxy, Social — plus custom profile editor                |
-| **Real-Time Monitoring**        | Live job queue with visual pipeline, progress bars, system metrics (CPU/RAM/GPU/Disk) |
-| **Drag & Drop Ingest**          | Native file drop from anywhere on the OS; supports MP4, MKV, MOV, MXF, AVI, WebM      |
-| **Multi-Language UI**           | Full i18n with 15 languages; theme switching (System / Light / Dark)                  |
-| **Auto-Updater**                | Built-in Tauri updater checks GitHub releases automatically                           |
-| **Native Notifications**        | System-level notifications for job completion, errors, and quarantine alerts          |
-| **Comprehensive Logging**       | Structured logs with filtering by level, source, and time range; exportable           |
-| **Factory Reset**               | One-click reset to defaults, preserving or wiping all data                            |
+| Feature                         | Description                                                                                          |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **GPU-Accelerated Transcoding** | Auto-detects NVIDIA NVENC, AMD AMF, Intel QSV, or falls back to CPU (libx264)                        |
+| **8-Stage Pipeline**            | Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post → Delivery                         |
+| **VMAF Quality Scoring**        | Perceptual quality measurement comparing source vs. output                                           |
+| **EBU R128 Loudness**           | Broadcast-standard audio normalization with true peak limiting                                       |
+| **QC Quarantine**               | Automatic quarantine of files failing pre-QC checks; manual approve/reject workflow                  |
+| **6 System Profiles**           | Broadcast HD/SD, Web 4K/HD, Proxy, Social — plus custom profile editor                               |
+| **Real-Time Monitoring**        | Live job queue with visual pipeline, progress bars, system metrics (CPU/RAM/GPU/Disk)                |
+| **Drag & Drop Ingest**          | Native file drop from anywhere on the OS; supports MP4, MKV, MOV, MXF, AVI, WebM                     |
+| **Multi-Language UI**           | Full i18n with 15 languages; theme switching (System / Light / Dark)                                 |
+| **Auto-Updater**                | Built-in Tauri updater checks GitHub releases automatically                                          |
+| **Native Notifications**        | System-level notifications for job completion, errors, and quarantine alerts                         |
+| **Comprehensive Logging**       | Structured logs with filtering by level, source, and time range; exportable                          |
+| **Factory Reset**               | One-click reset to defaults, preserving or wiping all data                                           |
+| **Cloud Destinations**          | Automatic file delivery to FTP, FTPS, SFTP, SMB, S3 (MinIO, Wasabi), and Google Drive after each job |
+| **Cloud File Browser**          | Browse, download, and delete files on remote storage directly from the Settings panel                |
 
 ---
 
@@ -207,6 +209,12 @@ Get the latest release from the [Releases](https://github.com/ideiasestrondosas-
 - Review the **QC Report** with VMAF score, LUFS reading, and verification checks.
 - Quarantined jobs appear in the **Pending Approvals** section of the Queue.
 
+### 6. Configure Cloud Delivery (Optional)
+
+- Go to **Settings → Cloud** and add a cloud profile (FTP, SFTP, SMB, S3, or Google Drive).
+- On your next job, the output file will be uploaded automatically after transcoding completes.
+- Click **Browse** on any profile to manage files directly on the remote storage.
+
 ---
 
 ## Transcoding Profiles
@@ -221,6 +229,30 @@ Get the latest release from the [Releases](https://github.com/ideiasestrondosas-
 | **Social**       | 1080×1080  | H.264 Main     | 4 Mbps   | -14         | 80             | Social media           |
 
 > All profiles use broadcast-standard parameters: closed GOP, no B-frames, YUV 4:2:0, and faststart for web compatibility. See [docs/USER_MANUAL.md](docs/USER_MANUAL.md) for full technical details.
+
+---
+
+## Cloud Destinations
+
+Nexora can automatically upload processed files to remote storage after each job completes. Configure cloud profiles in **Settings → Cloud**.
+
+| Provider         | Protocol    | Browse | Upload | Download | Delete | Notes                                   |
+| ---------------- | ----------- | :----: | :----: | :------: | :----: | --------------------------------------- |
+| **FTP**          | FTP / FTPS  |   ✅   |   ✅   |    ✅    |   ✅   | Plain FTP or explicit TLS               |
+| **SFTP**         | SSH         |   ✅   |   ✅   |    ✅    |   ✅   | Password or key-based auth              |
+| **SMB**          | CIFS / SMB2 |   ✅   |   ✅   |    ✅    |   ✅   | Windows shares and NAS devices          |
+| **S3**           | HTTPS       |   ✅   |   ✅   |    ✅    |   ✅   | AWS S3, MinIO, Wasabi, and compatible   |
+| **Google Drive** | HTTPS       |   ✅   |   ✅   |    ✅    |   ✅   | OAuth device flow; upserts on re-upload |
+| **iCloud**       | —           |   ❌   |   ❌   |    ❌    |   ❌   | Not supported (Apple API restriction)   |
+
+### How it works
+
+1. Go to **Settings → Cloud** and add a cloud profile with your credentials.
+2. When submitting a job, the default cloud destination is used automatically. Override it per-job in the batch submit modal.
+3. After the job completes, Nexora uploads the output file to all configured destinations (3 retries with exponential backoff).
+4. Use the **Browse** button on any profile to open the Cloud File Browser — navigate folders, download files, or delete remote files.
+
+> **Note:** Google Drive uploads perform an upsert — if a file with the same name already exists in the destination folder, it is replaced rather than duplicated.
 
 ---
 
