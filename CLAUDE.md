@@ -130,4 +130,37 @@ No final da sessao:
 
 ---
 
+## Karpathy Guidelines — Regras de Comportamento (Sempre Activas)
+
+### 1. Pensar Antes de Codificar
+
+- Enunciar pressupostos antes de implementar. Se incerto, perguntar.
+- Se existirem múltiplas interpretações válidas, apresentá-las — nunca escolher silenciosamente.
+- Se houver uma abordagem mais simples, dizê-lo e questionar.
+- Se algo não estiver claro, parar. Nomear o que está confuso. Perguntar.
+
+### 2. Simplicidade Primeiro
+
+- Código mínimo que resolve o problema. Nada especulativo.
+- Sem features além do pedido explicitamente.
+- Sem abstrações para código de uso único.
+- Sem error handling para cenários impossíveis.
+- Se 50 linhas chegam, não escrever 200.
+
+### 3. Alterações Cirúrgicas
+
+- Tocar apenas o que é necessário. Limpar apenas o lixo próprio.
+- Não "melhorar" código adjacente, comentários ou formatação não relacionados.
+- Manter o estilo existente, mesmo que se prefira outro.
+- Se se notar dead code não relacionado, mencionar — não apagar silenciosamente.
+- Remover apenas imports/variáveis/funções que AS PRÓPRIAS alterações tornaram unused.
+
+### 4. Execução Orientada a Objectivos
+
+- Transformar tarefas imperativas em critérios verificáveis.
+- Para tarefas multi-passo, enunciar um plano com verify steps antes de começar.
+- "Corrigir o bug" → "Escrever teste que o reproduz, depois fazê-lo passar."
+
+---
+
 _Ultima revisão: Maio 2026 — Workspace: C:\Dev\nexora-desktop_
