@@ -13,6 +13,7 @@ import {
   ExternalLink,
   BookOpen,
   ChevronRight,
+  Cloud,
 } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
@@ -26,7 +27,15 @@ interface HelpOverlayProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type ScreenTab = 'dashboard' | 'library' | 'queue' | 'profiles' | 'settings' | 'logs' | 'intro';
+type ScreenTab =
+  | 'dashboard'
+  | 'library'
+  | 'queue'
+  | 'profiles'
+  | 'settings'
+  | 'logs'
+  | 'intro'
+  | 'cloud';
 
 const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] = [
   { id: 'intro', labelKey: 'help.tabs.intro', icon: <BookOpen className="w-4 h-4" /> },
@@ -39,6 +48,7 @@ const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] 
   { id: 'queue', labelKey: 'help.tabs.queue', icon: <ListVideo className="w-4 h-4" /> },
   { id: 'profiles', labelKey: 'help.tabs.profiles', icon: <UserCircle className="w-4 h-4" /> },
   { id: 'settings', labelKey: 'help.tabs.settings', icon: <Settings className="w-4 h-4" /> },
+  { id: 'cloud', labelKey: 'help.tabs.cloud', icon: <Cloud className="w-4 h-4" /> },
   { id: 'logs', labelKey: 'help.tabs.logs', icon: <Terminal className="w-4 h-4" /> },
 ];
 
@@ -49,6 +59,7 @@ const TAB_COUNTS: Record<ScreenTab, number> = {
   queue: 3,
   profiles: 1,
   settings: 2,
+  cloud: 3,
   logs: 1,
 };
 
@@ -442,6 +453,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                         <li>{t('help.screens.settings.interface')}</li>
                         <li>{t('help.screens.settings.system')}</li>
                         <li>{t('help.screens.settings.advanced')}</li>
+                        <li>{t('help.screens.settings.cloud')}</li>
                       </ul>
                     </ScreenCard>
                     <ScreenCard
@@ -456,6 +468,45 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       screenshot={SCREENSHOTS['factory-reset']}
                     >
                       <p>{t('help.screens.settings.factoryResetConfirmDesc')}</p>
+                    </ScreenCard>
+                  </div>
+                )}
+
+                {activeTab === 'cloud' && (
+                  <div className="space-y-4">
+                    <ScreenCard
+                      title={t('help.screens.cloud.destinations.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[
+                        t('help.screens.cloud.destinations.tip1'),
+                        t('help.screens.cloud.destinations.tip2'),
+                        t('help.screens.cloud.destinations.tip3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.cloud.desc')}</p>
+                      <p className="mt-1">{t('help.screens.cloud.destinations.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.cloud.browser.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[
+                        t('help.screens.cloud.browser.tip1'),
+                        t('help.screens.cloud.browser.tip2'),
+                        t('help.screens.cloud.browser.tip3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.cloud.browser.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.cloud.upload.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[
+                        t('help.screens.cloud.upload.tip1'),
+                        t('help.screens.cloud.upload.tip2'),
+                        t('help.screens.cloud.upload.tip3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.cloud.upload.desc')}</p>
                     </ScreenCard>
                   </div>
                 )}
