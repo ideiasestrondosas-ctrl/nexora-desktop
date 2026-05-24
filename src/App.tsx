@@ -154,14 +154,19 @@ function App() {
   // ── Theme ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const apply = (prefersDark: boolean) => {
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme);
+    };
+
+    apply(mq.matches);
+
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
+      const handler = (e: MediaQueryListEvent) => apply(e.matches);
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
     }
   }, [theme]);
 
