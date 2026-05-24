@@ -279,7 +279,11 @@ pub async fn export_logs_bundle(app: tauri::AppHandle) -> Result<String, String>
             .map_err(|e| e.to_string())?;
         while let Some(entry) = entries.next_entry().await.map_err(|e| e.to_string())? {
             let path = entry.path();
-            let Some(name) = path.file_name().and_then(|n| n.to_str()).map(str::to_string) else {
+            let Some(name) = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .map(str::to_string)
+            else {
                 continue;
             };
             if !name.starts_with("nexora-") {
@@ -301,8 +305,7 @@ pub async fn export_logs_bundle(app: tauri::AppHandle) -> Result<String, String>
 
         let bundle_file = std::fs::File::create(&bundle_path_clone).map_err(|e| e.to_string())?;
         let mut zip = zip::ZipWriter::new(bundle_file);
-        let options =
-            SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
+        let options = SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
 
         let mut added = 0usize;
         for (name, path) in &log_files {
@@ -376,7 +379,9 @@ pub async fn upload_logs_to_server(
 
     let bundle_path = export_logs_bundle(app).await?;
 
-    let file_bytes = tokio::fs::read(&bundle_path).await.map_err(|e| e.to_string())?;
+    let file_bytes = tokio::fs::read(&bundle_path)
+        .await
+        .map_err(|e| e.to_string())?;
     let file_name = std::path::Path::new(&bundle_path)
         .file_name()
         .and_then(|n| n.to_str())

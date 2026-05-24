@@ -9,9 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.26.0] - 2026-05-24
 
 ### Added
+
 - feat: atualizacoes gerais
-
-
 
 ## [0.25.0] - 2026-05-22
 

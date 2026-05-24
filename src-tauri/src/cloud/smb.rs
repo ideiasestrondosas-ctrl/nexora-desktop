@@ -7,19 +7,27 @@ mod tests {
     use super::*;
 
     fn make_provider(base: &str) -> SmbProvider {
-        SmbProvider { base_path: base.to_string() }
+        SmbProvider {
+            base_path: base.to_string(),
+        }
     }
 
     #[test]
     fn resolve_caminho_normal() {
         let p = make_provider("/mnt/share");
-        assert_eq!(p.resolve("videos/clip.mp4"), std::path::PathBuf::from("/mnt/share/videos/clip.mp4"));
+        assert_eq!(
+            p.resolve("videos/clip.mp4"),
+            std::path::PathBuf::from("/mnt/share/videos/clip.mp4")
+        );
     }
 
     #[test]
     fn resolve_remove_barra_inicial() {
         let p = make_provider("/mnt/share");
-        assert_eq!(p.resolve("/sub/file.mp4"), std::path::PathBuf::from("/mnt/share/sub/file.mp4"));
+        assert_eq!(
+            p.resolve("/sub/file.mp4"),
+            std::path::PathBuf::from("/mnt/share/sub/file.mp4")
+        );
     }
 
     #[test]
@@ -153,19 +161,12 @@ impl CloudProvider for SmbProvider {
         Self::validate_remote_path(path)?;
         let dir = self.resolve(path);
 
-        let mut read_dir = tokio::fs::read_dir(&dir).await.map_err(|e| {
-            format!(
-                "Leitura de directório SMB falhou em {}: {e}",
-                dir.display()
-            )
-        })?;
+        let mut read_dir = tokio::fs::read_dir(&dir)
+            .await
+            .map_err(|e| format!("Leitura de directório SMB falhou em {}: {e}", dir.display()))?;
 
         let mut files = Vec::new();
-        while let Some(entry) = read_dir
-            .next_entry()
-            .await
-            .map_err(|e| e.to_string())?
-        {
+        while let Some(entry) = read_dir.next_entry().await.map_err(|e| e.to_string())? {
             let name = entry.file_name().to_string_lossy().to_string();
             let meta = entry.metadata().await.map_err(|e| e.to_string())?;
             let is_dir = meta.is_dir();

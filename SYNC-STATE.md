@@ -5,6 +5,63 @@
 
 ---
 
+Actualizado: 2026-05-24 19:30
+Agente: Claude Code (claude-sonnet-4-6)
+
+## O que foi feito
+
+### Sessao 21 — Correcoes de Configuracao + Analise Platform-Adaptive UX — CONCLUIDO
+
+**Pedido:** Analisar se CommunityToolkit/Windows e aplicavel, avaliar o que ja esta implementado de Platform-Adaptive UX, e planear a implementacao. Corrigir erros que surgiram durante os testes.
+
+**Implementacao:**
+
+1. **Fix critico — tauri.conf.json:**
+   - `titleBarStyle: "overlay"` nao e um valor valido no schema JSON do Tauri 2.x
+   - Erro impedia o arranque da app: `"overlay" is not valid under any of the schemas listed in the 'oneOf' keyword`
+   - Fix: campo removido; janela volta ao frame nativo do SO
+   - Sera re-adicionado correctamente na implementacao do Phase A (WindowControls.tsx)
+
+2. **Fix — scripts/sync.ps1 inoperacional em PowerShell 5.x:**
+   - Ficheiro estava em UTF-8 sem BOM; PowerShell 5.x (Windows PowerShell) lia-o como Windows-1252
+   - Byte `\x94` do em-dash `—` era interpretado como `"` (aspas curvas CP1252), fechando strings prematuramente
+   - Fix: ficheiro re-gravado com UTF-8 BOM (`EF BB BF`) via `System.Text.UTF8Encoding($true)`
+   - PowerShell 7.x nao e afectado (usa UTF-8 por defeito), mas agora funciona em ambos
+
+3. **Analise Platform-Adaptive UX:**
+   - **CommunityToolkit/Windows**: C#/XAML/.NET — mismatch total com Tauri+React, nao adoptar
+   - **Auditoria do que existe realmente**: so `usePlatform.ts` basico (isMac/isWindows/isLinux + data-platform no html) e `get_platform` Rust. WindowControls.tsx, window-vibrancy e native menus NAO foram implementados apesar do declarado em Sessao 20
+   - **Plano criado**: `C:\Users\arnal\.claude\plans\lexical-singing-frog.md`
+     - Phase A: WindowControls.tsx + modKey em usePlatform + CSS fontes/radius por plataforma (sem novos deps Rust)
+     - Phase B: `window-vibrancy` crate (Mica Windows 11 + NSVisualEffectView macOS) — confirmado pelo utilizador
+
+## Proximo passo exacto
+
+Implementar Platform-Adaptive UX conforme plano em `C:\Users\arnal\.claude\plans\lexical-singing-frog.md`:
+
+- Phase A primeiro (WindowControls.tsx, usePlatform.ts melhorado, CSS fontes/radius)
+- Phase B a seguir (window-vibrancy crate + Mica/Vibrancy)
+
+## Ficheiros tocados
+
+- `src-tauri/tauri.conf.json` (removido titleBarStyle invalido)
+- `scripts/sync.ps1` (UTF-8 BOM adicionado)
+- `.session-info.md`
+- `SYNC-STATE.md`
+- `PROGRESS-DESKTOP.md`
+
+## Estado de compilacao
+
+- `cargo check`: nao executado nesta sessao (sem alteracoes Rust)
+- `tsc --noEmit`: nao executado nesta sessao (sem alteracoes TS)
+- App arranca sem erros de schema: confirmado pelo utilizador
+
+## Commits desta sessao
+
+- Nenhum commit criado nesta sessao (apenas fixes de configuracao e analise)
+
+---
+
 Actualizado: 2026-05-24 18:30
 Agente: Claude Code (claude-sonnet-4-6)
 
