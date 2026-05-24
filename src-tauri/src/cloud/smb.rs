@@ -18,7 +18,7 @@ impl SmbProvider {
     fn resolve(&self, remote_path: &str) -> std::path::PathBuf {
         let cleaned = remote_path.trim_start_matches(['/', '\\']);
         let full = std::path::Path::new(&self.base_path).join(cleaned);
-        // I1: Prevenir path traversal via segmentos ".." — garantir que o caminho resolvido
+        // Prevenir path traversal via segmentos ".." — garantir que o caminho resolvido
         // permanece dentro de base_path (starts_with faz comparação por componentes, não por prefixo de string)
         let base = std::path::Path::new(&self.base_path);
         if !full.starts_with(base) {
@@ -28,13 +28,17 @@ impl SmbProvider {
         full
     }
 
-    fn copy_file(src: &Path, dst: &Path) -> Result<(), String> {
-        // Tenta fs::copy primeiro; em caso de falha cross-device usa read+write
-        if std::fs::copy(src, dst).is_ok() {
+    async fn copy_file(src: &Path, dst: &Path) -> Result<(), String> {
+        // Tenta copy atómica primeiro; em caso de falha cross-device usa read+write
+        if tokio::fs::copy(src, dst).await.is_ok() {
             return Ok(());
         }
-        let data = std::fs::read(src).map_err(|e| format!("Leitura falhou: {e}"))?;
-        std::fs::write(dst, data).map_err(|e| format!("Escrita falhou: {e}"))
+        let data = tokio::fs::read(src)
+            .await
+            .map_err(|e| format!("Leitura falhou: {e}"))?;
+        tokio::fs::write(dst, data)
+            .await
+            .map_err(|e| format!("Escrita falhou: {e}"))
     }
 }
 
@@ -45,45 +49,61 @@ impl CloudProvider for SmbProvider {
     }
 
     async fn test_connection(&self) -> Result<(), String> {
-        let base = std::path::Path::new(&self.base_path);
-        if !base.exists() {
+        let base = std::path::PathBuf::from(&self.base_path);
+
+        if !tokio::fs::try_exists(&base).await.unwrap_or(false) {
             return Err(format!("Pasta inacessível: {}", self.base_path));
         }
+
         // Verifica permissão de escrita com ficheiro temporário
         let probe = base.join(".nexora_probe");
-        std::fs::write(&probe, b"probe").map_err(|e| format!("Sem permissão de escrita: {e}"))?;
-        let _ = std::fs::remove_file(&probe);
+        tokio::fs::write(&probe, b"probe")
+            .await
+            .map_err(|e| format!("Sem permissão de escrita: {e}"))?;
+        let _ = tokio::fs::remove_file(&probe).await;
         Ok(())
     }
 
     async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
         let dest = self.resolve(remote_path);
         if let Some(parent) = dest.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| e.to_string())?;
         }
-        Self::copy_file(local_path, &dest)?;
+        Self::copy_file(local_path, &dest).await?;
         Ok(dest.to_string_lossy().to_string())
     }
 
     async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
         let src = self.resolve(remote_path);
         if let Some(parent) = local_path.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| e.to_string())?;
         }
-        Self::copy_file(&src, local_path)
+        Self::copy_file(&src, local_path).await
     }
 
     async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
         use super::provider::RemoteFile;
         let dir = self.resolve(path);
-        let entries = std::fs::read_dir(&dir)
-            .map_err(|e| format!("Leitura de directório SMB falhou em {}: {e}", dir.display()))?;
+
+        let mut read_dir = tokio::fs::read_dir(&dir).await.map_err(|e| {
+            format!(
+                "Leitura de directório SMB falhou em {}: {e}",
+                dir.display()
+            )
+        })?;
 
         let mut files = Vec::new();
-        for entry in entries {
-            let entry = entry.map_err(|e| e.to_string())?;
+        while let Some(entry) = read_dir
+            .next_entry()
+            .await
+            .map_err(|e| e.to_string())?
+        {
             let name = entry.file_name().to_string_lossy().to_string();
-            let meta = entry.metadata().map_err(|e| e.to_string())?;
+            let meta = entry.metadata().await.map_err(|e| e.to_string())?;
             let is_dir = meta.is_dir();
             let size = if is_dir { None } else { Some(meta.len()) };
             let modified = meta
@@ -110,7 +130,7 @@ impl CloudProvider for SmbProvider {
         let mut failed = Vec::new();
         for path in paths {
             let full = self.resolve(path);
-            if let Err(e) = std::fs::remove_file(&full) {
+            if let Err(e) = tokio::fs::remove_file(&full).await {
                 failed.push(format!("{path}: {e}"));
             }
         }

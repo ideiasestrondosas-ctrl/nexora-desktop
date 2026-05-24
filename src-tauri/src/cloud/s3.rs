@@ -97,7 +97,9 @@ impl CloudProvider for S3Provider {
             .await
             .map_err(|e| format!("S3 download falhou: {e}"))?;
         if let Some(parent) = local_path.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| e.to_string())?;
         }
         tokio::fs::write(local_path, response.bytes())
             .await

@@ -210,7 +210,7 @@ pub async fn get_log_storage_info(app: tauri::AppHandle) -> Result<LogStorageInf
 
     let log_dir_str = log_dir.to_string_lossy().into_owned();
 
-    if !log_dir.exists() {
+    if !tokio::fs::try_exists(&log_dir).await.unwrap_or(false) {
         return Ok(LogStorageInfo {
             log_dir: log_dir_str,
             total_size_bytes: 0,
@@ -219,32 +219,37 @@ pub async fn get_log_storage_info(app: tauri::AppHandle) -> Result<LogStorageInf
         });
     }
 
-    let entries = std::fs::read_dir(&log_dir).map_err(|e| e.to_string())?;
+    let mut entries = tokio::fs::read_dir(&log_dir)
+        .await
+        .map_err(|e| e.to_string())?;
 
     let mut total_size_bytes = 0u64;
     let mut file_count = 0u32;
     let mut oldest: Option<String> = None;
 
-    for entry in entries.flatten() {
+    while let Some(entry) = entries.next_entry().await.map_err(|e| e.to_string())? {
         let path = entry.path();
-        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
-            continue;
+        let name = match path.file_name().and_then(|n| n.to_str()) {
+            Some(n) => n.to_string(),
+            None => continue,
         };
         if !name.starts_with("nexora-") {
             continue;
         }
         let date_str = if name.ends_with(".log.zip") {
-            &name[7..name.len() - 8]
+            name[7..name.len() - 8].to_string()
         } else if name.ends_with(".log") {
-            &name[7..name.len() - 4]
+            name[7..name.len() - 4].to_string()
         } else {
             continue;
         };
         file_count += 1;
-        total_size_bytes += entry.metadata().map(|m| m.len()).unwrap_or(0);
+        total_size_bytes += entry.metadata().await.map(|m| m.len()).unwrap_or(0);
         match &oldest {
-            None => oldest = Some(date_str.to_string()),
-            Some(current) if date_str < current.as_str() => oldest = Some(date_str.to_string()),
+            None => oldest = Some(date_str.clone()),
+            Some(current) if date_str.as_str() < current.as_str() => {
+                oldest = Some(date_str.clone())
+            }
             _ => {}
         }
     }
@@ -259,10 +264,6 @@ pub async fn get_log_storage_info(app: tauri::AppHandle) -> Result<LogStorageInf
 
 #[tauri::command]
 pub async fn export_logs_bundle(app: tauri::AppHandle) -> Result<String, String> {
-    use std::io::Write as IoWrite;
-    use zip::write::SimpleFileOptions;
-    use zip::CompressionMethod;
-
     let log_dir = crate::file_logger::get_log_dir(&app)
         .ok_or_else(|| "Não foi possível obter o directório de logs".to_string())?;
 
@@ -270,17 +271,15 @@ pub async fn export_logs_bundle(app: tauri::AppHandle) -> Result<String, String>
     let bundle_name = format!("nexora-logs-{}.zip", ts);
     let bundle_path = std::env::temp_dir().join(&bundle_name);
 
-    let bundle_file = std::fs::File::create(&bundle_path).map_err(|e| e.to_string())?;
-    let mut zip = zip::ZipWriter::new(bundle_file);
-    let options = SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
-
-    let mut added = 0usize;
-
-    if log_dir.exists() {
-        let entries = std::fs::read_dir(&log_dir).map_err(|e| e.to_string())?;
-        for entry in entries.flatten() {
+    // Recolher os paths dos ficheiros de log de forma assíncrona
+    let mut log_files: Vec<(String, std::path::PathBuf)> = Vec::new();
+    if tokio::fs::try_exists(&log_dir).await.unwrap_or(false) {
+        let mut entries = tokio::fs::read_dir(&log_dir)
+            .await
+            .map_err(|e| e.to_string())?;
+        while let Some(entry) = entries.next_entry().await.map_err(|e| e.to_string())? {
             let path = entry.path();
-            let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            let Some(name) = path.file_name().and_then(|n| n.to_str()).map(str::to_string) else {
                 continue;
             };
             if !name.starts_with("nexora-") {
@@ -289,21 +288,40 @@ pub async fn export_logs_bundle(app: tauri::AppHandle) -> Result<String, String>
             if !name.ends_with(".log") && !name.ends_with(".log.zip") {
                 continue;
             }
-            let content = std::fs::read(&path).map_err(|e| e.to_string())?;
+            log_files.push((name, path));
+        }
+    }
+
+    // Comprimir em spawn_blocking para não bloquear o executor com I/O síncrono do zip
+    let bundle_path_clone = bundle_path.clone();
+    tokio::task::spawn_blocking(move || {
+        use std::io::Write as IoWrite;
+        use zip::write::SimpleFileOptions;
+        use zip::CompressionMethod;
+
+        let bundle_file = std::fs::File::create(&bundle_path_clone).map_err(|e| e.to_string())?;
+        let mut zip = zip::ZipWriter::new(bundle_file);
+        let options =
+            SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
+
+        let mut added = 0usize;
+        for (name, path) in &log_files {
+            let content = std::fs::read(path).map_err(|e| e.to_string())?;
             zip.start_file(name, options).map_err(|e| e.to_string())?;
             zip.write_all(&content).map_err(|e| e.to_string())?;
             added += 1;
         }
-    }
-
-    if added == 0 {
-        zip.start_file("README.txt", options)
-            .map_err(|e| e.to_string())?;
-        zip.write_all(b"Nenhum ficheiro de log encontrado.\n")
-            .map_err(|e| e.to_string())?;
-    }
-
-    zip.finish().map_err(|e| e.to_string())?;
+        if added == 0 {
+            zip.start_file("README.txt", options)
+                .map_err(|e| e.to_string())?;
+            zip.write_all(b"Nenhum ficheiro de log encontrado.\n")
+                .map_err(|e| e.to_string())?;
+        }
+        zip.finish().map_err(|e| e.to_string())?;
+        Ok::<(), String>(())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
 
     Ok(bundle_path.to_string_lossy().into_owned())
 }
@@ -313,9 +331,11 @@ pub async fn clear_log_files(app: tauri::AppHandle) -> Result<(), String> {
     let log_dir = crate::file_logger::get_log_dir(&app)
         .ok_or_else(|| "Não foi possível obter o directório de logs".to_string())?;
 
-    if log_dir.exists() {
-        let entries = std::fs::read_dir(&log_dir).map_err(|e| e.to_string())?;
-        for entry in entries.flatten() {
+    if tokio::fs::try_exists(&log_dir).await.unwrap_or(false) {
+        let mut entries = tokio::fs::read_dir(&log_dir)
+            .await
+            .map_err(|e| e.to_string())?;
+        while let Some(entry) = entries.next_entry().await.map_err(|e| e.to_string())? {
             let path = entry.path();
             let name = path
                 .file_name()
@@ -323,7 +343,7 @@ pub async fn clear_log_files(app: tauri::AppHandle) -> Result<(), String> {
                 .unwrap_or_default()
                 .to_string();
             if name.starts_with("nexora-") {
-                std::fs::remove_file(&path).ok();
+                tokio::fs::remove_file(&path).await.ok();
             }
         }
     }
@@ -347,7 +367,7 @@ pub async fn upload_logs_to_server(
 
     let bundle_path = export_logs_bundle(app).await?;
 
-    let file_bytes = std::fs::read(&bundle_path).map_err(|e| e.to_string())?;
+    let file_bytes = tokio::fs::read(&bundle_path).await.map_err(|e| e.to_string())?;
     let file_name = std::path::Path::new(&bundle_path)
         .file_name()
         .and_then(|n| n.to_str())
@@ -374,7 +394,7 @@ pub async fn upload_logs_to_server(
 
     let body = response.text().await.unwrap_or_else(|_| "OK".to_string());
 
-    std::fs::remove_file(&bundle_path).ok();
+    tokio::fs::remove_file(&bundle_path).await.ok();
 
     Ok(body)
 }

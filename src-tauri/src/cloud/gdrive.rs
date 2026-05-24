@@ -248,7 +248,9 @@ impl CloudProvider for GDriveProvider {
         }
         let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
         if let Some(parent) = local_path.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| e.to_string())?;
         }
         tokio::fs::write(local_path, bytes)
             .await
