@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "クラウド",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "クラウド — クラウドプロファイルや認証情報の管理とリモートファイルの参照（クラウドタブを参照）",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "クラウド — 配信先とファイルブラウザ",
+        "desc": "トランスコード後のファイル自動配信のためのクラウドストレージ配信先を設定します。対応プロバイダー：FTP、FTPS、SFTP、SMB、S3（およびMinIO、Wasabi等互換）、Google Drive。",
+        "destinations": {
+          "title": "クラウド配信先",
+          "desc": "設定 → クラウドでクラウドプロファイルを追加します。各プロファイルはプロバイダーの接続情報を保存します。1つのジョブに複数のクラウド配信先を設定できます — ジョブ完了後、ファイルはすべての配信先に自動的にアップロードされます。",
+          "tip1": "iCloudは非対応です — Appleはサードパーティアプリ向けの公開ファイルAPIを提供していません。",
+          "tip2": "認証情報はデバイスにローカル保存されます。Nexoraのサーバーには送信されません。",
+          "tip3": "Google DriveはフォルダーIDではなく、base_pathのフォルダー名で解決します。"
+        },
+        "browser": {
+          "title": "クラウドファイルブラウザ",
+          "desc": "設定 → クラウドの任意のクラウドプロファイルにある参照ボタン（フォルダーアイコン）をクリックしてファイルブラウザを開きます。サブディレクトリを移動し、ファイルを選択して、ネイティブダイアログでダウンロードしたり、リモートストレージから直接削除したりできます。",
+          "tip1": "各行のチェックボックスで複数ファイルを選択し、選択削除または選択ダウンロードを使用します。",
+          "tip2": "ダウンロードは保存先を選択するためのOSネイティブファイルピッカーを開きます。",
+          "tip3": "削除は永続的です — リモートストレージにはごみ箱がありません。"
+        },
+        "upload": {
+          "title": "自動アップロード",
+          "desc": "トランスコードジョブが完了すると、Nexoraはそのジョブに設定されたすべてのクラウド配信先に出力ファイルを自動的にアップロードします。アップロードは指数バックオフで3回リトライします。失敗したアップロードはログに記録されますが、ジョブを失敗とはしません。",
+          "tip1": "各ジョブは設定 → クラウドで設定したデフォルトのクラウド配信先を上書きできます。",
+          "tip2": "アップロードの進行状況はUIに表示されません — ログタブでアップロードの状態を確認してください。",
+          "tip3": "Google Driveはファイルをアップサートします：配信先フォルダーに同名のファイルが存在する場合、重複せずに置き換えられます。"
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",

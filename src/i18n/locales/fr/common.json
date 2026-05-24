@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "Cloud",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "Cloud — gérer les profils cloud, les identifiants et parcourir les fichiers distants (voir onglet Cloud)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "Cloud — Destinations et Explorateur de Fichiers",
+        "desc": "Configurez des destinations de stockage cloud pour la livraison automatique des fichiers après le transcodage. Fournisseurs pris en charge : FTP, FTPS, SFTP, SMB, S3 (et compatibles : MinIO, Wasabi) et Google Drive.",
+        "destinations": {
+          "title": "Destinations Cloud",
+          "desc": "Ajoutez des profils cloud dans Paramètres → Cloud. Chaque profil stocke les détails de connexion d'un fournisseur. Un job peut avoir plusieurs destinations cloud — le fichier est envoyé à toutes automatiquement après la fin du job.",
+          "tip1": "iCloud n'est pas pris en charge — Apple n'expose pas d'API de fichiers publique pour les applications tierces.",
+          "tip2": "Les identifiants sont stockés localement sur votre appareil. Ils ne sont jamais envoyés à un serveur Nexora.",
+          "tip3": "Google Drive résout les noms de dossiers depuis base_path — il n'utilise pas d'IDs internes de dossiers."
+        },
+        "browser": {
+          "title": "Explorateur de Fichiers Cloud",
+          "desc": "Cliquez sur le bouton Parcourir (icône de dossier) sur n'importe quel profil cloud dans Paramètres → Cloud pour ouvrir l'explorateur de fichiers. Naviguez dans les sous-répertoires, sélectionnez des fichiers, téléchargez-les dans un dossier local via la boîte de dialogue native, ou supprimez-les directement du stockage distant.",
+          "tip1": "Sélectionnez plusieurs fichiers avec les cases à cocher de chaque ligne, puis utilisez Supprimer la sélection ou Télécharger la sélection.",
+          "tip2": "Le téléchargement ouvre le sélecteur de fichiers natif du système d'exploitation pour choisir où enregistrer.",
+          "tip3": "La suppression est permanente — il n'y a pas de corbeille sur le stockage distant."
+        },
+        "upload": {
+          "title": "Envoi Automatique",
+          "desc": "Lorsqu'un job de transcodage se termine, Nexora envoie automatiquement le fichier de sortie vers toutes les destinations cloud configurées pour ce job. Les envois utilisent 3 tentatives avec recul exponentiel. Un envoi échoué est enregistré mais ne marque pas le job comme échoué.",
+          "tip1": "Chaque job peut remplacer la destination cloud par défaut définie dans Paramètres → Cloud.",
+          "tip2": "La progression de l'envoi n'est pas affichée dans l'interface — consultez l'onglet Journaux pour l'état.",
+          "tip3": "Google Drive effectue un upsert des fichiers : si un fichier avec le même nom existe déjà dans le dossier de destination, il est remplacé plutôt que dupliqué."
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",

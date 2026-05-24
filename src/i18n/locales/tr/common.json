@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "Bulut",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "Bulut — bulut profillerini ve kimlik bilgilerini yönetin ve uzak dosyalara göz atın (Bulut sekmesine bakın)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "Bulut — Hedefler ve Dosya Tarayıcısı",
+        "desc": "Kodlama sonrası otomatik dosya teslimi için bulut depolama hedefleri yapılandırın. Desteklenen sağlayıcılar: FTP, FTPS, SFTP, SMB, S3 (ve uyumlu: MinIO, Wasabi) ve Google Drive.",
+        "destinations": {
+          "title": "Bulut Hedefleri",
+          "desc": "Ayarlar → Bulut'ta bulut profilleri ekleyin. Her profil bir sağlayıcının bağlantı ayrıntılarını depolar. Bir iş birden fazla bulut hedefine sahip olabilir — iş tamamlandıktan sonra dosya tüm hedeflere otomatik olarak yüklenir.",
+          "tip1": "iCloud desteklenmemektedir — Apple üçüncü taraf uygulamalar için genel bir dosya API'si sunmamaktadır.",
+          "tip2": "Kimlik bilgileri cihazınızda yerel olarak depolanır. Hiçbir zaman herhangi bir Nexora sunucusuna gönderilmez.",
+          "tip3": "Google Drive, klasör adlarını base_path'ten çözer — dahili klasör kimliklerini kullanmaz."
+        },
+        "browser": {
+          "title": "Bulut Dosya Tarayıcısı",
+          "desc": "Dosya tarayıcısını açmak için Ayarlar → Bulut'taki herhangi bir bulut profilindeki Gözat düğmesine (klasör simgesi) tıklayın. Alt dizinlere gidin, dosya seçin, yerel bir klasöre indirin veya doğrudan uzak depolamadan silin.",
+          "tip1": "Her satırdaki onay kutularıyla birden fazla dosya seçin, ardından Seçilenleri Sil veya Seçilenleri İndir seçeneğini kullanın.",
+          "tip2": "İndirme, nereye kaydedileceğini seçmek için işletim sisteminin yerel dosya seçiciyi açar.",
+          "tip3": "Silme kalıcıdır — uzak depolamada geri dönüşüm kutusu yoktur."
+        },
+        "upload": {
+          "title": "Otomatik Yükleme",
+          "desc": "Bir kodlama işi tamamlandığında, Nexora çıktı dosyasını o iş için yapılandırılmış tüm bulut hedeflerine otomatik olarak yükler. Yüklemeler üstel geri çekilme ile 3 yeniden deneme kullanır. Başarısız bir yükleme günlüğe kaydedilir ancak işi başarısız olarak işaretlemez.",
+          "tip1": "Her iş, Ayarlar → Bulut'ta ayarlanan varsayılan bulut hedefini geçersiz kılabilir.",
+          "tip2": "Yükleme ilerleme durumu arayüzde gösterilmez — yükleme durumu için Günlükler sekmesini kontrol edin.",
+          "tip3": "Google Drive dosyaları upsert eder: hedef klasörde aynı ada sahip bir dosya zaten mevcutsa, kopyalanmak yerine değiştirilir."
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",

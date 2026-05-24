@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "Cloud",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "Cloud — Cloud-Profile, Anmeldedaten verwalten und Remote-Dateien durchsuchen (siehe Cloud-Registerkarte)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "Cloud — Ziele und Datei-Browser",
+        "desc": "Konfigurieren Sie Cloud-Speicherziele für die automatische Dateiauslieferung nach dem Transcodieren. Unterstützte Anbieter: FTP, FTPS, SFTP, SMB, S3 (und kompatibel: MinIO, Wasabi) und Google Drive.",
+        "destinations": {
+          "title": "Cloud-Ziele",
+          "desc": "Fügen Sie Cloud-Profile unter Einstellungen → Cloud hinzu. Jedes Profil speichert die Verbindungsdetails eines Anbieters. Ein Job kann mehrere Cloud-Ziele haben — die Datei wird nach Abschluss automatisch an alle hochgeladen.",
+          "tip1": "iCloud wird nicht unterstützt — Apple stellt keine öffentliche Datei-API für Drittanbieter-Apps bereit.",
+          "tip2": "Anmeldedaten werden lokal auf Ihrem Gerät gespeichert. Sie werden nie an einen Nexora-Server gesendet.",
+          "tip3": "Google Drive löst Ordnernamen aus base_path auf — es verwendet keine internen Ordner-IDs."
+        },
+        "browser": {
+          "title": "Cloud-Datei-Browser",
+          "desc": "Klicken Sie auf die Schaltfläche Durchsuchen (Ordner-Symbol) bei einem Cloud-Profil unter Einstellungen → Cloud, um den Datei-Browser zu öffnen. Navigieren Sie in Unterverzeichnisse, wählen Sie Dateien aus, laden Sie sie herunter oder löschen Sie sie direkt aus dem Remote-Speicher.",
+          "tip1": "Wählen Sie mehrere Dateien mit den Kontrollkästchen jeder Zeile aus und verwenden Sie dann Auswahl löschen oder Auswahl herunterladen.",
+          "tip2": "Der Download öffnet den nativen Dateiauswähler des Betriebssystems zum Wählen des Speicherorts.",
+          "tip3": "Das Löschen ist dauerhaft — im Remote-Speicher gibt es keinen Papierkorb."
+        },
+        "upload": {
+          "title": "Automatischer Upload",
+          "desc": "Wenn ein Transcodier-Job abgeschlossen ist, lädt Nexora die Ausgabedatei automatisch auf alle konfigurierten Cloud-Ziele hoch. Uploads verwenden 3 Versuche mit exponentiellem Backoff. Ein fehlgeschlagener Upload wird protokolliert, markiert den Job aber nicht als fehlgeschlagen.",
+          "tip1": "Jeder Job kann das Standard-Cloud-Ziel unter Einstellungen → Cloud überschreiben.",
+          "tip2": "Der Upload-Fortschritt wird nicht in der Benutzeroberfläche angezeigt — überprüfen Sie die Registerkarte Protokolle.",
+          "tip3": "Google Drive führt einen Upsert durch: Wenn bereits eine Datei mit demselben Namen im Zielordner vorhanden ist, wird sie ersetzt statt dupliziert."
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",

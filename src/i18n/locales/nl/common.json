@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "Cloud",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "Cloud — beheer cloudprofielen, inloggegevens en blader door externe bestanden (zie tabblad Cloud)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "Cloud — Bestemmingen en bestandsbeheer",
+        "desc": "Configureer cloudopslagbestemmingen voor automatische bestandslevering na transcodering. Ondersteunde aanbieders: FTP, FTPS, SFTP, SMB, S3 (en compatibel: MinIO, Wasabi) en Google Drive.",
+        "destinations": {
+          "title": "Cloudbestemmingen",
+          "desc": "Voeg cloudprofielen toe via Instellingen → Cloud. Elk profiel slaat de verbindingsgegevens van een aanbieder op. Een taak kan meerdere cloudbestemmingen hebben — het bestand wordt automatisch naar alle bestemmingen geüpload nadat de taak is voltooid.",
+          "tip1": "iCloud wordt niet ondersteund — Apple biedt geen openbare bestands-API voor apps van derden.",
+          "tip2": "Inloggegevens worden lokaal op uw apparaat opgeslagen. Ze worden nooit naar een Nexora-server gestuurd.",
+          "tip3": "Google Drive lost mapnamen op via base_path — het gebruikt geen interne map-ID's."
+        },
+        "browser": {
+          "title": "Cloudbestandsbeheer",
+          "desc": "Klik op de knop Bladeren (mappictogram) bij een cloudprofiel in Instellingen → Cloud om de bestandsbeheerder te openen. Navigeer naar submappen, selecteer bestanden, download ze of verwijder ze rechtstreeks uit de externe opslag.",
+          "tip1": "Selecteer meerdere bestanden met de selectievakjes in elke rij en gebruik vervolgens Geselecteerde verwijderen of Geselecteerde downloaden.",
+          "tip2": "Downloaden opent de native bestandskiezer van het besturingssysteem om te kiezen waar u wilt opslaan.",
+          "tip3": "Verwijderen is permanent — er is geen prullenbak in externe opslag."
+        },
+        "upload": {
+          "title": "Automatisch uploaden",
+          "desc": "Wanneer een transcoderingstranstaak is voltooid, uploadt Nexora het uitvoerbestand automatisch naar alle geconfigureerde cloudbestemmingen. Uploads gebruiken 3 pogingen met exponentiële backoff. Een mislukte upload wordt geregistreerd maar markeert de taak niet als mislukt.",
+          "tip1": "Elke taak kan de standaard cloudbestemming die is ingesteld in Instellingen → Cloud overschrijven.",
+          "tip2": "De uploadvoortgang wordt niet weergegeven in de interface — controleer het tabblad Logboeken voor de uploadstatus.",
+          "tip3": "Google Drive doet een upsert van bestanden: als er al een bestand met dezelfde naam bestaat in de doelmap, wordt het vervangen in plaats van gedupliceerd."
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",

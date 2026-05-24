@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "클라우드",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "클라우드 — 클라우드 프로파일, 자격 증명 관리 및 원격 파일 찾아보기(클라우드 탭 참조)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "클라우드 — 목적지 및 파일 브라우저",
+        "desc": "트랜스코딩 후 자동 파일 전달을 위한 클라우드 스토리지 목적지를 설정합니다. 지원 공급자: FTP, FTPS, SFTP, SMB, S3(및 호환: MinIO, Wasabi), Google Drive.",
+        "destinations": {
+          "title": "클라우드 목적지",
+          "desc": "설정 → 클라우드에서 클라우드 프로파일을 추가합니다. 각 프로파일은 공급자의 연결 정보를 저장합니다. 하나의 작업에 여러 클라우드 목적지를 설정할 수 있습니다 — 작업 완료 후 파일이 모든 목적지에 자동으로 업로드됩니다.",
+          "tip1": "iCloud는 지원되지 않습니다 — Apple은 타사 앱에 공개 파일 API를 제공하지 않습니다.",
+          "tip2": "자격 증명은 기기에 로컬로 저장됩니다. Nexora 서버로 전송되지 않습니다.",
+          "tip3": "Google Drive는 내부 폴더 ID가 아닌 base_path의 폴더 이름으로 해석합니다."
+        },
+        "browser": {
+          "title": "클라우드 파일 브라우저",
+          "desc": "설정 → 클라우드의 클라우드 프로파일에서 찾아보기 버튼(폴더 아이콘)을 클릭하여 파일 브라우저를 엽니다. 하위 디렉터리로 이동하고, 파일을 선택하고, 기본 파일 대화 상자를 통해 다운로드하거나 원격 스토리지에서 직접 삭제합니다.",
+          "tip1": "각 행의 확인란으로 여러 파일을 선택한 다음 선택 항목 삭제 또는 선택 항목 다운로드를 사용합니다.",
+          "tip2": "다운로드는 저장 위치를 선택하는 OS 기본 파일 선택기를 엽니다.",
+          "tip3": "삭제는 영구적입니다 — 원격 스토리지에는 휴지통이 없습니다."
+        },
+        "upload": {
+          "title": "자동 업로드",
+          "desc": "트랜스코딩 작업이 완료되면 Nexora가 해당 작업에 구성된 모든 클라우드 목적지로 출력 파일을 자동으로 업로드합니다. 업로드는 지수 백오프로 3번 재시도합니다. 실패한 업로드는 기록되지만 작업을 실패로 표시하지 않습니다.",
+          "tip1": "각 작업은 설정 → 클라우드에 설정된 기본 클라우드 목적지를 재정의할 수 있습니다.",
+          "tip2": "업로드 진행 상황은 UI에 표시되지 않습니다 — 업로드 상태는 로그 탭을 확인하세요.",
+          "tip3": "Google Drive는 파일을 업서트합니다: 목적지 폴더에 같은 이름의 파일이 이미 있으면 중복되지 않고 교체됩니다."
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",

@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "Chmura",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "Chmura — zarządzaj profilami chmury, danymi logowania i przeglądaj zdalne pliki (patrz karta Chmura)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "Chmura — miejsca docelowe i przeglądarka plików",
+        "desc": "Skonfiguruj miejsca docelowe przechowywania w chmurze do automatycznego dostarczania plików po transkodowaniu. Obsługiwane dostawcy: FTP, FTPS, SFTP, SMB, S3 (i kompatybilne: MinIO, Wasabi) i Google Drive.",
+        "destinations": {
+          "title": "Miejsca docelowe w chmurze",
+          "desc": "Dodaj profile chmury w Ustawienia → Chmura. Każdy profil przechowuje dane połączenia dla jednego dostawcy. Zadanie może mieć wiele miejsc docelowych — plik jest przesyłany do wszystkich automatycznie po zakończeniu zadania.",
+          "tip1": "iCloud nie jest obsługiwany — Apple nie udostępnia publicznego API plików dla aplikacji innych firm.",
+          "tip2": "Dane logowania są przechowywane lokalnie na urządzeniu. Nigdy nie są wysyłane na żaden serwer Nexora.",
+          "tip3": "Google Drive rozwiązuje nazwy folderów z base_path — nie używa wewnętrznych identyfikatorów folderów."
+        },
+        "browser": {
+          "title": "Przeglądarka plików w chmurze",
+          "desc": "Kliknij przycisk Przeglądaj (ikona folderu) przy dowolnym profilu chmury w Ustawienia → Chmura, aby otworzyć przeglądarkę plików. Przejdź do podkatalogów, wybierz pliki, pobierz je lub usuń bezpośrednio ze zdalnego magazynu.",
+          "tip1": "Wybierz wiele plików za pomocą pól wyboru w każdym wierszu, a następnie użyj opcji Usuń zaznaczone lub Pobierz zaznaczone.",
+          "tip2": "Pobieranie otwiera natywny selektor plików systemu operacyjnego, aby wybrać miejsce zapisania.",
+          "tip3": "Usuwanie jest trwałe — w zdalnym magazynie nie ma kosza."
+        },
+        "upload": {
+          "title": "Automatyczne przesyłanie",
+          "desc": "Po zakończeniu zadania transkodowania Nexora automatycznie przesyła plik wyjściowy do wszystkich skonfigurowanych miejsc docelowych w chmurze. Przesyłanie używa 3 ponownych prób z wykładniczym cofaniem. Nieudane przesyłanie jest rejestrowane, ale nie oznacza zadania jako nieudanego.",
+          "tip1": "Każde zadanie może zastąpić domyślne miejsce docelowe w chmurze ustawione w Ustawienia → Chmura.",
+          "tip2": "Postęp przesyłania nie jest wyświetlany w interfejsie — sprawdź kartę Dzienniki pod kątem stanu przesyłania.",
+          "tip3": "Google Drive wykonuje upsert plików: jeśli plik o tej samej nazwie już istnieje w folderze docelowym, zostaje zastąpiony, a nie zduplikowany."
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",

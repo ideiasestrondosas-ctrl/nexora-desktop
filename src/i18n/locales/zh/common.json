@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "云端",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "云端——管理云端配置文件、凭据并浏览远程文件（请参见云端选项卡）",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "云端 — 目标与文件浏览器",
+        "desc": "配置云存储目标，以便在转码后自动交付文件。支持的提供商：FTP、FTPS、SFTP、SMB、S3（及兼容：MinIO、Wasabi）和 Google Drive。",
+        "destinations": {
+          "title": "云端目标",
+          "desc": "在设置 → 云端中添加云端配置文件。每个配置文件存储一个提供商的连接详细信息。一个任务可以有多个云端目标——任务完成后，文件将自动上传到所有目标。",
+          "tip1": "不支持 iCloud——Apple 不为第三方应用程序公开文件 API。",
+          "tip2": "凭据存储在您的设备本地。永远不会发送到任何 Nexora 服务器。",
+          "tip3": "Google Drive 从 base_path 解析文件夹名称——不使用内部文件夹 ID。"
+        },
+        "browser": {
+          "title": "云端文件浏览器",
+          "desc": "单击设置 → 云端中任意云端配置文件上的浏览按钮（文件夹图标）以打开文件浏览器。导航到子目录，选择文件，通过本机文件对话框将其下载到本地文件夹，或直接从远程存储中删除它们。",
+          "tip1": "使用每行的复选框选择多个文件，然后使用删除所选或下载所选。",
+          "tip2": "下载会打开操作系统的本机文件选择器以选择保存位置。",
+          "tip3": "删除是永久性的——远程存储中没有回收站。"
+        },
+        "upload": {
+          "title": "自动上传",
+          "desc": "转码任务完成后，Nexora 自动将输出文件上传到该任务配置的所有云端目标。上传使用指数退避进行 3 次重试。失败的上传会被记录，但不会将任务标记为失败。",
+          "tip1": "每个任务可以覆盖在设置 → 云端中设置的默认云端目标。",
+          "tip2": "上传进度不在界面中显示——请检查日志选项卡以了解上传状态。",
+          "tip3": "Google Drive 对文件执行 upsert 操作：如果目标文件夹中已存在同名文件，则替换而不是复制。"
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",

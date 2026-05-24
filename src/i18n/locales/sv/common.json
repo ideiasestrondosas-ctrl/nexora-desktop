@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "Moln",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "Moln — hantera molnprofiler, inloggningsuppgifter och bläddra bland fjärrfiler (se fliken Moln)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "Moln — destinationer och filbläddrare",
+        "desc": "Konfigurera molnlagringsdestinationer för automatisk filleverans efter transkodning. Leverantörer som stöds: FTP, FTPS, SFTP, SMB, S3 (och kompatibla: MinIO, Wasabi) och Google Drive.",
+        "destinations": {
+          "title": "Molndestinationer",
+          "desc": "Lägg till molnprofiler i Inställningar → Moln. Varje profil lagrar anslutningsinformation för en leverantör. Ett jobb kan ha flera molndestinationer — filen laddas automatiskt upp till alla när jobbet slutförs.",
+          "tip1": "iCloud stöds inte — Apple exponerar inget offentligt fil-API för tredjepartsappar.",
+          "tip2": "Inloggningsuppgifter lagras lokalt på din enhet. De skickas aldrig till någon Nexora-server.",
+          "tip3": "Google Drive löser mappnamn från base_path — det använder inte interna mapp-ID:n."
+        },
+        "browser": {
+          "title": "Molnfilbläddrare",
+          "desc": "Klicka på knappen Bläddra (mappikon) på valfri molnprofil i Inställningar → Moln för att öppna filbläddraren. Navigera till underkataloger, välj filer, ladda ned dem eller ta bort dem direkt från fjärrlagringen.",
+          "tip1": "Välj flera filer med kryssrutorna på varje rad och använd sedan Ta bort markerade eller Ladda ned markerade.",
+          "tip2": "Nedladdning öppnar operativsystemets inbyggda filväljare för att välja var du vill spara.",
+          "tip3": "Borttagning är permanent — det finns inget papperskorg i fjärrlagringen."
+        },
+        "upload": {
+          "title": "Automatisk uppladdning",
+          "desc": "När ett transkodningsjobb slutförs laddar Nexora automatiskt upp utdatafilen till alla konfigurerade molndestinationer. Uppladdningar använder 3 försök med exponentiell backoff. En misslyckad uppladdning loggas men markerar inte jobbet som misslyckat.",
+          "tip1": "Varje jobb kan åsidosätta standardmolndestinationen som anges i Inställningar → Moln.",
+          "tip2": "Uppladdningsförloppet visas inte i gränssnittet — kontrollera fliken Loggar för uppladdningsstatus.",
+          "tip3": "Google Drive uppsertar filer: om en fil med samma namn redan finns i målmappen ersätts den i stället för att dupliceras."
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",

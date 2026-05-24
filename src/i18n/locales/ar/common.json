@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "السحابة",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "السحابة — إدارة ملفات تعريف السحابة وبيانات الاعتماد وتصفح الملفات البعيدة (انظر علامة تبويب السحابة)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "السحابة — الوجهات ومتصفح الملفات",
+        "desc": "قم بتكوين وجهات التخزين السحابي للتسليم التلقائي للملفات بعد الترميز. الموفرون المدعومون: FTP وFTPS وSFTP وSMB وS3 (والمتوافقون: MinIO وWasabi) وGoogle Drive.",
+        "destinations": {
+          "title": "وجهات السحابة",
+          "desc": "أضف ملفات تعريف السحابة في الإعدادات → السحابة. يخزن كل ملف تعريف تفاصيل اتصال موفر واحد. يمكن أن يكون للمهمة وجهات سحابية متعددة — يتم تحميل الملف إليها جميعًا تلقائيًا بعد اكتمال المهمة.",
+          "tip1": "iCloud غير مدعوم — لا تكشف Apple عن واجهة برمجة تطبيقات ملفات عامة لتطبيقات الجهات الخارجية.",
+          "tip2": "تُخزَّن بيانات الاعتماد محليًا على جهازك. لا تُرسَل أبدًا إلى أي خادم Nexora.",
+          "tip3": "يحل Google Drive أسماء المجلدات من base_path — ولا يستخدم معرفات المجلدات الداخلية."
+        },
+        "browser": {
+          "title": "متصفح ملفات السحابة",
+          "desc": "انقر على زر تصفح (أيقونة المجلد) في أي ملف تعريف سحابي في الإعدادات → السحابة لفتح متصفح الملفات. انتقل إلى الدلائل الفرعية، وحدد الملفات، وقم بتنزيلها أو احذفها مباشرة من التخزين البعيد.",
+          "tip1": "حدد ملفات متعددة باستخدام مربعات الاختيار في كل صف، ثم استخدم حذف المحدد أو تنزيل المحدد.",
+          "tip2": "يفتح التنزيل منتقي الملفات الأصلي لنظام التشغيل لاختيار مكان الحفظ.",
+          "tip3": "الحذف دائم — لا توجد سلة مهملات في التخزين البعيد."
+        },
+        "upload": {
+          "title": "الرفع التلقائي",
+          "desc": "عند اكتمال مهمة الترميز، يقوم Nexora تلقائيًا برفع ملف الإخراج إلى جميع وجهات السحابة المكوَّنة لتلك المهمة. تستخدم عمليات الرفع 3 محاولات إعادة مع تراجع أسي. يتم تسجيل عملية الرفع الفاشلة لكنها لا تضع علامة على المهمة بوصفها فاشلة.",
+          "tip1": "يمكن لكل مهمة تجاوز وجهة السحابة الافتراضية المعيَّنة في الإعدادات → السحابة.",
+          "tip2": "لا يظهر تقدم الرفع في واجهة المستخدم — راجع علامة تبويب السجلات للاطلاع على حالة الرفع.",
+          "tip3": "يقوم Google Drive بعملية upsert للملفات: إذا كان ملف بنفس الاسم موجودًا بالفعل في مجلد الوجهة، فسيتم استبداله بدلًا من تكراره."
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",
