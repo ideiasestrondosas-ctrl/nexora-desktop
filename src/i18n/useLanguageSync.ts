@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import i18n from '@/i18n';
+import i18n, { loadAndChangeLanguage } from '@/i18n';
 import { useSettingsStore } from '@/store/settings';
 
 /**
@@ -11,7 +11,7 @@ export function useLanguageSync() {
 
   useEffect(() => {
     if (language && language !== i18n.language) {
-      i18n.changeLanguage(language);
+      loadAndChangeLanguage(language).catch(console.error);
     }
   }, [language]);
 }
