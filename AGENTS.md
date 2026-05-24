@@ -104,4 +104,88 @@ Usar conventional commits — o sync.ps1 classifica automaticamente:
 
 ---
 
+## Karpathy Guidelines — Regras de Comportamento
+
+> Derivado das observacoes de Andrej Karpathy sobre erros comuns de LLMs em coding.
+> Estas regras complementam o system prompt e as Superpowers skills.
+> Fonte: https://github.com/multica-ai/andrej-karpathy-skills
+
+### Merge com Regras Existentes
+
+| Regra Karpathy                                                | Ja existia no system prompt?                              | O que muda                                                                                                    |
+| ------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Simplicity First** ("minimum code", "nothing speculative")  | Sim — "Make MINIMAL changes", "keep it stupidly simple"   | Reforco: teste "Would a senior engineer call this overcomplicated?"                                           |
+| **Surgical Changes** ("touch only what you must")             | Parcial — "Make MINIMAL changes", "follow existing style" | **Novo:** proibicao explicita de "melhorar" codigo adjacente, comentarios, ou formatting nao relacionados     |
+| **Goal-Driven Execution**                                     | Parcial — Superpowers skills (TDD, verification, plans)   | **Novo:** para multi-step tasks, declarar plano com verificacao por passo                                     |
+| **Think Before Coding** ("don't assume", "surface tradeoffs") | Parcial — "Ask for clarification if unclear"              | **Novo:** obrigacao de apresentar multiplas interpretacoes, fazer push back, e nomear confusao explicitamente |
+
+### 1. Think Before Coding
+
+**Nao assumir. Nao esconder confusao. Apresentar tradeoffs.**
+
+Antes de implementar:
+
+- **Estado as tuas assuncoes explicitamente.** Se incerto, pergunta — nao adivinhes.
+- **Se existirem multiplas interpretacoes, apresenta-as** — nao escolhas em silencio.
+- **Se existir uma abordagem mais simples, diz.** Faz push back quando justificado.
+- **Se algo estiver confuso, para.** Nomeia o que esta confuso. Pergunta.
+
+### 2. Simplicity First
+
+**Minimo de codigo que resolve o problema. Nada especulativo.**
+
+- Sem funcionalidades alem do que foi pedido.
+- Sem abstracoes para codigo de uso unico.
+- Sem "flexibilidade" ou "configurabilidade" que nao foi pedida.
+- Sem error handling para cenarios impossiveis.
+- Se escreves 200 linhas e podiam ser 50, reescreve.
+
+**Teste:** Um senior engineer diria que isto esta overcomplicated? Se sim, simplifica.
+
+### 3. Surgical Changes
+
+**Toca apenas no que deves. Limpa apenas a tua propria confusao.**
+
+Ao editar codigo existente:
+
+- **Nao "melhores" codigo, comentarios, ou formatting adjacentes** que nao estejam relacionados com o pedido.
+- **Nao facas refactor de coisas que nao estao partidas.**
+- **Respeita o estilo existente,** mesmo que o farias diferente.
+- **Se notares dead code nao relacionado, menciona-o** — nao o apagues a menos que seja pedido.
+
+Quando as tuas alteracoes criam orfaos (imports/variaveis/funcoes nao usadas):
+
+- **Remove-os se foram CRIADOS pelas tuas alteracoes.**
+- **Nao removes dead code pre-existente** a menos que seja explicitamente pedido.
+
+**Teste:** Cada linha alterada deve rastrear directamente ao pedido do utilizador.
+
+### 4. Goal-Driven Execution
+
+**Define criterios de sucesso. Itera ate verificar.**
+
+Transforma tarefas imperativas em objectivos declarativos verificaveis:
+
+| Em vez de...         | Transforma em...                                          |
+| -------------------- | --------------------------------------------------------- |
+| "Adiciona validacao" | "Escreve testes para inputs invalidos, depois faz passar" |
+| "Corrige o bug"      | "Escreve um teste que reproduz o bug, depois corrige"     |
+| "Refactor X"         | "Garante que os testes passam antes e depois"             |
+
+Para tarefas multi-passos, declara um plano breve:
+
+```
+1. [Passo] -> verificar: [check]
+2. [Passo] -> verificar: [check]
+3. [Passo] -> verificar: [check]
+```
+
+Criterios de sucesso fortes permitem iteracao independente. Criterios fracos ("faz funcionar") exigem clarificacao constante.
+
+---
+
+**Tradeoff:** Estas guidelines favorecem cautela sobre velocidade. Para tarefas triviais (typos, one-liners), usar bom senso — nem toda a alteracao precisa do rigor completo.
+
+---
+
 _Ultima revisao: Maio 2026 — Workspace: C:\Dev\nexora-desktop_
