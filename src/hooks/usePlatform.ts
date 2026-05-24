@@ -12,8 +12,11 @@ function detectPlatform(): Platform {
 
 const PLATFORM: Platform = detectPlatform();
 
-// Aplica classe ao <html> uma única vez para CSS adaptativo por plataforma
+// Aplica atributo ao <html> uma única vez para CSS adaptativo por plataforma
 document.documentElement.setAttribute('data-platform', PLATFORM);
+
+const MOD_SYMBOL = PLATFORM === 'macos' ? '⌘' : 'Ctrl';
+const MOD_KEY = PLATFORM === 'macos' ? 'Meta' : 'Control';
 
 export function usePlatform() {
   return {
@@ -21,5 +24,8 @@ export function usePlatform() {
     isMac: PLATFORM === 'macos',
     isWindows: PLATFORM === 'windows',
     isLinux: PLATFORM === 'linux',
+    modSymbol: MOD_SYMBOL,
+    modKey: MOD_KEY,
+    shortcut: (key: string) => `${MOD_SYMBOL}+${key}`,
   };
 }
