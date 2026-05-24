@@ -130,10 +130,10 @@
 ```
 Data:          2026-05-24
 Agente:        Claude Code (claude-sonnet-4-6)
-A trabalhar em: Platform-Adaptive UX (Phase A + B) — plano criado, implementacao pendente
+Ultima sessao: 21 — CI fixes v0.26.0 + release automatica melhorada (CONCLUIDO)
+Proximo:       Platform-Adaptive UX Phase A (sem novos deps Rust)
+               Plano: C:\Users\arnal\.claude\plans\lexical-singing-frog.md
 Bloqueios:     Nenhum
-Proximo:       Implementar WindowControls.tsx + usePlatform modKey + CSS fontes/radius (Phase A)
-               Depois: window-vibrancy crate Mica/Vibrancy (Phase B)
 ```
 
 ### Fase 12 - Platform-Adaptive UX
@@ -146,6 +146,14 @@ Proximo:       Implementar WindowControls.tsx + usePlatform modKey + CSS fontes/
 - [ ] `index.css`: vars --app-font e --app-radius por plataforma (Segoe UI Variable / SF Pro / Cantarell)
 - [ ] `window-vibrancy` crate: Mica Windows 11 + NSVisualEffectView macOS (Phase B)
 - [ ] `tauri.conf.json`: transparent + decorations para Phase B
+
+### Fase 13 - CI/CD e Tooling
+
+- [x] sync.ps1 UTF-8 BOM (compativel com PowerShell 5.x e 7.x)
+- [x] sync.ps1 PATCH release — preserva assets do CI ao publicar draft
+- [x] sync.ps1 `-PublishDraft` / opcao 6 — publicar draft sem ciclo completo de release
+- [x] test-karpathy.mjs: CI Linux funcional (guards SKILL.md, caminho relativo, opencode skip)
+- [x] smb::resolve: backslash normalizado antes de Path::join() (Linux CI fix)
 
 ### Fase 9 - Sistema de Logging Completo
 

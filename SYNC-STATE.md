@@ -5,60 +5,72 @@
 
 ---
 
-Actualizado: 2026-05-24 19:30
+Actualizado: 2026-05-24 21:00
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
-### Sessao 21 — Correcoes de Configuracao + Analise Platform-Adaptive UX — CONCLUIDO
+### Sessao 21 — CI Fixes v0.26.0 + Release Automatica Melhorada — CONCLUIDO
 
-**Pedido:** Analisar se CommunityToolkit/Windows e aplicavel, avaliar o que ja esta implementado de Platform-Adaptive UX, e planear a implementacao. Corrigir erros que surgiram durante os testes.
+**Pedido:** Analisar falhas de CI na v0.26.0, corrigir, e melhorar o processo de publicacao de releases no GitHub.
 
 **Implementacao:**
 
 1. **Fix critico — tauri.conf.json:**
-   - `titleBarStyle: "overlay"` nao e um valor valido no schema JSON do Tauri 2.x
-   - Erro impedia o arranque da app: `"overlay" is not valid under any of the schemas listed in the 'oneOf' keyword`
-   - Fix: campo removido; janela volta ao frame nativo do SO
-   - Sera re-adicionado correctamente na implementacao do Phase A (WindowControls.tsx)
+   - `titleBarStyle: "overlay"` nao e um valor valido no schema Tauri 2.x; impedia arranque da app
+   - Removido; janela volta ao frame nativo do SO ate Phase A do Platform UX
 
-2. **Fix — scripts/sync.ps1 inoperacional em PowerShell 5.x:**
-   - Ficheiro estava em UTF-8 sem BOM; PowerShell 5.x (Windows PowerShell) lia-o como Windows-1252
-   - Byte `\x94` do em-dash `—` era interpretado como `"` (aspas curvas CP1252), fechando strings prematuramente
-   - Fix: ficheiro re-gravado com UTF-8 BOM (`EF BB BF`) via `System.Text.UTF8Encoding($true)`
-   - PowerShell 7.x nao e afectado (usa UTF-8 por defeito), mas agora funciona em ambos
+2. **Fix — sync.ps1 inoperacional em PowerShell 5.x:**
+   - UTF-8 sem BOM fazia PS5 ler em Windows-1252; byte `\x94` (em-dash) corrompido para `"`
+   - Re-gravado com UTF-8 BOM via `System.Text.UTF8Encoding($true)`
 
-3. **Analise Platform-Adaptive UX:**
-   - **CommunityToolkit/Windows**: C#/XAML/.NET — mismatch total com Tauri+React, nao adoptar
-   - **Auditoria do que existe realmente**: so `usePlatform.ts` basico (isMac/isWindows/isLinux + data-platform no html) e `get_platform` Rust. WindowControls.tsx, window-vibrancy e native menus NAO foram implementados apesar do declarado em Sessao 20
-   - **Plano criado**: `C:\Users\arnal\.claude\plans\lexical-singing-frog.md`
-     - Phase A: WindowControls.tsx + modKey em usePlatform + CSS fontes/radius por plataforma (sem novos deps Rust)
-     - Phase B: `window-vibrancy` crate (Mica Windows 11 + NSVisualEffectView macOS) — confirmado pelo utilizador
+3. **Correcoes de CI para v0.26.0 (4 falhas independentes):**
+   - `cargo fmt`: formatacao aplicada em `smb.rs`, `logs.rs`, `file_logger.rs`
+   - Prettier: formatacao aplicada em `CHANGELOG.md`, `package.json`, `PROGRESS-DESKTOP.md`, `test-karpathy.mjs`, `tauri.conf.json`
+   - `test-karpathy.mjs`: 3 bugs — crash ENOENT quando SKILL.md ausente em CI, caminho hardcoded Windows, `opencode.jsonc` como falha de CI
+   - `cargo test` Linux: `smb::resolve()` nao normalizava backslashes antes de `Path::join()`; em Linux `\` nao e separador — normalizado com `.replace('\\', "/")`
+   - Todos os workflows CI/Build passam apos os fixes
+
+4. **sync.ps1 — PATCH de draft release (preserva assets do CI):**
+   - `build.yml` cria draft automatico com instaladores ao fazer push da tag
+   - Modo `-Release` agora usa `PATCH /releases/{id}` em vez de apagar e recriar
+   - Evita perda dos binarios ja anexados pelo GitHub Actions
+
+5. **sync.ps1 — novo modo `-PublishDraft` / opcao 6 do menu:**
+   - Publica qualquer draft existente (titulo + corpo rico gerado do CHANGELOG + `draft=false`)
+   - Util depois de um `build.yml` correr sem ter passado pelo sync.ps1
+   - v0.26.0 publicada manualmente com este mecanismo como teste
 
 ## Proximo passo exacto
 
 Implementar Platform-Adaptive UX conforme plano em `C:\Users\arnal\.claude\plans\lexical-singing-frog.md`:
 
-- Phase A primeiro (WindowControls.tsx, usePlatform.ts melhorado, CSS fontes/radius)
-- Phase B a seguir (window-vibrancy crate + Mica/Vibrancy)
+- **Phase A** (sem novos deps Rust): `usePlatform.ts` + `modKey`/`shortcut()`; `WindowControls.tsx`; `TopBar.tsx`; CSS `--app-font`/`--app-radius` por plataforma
+- **Phase B**: `window-vibrancy` crate — Mica Windows 11 + NSVisualEffectView macOS; `transparent: true` na janela
 
 ## Ficheiros tocados
 
-- `src-tauri/tauri.conf.json` (removido titleBarStyle invalido)
-- `scripts/sync.ps1` (UTF-8 BOM adicionado)
-- `.session-info.md`
-- `SYNC-STATE.md`
-- `PROGRESS-DESKTOP.md`
+- `src-tauri/tauri.conf.json` (titleBarStyle removido)
+- `src-tauri/src/cloud/smb.rs` (backslash normalizado + cargo fmt)
+- `src-tauri/src/logs.rs`, `src-tauri/src/file_logger.rs` (cargo fmt)
+- `scripts/sync.ps1` (UTF-8 BOM + PATCH release + modo -PublishDraft)
+- `scripts/test-karpathy.mjs` (3 bugs CI corrigidos)
+- `CHANGELOG.md`, `package.json`, `PROGRESS-DESKTOP.md` (Prettier)
+- `.session-info.md`, `SYNC-STATE.md`
 
 ## Estado de compilacao
 
-- `cargo check`: nao executado nesta sessao (sem alteracoes Rust)
-- `tsc --noEmit`: nao executado nesta sessao (sem alteracoes TS)
-- App arranca sem erros de schema: confirmado pelo utilizador
+- `cargo test`: 27/27 testes passam (incluindo smb backslash fix)
+- CI GitHub Actions v0.26.0: todos os workflows passam
+- GitHub Release v0.26.0: publicada com conteudo rico
 
 ## Commits desta sessao
 
-- Nenhum commit criado nesta sessao (apenas fixes de configuracao e analise)
+- `fix(ci): corrigir cargo fmt e prettier para v0.26.0`
+- `fix(ci): corrigir test-karpathy.mjs para CI Linux`
+- `fix(ci): smb::resolve normalizar backslashes em Linux`
+- `fix(sync): PATCH draft release em vez de recriar — preserva assets do CI`
+- `feat(sync): adicionar modo -PublishDraft / opcao 6 para publicar draft releases`
 
 ---
 

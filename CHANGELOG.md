@@ -10,7 +10,24 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- feat: atualizacoes gerais
+- sync.ps1: modo `-PublishDraft` (flag + opcao 6 do menu) — actualiza e publica draft release existente com titulo/corpo ricos gerados do CHANGELOG, sem refazer o ciclo completo de release
+- sync.ps1: Watch-GitHubActions — aguarda e reporta estado dos workflows apos merge para main
+
+### Fixed
+
+- CI Linux: `smb::resolve()` normalizava backslashes com `Path::join()`, que em Linux nao os trata como separadores; corrigido com `.replace('\\', "/")` antes do join
+- CI: `test-karpathy.mjs` — 3 bugs: crash ENOENT quando SKILL.md nao existe em CI, caminho hardcoded Windows no `resolve()`, `opencode.jsonc` ausente marcado como falha em vez de aviso
+- CI: `cargo fmt` — formatacao aplicada em `smb.rs`, `logs.rs`, `file_logger.rs`
+- CI: Prettier — formatacao aplicada em `CHANGELOG.md`, `package.json`, `PROGRESS-DESKTOP.md`, `test-karpathy.mjs`, `tauri.conf.json`
+- App: `titleBarStyle: "overlay"` removido do `tauri.conf.json` — valor invalido no schema Tauri 2.x impedia o arranque da app
+- SMB: path traversal rejeitado em `validate_remote_path()` (componentes `..` proibidos)
+- sync.ps1: UTF-8 BOM adicionado — sem BOM, PowerShell 5.x (Windows PowerShell) lia o ficheiro como Windows-1252, corrompendo em-dashes e quebrando o parsing
+
+### Changed
+
+- sync.ps1: modo Release usa agora `PATCH /releases/{id}` em vez de apagar e recriar o draft — preserva os instaladores ja anexados pelo GitHub Actions
+- Seguranca: credenciais cloud armazenadas no keychain do SO (Windows Credential Manager / macOS Keychain) em vez de SQLite plaintext
+- Platform UX: hook `usePlatform` com deteccao automatica de SO; atributo `data-platform` aplicado ao `<html>` para CSS condicional por plataforma
 
 ## [0.25.0] - 2026-05-22
 
