@@ -2,6 +2,7 @@
     [string]$Message,
     [switch]$SkipRelease,
     [switch]$Release,
+    [switch]$PublishDraft,
     [switch]$Help
 )
 
@@ -984,6 +985,12 @@ if ($Help) {
     Write-Host "    Dispara automaticamente o GitHub Actions (build .exe/.dmg/.deb)." -ForegroundColor Gray
     Write-Host "    Usar quando um Prompt Desktop (1/2/3/4) estiver completo." -ForegroundColor Gray
     Write-Host ""
+    Write-Host "  -PublishDraft" -ForegroundColor Magenta
+    Write-Host "    Publica o draft release da tag mais recente no GitHub." -ForegroundColor Gray
+    Write-Host "    Util quando o build.yml criou um draft automatico (apos push da tag)" -ForegroundColor Gray
+    Write-Host "    e queres actualizar o titulo/corpo e publicar sem refazer o release completo." -ForegroundColor Gray
+    Write-Host "    Equivalente a opcao 6 do menu interactivo." -ForegroundColor Gray
+    Write-Host ""
     Write-Host "  -Help" -ForegroundColor Cyan
     Write-Host "    Mostra esta ajuda." -ForegroundColor Gray
     Write-Host ""
@@ -1021,6 +1028,9 @@ if ($Help) {
     Write-Host "  # Ver estado do repositorio sem fazer nada" -ForegroundColor Green
     Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1  -> escolhe opcao 4" -ForegroundColor Cyan
     Write-Host ""
+    Write-Host "  # Publicar draft release criado automaticamente pelo build.yml" -ForegroundColor Green
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -PublishDraft" -ForegroundColor Magenta
+    Write-Host ""
     Write-Host "  FLUXO DE TRABALHO TIPICO" -ForegroundColor White
     Write-Host "  ------------------------" -ForegroundColor Gray
     Write-Host "  Dia de trabalho normal:" -ForegroundColor Gray
@@ -1038,6 +1048,119 @@ if ($Help) {
     Write-Host "  ============================================" -ForegroundColor Cyan
     Write-Host ""
     exit 0
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Publicar draft release existente no GitHub
+# ---------------------------------------------------------
+function Invoke-PublishDraft {
+    param([string]$token, [string]$repoOwner, [string]$repoName, [string]$workspace)
+
+    # Determinar versao a publicar
+    $latestTag = git describe --tags --abbrev=0 2>$null
+    if (-not $latestTag) {
+        Write-Err "Nao foi encontrada nenhuma tag git. Corre 'git tag' para verificar."
+        return
+    }
+
+    $version = $latestTag -replace '^v', ''
+    Write-Host ""
+    Write-Host "  Tag detectada: $latestTag" -ForegroundColor Cyan
+    $confirm = Read-Host "  Publicar draft release para $latestTag? [S/N]"
+    if ($confirm -notmatch '^[Ss]$') {
+        Write-Host "  Cancelado." -ForegroundColor Gray
+        return
+    }
+
+    $headers = @{
+        "Authorization" = "token $token"
+        "Accept"        = "application/vnd.github+json"
+    }
+
+    # Verificar se existe draft para esta tag
+    Write-Step "A verificar draft release $latestTag no GitHub..."
+    $releaseId   = $null
+    $releaseIsDraft = $false
+    try {
+        $existing = Invoke-RestMethod `
+            -Uri "https://api.github.com/repos/$repoOwner/$repoName/releases/tags/$latestTag" `
+            -Method Get `
+            -Headers $headers
+        $releaseId      = $existing.id
+        $releaseIsDraft = $existing.draft
+        if ($releaseIsDraft) {
+            Write-Info "Draft encontrado (id=$releaseId). A actualizar..."
+        } else {
+            Write-Warn "Release $latestTag ja esta publicada (nao e draft)."
+            $overwrite = Read-Host "  Queres actualizar o corpo mesmo assim? [S/N]"
+            if ($overwrite -notmatch '^[Ss]$') { return }
+        }
+    } catch {
+        Write-Warn "Nao existe release para $latestTag no GitHub."
+        $create = Read-Host "  Queres criar uma nova release para $latestTag? [S/N]"
+        if ($create -notmatch '^[Ss]$') { return }
+    }
+
+    # Gerar conteudo rico
+    $changelogSection = Parse-ChangelogSection $version
+    $releaseTitle     = "v$version — $(Get-ReleaseTitle $version $changelogSection)"
+    $releaseBodyText  = Build-ReleaseBody $version ""
+
+    Write-Step "Titulo: $releaseTitle"
+
+    if ($releaseId) {
+        # PATCH — actualizar release existente (draft ou publicada)
+        try {
+            $payload = @{
+                name  = $releaseTitle
+                body  = $releaseBodyText
+                draft = $false
+            } | ConvertTo-Json
+            $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
+            Invoke-RestMethod `
+                -Uri     "https://api.github.com/repos/$repoOwner/$repoName/releases/$releaseId" `
+                -Method  Patch `
+                -Headers $headers `
+                -Body    $payloadBytes `
+                -ContentType "application/json; charset=utf-8" > $null
+            Write-Success "Release $latestTag actualizada e publicada!"
+            Write-Info "https://github.com/$repoOwner/$repoName/releases/tag/$latestTag"
+        } catch {
+            $stream = $_.Exception.Response.GetResponseStream()
+            if ($stream) {
+                Write-Warn "Erro da API GitHub: $((New-Object System.IO.StreamReader($stream)).ReadToEnd())"
+            } else {
+                Write-Warn "Falhou: $_"
+            }
+        }
+    } else {
+        # POST — criar nova release
+        try {
+            $payload = @{
+                tag_name   = $latestTag
+                name       = $releaseTitle
+                body       = $releaseBodyText
+                draft      = $false
+                prerelease = $false
+            } | ConvertTo-Json
+            $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
+            Invoke-RestMethod `
+                -Uri     "https://api.github.com/repos/$repoOwner/$repoName/releases" `
+                -Method  Post `
+                -Headers $headers `
+                -Body    $payloadBytes `
+                -ContentType "application/json; charset=utf-8" > $null
+            Write-Success "Release $latestTag criada e publicada!"
+            Write-Info "https://github.com/$repoOwner/$repoName/releases/tag/$latestTag"
+        } catch {
+            $stream = $_.Exception.Response.GetResponseStream()
+            if ($stream) {
+                Write-Warn "Erro da API GitHub: $((New-Object System.IO.StreamReader($stream)).ReadToEnd())"
+            } else {
+                Write-Warn "Falhou: $_"
+            }
+        }
+    }
 }
 
 $WORKSPACE  = "C:\Dev\nexora-desktop"
@@ -1071,7 +1194,7 @@ Push-Location $WORKSPACE
 # ---------------------------------------------------------
 # MENU INTERACTIVO (quando nao ha flags passadas)
 # ---------------------------------------------------------
-if (-not $SkipRelease -and -not $Release -and -not $Message) {
+if (-not $SkipRelease -and -not $Release -and -not $PublishDraft -and -not $Message) {
     $branch = git branch --show-current 2>$null
     $dirty  = git status --short 2>$null
     $currentVersion = "0.1.0"
@@ -1100,9 +1223,10 @@ if (-not $SkipRelease -and -not $Release -and -not $Message) {
     Write-Host "  3) Versao pronta para lancamento               (commit + bump + push dev + merge main + GitHub Release)" -ForegroundColor Green
     Write-Host "  4) Ver estado actual                           (git status + ultimos commits)" -ForegroundColor Gray
     Write-Host "  5) Sair" -ForegroundColor Gray
+    Write-Host "  6) Publicar draft release existente            (actualiza e publica draft do GitHub Actions)" -ForegroundColor Magenta
     Write-Host ""
 
-    $choice = Read-Host "  Opcao [1-5]"
+    $choice = Read-Host "  Opcao [1-6]"
 
     switch ($choice) {
         "1" { <# modo normal -- continua o script #> }
@@ -1125,6 +1249,7 @@ if (-not $SkipRelease -and -not $Release -and -not $Message) {
             Write-Host "  Saindo." -ForegroundColor Gray
             Pop-Location; exit 0
         }
+        "6" { $PublishDraft = $true }
         default {
             Write-Warn "Opcao invalida. A usar modo 1 (guardar trabalho do dia)."
         }
@@ -1165,6 +1290,22 @@ if (Test-Path ".env") {
             if ($val) { $script:GITHUB_TOKEN = $val }
         }
     }
+}
+
+# ---------------------------------------------------------
+# MODO: PUBLICAR DRAFT RELEASE EXISTENTE (-PublishDraft / opcao 6)
+# ---------------------------------------------------------
+if ($PublishDraft) {
+    if (-not $script:GITHUB_TOKEN) {
+        Write-Err "GITHUB_TOKEN nao encontrado. Adiciona GITHUB_TOKEN=<token> ao ficheiro .env"
+        Pop-Location; exit 1
+    }
+    Invoke-PublishDraft `
+        -token     $script:GITHUB_TOKEN `
+        -repoOwner $REPO_OWNER `
+        -repoName  $REPO_NAME `
+        -workspace $WORKSPACE
+    Pop-Location; exit 0
 }
 
 # ---------------------------------------------------------
