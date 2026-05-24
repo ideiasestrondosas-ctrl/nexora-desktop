@@ -40,6 +40,7 @@
       "queue": "Fila",
       "profiles": "Perfis",
       "settings": "Definições",
+      "cloud": "Cloud",
       "logs": "Registos"
     },
     "intro": {
@@ -116,11 +117,37 @@
         "interface": "Interface — tema (Sistema/Claro/Escuro) e idioma",
         "system": "Sistema — info do SO/hardware, versão FFmpeg, estatísticas BD",
         "advanced": "Avançado — exportar/importar definições, reset de fábrica",
+        "cloud": "Cloud — gerir perfis cloud, credenciais e navegar em ficheiros remotos (ver separador Cloud)",
         "tip1": "Defina primeiro a Pasta de Saída — é aqui que todos os ficheiros processados vão.",
         "tip2": "Mais jobs simultâneos = mais uso de CPU/RAM. Comece com 2.",
         "tip3": "O Reset de Fábrica apaga tudo. Exporte as suas definições primeiro se tiver dúvidas.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "Cloud — Destinos e Navegador de Ficheiros",
+        "desc": "Configure destinos de armazenamento na cloud para entrega automática de ficheiros após a transcodificação. Fornecedores suportados: FTP, FTPS, SFTP, SMB, S3 (e compatíveis: MinIO, Wasabi) e Google Drive.",
+        "destinations": {
+          "title": "Destinos Cloud",
+          "desc": "Adicione perfis cloud em Definições → Cloud. Cada perfil guarda os detalhes de ligação de um fornecedor. Um job pode ter múltiplos destinos cloud — o ficheiro é enviado para todos automaticamente após o job concluir.",
+          "tip1": "O iCloud não é suportado — a Apple não expõe uma API de ficheiros pública para aplicações de terceiros.",
+          "tip2": "As credenciais são guardadas localmente no seu dispositivo. Nunca são enviadas para nenhum servidor Nexora.",
+          "tip3": "O Google Drive resolve nomes de pastas a partir do base_path — não usa IDs internos de pastas."
+        },
+        "browser": {
+          "title": "Navegador de Ficheiros Cloud",
+          "desc": "Clique no botão Navegar (ícone de pasta) em qualquer perfil cloud em Definições → Cloud para abrir o navegador de ficheiros. Navegue para subdirectórios, selecione ficheiros, descarregue-os para uma pasta local através do diálogo de ficheiros nativo, ou apague-os directamente do armazenamento remoto.",
+          "tip1": "Selecione múltiplos ficheiros com as caixas de verificação em cada linha, depois use Apagar Seleccionados ou Descarregar Seleccionados.",
+          "tip2": "O descarregamento abre o selecionador de ficheiros nativo do SO para escolher onde guardar.",
+          "tip3": "O apagamento é permanente — não existe lixo nas pastas remotas."
+        },
+        "upload": {
+          "title": "Upload Automático",
+          "desc": "Quando um job de transcodificação conclui, o Nexora envia automaticamente o ficheiro de output para todos os destinos cloud configurados para esse job. Os uploads usam 3 tentativas com recuo exponencial. Um upload falhado é registado mas não marca o job como falhado.",
+          "tip1": "Cada job pode substituir o destino cloud predefinido nas Definições → Cloud.",
+          "tip2": "O progresso do upload não é mostrado na UI — verifique o separador Registos para o estado do upload.",
+          "tip3": "O Google Drive faz upsert de ficheiros: se já existir um ficheiro com o mesmo nome na pasta de destino, é substituído em vez de duplicado."
+        }
       },
       "logs": {
         "title": "Registos — Diagnóstico",
