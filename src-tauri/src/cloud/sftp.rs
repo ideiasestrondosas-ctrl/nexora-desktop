@@ -53,6 +53,20 @@ mod tests {
         // Relativo vazio deve resultar em base + "/"
         assert_eq!(p.full_remote_path(""), "/srv/sftp/");
     }
+
+    #[test]
+    fn validate_remote_path_rejeita_traversal() {
+        assert!(SftpProvider::validate_remote_path("../etc/passwd").is_err());
+        assert!(SftpProvider::validate_remote_path("videos/../../etc").is_err());
+        assert!(SftpProvider::validate_remote_path("..").is_err());
+    }
+
+    #[test]
+    fn validate_remote_path_aceita_caminhos_normais() {
+        assert!(SftpProvider::validate_remote_path("videos/clip.mp4").is_ok());
+        assert!(SftpProvider::validate_remote_path("").is_ok());
+        assert!(SftpProvider::validate_remote_path("a..b/file.mp4").is_ok());
+    }
 }
 
 pub struct SftpProvider {
@@ -78,6 +92,13 @@ impl SftpProvider {
                 .to_string(),
             password: creds["password"].as_str().unwrap_or("").to_string(),
         })
+    }
+
+    fn validate_remote_path(path: &str) -> Result<(), String> {
+        if path.split('/').any(|c| c == "..") {
+            return Err("Caminho inválido: componentes '..' não são permitidos".to_string());
+        }
+        Ok(())
     }
 
     fn full_remote_path(&self, relative: &str) -> String {
@@ -142,6 +163,7 @@ impl CloudProvider for SftpProvider {
     }
 
     async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
+        Self::validate_remote_path(remote_path)?;
         let remote = self.full_remote_path(remote_path);
         let sftp = self.open_sftp().await?;
 
@@ -163,6 +185,7 @@ impl CloudProvider for SftpProvider {
     }
 
     async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
+        Self::validate_remote_path(remote_path)?;
         let remote = self.full_remote_path(remote_path);
         let sftp = self.open_sftp().await?;
 
@@ -187,7 +210,7 @@ impl CloudProvider for SftpProvider {
 
     async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
         use super::provider::RemoteFile;
-
+        Self::validate_remote_path(path)?;
         let dir_path = self.full_remote_path(path);
         let sftp = self.open_sftp().await?;
 
@@ -238,6 +261,9 @@ impl CloudProvider for SftpProvider {
     }
 
     async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
+        for path in paths {
+            Self::validate_remote_path(path)?;
+        }
         let sftp = self.open_sftp().await?;
         let mut failed = Vec::new();
 

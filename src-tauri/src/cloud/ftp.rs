@@ -32,6 +32,13 @@ impl FtpProvider {
         format!("{}:{}", self.host, self.port)
     }
 
+    fn validate_remote_path(path: &str) -> Result<(), String> {
+        if path.split('/').any(|c| c == "..") {
+            return Err("Caminho inválido: componentes '..' não são permitidos".to_string());
+        }
+        Ok(())
+    }
+
     // Fix 2: evita double-slash quando base_path é "/" ou vazio
     fn full_remote_path(&self, relative: &str) -> String {
         let cleaned = relative.trim_start_matches('/');
@@ -205,6 +212,7 @@ impl CloudProvider for FtpProvider {
 
     // Fix 1: quit() é chamado mesmo que o upload falhe
     async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
+        Self::validate_remote_path(remote_path)?;
         let remote = self.full_remote_path(remote_path);
         let mut ftp = self.connect().await?;
 
@@ -215,6 +223,7 @@ impl CloudProvider for FtpProvider {
 
     // Fix 1: quit() é chamado mesmo que o download falhe
     async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
+        Self::validate_remote_path(remote_path)?;
         let remote = self.full_remote_path(remote_path);
         let mut ftp = self.connect().await?;
 
@@ -224,6 +233,7 @@ impl CloudProvider for FtpProvider {
     }
 
     async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
+        Self::validate_remote_path(path)?;
         let full = self.full_remote_path(path);
         let mut ftp = self.connect().await?;
         // Guardar resultado antes de quit() para garantir que a ligação é sempre encerrada
@@ -241,6 +251,9 @@ impl CloudProvider for FtpProvider {
     }
 
     async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
+        for path in paths {
+            Self::validate_remote_path(path)?;
+        }
         let mut ftp = self.connect().await?;
         let mut failed = Vec::new();
         for path in paths {
@@ -318,5 +331,21 @@ mod tests {
         assert_eq!(r.path, "sub/footage");
         assert!(r.is_dir);
         assert!(r.size.is_none());
+    }
+
+    #[test]
+    fn validate_remote_path_rejeita_traversal() {
+        use super::FtpProvider;
+        assert!(FtpProvider::validate_remote_path("../etc/passwd").is_err());
+        assert!(FtpProvider::validate_remote_path("videos/../../etc").is_err());
+        assert!(FtpProvider::validate_remote_path("..").is_err());
+    }
+
+    #[test]
+    fn validate_remote_path_aceita_caminhos_normais() {
+        use super::FtpProvider;
+        assert!(FtpProvider::validate_remote_path("videos/clip.mp4").is_ok());
+        assert!(FtpProvider::validate_remote_path("").is_ok());
+        assert!(FtpProvider::validate_remote_path("a..b/file.mp4").is_ok());
     }
 }
