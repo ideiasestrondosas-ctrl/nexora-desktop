@@ -16,12 +16,12 @@ import {
 } from 'lucide-react';
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
-import LibraryPage from '@/pages/LibraryPage';
-import QueuePage from '@/pages/QueuePage';
+const LibraryPage = lazy(() => import('@/pages/LibraryPage'));
+const QueuePage = lazy(() => import('@/pages/QueuePage'));
 const ProfilesPage = lazy(() => import('@/pages/ProfilesPage'));
-import SettingsPage from '@/pages/SettingsPage';
+const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 const LogsPage = lazy(() => import('@/pages/LogsPage'));
-import AssetDetailPage from '@/pages/AssetDetailPage';
+const AssetDetailPage = lazy(() => import('@/pages/AssetDetailPage'));
 import TopBar from '@/components/TopBar';
 import { HelpOverlay } from '@/components/HelpModal';
 import { IngestProfileModal } from '@/components/IngestProfileModal';
