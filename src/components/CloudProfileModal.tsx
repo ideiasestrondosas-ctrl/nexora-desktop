@@ -61,6 +61,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
       'secret_key',
       'oauth_token',
       'oauth_refresh',
+      'client_secret',
     ];
     const config: Record<string, unknown> = {};
     const creds: Record<string, unknown> = {};
@@ -97,8 +98,6 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     setSaving(true);
     try {
       const { config, creds } = splitFields();
-      // Credenciais mescladas em config_json — v1 simplification (store é async, não lido nos comandos Rust)
-      const configJson = JSON.stringify({ ...config, ...creds });
 
       if (editing) {
         try {
@@ -115,15 +114,17 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
         await invoke('update_cloud_profile', {
           id: editing.id,
           name: name.trim(),
-          configJson,
+          configJson: JSON.stringify(config),
+          credentialsJson: JSON.stringify(creds),
         });
-        updateProfile(editing.id, { name: name.trim(), provider, config: { ...config, ...creds } });
+        updateProfile(editing.id, { name: name.trim(), provider, config });
         toast.success('Perfil actualizado');
       } else {
         const created = await invoke<CloudProfile>('create_cloud_profile', {
           name: name.trim(),
           provider,
-          configJson,
+          configJson: JSON.stringify(config),
+          credentialsJson: JSON.stringify(creds),
         });
         addProfile(created);
         toast.success('Perfil criado');

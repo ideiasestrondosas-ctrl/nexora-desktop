@@ -5,6 +5,31 @@ use serde::Serialize;
 use tauri::State;
 use uuid::Uuid;
 
+// ── Keychain helpers ──────────────────────────────────────────────────────────
+
+const KEYRING_SERVICE: &str = "nexora-cloud";
+
+fn save_credentials(profile_id: &str, creds_json: &str) -> Result<(), String> {
+    keyring::Entry::new(KEYRING_SERVICE, profile_id)
+        .map_err(|e| format!("Keychain inacessível: {e}"))?
+        .set_secret(creds_json.as_bytes())
+        .map_err(|e| format!("Falha ao guardar credenciais no keychain: {e}"))
+}
+
+fn load_credentials(profile_id: &str) -> serde_json::Value {
+    keyring::Entry::new(KEYRING_SERVICE, profile_id)
+        .ok()
+        .and_then(|e| e.get_secret().ok())
+        .and_then(|b| serde_json::from_slice(&b).ok())
+        .unwrap_or(serde_json::Value::Object(Default::default()))
+}
+
+fn delete_credentials(profile_id: &str) {
+    if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, profile_id) {
+        let _ = entry.delete_credential();
+    }
+}
+
 // ── Public types (sent to frontend) ──────────────────────────────────────────
 
 #[derive(Debug, Serialize, Clone)]
@@ -57,12 +82,15 @@ pub fn create_cloud_profile(
     name: String,
     provider: String,
     config_json: String,
+    credentials_json: String,
     state: State<AppState>,
 ) -> Result<CloudProfile, String> {
     let config: serde_json::Value =
         serde_json::from_str(&config_json).map_err(|e| e.to_string())?;
     let id = Uuid::new_v4().to_string();
     let now = Utc::now().to_rfc3339();
+    // Guarda credenciais no keychain do SO antes de escrever na BD
+    save_credentials(&id, &credentials_json)?;
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute(
         "INSERT INTO cloud_profiles (id, name, provider, config, created_at) VALUES (?1,?2,?3,?4,?5)",
@@ -83,8 +111,14 @@ pub fn update_cloud_profile(
     id: String,
     name: String,
     config_json: String,
+    credentials_json: String,
     state: State<AppState>,
 ) -> Result<(), String> {
+    // Actualiza keychain apenas se novas credenciais foram fornecidas
+    let creds: serde_json::Value = serde_json::from_str(&credentials_json).unwrap_or_default();
+    if creds.as_object().is_some_and(|o| !o.is_empty()) {
+        save_credentials(&id, &credentials_json)?;
+    }
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute(
         "UPDATE cloud_profiles SET name=?1, config=?2 WHERE id=?3",
@@ -96,6 +130,7 @@ pub fn update_cloud_profile(
 
 #[tauri::command]
 pub fn delete_cloud_profile(id: String, state: State<AppState>) -> Result<(), String> {
+    delete_credentials(&id);
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute("DELETE FROM cloud_profiles WHERE id=?1", [&id])
         .map_err(|e| e.to_string())?;
@@ -213,8 +248,14 @@ pub(crate) async fn run_cloud_uploads(job_id: &str, state: &AppState) -> Result<
         }
 
         let local_path = std::path::Path::new(&output_path);
-        // config e creds residem no mesmo JSON blob — passa a mesma referência
-        let provider = match cloud::get_provider(&provider_type, &config, &config) {
+        // Creds: keychain (perfis novos) → fallback para config blob (perfis migrados)
+        let keychain_creds = load_credentials(&profile_id);
+        let creds = if keychain_creds.as_object().is_some_and(|o| !o.is_empty()) {
+            keychain_creds
+        } else {
+            config.clone()
+        };
+        let provider = match cloud::get_provider(&provider_type, &config, &creds) {
             Ok(p) => p,
             Err(e) => {
                 let db = state.db.lock().map_err(|e2| e2.to_string())?;

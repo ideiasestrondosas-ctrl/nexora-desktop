@@ -41,6 +41,7 @@ async-trait = "0.1"
 rust-s3 = { version = "0.37", default-features = false, features = ["tokio-rustls-tls"] }
 tauri-plugin-clipboard-manager = "2.3.2"
 tauri-plugin-process = "2"
+keyring = "3"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 libc = "0.2"
