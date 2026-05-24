@@ -5,6 +5,249 @@
 
 ---
 
+Actualizado: 2026-05-24 18:30
+Agente: Claude Code (claude-sonnet-4-6)
+
+## O que foi feito
+
+### Sessao 20 — Auditoria Completa: Segurança, Performance, Platform UX + Keychain — CONCLUIDO
+
+**Pedido:** Implementar todas as melhorias levantadas pela auditoria das sessões 17/18 (segurança, performance, UX adaptativa) e as fases de documentação em falta.
+
+**Implementacao:**
+
+1. **Segurança S1 — Credenciais cloud no keychain OS:**
+   - `keyring = "3"` adicionado ao `Cargo.toml`
+   - `save_credentials`, `load_credentials`, `delete_credentials` em `commands/cloud.rs`
+   - `create_cloud_profile` e `update_cloud_profile` guardam creds no keychain; `delete_cloud_profile` limpa entrada
+   - `run_cloud_uploads` carrega do keychain, fallback para config blob (backward-compat)
+   - `CloudProfileModal.tsx`: `splitFields()` separa credenciais de config; `credentialsJson` passado separadamente no invoke
+
+2. **Segurança S2 — Path traversal SMB:**
+   - `validate_remote_path()` em `cloud/smb.rs` rejeita componentes `..` com `split(['/', '\\']).any(|c| c == "..")`
+   - 4 unit tests: traversal simples, traversal profundo, caminhos normais aceites, resolve\_\*
+   - Fix: o teste anterior usava `Path::starts_with` que falha para paths não-normalizados
+
+3. **Segurança S3 — Validação endpoint logs:**
+   - `validate_log_endpoint(raw)` em `commands/logs.rs` — rejeita URLs sem protocolo http/https
+   - 4 unit tests: http aceite, https aceite, sem protocolo rejeitado, vazio rejeitado
+
+4. **Segurança S4 — FTP max file size:**
+   - `FTP_MAX_FILE_BYTES: u64 = 2 * 1024 * 1024 * 1024` substituindo magic number em `cloud/ftp.rs`
+
+5. **Segurança S5 — cargo audit:**
+   - `src-tauri/audit.toml` criado com `RUSTSEC-2023-0071` documentado (RSA Marvin, via russh, password auth only)
+   - `[warnings] unmaintained = "warn"` configurado
+
+6. **Performance Phase 3:**
+   - `vite.config.ts`: removido `manualChunks` vendor chunk quebrado (gerava bundle 0 bytes)
+   - Lazy loading: 4 páginas pesadas com `React.lazy()` + `<Suspense>`
+   - `tokio::fs` em comandos Rust async (substituindo `std::fs` bloqueante)
+   - Clone desnecessário eliminado em `run_cloud_uploads`
+   - Polling de logs: 2s → 5s, scroll condicional
+
+7. **Platform UX Phase 4:**
+   - `src/hooks/usePlatform.ts` com `isMac`, `isWindows`, `isLinux`, `modKey`, `accentStyle`
+   - `get_platform` comando Rust com `#[cfg(target_os)]`
+   - Menus nativos por plataforma (Tauri menu builder)
+   - `WindowControls.tsx` — titlebar adaptativa (traffic lights macOS, controlos Windows)
+   - `window-vibrancy` crate para efeitos Mica/Acrylic (Windows 11) e Vibrancy (macOS)
+
+8. **Documentation Phase 1:**
+   - i18n lazy-load: 14 locales on-demand, só `en.json` no bundle inicial; `initI18n()` awaited em `main.tsx`
+   - README.md actualizado (stack, cloud, screenshots, build)
+   - HelpModal — aba Cloud com documentação de todos os providers + GDrive OAuth step-by-step
+   - `package.json` metadata (`description`, `author`, `license`) preenchidos
+
+9. **Watch-GitHubActions em sync.ps1:**
+   - Função `Watch-GitHubActions($sha, $version, $token)` adicionada ao `scripts/sync.ps1`
+   - Poll da GitHub REST API (`/actions/runs?head_sha=`) a cada 30s
+   - Mostra ⏳/✅/❌ por workflow; termina quando todos concluídos ou timeout (30 min)
+   - Chamada no bloco Release após merge bem-sucedido (opt-in: [S/N])
+
+10. **Testes:** 27/27 `cargo test` passam (smb×8, logs×4, ftp×4, sftp×3, outros×8)
+
+## Proximo passo exacto
+
+Aguardar próximo pedido do utilizador. Possíveis prioridades:
+
+- Watch Folders (crate `notify`) — monitorização automática de pastas
+- Tradução profissional dos locales não-PT
+- Próximo release (bump versão, tag, GitHub Release)
+
+## Ficheiros tocados
+
+- `src-tauri/Cargo.toml` (keyring, window-vibrancy)
+- `src-tauri/src/commands/cloud.rs` (keychain helpers, create/update/delete/run_cloud_uploads)
+- `src-tauri/src/cloud/smb.rs` (validate_remote_path + tests)
+- `src-tauri/src/cloud/ftp.rs` (FTP_MAX_FILE_BYTES constante)
+- `src-tauri/src/commands/logs.rs` (validate_log_endpoint + tests)
+- `src-tauri/audit.toml` (novo)
+- `src/components/CloudProfileModal.tsx` (splitFields com client_secret, credentialsJson separado)
+- `src/hooks/usePlatform.ts` (novo)
+- `src/components/WindowControls.tsx` (novo)
+- `src/i18n/index.ts` (lazy-load)
+- `src/main.tsx` (await initI18n)
+- `vite.config.ts` (remove manualChunks)
+- `scripts/sync.ps1` (Watch-GitHubActions)
+- `package.json` (description, author, license)
+- `PROGRESS-DESKTOP.md`
+- `SYNC-STATE.md`
+
+## Estado de compilacao
+
+- `cargo test`: 27/27 ✅
+- `cargo check`: OK ✅
+- `tsc --noEmit`: OK ✅
+
+## Commits desta sessao
+
+- `efed769` security(cloud): path traversal fix in SMB + audit hardening
+- `b6b76d1` security(cloud): store credentials in OS keychain instead of SQLite plaintext
+- `7b7a22c` perf(rust): substituir std::fs por tokio::fs em comandos async
+- `7f4e33b` perf: eliminar clone desnecessário e reduzir polling de logs
+- `eb797ba` perf(bundle): lazy-load 4 heavy pages, remove broken vendor chunk
+- `f3d8abf` perf(i18n): lazy-load locales on demand
+- `65a52dc` feat(platform): UX adaptativo por plataforma — Phase 4
+- `e556f0c` feat(sync): Watch-GitHubActions após merge Release
+
+---
+
+Actualizado: 2026-05-24 16:00
+Agente: Antigravity (Gemini 3.5 Flash)
+
+## O que foi feito
+
+### Sessao 19 — Plano de Análise de UX Adaptativa e Viabilidade do Windows Community Toolkit — CONCLUIDO
+
+**Pedido:** Criar um plano de análise (sem atualizar código) para a feature "Platform-Adaptive UX" (não iniciada). Investigar se o Windows Community Toolkit (https://github.com/CommunityToolkit/Windows) pode ser adaptado para Windows, se vale a pena ou não, ou se o que foi feito está correto. O objetivo é adotar a UX mais próxima possível de cada plataforma (Windows, macOS, Linux) mantendo a lógica de negócio e o backend unificados.
+
+**Implementacao:**
+
+1. **Investigação do Windows Community Toolkit**:
+   - Conclusão: É uma biblioteca nativa para C# / XAML / .NET (WinUI 3/UWP). Como o Nexora Desktop utiliza Tauri 2.x + React + WebView, é um mismatch tecnológico total.
+   - Veredicto: **Não vale a pena**, pois fragmentaria a base de código, exigiria bridges C++/C# extremamente pesadas e complexas, e quebraria a unificação cross-platform.
+2. **Validação da Abordagem Atual**:
+   - Confirmado que a stack atual (Tauri 2.x + React 19 + Tailwind CSS v4) é a **correta, moderna e recomendada** para conseguir interfaces responsivas e de alta fidelidade visual.
+3. **Desenho da Estratégia de UX Adaptativa Multiplataforma**:
+   - Apresentada estratégia dividida em duas camadas (Nativa com Rust `window-vibrancy` e Apresentação com React/Tailwind/i18n).
+   - Efeitos visuais nativos: Mica/Acrylic no Windows 11, Vibrancy (NSVisualEffectView) no macOS.
+   - UI adaptada ao SO em tempo de execução: Tipografia (Segoe UI vs SF Pro vs Cantarell), arredondamento de cantos (rounded-lg vs rounded-xl vs rounded-md), cabeçalho e controlos de janela adaptativos (semáforos à esquerda no macOS vs controlos Fluent à direita no Windows 11), atalhos de teclado dinâmicos (Cmd vs Ctrl).
+4. **Criação do Plano de Análise**:
+   - Guardado em `implementation_plan.md` no diretório de artifacts da conversação.
+5. **Atualização do Contexto do Repositório**:
+   - Preenchido o `.session-info.md` no início e atualizado no fim.
+   - Atualizado o `PROGRESS-DESKTOP.md` e o `SYNC-STATE.md`.
+
+## Proximo passo exacto
+
+1. Obter aprovação do utilizador sobre o plano de análise e a não adoção do Windows Community Toolkit.
+2. Decidir se avançamos para a fase de implementação técnica da UX Adaptativa.
+
+## Ficheiros tocados
+
+- .session-info.md
+- PROGRESS-DESKTOP.md
+- SYNC-STATE.md
+- C:\Users\arnal\.gemini\antigravity-ide\brain\da7b78f4-e0c9-4262-aa58-8f5d75b8fffa\implementation_plan.md (novo)
+
+## Estado de compilacao
+
+- cargo check: OK
+- tsc --noEmit: OK
+- esbuild: OK
+
+---
+
+Actualizado: 2026-05-24 15:35
+Agente: Antigravity (Gemini 3.5 Flash)
+
+## O que foi feito
+
+### Sessao 18 — Analise Estruturada e Plano de Melhorias (UX, Seguranca, Optimizacao) — CONCLUIDO
+
+**Pedido:** Criar um plano detalhado e priorizado de melhorias, segurança, otimização e UX multiplataforma (Windows, macOS, Linux) para a aplicação Nexora Desktop, mantendo a paridade de funcionalidades e o backend unificado. Sem implementar código na aplicação.
+
+**Implementacao:**
+
+1. **Preenchimento do `.session-info.md`:**
+   - Inicializado de acordo com o template e as regras em `AGENTS.md`.
+
+2. **Auditoria de Segurança (P0):**
+   - Identificada vulnerabilidade crítica no armazenamento de credenciais cloud em texto plano no SQLite. Proposta integração de `tauri-plugin-stronghold` ou Keychain nativa do SO (`keyring-rs`).
+   - Proposta de proteção contra Path Traversal em APIs que tocam o sistema de ficheiros com validações estritas em Rust.
+
+3. **Otimizações e Resiliência (P1):**
+   - Proposta de mecanismo de Heartbeat bidirecional no sidecar para terminação limpa de processos zumbis de `FFmpeg`.
+   - Proposta de Dynamic Thread Throttle baseado na carga de CPU/GPU recolhida dinamicamente.
+   - Proposta de Auto-Purging para limitar e manter limpo o tamanho da cache local de forma configurável.
+
+4. **Experiência de Utilizador Multiplataforma (P1):**
+   - Análise de UX premium para Windows 11 (Mica/Acrylic, Frameless title bar), macOS (Vibrancy, layout seguro de semáforos) e Linux (GTK Scroll styling, decorações nativas estáveis).
+   - Proposta de teclado de atalho com correspondência de modificadores dinâmica (`Ctrl` vs `Cmd`).
+
+5. **Novas Funcionalidades Premium Recomendadas (P2):**
+   - Proposta de **Watch Folders** (Pastas de Monitorização ativa) integradas no Rust usando a crate `notify`.
+   - Proposta de **Leitor de Vídeo Premium com Comparador de Qualidade Visual** Side-by-Side em React.
+   - Proposta de **Visual Preset Creator** na interface de configurações.
+
+6. **Criação do Plano de Ação Estruturado:**
+   - Criado e guardado o plano de análise detalhado no artifact `implementation_plan.md`.
+
+**Verificação:**
+
+- Sem alterações funcionais no código principal da aplicação em conformidade com as restrições do utilizador.
+- Ficheiro `.session-info.md` devidamente preenchido.
+
+---
+
+Actualizado: 2026-05-24
+Agente: OpenCode (kimi-k2.6)
+
+## O que foi feito
+
+### Sessao 17 — Karpathy Guidelines Integration — CONCLUIDO
+
+**Pedido:** Integrar as Karpathy Guidelines (andrejkarpthy-skills) no workflow do projecto: atualizar AGENTS.md, criar skill OpenCode, e criar test script automatizado.
+
+**Implementacao:**
+
+1. **AGENTS.md atualizado:**
+   - Nova secao "Karpathy Guidelines — Regras de Comportamento" com 4 principios em PT
+   - Tabela de merge analysis (o que ja existia vs. o que e novo)
+   - Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution
+
+2. **Skill `karpathy-guidelines` criada:**
+   - Localizacao: `~/.opencode/skills/karpathy-guidelines/SKILL.md`
+   - Frontmatter YAML valido (name, description)
+   - Tipo: Rigid (follow exactly)
+   - Merge analysis em ingles (consistente com Superpowers skills)
+
+3. **Configuracao OpenCode:**
+   - `~/.config/opencode/opencode.jsonc` atualizado com `skills.paths`
+   - Aponta para `C:/Users/arnal/.opencode/skills`
+
+4. **Test script `scripts/test-karpathy.mjs`:**
+   - Valida estrutura do SKILL.md (frontmatter, secoes, tipo Rigid)
+   - Valida AGENTS.md (secao Karpathy, regras em PT)
+   - Valida opencode.jsonc (skills.paths)
+   - Simula 4 cenarios heurísticos (Think Before Coding, Goal-Driven, Surgical, Simplicity)
+   - Exit code 0/1 (para CI)
+   - Resultado actual: 25/25 passaram
+
+5. **CI workflow `.github/workflows/test-karpathy.yml`:**
+   - Dispara em push/PR para main
+   - Node.js 20, corre `scripts/test-karpathy.mjs`
+   - Graceful degradation em CI (skill nao disponivel no runner, valida so AGENTS.md)
+
+**Impacto nos agentes:**
+
+- Claude Code e Antigravity: recebem guidelines via AGENTS.md (ja aplicavel)
+- OpenCode: recebe guidelines via AGENTS.md + skill `karpathy-guidelines` (reforco extra)
+- Test script: nao afecta runtime dos agentes (apenas CI/validacao)
+
+---
+
 Actualizado: 2026-05-22
 Agente: Claude Code (claude-sonnet-4-6)
 
@@ -588,7 +831,7 @@ Agente: Claude Code (claude-sonnet-4-6)
 - **settings.json** — factory_reset NUNCA apaga este ficheiro; escreve `{}` para reset limpo sem crash do LazyStore
 - **Mutex poison em queue.rs** — usar `unwrap_or_else(|poison| poison.into_inner())` no lock da DB
 - **invoke() com Rust String** — sempre converter com `String(value)` antes de passar número ou booleano para um comando Rust que espera `String`; serde_json falha silenciosamente caso contrário
-- **Cloud credentials (v1)** — guardadas em `config_json` no SQLite (sem encrypted store); frontend passa credenciais directamente em `test_cloud_connection`; em v2 migrar para tauri-plugin-stronghold ou equivalente
+- **Cloud credentials** — guardadas no keychain do SO via `keyring v3` (`save_credentials`/`load_credentials`/`delete_credentials`); backward-compat com perfis antigos (fallback config blob em `run_cloud_uploads`); campos de password vazios no modal de edição = manter keychain existente
 - **process_cloud_destinations** — usa retry manual 3 tentativas (nao `retry_with_backoff`): `async_trait` nao aceita `FnMut() -> Fut` com lifetime da trait; qualquer refactor deve manter este padrao
 - **GDrive OAuth** — Device Flow: `gdrive_start_auth` retorna url + user_code; frontend poll `gdrive_poll_auth` a cada 5s ate receber `access_token`; token guardado como `oauth_token` em `config_json`
 - **iCloud auto-detect** — `%USERPROFILE%\iCloudDrive` (Windows), `~/Library/Mobile Documents/com~apple~CloudDocs` (macOS); nao e suportado em Linux

@@ -128,11 +128,11 @@
 ## Em progresso agora
 
 ```
-Data:          2026-05-21
-Agente:        Claude Code (Sonnet 4.6)
-A trabalhar em: Cloud Storage Integration (Sub-projecto A) — CONCLUIDO
+Data:          2026-05-24
+Agente:        Claude Code (claude-sonnet-4-6)
+A trabalhar em: Nada — sessao 20 concluida
 Bloqueios:     Nenhum
-Proximo:       Testes manuais / bump de versao para v0.25.0
+Proximo:       Aguardar proximo pedido do utilizador
 ```
 
 ### Fase 9 - Sistema de Logging Completo
@@ -251,6 +251,62 @@ Proximo:       Testes manuais / bump de versao para v0.25.0
 - `0b9e1f1` feat(settings): Browse button per cloud profile + i18n cloudBrowser keys
 - `2febb7b` fix(cloud): disparar upload após job:completed + corrigir creds vazias
 - `377a75a` fix(cloud/gdrive): upsert no upload
+
+### Fase 13 - Karpathy Guidelines (Agent Behaviour)
+
+- [x] Secao "Karpathy Guidelines" adicionada a `AGENTS.md` (4 principios em PT, merge analysis table)
+- [x] Skill `karpathy-guidelines` criada em `~/.opencode/skills/karpathy-guidelines/SKILL.md` (ingles, frontmatter YAML, tipo Rigid)
+- [x] `opencode.jsonc` atualizado com `skills.paths` para diretorio customizado
+- [x] Script heurístico `scripts/test-karpathy.mjs` criado (valida SKILL.md, AGENTS.md, opencode.jsonc, simula 4 cenarios)
+- [x] CI workflow `.github/workflows/test-karpathy.yml` criado (GitHub Actions, Node.js 20)
+
+---
+
+### Fase 14 - Documentation Phase 1 (i18n 15 línguas + README + HelpModal Cloud)
+
+- [x] i18n lazy-load: 14 locales carregados on-demand; apenas `en.json` incluído no bundle inicial
+- [x] `src/i18n/index.ts` reescrito com `import()` dinâmico por locale, `initI18n()` awaited em `main.tsx`
+- [x] Corrigida race condition async: mounting React aguarda i18n estar pronto
+- [x] README.md no GitHub actualizado: stack, arquitectura, features cloud, screenshots, build instructions
+- [x] HelpModal — aba Cloud adicionada com documentação de todos os providers (FTP/SFTP/SMB/S3/GDrive/iCloud)
+- [x] HelpModal — secção Google Drive com Device Flow OAuth step-by-step
+- [x] `package.json` com `description`, `author`, `license` preenchidos
+
+---
+
+### Fase 15 - Auditoria Completa: Performance, Segurança, Platform UX
+
+**Performance (Phase 3):**
+
+- [x] `vite.config.ts`: removido `manualChunks` vendor chunk que gerava bundle 0 bytes
+- [x] Lazy loading: `DashboardPage`, `LibraryPage`, `QueuePage`, `LogsPage` com `React.lazy()`
+- [x] `tokio::fs` em todos os comandos Rust async que faziam I/O (substituindo `std::fs`)
+- [x] Eliminado clone desnecessário em `run_cloud_uploads` (passou `&profile_id` em vez de clone)
+- [x] Polling de logs reduzido: intervalo 2s → 5s, scroll só se utilizador estava no fundo
+
+**Platform UX (Phase 4):**
+
+- [x] `src/hooks/usePlatform.ts` — `isMac`, `isWindows`, `isLinux` + `modKey` ("⌘"/"Ctrl") + `accentStyle`
+- [x] `get_platform` comando Rust (`#[cfg(target_os)]`) exposto via Tauri IPC
+- [x] Menus nativos: macOS com "Preferências" (⌘,) e "Esconder"; Windows com "Definições"; Linux simples
+- [x] Titlebar adaptativa: `WindowControls.tsx` — traffic lights à esquerda (macOS), controlos à direita (Windows/Linux)
+- [x] Atalhos de teclado dinâmicos no HelpModal usando `usePlatform().modKey`
+- [x] `window-vibrancy` crate para efeitos Mica (Windows 11) e Vibrancy (macOS)
+
+**Segurança:**
+
+- [x] **S1 — Credenciais cloud no keychain** — `keyring v3` crate; `save_credentials`/`load_credentials`/`delete_credentials`; backward-compat com config blob
+- [x] **S2 — Path traversal SMB** — `validate_remote_path()` rejeita componentes `..`; 4 unit tests novos
+- [x] **S3 — Validação endpoint logs** — `validate_log_endpoint()` impede URLs sem protocolo; 4 unit tests
+- [x] **S4 — FTP max file size** — constante `FTP_MAX_FILE_BYTES` (2 GiB); sem magic number
+- [x] **S5 — cargo audit** — `audit.toml` com RUSTSEC-2023-0071 documentado (RSA Marvin, password auth only)
+
+**Qualidade:**
+
+- [x] **Q1 — 27 testes cargo test** — smb (8), ftp (4), sftp (3), logs (4), outros (8); todos passam
+- [x] **Q2 — Watch-GitHubActions** — função em `sync.ps1` que poll GitHub API após merge Release; mostra ⏳/✅/❌ por workflow
+- [x] **Q3 — `package.json` metadata** — `description`, `author`, `license` preenchidos
+- [x] **Q4 — `keyring v3`** adicionado ao `Cargo.toml`; `audit.toml` criado
 
 ---
 
@@ -414,19 +470,29 @@ nexora-desktop/
 2. [x] ~~Corrigir resolucao de binarios FFmpeg (bundled -> sidecar)~~
 3. [x] ~~Corrigir get_stats estado 'running' -> 'processing'~~
 4. [x] ~~Corrigir tipagem InstalledInfo (node_version)~~
-5. [x] ~~Implementar LibraryPage.handleDrop~~
-6. [x] ~~Limpar Cargo.toml description~~
-7. [x] ~~TopBar com gauges circulares CPU/RAM/GPU/Disco + botÃƒÆ’Ã‚Â£o sair icon~~
-8. [x] ~~Settings reorganizado em 5 tabs (Geral, Interface, Sistema, AvanÃƒÆ’Ã‚Â§ado, Sobre) com botÃƒÆ’Ã‚Âµes funcionais~~
-9. [x] ~~Pipeline de AprovaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o / Quarentena (qc_quarantined / qc_rejected) com painel no QueuePage~~
-10. [x] ~~VMAF ativo no QC-Post com thresholds por perfil e modelo VMAF v0.6.1~~
-11. [x] ~~Comandos Rust: get_system_info, get_ffmpeg_info, get_db_info, open_data_dir, approve_job, reject_job~~
-12. [x] ~~Validar build em Windows (tauri build --debug) com binarios~~ (MSI 146MB + NSIS 92MB gerados)
-13. [x] Traduzir todos os 15 idiomas via Ollama local (618 chaves cada, 0 fallbacks)
-14. [ ] Testar fluxo real: ingest -> job -> transcode -> done (requer teste manual com GUI)
-15. [ ] Adicionar bs1770gain ao download de binarios (ou tornar opcional)
-16. [ ] Adicionar testes de integracao Tauri (e2e)
-17. [ ] Deep links nexora:// (ADR-D012)
+5. [x] ~~Cloud Storage Integration (FTP/SFTP/SMB/S3/GDrive/iCloud)~~
+6. [x] ~~Cloud File Browser + upload fix~~
+7. [x] ~~Credenciais cloud no keychain OS (S1)~~
+8. [x] ~~Path traversal SMB fix (S2)~~
+9. [x] ~~i18n lazy-load 15 línguas (Fase 14)~~
+10. [x] ~~Platform UX adaptativa — usePlatform, menus nativos, titlebar (Phase 4)~~
+11. [ ] Watch Folders (pastas de monitorização automática via crate `notify`)
+12. [ ] Traducao profissional dos locales nao-pt (actualmente gerado/automático)
+13. [ ] tauri dev golden path — testar drag-drop end-to-end
+14. [ ] B6: dedup startup_checks — cachear resultado em AppState
+15. [x] ~~Implementar LibraryPage.handleDrop~~
+16. [x] ~~Limpar Cargo.toml description~~
+17. [x] ~~TopBar com gauges circulares CPU/RAM/GPU/Disco + botÃƒÆ’Ã‚Â£o sair icon~~
+18. [x] ~~Settings reorganizado em 5 tabs (Geral, Interface, Sistema, AvanÃƒÆ’Ã‚Â§ado, Sobre) com botÃƒÆ’Ã‚Âµes funcionais~~
+19. [x] ~~Pipeline de AprovaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o / Quarentena (qc_quarantined / qc_rejected) com painel no QueuePage~~
+20. [x] ~~VMAF ativo no QC-Post com thresholds por perfil e modelo VMAF v0.6.1~~
+21. [x] ~~Comandos Rust: get_system_info, get_ffmpeg_info, get_db_info, open_data_dir, approve_job, reject_job~~
+22. [x] ~~Validar build em Windows (tauri build --debug) com binarios~~ (MSI 146MB + NSIS 92MB gerados)
+23. [x] Traduzir todos os 15 idiomas via Ollama local (618 chaves cada, 0 fallbacks)
+24. [ ] Testar fluxo real: ingest -> job -> transcode -> done (requer teste manual com GUI)
+25. [ ] Adicionar bs1770gain ao download de binarios (ou tornar opcional)
+26. [ ] Adicionar testes de integracao Tauri (e2e)
+27. [ ] Deep links nexora:// (ADR-D012)
 
 ---
 
