@@ -1840,32 +1840,46 @@ if ($LASTEXITCODE -eq 0) {
             $releaseExists = $false
         }
 
+        # Gerar titulo e corpo ricos (usado tanto no PATCH como no POST)
+        $changelogSection = Parse-ChangelogSection $newVersion
+        $releaseTitle     = Get-ReleaseTitle $newVersion $changelogSection
+        $releaseBodyText  = Build-ReleaseBody $newVersion $commitMsg
+
         if ($releaseExists) {
-            $ans = Read-Host "  Queres recriar a release v$newVersion? [S/N]"
-            if ($ans -match '^[Ss]$') {
-                try {
-                    Invoke-RestMethod `
-                        -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/$existingReleaseId" `
-                        -Method Delete `
-                        -Headers $headers > $null
-                    Write-Success "Release anterior removida."
-                    $releaseExists = $false
-                } catch {
-                    Write-Warn "Nao foi possivel remover a release existente: $_"
+            # O build.yml cria um draft automaticamente ao fazer push da tag.
+            # Actualizamos esse draft (PATCH) para nao perder os assets ja anexados.
+            Write-Step "Draft release v$newVersion detectado. A actualizar com conteudo rico e a publicar..."
+            try {
+                $patchPayload = @{
+                    name  = "$releaseTitle"
+                    body  = $releaseBodyText
+                    draft = $false
+                } | ConvertTo-Json
+
+                $patchBytes = [System.Text.Encoding]::UTF8.GetBytes($patchPayload)
+
+                Invoke-RestMethod `
+                    -Uri     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/$existingReleaseId" `
+                    -Method  Patch `
+                    -Headers $headers `
+                    -Body    $patchBytes `
+                    -ContentType "application/json; charset=utf-8" > $null
+                Write-Success "GitHub Release v$newVersion actualizada e publicada!"
+            } catch {
+                $stream = $_.Exception.Response.GetResponseStream()
+                if ($stream) {
+                    $reader = New-Object System.IO.StreamReader($stream)
+                    Write-Warn "Erro da API GitHub (PATCH): $($reader.ReadToEnd())"
+                } else {
+                    Write-Warn "Nao foi possivel actualizar a Release: $_"
                 }
             }
-        }
-
-        if (-not $releaseExists) {
+        } else {
+            # Nao ha draft pre-existente — criar a release directamente.
             try {
-                # Gerar titulo automatico e corpo estruturado da release
-                $changelogSection = Parse-ChangelogSection $newVersion
-                $releaseTitle = Get-ReleaseTitle $newVersion $changelogSection
-                $releaseBodyText = Build-ReleaseBody $newVersion $commitMsg
-
                 Write-Step "A criar GitHub Release: '$releaseTitle'"
 
-                $releaseBody = @{
+                $postPayload = @{
                     tag_name   = "v$newVersion"
                     name       = "$releaseTitle"
                     body       = $releaseBodyText
@@ -1873,20 +1887,20 @@ if ($LASTEXITCODE -eq 0) {
                     prerelease = $false
                 } | ConvertTo-Json
 
-                $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($releaseBody)
+                $postBytes = [System.Text.Encoding]::UTF8.GetBytes($postPayload)
 
                 Invoke-RestMethod `
                     -Uri     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases" `
                     -Method  Post `
                     -Headers $headers `
-                    -Body    $bodyBytes `
+                    -Body    $postBytes `
                     -ContentType "application/json; charset=utf-8" > $null
                 Write-Success "GitHub Release v$newVersion publicada!"
             } catch {
                 $stream = $_.Exception.Response.GetResponseStream()
                 if ($stream) {
                     $reader = New-Object System.IO.StreamReader($stream)
-                    Write-Warn "Erro da API GitHub: $($reader.ReadToEnd())"
+                    Write-Warn "Erro da API GitHub (POST): $($reader.ReadToEnd())"
                 } else {
                     Write-Warn "Nao foi possivel publicar a Release: $_"
                 }
