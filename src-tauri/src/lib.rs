@@ -11,6 +11,11 @@ mod tray;
 use state::AppState;
 use tauri::{Emitter, Manager};
 
+#[cfg(target_os = "windows")]
+use window_vibrancy::apply_mica;
+#[cfg(target_os = "macos")]
+use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -36,6 +41,13 @@ pub fn run() {
             log::info!("Nexora Desktop v{} a arrancar", env!("CARGO_PKG_VERSION"));
 
             tray::setup(app)?;
+
+            // Efeitos de janela nativos — silencia erro se não suportado (Windows 10, VMs, etc.)
+            let main_window = app.get_webview_window("main").unwrap();
+            #[cfg(target_os = "windows")]
+            apply_mica(&main_window, Some(true)).ok();
+            #[cfg(target_os = "macos")]
+            apply_vibrancy(&main_window, NSVisualEffectMaterial::HudWindow, None, None).ok();
 
             // Menu nativo da barra de menus — apenas macOS.
             // Garante que Cmd+C/V/X/Z/A funcionam em campos de texto
