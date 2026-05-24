@@ -38,6 +38,7 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
+      "cloud": "Cloud",
       "logs": "Logs"
     },
     "intro": {
@@ -114,11 +115,37 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "Cloud — manage cloud profiles, credentials, and browse remote files (see Cloud tab)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
         "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+      },
+      "cloud": {
+        "title": "Cloud — Destinations & File Browser",
+        "desc": "Configure cloud storage destinations for automatic file delivery after transcoding. Supported providers: FTP, FTPS, SFTP, SMB, S3 (and compatible: MinIO, Wasabi), and Google Drive.",
+        "destinations": {
+          "title": "Cloud Destinations",
+          "desc": "Add cloud profiles in Settings → Cloud. Each profile stores the connection details for one provider. A job can have multiple cloud destinations — the file is uploaded to all of them automatically after the job completes.",
+          "tip1": "iCloud is not supported — Apple does not expose a public file API for third-party apps.",
+          "tip2": "Credentials are stored locally on your device. They are never sent to any Nexora server.",
+          "tip3": "Google Drive resolves folder names from base_path — it does not use internal folder IDs."
+        },
+        "browser": {
+          "title": "Cloud File Browser",
+          "desc": "Click the Browse button (folder icon) on any cloud profile in Settings → Cloud to open the file browser. Navigate into subdirectories, select files, download them to a local folder via the native file dialog, or delete them directly from the remote storage.",
+          "tip1": "Select multiple files with the checkboxes on each row, then use Delete Selected or Download Selected.",
+          "tip2": "Download opens the native OS file picker so you choose where to save.",
+          "tip3": "Delete is permanent — there is no recycle bin on remote storage."
+        },
+        "upload": {
+          "title": "Automatic Upload",
+          "desc": "When a transcoding job completes, Nexora automatically uploads the output file to all configured cloud destinations for that job. Uploads use 3 retries with exponential backoff. A failed upload is logged but does not mark the job as failed.",
+          "tip1": "Each job can override the default cloud destination set in Settings → Cloud.",
+          "tip2": "Upload progress is not shown in the UI — check the Logs tab for upload status.",
+          "tip3": "Google Drive upserts files: if a file with the same name exists in the destination folder, it is replaced rather than duplicated."
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",
