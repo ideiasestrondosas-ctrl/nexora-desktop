@@ -43,8 +43,9 @@ export function useLogs(level?: string, search?: string) {
 
   useEffect(() => {
     fetchLogs();
-    // Fallback polling a cada 5s para garantir que não perdemos logs se os eventos falharem
-    const interval = setInterval(fetchLogs, 5000);
+    // Fallback polling — os eventos em tempo real são o mecanismo principal;
+    // o intervalo serve apenas de segurança caso um evento se perca
+    const interval = setInterval(fetchLogs, 60_000);
     return () => clearInterval(interval);
   }, [fetchLogs]);
 

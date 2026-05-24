@@ -204,9 +204,6 @@ pub(crate) async fn run_cloud_uploads(job_id: &str, state: &AppState) -> Result<
                 continue;
             }
         };
-        // As credenciais (oauth_token, etc.) estão armazenadas no mesmo JSON que config
-        let creds = config.clone();
-
         {
             let db = state.db.lock().map_err(|e| e.to_string())?;
             let _ = db.execute(
@@ -216,7 +213,8 @@ pub(crate) async fn run_cloud_uploads(job_id: &str, state: &AppState) -> Result<
         }
 
         let local_path = std::path::Path::new(&output_path);
-        let provider = match cloud::get_provider(&provider_type, &config, &creds) {
+        // config e creds residem no mesmo JSON blob — passa a mesma referência
+        let provider = match cloud::get_provider(&provider_type, &config, &config) {
             Ok(p) => p,
             Err(e) => {
                 let db = state.db.lock().map_err(|e2| e2.to_string())?;
