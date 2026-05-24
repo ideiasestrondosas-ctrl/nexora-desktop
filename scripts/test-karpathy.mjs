@@ -84,74 +84,76 @@ if (isCI && !skillExists) {
   }
 }
 
-const skillContent = readFileSync(skillPath, 'utf8');
+const skillContent = skillExists ? readFileSync(skillPath, 'utf8') : '';
 
-// Frontmatter parsing
-const frontmatterMatch = skillContent.match(/^---\n([\s\S]*?)\n---\n/);
-check(frontmatterMatch !== null, 'Frontmatter YAML present', 'Frontmatter YAML MISSING');
+if (skillExists) {
+  // Frontmatter parsing
+  const frontmatterMatch = skillContent.match(/^---\n([\s\S]*?)\n---\n/);
+  check(frontmatterMatch !== null, 'Frontmatter YAML present', 'Frontmatter YAML MISSING');
 
-let frontmatter = {};
-if (frontmatterMatch) {
-  const fmText = frontmatterMatch[1];
-  for (const line of fmText.split('\n')) {
-    const colonIdx = line.indexOf(':');
-    if (colonIdx > 0) {
-      const key = line.slice(0, colonIdx).trim();
-      const value = line
-        .slice(colonIdx + 1)
-        .trim()
-        .replace(/^["']|["']$/g, '');
-      frontmatter[key] = value;
+  let frontmatter = {};
+  if (frontmatterMatch) {
+    const fmText = frontmatterMatch[1];
+    for (const line of fmText.split('\n')) {
+      const colonIdx = line.indexOf(':');
+      if (colonIdx > 0) {
+        const key = line.slice(0, colonIdx).trim();
+        const value = line
+          .slice(colonIdx + 1)
+          .trim()
+          .replace(/^["']|["']$/g, '');
+        frontmatter[key] = value;
+      }
     }
   }
-}
 
-check(
-  frontmatter.name === 'karpathy-guidelines',
-  `name: ${frontmatter.name || '(missing)'}`,
-  `name is '${frontmatter.name || '(missing)'}', expected 'karpathy-guidelines'`,
-);
-
-check(
-  frontmatter.description && frontmatter.description.startsWith('Use when'),
-  `description starts with "Use when..."`,
-  `description does NOT start with "Use when..."`,
-);
-
-check(
-  skillContent.includes('Type: Rigid') || skillContent.includes('**Type:** Rigid'),
-  'Type: Rigid declared',
-  'Type: Rigid NOT found',
-);
-
-// Required sections
-const requiredSections = [
-  'Think Before Coding',
-  'Simplicity First',
-  'Surgical Changes',
-  'Goal-Driven Execution',
-];
-
-for (const section of requiredSections) {
   check(
-    skillContent.includes(section),
-    `Section "${section}" found`,
-    `Section "${section}" MISSING`,
+    frontmatter.name === 'karpathy-guidelines',
+    `name: ${frontmatter.name || '(missing)'}`,
+    `name is '${frontmatter.name || '(missing)'}', expected 'karpathy-guidelines'`,
+  );
+
+  check(
+    frontmatter.description && frontmatter.description.startsWith('Use when'),
+    `description starts with "Use when..."`,
+    `description does NOT start with "Use when..."`,
+  );
+
+  check(
+    skillContent.includes('Type: Rigid') || skillContent.includes('**Type:** Rigid'),
+    'Type: Rigid declared',
+    'Type: Rigid NOT found',
+  );
+
+  // Required sections
+  const requiredSections = [
+    'Think Before Coding',
+    'Simplicity First',
+    'Surgical Changes',
+    'Goal-Driven Execution',
+  ];
+
+  for (const section of requiredSections) {
+    check(
+      skillContent.includes(section),
+      `Section "${section}" found`,
+      `Section "${section}" MISSING`,
+    );
+  }
+
+  // Merge table
+  warnCheck(
+    skillContent.includes('Already in system prompt?'),
+    'Merge analysis table may be missing',
+  );
+
+  // Priority note
+  check(
+    skillContent.includes('override default system prompt behavior'),
+    'Priority override rule present',
+    'Priority override rule NOT found',
   );
 }
-
-// Merge table
-warnCheck(
-  skillContent.includes('Already in system prompt?'),
-  'Merge analysis table may be missing',
-);
-
-// Priority note
-check(
-  skillContent.includes('override default system prompt behavior'),
-  'Priority override rule present',
-  'Priority override rule NOT found',
-);
 
 // ============================
 // Section 2: Environment Validation
@@ -160,7 +162,7 @@ check(
 console.log(`\n🌍 ${C.cyan}Environment Validation${C.reset}`);
 
 // AGENTS.md check
-const agentsPath = resolve('C:\\Dev\\nexora-desktop\\AGENTS.md');
+const agentsPath = resolve('AGENTS.md');
 const agentsExists = existsSync(agentsPath);
 check(agentsExists, `AGENTS.md exists`, `AGENTS.md NOT FOUND at ${agentsPath}`);
 
@@ -189,27 +191,29 @@ if (agentsExists) {
   }
 }
 
-// opencode.jsonc check
+// opencode.jsonc check — user-level config, skip in CI
 const configPath = join(homedir(), '.config', 'opencode', 'opencode.jsonc');
 const configExists = existsSync(configPath);
-check(configExists, `opencode.jsonc exists`, `opencode.jsonc NOT FOUND`);
+if (isCI && !configExists) {
+  warn('opencode.jsonc not available in CI (expected, user-level config)');
+} else {
+  check(configExists, `opencode.jsonc exists`, `opencode.jsonc NOT FOUND`);
 
-if (configExists) {
-  // Simple heuristic: check for skills.paths string
-  const configContent = readFileSync(configPath, 'utf8');
-  check(
-    configContent.includes('skills') && configContent.includes('paths'),
-    'opencode.jsonc has skills.paths',
-    'opencode.jsonc MISSING skills.paths',
-  );
+  if (configExists) {
+    const configContent = readFileSync(configPath, 'utf8');
+    check(
+      configContent.includes('skills') && configContent.includes('paths'),
+      'opencode.jsonc has skills.paths',
+      'opencode.jsonc MISSING skills.paths',
+    );
 
-  // Check that it points to our skill directory
-  const expectedPath = join(homedir(), '.opencode', 'skills').replace(/\\/g, '/');
-  check(
-    configContent.includes(expectedPath) || configContent.includes('.opencode/skills'),
-    `skills.paths points to custom skills directory`,
-    `skills.paths does NOT point to custom skills directory`,
-  );
+    const expectedPath = join(homedir(), '.opencode', 'skills').replace(/\\/g, '/');
+    check(
+      configContent.includes(expectedPath) || configContent.includes('.opencode/skills'),
+      `skills.paths points to custom skills directory`,
+      `skills.paths does NOT point to custom skills directory`,
+    );
+  }
 }
 
 // ============================
@@ -217,102 +221,107 @@ if (configExists) {
 // ============================
 
 console.log(`\n🎭 ${C.cyan}Simulated Compliance Scenarios${C.reset}`);
-info('(Heuristic checks against SKILL.md instructions)');
+
+if (!skillExists) {
+  warn('Skipping scenario checks — SKILL.md not available');
+}
 
 // Extract body content (without frontmatter)
-const bodyContent = skillContent.replace(/^---\n[\s\S]*?\n---\n/, '');
+const bodyContent = skillContent ? skillContent.replace(/^---\n[\s\S]*?\n---\n/, '') : '';
 
-// Scenario A: Think Before Coding
-console.log(`\n  Scenario A: "Add a new button to the header"`);
-info('  Expected: Agent states assumptions, asks for clarification');
+if (skillExists) {
+  // Scenario A: Think Before Coding
+  console.log(`\n  Scenario A: "Add a new button to the header"`);
+  info('  Expected: Agent states assumptions, asks for clarification');
 
-const thinkBeforeKeywords = [
-  'assumptions',
-  'clarify',
-  'uncertain',
-  'ask rather than guess',
-  'multiple interpretations',
-  'push back',
-];
+  const thinkBeforeKeywords = [
+    'assumptions',
+    'clarify',
+    'uncertain',
+    'ask rather than guess',
+    'multiple interpretations',
+    'push back',
+  ];
 
-const thinkBeforeFound = thinkBeforeKeywords.filter((k) =>
-  bodyContent.toLowerCase().includes(k.toLowerCase()),
-);
-check(
-  thinkBeforeFound.length >= 3,
-  `Think Before Coding — ${thinkBeforeFound.length}/${thinkBeforeKeywords.length} keywords found`,
-  `Think Before Coding — only ${thinkBeforeFound.length}/${thinkBeforeKeywords.length} keywords found`,
-);
+  const thinkBeforeFound = thinkBeforeKeywords.filter((k) =>
+    bodyContent.toLowerCase().includes(k.toLowerCase()),
+  );
+  check(
+    thinkBeforeFound.length >= 3,
+    `Think Before Coding — ${thinkBeforeFound.length}/${thinkBeforeKeywords.length} keywords found`,
+    `Think Before Coding — only ${thinkBeforeFound.length}/${thinkBeforeKeywords.length} keywords found`,
+  );
 
-// Scenario B: Goal-Driven Execution
-console.log(`\n  Scenario B: "Fix the login bug"`);
-info('  Expected: Agent proposes test-first approach, defines success criteria');
+  // Scenario B: Goal-Driven Execution
+  console.log(`\n  Scenario B: "Fix the login bug"`);
+  info('  Expected: Agent proposes test-first approach, defines success criteria');
 
-const goalKeywords = [
-  'test',
-  'reproduce',
-  'success criteria',
-  'verify',
-  'verifiable',
-  'before and after',
-  'loop until',
-];
+  const goalKeywords = [
+    'test',
+    'reproduce',
+    'success criteria',
+    'verify',
+    'verifiable',
+    'before and after',
+    'loop until',
+  ];
 
-const goalFound = goalKeywords.filter((k) => bodyContent.toLowerCase().includes(k.toLowerCase()));
-check(
-  goalFound.length >= 4,
-  `Goal-Driven Execution — ${goalFound.length}/${goalKeywords.length} keywords found`,
-  `Goal-Driven Execution — only ${goalFound.length}/${goalKeywords.length} keywords found`,
-);
+  const goalFound = goalKeywords.filter((k) => bodyContent.toLowerCase().includes(k.toLowerCase()));
+  check(
+    goalFound.length >= 4,
+    `Goal-Driven Execution — ${goalFound.length}/${goalKeywords.length} keywords found`,
+    `Goal-Driven Execution — only ${goalFound.length}/${goalKeywords.length} keywords found`,
+  );
 
-// Scenario C: Surgical Changes
-console.log(`\n  Scenario C: "Fix bug + refactor CSS"`);
-info('  Expected: Agent refuses drive-by refactoring');
+  // Scenario C: Surgical Changes
+  console.log(`\n  Scenario C: "Fix bug + refactor CSS"`);
+  info('  Expected: Agent refuses drive-by refactoring');
 
-const surgicalKeywords = [
-  "don't refactor",
-  'not related',
-  'touch only what',
-  'drive-by',
-  'out of scope',
-  'separate task',
-  'adjacent code',
-  'only your own mess',
-];
+  const surgicalKeywords = [
+    "don't refactor",
+    'not related',
+    'touch only what',
+    'drive-by',
+    'out of scope',
+    'separate task',
+    'adjacent code',
+    'only your own mess',
+  ];
 
-const surgicalFound = surgicalKeywords.filter((k) =>
-  bodyContent.toLowerCase().includes(k.toLowerCase()),
-);
-check(
-  surgicalFound.length >= 3,
-  `Surgical Changes — ${surgicalFound.length}/${surgicalKeywords.length} keywords found`,
-  `Surgical Changes — only ${surgicalFound.length}/${surgicalKeywords.length} keywords found`,
-);
+  const surgicalFound = surgicalKeywords.filter((k) =>
+    bodyContent.toLowerCase().includes(k.toLowerCase()),
+  );
+  check(
+    surgicalFound.length >= 3,
+    `Surgical Changes — ${surgicalFound.length}/${surgicalKeywords.length} keywords found`,
+    `Surgical Changes — only ${surgicalFound.length}/${surgicalKeywords.length} keywords found`,
+  );
 
-// Scenario D: Simplicity First
-console.log(`\n  Scenario D: "Build a plugin system with hot-reload"`);
-info('  Expected: Agent pushes back, suggests simpler approach');
+  // Scenario D: Simplicity First
+  console.log(`\n  Scenario D: "Build a plugin system with hot-reload"`);
+  info('  Expected: Agent pushes back, suggests simpler approach');
 
-const simplicityKeywords = [
-  'overcomplicated',
-  'simpler',
-  'simplify',
-  'rewrite it',
-  'senior engineer',
-  '200 lines',
-  '100 would do',
-  'minimum code',
-  'nothing speculative',
-];
+  const simplicityKeywords = [
+    'overcomplicated',
+    'simpler',
+    'simplify',
+    'rewrite it',
+    'senior engineer',
+    '200 lines',
+    '100 would do',
+    'minimum code',
+    'nothing speculative',
+  ];
 
-const simplicityFound = simplicityKeywords.filter((k) =>
-  bodyContent.toLowerCase().includes(k.toLowerCase()),
-);
-check(
-  simplicityFound.length >= 3,
-  `Simplicity First — ${simplicityFound.length}/${simplicityKeywords.length} keywords found`,
-  `Simplicity First — only ${simplicityFound.length}/${simplicityKeywords.length} keywords found`,
-);
+  const simplicityFound = simplicityKeywords.filter((k) =>
+    bodyContent.toLowerCase().includes(k.toLowerCase()),
+  );
+  check(
+    simplicityFound.length >= 3,
+    `Simplicity First — ${simplicityFound.length}/${simplicityKeywords.length} keywords found`,
+    `Simplicity First — only ${simplicityFound.length}/${simplicityKeywords.length} keywords found`,
+  );
+} // end if (skillExists) — Section 3
 
 // ============================
 // Section 4: Cross-Reference Check
