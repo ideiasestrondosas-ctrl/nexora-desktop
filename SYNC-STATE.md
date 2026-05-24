@@ -5,6 +5,77 @@
 
 ---
 
+Actualizado: 2026-05-25 01:00
+Agente: Claude Code (claude-sonnet-4-6)
+
+## O que foi feito
+
+### Sessao 23 — Platform-Adaptive UX Phase A + Phase B — CONCLUIDO
+
+**Pedido:** Implementar UX adaptativo por plataforma (Windows/macOS/Linux) conforme spec `docs/superpowers/specs/2026-05-24-platform-adaptive-ux-design.md` e plano aprovado em plan mode.
+
+**Implementacao:**
+
+1. **Phase A — CSS Tokens por plataforma (`src/index.css`):**
+   - `:root` com `--app-font`, `--app-radius`, `--app-shadow`, `--app-easing` (fallback genérico)
+   - `[data-platform='windows']`: Segoe UI Variable, radius 4px, sombra Fluent, easing WinUI
+   - `[data-platform='macos']`: SF Pro Text/-apple-system, radius 10px, sombra difusa
+   - `[data-platform='linux']`: Cantarell/Ubuntu, radius 6px, sombra leve
+   - Scrollbars nativas: macOS overlay 6px, Windows `scrollbar-width: auto`, Linux thin
+   - `body { font-family: var(--app-font) }` — 'Inter' hardcoded removido
+
+2. **Phase A — `src/hooks/usePlatform.ts` extendido:**
+   - `MOD_SYMBOL`: `⌘` em macOS, `Ctrl` noutros
+   - `MOD_KEY`: `Meta` em macOS, `Control` noutros
+   - `shortcut(key)`: helper que formata atalhos de teclado por plataforma
+
+3. **Phase A — `src/components/WindowControls.tsx` (novo ficheiro):**
+   - macOS: `<div className="w-[76px] flex-shrink-0" aria-hidden />` — espaço para traffic lights nativos
+   - Windows: botões Minus/Square/X estilo Fluent; hover vermelho no botão fechar
+   - Linux: idêntico Windows mas hover neutro (sem vermelho)
+   - API Tauri: `getCurrentWindow().minimize()`, `.toggleMaximize()`, `.close()`
+
+4. **Phase A — `src/components/TopBar.tsx` actualizado:**
+   - Import de `usePlatform` e `WindowControls`
+   - `<WindowControls />` como primeiro elemento (spacer macOS / botões Win/Linux)
+   - Padding condicional: `isMac && 'pl-0'` na drag area
+   - Botão Sair envolto em `<div className="flex items-center pr-2">`
+
+5. **Phase B — `src-tauri/Cargo.toml`:**
+   - `window-vibrancy = "0.5"` adicionado (resolve para 0.5.3)
+
+6. **Phase B — `src-tauri/src/lib.rs`:**
+   - `use window_vibrancy::apply_mica` (Windows cfg)
+   - `use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial}` (macOS cfg)
+   - Após `tray::setup(app)?`: `apply_mica(&main_window, Some(true)).ok()` no Windows
+   - Após `tray::setup(app)?`: `apply_vibrancy(&main_window, NSVisualEffectMaterial::HudWindow, None, None).ok()` no macOS
+   - Nota: `is_windows11()` não existe no 0.5.x — `.ok()` já trata fallback gracioso
+
+7. **Phase B — `tauri.conf.json` + `src/index.css`:**
+   - `"transparent": true` na janela main
+   - CSS: `[data-platform='windows'] body,macos body { background: transparent }` + `#root` idem
+
+**Verificacao:**
+
+- `tsc --noEmit`: OK ✅
+- `eslint . --max-warnings 0`: OK ✅
+- `cargo check`: OK ✅ (window-vibrancy 0.5.3 compila sem erros)
+
+**Commits (7):**
+
+- `ab410b1` feat(platform): design tokens CSS por plataforma
+- `c869748` feat(platform): modKey, modSymbol, shortcut() ao usePlatform
+- `f3003f2` feat(platform): criar WindowControls
+- `2e644b6` feat(platform): integrar WindowControls no TopBar
+- `4dd52ec` feat(platform): window-vibrancy crate
+- `819135a` feat(platform): apply_mica / apply_vibrancy no setup
+- `d4064a6` feat(platform): Phase B transparent window + CSS
+
+**Proximo passo exacto:**
+Testar visualmente `npm run tauri dev` — verificar botões TopBar, fonte Segoe UI Variable em Windows, efeito Mica se Windows 11.
+
+---
+
 Actualizado: 2026-05-24 23:30
 Agente: OpenCode (kimi-k2.6)
 
