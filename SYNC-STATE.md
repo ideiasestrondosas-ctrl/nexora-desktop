@@ -5,6 +5,55 @@
 
 ---
 
+Actualizado: 2026-05-24 23:30
+Agente: OpenCode (kimi-k2.6)
+
+## O que foi feito
+
+### Sessao 22 — HelpModal + i18n Completo em 15 Linguas + README — CONCLUIDO
+
+**Pedido:** Analisar toda a aplicacao e verificar diferencas entre o que foi alterado/acrescentado/modificado/criado de novo. Actualizar o menu manual (HelpModal) com tabs e cards em falta, adicionar screenshots e detalhes, e fazer tudo em todas as linguas. Actualizar tambem a pagina README no GitHub.
+
+**Implementacao:**
+
+1. **Analise completa da aplicacao:**
+   - Identificadas funcionalidades existentes nao documentadas: Asset Detail, Import modal, Logs tab, Cache display, Keyboard shortcuts, Platform UX, Security, GDrive OAuth, S3 compatibles, iCloud
+   - 10 screenshots existentes + 5 novos screenshots fornecidos pelo utilizador
+
+2. **HelpModal.tsx expandido:**
+   - 2 novas tabs: Asset Detail (screenshot + 3 tips) e Import (screenshot + batch processing)
+   - Tab Settings: +3 cards (Logs Tab, Cache Display, Keyboard Shortcuts)
+   - Tab Cloud: +3 cards (Google Drive OAuth, S3 & Compatible, iCloud Drive)
+   - Tab Intro: +2 cards (Platform-Adaptive UX, Security & Privacy)
+   - TAB_COUNTS actualizado (intro:1, assetDetail:2, import:2, settings:4, cloud:5)
+   - 15 screenshots mapeados no SCREENSHOTS object
+   - Importacao de icones FileVideo e Download do lucide-react
+
+3. **i18n — 15 linguas completas:**
+   - 40+ novas chaves help.\* em EN (tabs, screens, platform, security)
+   - Traducao PT completa
+   - Traducao automatica para 13 linguas via subagents paralelos (es,fr,de,ar,it,ja,ko,nl,pl,ru,sv,tr,zh)
+   - **Correccao estrutural critica:** 5 locales (pt,ru,sv,tr,zh) tinham chaves help.\* colocadas fora do objeto help — corrigido por subagents dedicados
+   - Validacao: 15/15 locales JSON valido, todas as chaves help.\* presentes
+
+4. **Documentacao actualizada:**
+   - docs/screenshots/README.md: 15 screenshots total, grid atualizado
+   - docs/screenshots/PENDING_CAPTURE.md: 5 novos screenshots v0.26.0 adicionados
+   - docs/USER_MANUAL.md: novas seccoes 9 (Asset Detail), 10 (Cloud Storage), 11 (Security & Privacy)
+   - README.md: screenshots grid expandido (3 rows), features table com Log Management/Cache/Platform UX/Help Manual, secao "What's New in v0.26.0" detalhada
+
+**Verificacao:**
+
+- `npm run lint`: OK ✅
+- `npx tsc --noEmit`: OK ✅
+- 15/15 locales JSON valido ✅
+- Todas as chaves help.\* presentes em todos os locales ✅
+
+**Proximo passo exacto:**
+Continuar com Platform-Adaptive UX Phase A conforme plano em `C:\Users\arnal\.claude\plans\lexical-singing-frog.md`.
+
+---
+
 Actualizado: 2026-05-24 21:00
 Agente: Claude Code (claude-sonnet-4-6)
 

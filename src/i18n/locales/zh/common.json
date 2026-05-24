@@ -39,7 +39,9 @@
       "profiles": "Profiles",
       "settings": "Settings",
       "cloud": "云端",
-      "logs": "Logs"
+      "logs": "Logs",
+      "assetDetail": "资源详情",
+      "import": "导入"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -120,7 +122,28 @@
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
-        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output.",
+        "logsTab": {
+          "title": "日志标签页 (v0.24.0)",
+          "desc": "配置文件日志详细程度、保留策略和上传端点。查看存储使用情况并导出或清除日志文件。",
+          "verbosity": "详细程度：基本（仅错误）、正常（INFO+）、调试（全部 + UI 点击）",
+          "retention": "保留：设置最大天数和最大大小（MB）。旧日志将压缩为 ZIP。",
+          "upload": "将日志上传到开发者端点以进行故障排除"
+        },
+        "cache": {
+          "title": "缓存显示 (v0.24.0)",
+          "desc": "监控和管理处理期间创建的临时缓存文件。",
+          "transcodeCache": "处理缓存 — 转码和代理临时文件",
+          "thumbCache": "缩略图缓存 — 生成的预览缩略图",
+          "clear": "安全清除缓存（如有活跃任务则会被阻止）"
+        },
+        "shortcuts": {
+          "title": "键盘快捷键",
+          "desc": "常用键盘快捷键。修饰键取决于您的平台（macOS 上为 ⌘，Windows/Linux 上为 Ctrl）。",
+          "exportLogs": "导出日志到文件",
+          "closeWindow": "关闭当前窗口/对话框",
+          "navTabs": "在主要标签页之间切换（聚焦时）"
+        }
       },
       "cloud": {
         "title": "云端 — 目标与文件浏览器",
@@ -145,6 +168,23 @@
           "tip1": "每个任务可以覆盖在设置 → 云端中设置的默认云端目标。",
           "tip2": "上传进度不在界面中显示——请检查日志选项卡以了解上传状态。",
           "tip3": "Google Drive 对文件执行 upsert 操作：如果目标文件夹中已存在同名文件，则替换而不是复制。"
+        },
+        "gdriveOAuth": {
+          "title": "Google Drive — OAuth 设备流程",
+          "desc": "无需存储密码即可验证 Google Drive。Nexora 使用 OAuth 2.0 设备流程。",
+          "step1": "点击‘验证’— Nexora 向 Google 请求设备代码",
+          "step2": "在浏览器中打开提供的网址并输入用户代码",
+          "step3": "Nexora 每 5 秒轮询 Google，直到您授权。令牌存储在本地。"
+        },
+        "s3": {
+          "title": "S3 及兼容提供商",
+          "desc": "连接到 AWS S3 或 MinIO、Wasabi 和 Backblaze B2 等 S3 兼容服务。",
+          "providers": "支持：AWS S3、MinIO、Wasabi、Backblaze B2（路径样式端点）"
+        },
+        "icloud": {
+          "title": "iCloud Drive",
+          "desc": "iCloud 通过本地文件夹同步获得支持。Nexora 在本地磁盘上读取/写入 iCloud Drive 文件夹。",
+          "localPath": "Windows：%USERPROFILE%\\iCloudDrive — macOS：~/Library/Mobile Documents/com~apple~CloudDocs"
         }
       },
       "logs": {
@@ -157,7 +197,45 @@
         "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
+      },
+      "assetDetail": {
+        "title": "资源详情 — 文件工作区",
+        "desc": "资源详情是单个视频文件的主要工作区。在原始版本和处理后版本之间切换预览、内联播放、查看技术元数据并管理文件。",
+        "hero": "主区域，包含原始/处理后切换、播放按钮和操作栏",
+        "mediaInfo": "MediaInfo 标签页：常规、视频、音频、字幕、标签、SHA-256",
+        "technicalAnalysis": "原始版本与处理后版本的并排技术对比",
+        "jobHistory": "此资源的所有处理任务，包含流水线阶段和评分",
+        "tip1": "使用切换按钮在源文件和输出预览之间切换。",
+        "tip2": "点击播放即可在不离开应用的情况下内联观看视频。",
+        "tip3": "技术分析标签页对比编解码器、分辨率、HDR 等参数。"
+      },
+      "import": {
+        "title": "导入 — 添加媒体",
+        "desc": "通过拖放、文件对话框或文件夹扫描将视频文件导入 Nexora。支持的格式：MP4、MKV、MOV、MXF、AVI、WebM、TS、M2TS。",
+        "dragDrop": "将视频文件拖放到窗口任意位置",
+        "fileDialog": "或点击打开本机文件选择器",
+        "folderScan": "添加文件夹会导入目录中所有支持的视频",
+        "batchTitle": "批量处理",
+        "batchDesc": "同时处理多个文件。选择全局配置文件或为每个文件设置不同的配置文件。可选择添加云目标。",
+        "cloudPicker": "选择云目标以便处理后自动上传",
+        "tip1": "支持的格式：MP4、MKV、MOV、MXF、AVI、WebM、TS、M2TS。",
+        "tip2": "导入模态框可让您选择仅分析（元数据）或导入并处理。",
+        "tip3": "包含 HEVC、ProRes、DNxHD 或 AV1 编解码器的文件可能会被隔离以等待手动审批。"
       }
+    },
+    "platform": {
+      "title": "平台自适应用户体验 (v0.25+)",
+      "desc": "Nexora 自适应外观以匹配您的操作系统，提供原生体验。",
+      "windows": "Windows 11：Mica/Acrylic 背景、Segoe UI Variable 字体、Fluent 控件",
+      "macos": "macOS：NSVisualEffectView vibrancy、SF Pro 字体、红绿灯窗口控件",
+      "linux": "Linux：稳定的 GTK 装饰、Cantarell 字体、中性窗口控件"
+    },
+    "security": {
+      "title": "安全与隐私",
+      "desc": "Nexora 安全存储敏感数据并验证所有外部输入。",
+      "keychain": "云凭据存储在操作系统密钥链中（Windows 凭据管理器、macOS 钥匙串、Linux Secret Service）",
+      "pathTraversal": "验证远程路径以防止目录遍历攻击",
+      "endpointValidation": "日志上传端点必须使用 http:// 或 https:// 协议"
     },
     "guideOpened": "Guia aberto no browser",
     "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."

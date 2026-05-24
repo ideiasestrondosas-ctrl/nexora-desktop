@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -39,7 +39,9 @@
       "profiles": "Profiles",
       "settings": "Settings",
       "cloud": "Cloud",
-      "logs": "Logs"
+      "logs": "Logs",
+      "assetDetail": "Asset-detail",
+      "import": "Importeren"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -120,7 +122,28 @@
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
-        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output.",
+        "logsTab": {
+          "title": "Logtab (v0.24.0)",
+          "desc": "Configureer bestandslog-verbose, retentiebeleid en upload-eindpunt. Bekijk opslaggebruik en exporteer of wis logbestanden.",
+          "verbosity": "Verbose: Basis (alleen fouten), Normaal (INFO+), Debug (alles + UI-klikken)",
+          "retention": "Retentie: stel max. dagen en max. grootte (MB) in. Oude logs worden gecomprimeerd naar ZIP.",
+          "upload": "Upload logs naar een ontwikkelaar-eindpunt voor probleemoplossing"
+        },
+        "cache": {
+          "title": "Cache-weergave (v0.24.0)",
+          "desc": "Monitor en beheer tijdelijke cachebestanden die tijdens verwerking zijn gemaakt.",
+          "transcodeCache": "Verwerkingscache — tijdelijke transcode- en proxybestanden",
+          "thumbCache": "Miniatuurcache — gegenereerde voorvertoningsminiaturen",
+          "clear": "Cache veilig wissen (geblokkeerd als jobs actief zijn)"
+        },
+        "shortcuts": {
+          "title": "Sneltoetsen",
+          "desc": "Veelgebruikte sneltoetsen. De modificatietoets hangt af van uw platform (⌘ op macOS, Ctrl op Windows/Linux).",
+          "exportLogs": "Exporteer logs naar bestand",
+          "closeWindow": "Huidig venster/dialoog sluiten",
+          "navTabs": "Schakelen tussen hoofdtabbladen (bij focus)"
+        }
       },
       "cloud": {
         "title": "Cloud — Bestemmingen en bestandsbeheer",
@@ -145,6 +168,23 @@
           "tip1": "Elke taak kan de standaard cloudbestemming die is ingesteld in Instellingen → Cloud overschrijven.",
           "tip2": "De uploadvoortgang wordt niet weergegeven in de interface — controleer het tabblad Logboeken voor de uploadstatus.",
           "tip3": "Google Drive doet een upsert van bestanden: als er al een bestand met dezelfde naam bestaat in de doelmap, wordt het vervangen in plaats van gedupliceerd."
+        },
+        "gdriveOAuth": {
+          "title": "Google Drive — OAuth Device Flow",
+          "desc": "Authenticeer Google Drive zonder wachtwoorden op te slaan. Nexora gebruikt OAuth 2.0 Device Flow.",
+          "step1": "Klik op 'Authenticeren' — Nexora vraagt een apparaatcode aan bij Google",
+          "step2": "Open de opgegeven URL in uw browser en voer de gebruikerscode in",
+          "step3": "Nexora pollt Google elke 5 seconden totdat u autoriseert. Het token wordt lokaal opgeslagen."
+        },
+        "s3": {
+          "title": "S3 & Compatibele Providers",
+          "desc": "Verbind met AWS S3 of S3-compatibele services zoals MinIO, Wasabi en Backblaze B2.",
+          "providers": "Ondersteund: AWS S3, MinIO, Wasabi, Backblaze B2 (pad-stijl eindpunten)"
+        },
+        "icloud": {
+          "title": "iCloud Drive",
+          "desc": "iCloud wordt ondersteund via lokale mapsynchronisatie. Nexora leest/schrijft de iCloud Drive-map op uw lokale schijf.",
+          "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
         }
       },
       "logs": {
@@ -157,7 +197,45 @@
         "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
+      },
+      "assetDetail": {
+        "title": "Asset-detail — Bestandswerkruimte",
+        "desc": "Asset-detail is de hoofdwerkruimte voor één videobestand. Schakel tussen originele en verwerkte voorvertoningen, speel inline af, bekijk technische metadata en beheer het bestand.",
+        "hero": "Hero-sectie met schakelaar Origineel/Verwerkt, afspeelknop en actiebalk",
+        "mediaInfo": "MediaInfo-tabbladen: Algemeen, Video, Audio, Ondertitels, Tags, SHA-256",
+        "technicalAnalysis": "Zij-aan-zij technische vergelijking van origineel vs. verwerkt",
+        "jobHistory": "Alle verwerkingsjobs voor dit asset met pipelinefasen en scores",
+        "tip1": "Gebruik de schakelaar om te wisselen tussen bron- en uitvoervoorvertoningen.",
+        "tip2": "Klik op Afspelen om de video inline te bekijken zonder de app te verlaten.",
+        "tip3": "Het tabblad Technische Analyse vergelijkt codec, resolutie, HDR en meer."
+      },
+      "import": {
+        "title": "Importeren — Media toevoegen",
+        "desc": "Importeer videobestanden in Nexora via drag-and-drop, bestandsdialoog of mapscan. Ondersteunde formaten: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "dragDrop": "Sleep videobestanden overal op het venster",
+        "fileDialog": "Of klik om de native bestandenkiezer te openen",
+        "folderScan": "Map toevoegen importeert alle ondersteunde video's uit een map",
+        "batchTitle": "Batchverwerking",
+        "batchDesc": "Verwerk meerdere bestanden tegelijk. Kies een globaal profiel of stel een ander profiel per bestand in. Voeg optioneel cloudbestemmingen toe.",
+        "cloudPicker": "Selecteer cloudbestemmingen voor automatische upload na verwerking",
+        "tip1": "Ondersteunde formaten: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "De importmodus laat u kiezen tussen Alleen analyseren (metadata) of Importeren & verwerken.",
+        "tip3": "Bestanden met HEVC, ProRes, DNxHD- of AV1-codecs kunnen in quarantaine worden geplaatst voor handmatige goedkeuring."
       }
+    },
+    "platform": {
+      "title": "Platform-adaptieve UX (v0.25+)",
+      "desc": "Nexora past zijn uiterlijk aan uw besturingssysteem aan voor een native gevoel.",
+      "windows": "Windows 11: Mica/Acrylic-achtergrond, Segoe UI Variable-lettertype, Fluent-bedieningselementen",
+      "macos": "macOS: NSVisualEffectView-vibrantie, SF Pro-lettertype, verkeerslicht-vensterbediening",
+      "linux": "Linux: Stabiele GTK-decoraties, Cantarell-lettertype, neutrale vensterbediening"
+    },
+    "security": {
+      "title": "Beveiliging & Privacy",
+      "desc": "Nexora slaat gevoelige gegevens veilig op en valideert alle externe invoer.",
+      "keychain": "Cloudreferenties worden opgeslagen in de OS-sleutelbos (Windows Credential Manager, macOS Keychain, Linux Secret Service)",
+      "pathTraversal": "Externe paden worden gevalideerd om directory traversal-aanvallen te voorkomen",
+      "endpointValidation": "Log upload-eindpunten moeten http:// of https://-protocollen gebruiken"
     },
     "guideOpened": "Guia aberto no browser",
     "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."

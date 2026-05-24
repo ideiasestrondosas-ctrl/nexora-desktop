@@ -39,7 +39,9 @@
       "profiles": "Profiles",
       "settings": "Settings",
       "cloud": "Moln",
-      "logs": "Logs"
+      "logs": "Logs",
+      "assetDetail": "Tillgångsdetalj",
+      "import": "Importera"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -120,7 +122,28 @@
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
-        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output.",
+        "logsTab": {
+          "title": "Loggflik (v0.24.0)",
+          "desc": "Konfigurera loggningens detaljnivå, lagringspolicy och uppladdningsslutpunkt. Visa lagringsanvändning och exportera eller rensa loggfiler.",
+          "verbosity": "Detaljnivå: Grundläggande (endast fel), Normal (INFO+), Felsökning (alla + UI-klick)",
+          "retention": "Lagring: ange max dagar och max storlek (MB). Gamla loggar komprimeras till ZIP.",
+          "upload": "Ladda upp loggar till en utvecklarslutpunkt för felsökning"
+        },
+        "cache": {
+          "title": "Cachevisning (v0.24.0)",
+          "desc": "Övervaka och hantera temporära cachefiler som skapas under bearbetning.",
+          "transcodeCache": "Bearbetningscache — temporära transkodnings- och proxyfiler",
+          "thumbCache": "Miniatyrscache — genererade förhandsvisningsminiaturer",
+          "clear": "Rensa cache säkert (blockeras om jobb är aktiva)"
+        },
+        "shortcuts": {
+          "title": "Tangentbordsgenvägar",
+          "desc": "Vanliga tangentbordsgenvägar. Modifierartangenten beror på din plattform (⌘ på macOS, Ctrl på Windows/Linux).",
+          "exportLogs": "Exportera loggar till fil",
+          "closeWindow": "Stäng aktuellt fönster/dialog",
+          "navTabs": "Växla mellan huvudflikar (när fokuserad)"
+        }
       },
       "cloud": {
         "title": "Moln — destinationer och filbläddrare",
@@ -145,6 +168,23 @@
           "tip1": "Varje jobb kan åsidosätta standardmolndestinationen som anges i Inställningar → Moln.",
           "tip2": "Uppladdningsförloppet visas inte i gränssnittet — kontrollera fliken Loggar för uppladdningsstatus.",
           "tip3": "Google Drive uppsertar filer: om en fil med samma namn redan finns i målmappen ersätts den i stället för att dupliceras."
+        },
+        "gdriveOAuth": {
+          "title": "Google Drive — OAuth Device Flow",
+          "desc": "Autentisera Google Drive utan att lagra lösenord. Nexora använder OAuth 2.0 Device Flow.",
+          "step1": "Klicka på 'Autentisera' — Nexora begär en enhetskod från Google",
+          "step2": "Öppna den angivna URL:en i din webbläsare och ange användarkoden",
+          "step3": "Nexora frågar Google var 5:e sekund tills du auktoriserar. Token lagras lokalt."
+        },
+        "s3": {
+          "title": "S3 & kompatibla leverantörer",
+          "desc": "Anslut till AWS S3 eller S3-kompatibla tjänster som MinIO, Wasabi och Backblaze B2.",
+          "providers": "Stöds: AWS S3, MinIO, Wasabi, Backblaze B2 (path-style endpoints)"
+        },
+        "icloud": {
+          "title": "iCloud Drive",
+          "desc": "iCloud stöds via lokal mappsynkronisering. Nexora läser/skriver iCloud Drive-mappen på din lokala disk.",
+          "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
         }
       },
       "logs": {
@@ -157,7 +197,45 @@
         "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
+      },
+      "assetDetail": {
+        "title": "Tillgångsdetalj — Filarbetsytan",
+        "desc": "Tillgångsdetalj är den huvudsakliga arbetsytan för en enskild videofil. Växla mellan original och bearbetad förhandsvisning, spela upp inline, visa teknisk metadata och hantera filen.",
+        "hero": "Huvudsektion med växling Original/Bearbetad, uppspelningsknapp och åtgärdsfält",
+        "mediaInfo": "MediaInfo-flikar: Allmänt, Video, Ljud, Undertexter, Taggar, SHA-256",
+        "technicalAnalysis": "Sida-vid-sida teknisk jämförelse av original vs. bearbetad",
+        "jobHistory": "Alla bearbetningsjobb för denna tillgång med pipeline-steg och poäng",
+        "tip1": "Använd växeln för att byta mellan käll- och utdataförhandsvisningar.",
+        "tip2": "Klicka på Spela upp för att titta på videon inline utan att lämna appen.",
+        "tip3": "Fliken Teknisk analys jämför codec, upplösning, HDR med mera."
+      },
+      "import": {
+        "title": "Import — Lägg till media",
+        "desc": "Importera videofiler till Nexora via drag-and-drop, filväljare eller mappsskanning. Stödda format: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "dragDrop": "Dra videofiler var som helst i fönstret",
+        "fileDialog": "Eller klicka för att öppna filväljaren",
+        "folderScan": "Lägg till mapp importerar alla stödda videor från en katalog",
+        "batchTitle": "Batchbearbetning",
+        "batchDesc": "Bearbeta flera filer samtidigt. Välj en global profil eller ställ in en annan profil per fil. Lägg till molnmål som tillval.",
+        "cloudPicker": "Välj molnmål för automatisk uppladdning efter bearbetning",
+        "tip1": "Stödda format: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Importdialogen låter dig välja mellan Endast analys (metadata) eller Importera & bearbeta.",
+        "tip3": "Filer med HEVC, ProRes, DNxHD eller AV1-codecs kan sättas i karantän för manuellt godkännande."
       }
+    },
+    "platform": {
+      "title": "Plattformsanpassad UX (v0.25+)",
+      "desc": "Nexora anpassar sitt utseende för att matcha ditt operativsystem för en naturlig känsla.",
+      "windows": "Windows 11: Mica/Acrylic-bakgrund, Segoe UI Variable-typsnitt, Fluent-kontroller",
+      "macos": "macOS: NSVisualEffectView-vibrancy, SF Pro-typsnitt, trafikljuskontroller för fönster",
+      "linux": "Linux: Stabila GTK-dekorationer, Cantarell-typsnitt, neutrala fönsterkontroller"
+    },
+    "security": {
+      "title": "Säkerhet & integritet",
+      "desc": "Nexora lagrar känsliga data säkert och validerar alla externa indata.",
+      "keychain": "Molnuppgifter lagras i OS-nyckelringen (Windows Credential Manager, macOS Keychain, Linux Secret Service)",
+      "pathTraversal": "Fjärrsökvägar valideras för att förhindra directory traversal-attacker",
+      "endpointValidation": "Uppladdningsslutpunkter för loggar måste använda http:// eller https://-protokoll"
     },
     "guideOpened": "Guia aberto no browser",
     "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."

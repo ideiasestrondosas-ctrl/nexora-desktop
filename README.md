@@ -72,10 +72,14 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 | **Auto-Updater**                | Built-in Tauri updater checks GitHub releases automatically                                                                                       |
 | **Native Notifications**        | System-level notifications for job completion, errors, and quarantine alerts                                                                      |
 | **Comprehensive Logging**       | Structured logs with filtering by level, source, and time range; exportable                                                                       |
+| **Log Management**              | File logging with configurable verbosity (Basic/Normal/Debug), retention policies, and developer upload endpoints                                 |
+| **Cache Management**            | Monitor and clear transcode/thumbnail cache directly from Settings → System                                                                       |
 | **Factory Reset**               | One-click reset to defaults, preserving or wiping all data                                                                                        |
 | **Cloud Destinations**          | Automatic file delivery to FTP, FTPS, SFTP, SMB, S3 (MinIO, Wasabi), and Google Drive after each job                                              |
 | **Cloud File Browser**          | Browse, download, and delete files on remote storage directly from the Settings panel                                                             |
 | **Secure Credentials**          | Cloud provider credentials stored in OS keychain (Windows Credential Manager / macOS Keychain / Linux Secret Service) — never in plaintext SQLite |
+| **Platform-Adaptive UX**        | Native look-and-feel per OS: Mica/Acrylic on Windows 11, Vibrancy on macOS, GTK on Linux with adaptive fonts and window controls                  |
+| **In-App Help Manual**          | Contextual help panel with 10 tabs, screenshots, and tips in all 15 supported languages                                                           |
 
 ---
 
@@ -83,19 +87,35 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 
 > Replace the placeholders below with actual screenshots from your installation.
 
-| Dashboard                                    | Library                                             | Queue                                             |
-| -------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Library](docs/screenshots/library.png)            | ![Queue](docs/screenshots/queue.png)              |
-| System overview with stats and recent jobs   | Asset management with grid/list views and drag-drop | Real-time job monitoring with pipeline visualizer |
+| Dashboard                                    | Library                                             | Asset Detail                                       |
+| -------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Library](docs/screenshots/library.png)            | ![Asset Detail](docs/screenshots/asset-detail.png) |
+| System overview with stats and recent jobs   | Asset management with grid/list views and drag-drop | Deep-dive into asset metadata and QC reports       |
 
-| Profiles                                   | Settings                                   | Asset Detail                                       |
-| ------------------------------------------ | ------------------------------------------ | -------------------------------------------------- |
-| ![Profiles](docs/screenshots/profiles.png) | ![Settings](docs/screenshots/settings.png) | ![Asset Detail](docs/screenshots/asset-detail.png) |
-| Transcode profile editor with presets      | System configuration and diagnostics       | Deep-dive into asset metadata and QC reports       |
+| Queue                                             | Profiles                                   | Settings                                   |
+| ------------------------------------------------- | ------------------------------------------ | ------------------------------------------ |
+| ![Queue](docs/screenshots/queue.png)              | ![Profiles](docs/screenshots/profiles.png) | ![Settings](docs/screenshots/settings.png) |
+| Real-time job monitoring with pipeline visualizer | Transcode profile editor with presets      | System configuration and diagnostics       |
+
+| Cloud Settings                                             | Cloud File Browser                                        | Logs & Cache                                    |
+| ---------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------- |
+| ![Cloud Settings](docs/screenshots/settings-cloud-tab.png) | ![Cloud Browser](docs/screenshots/cloud-file-browser.png) | ![Logs](docs/screenshots/settings-logs-tab.png) |
+| Manage cloud profiles and destinations                     | Browse, download, and delete remote files                 | Log verbosity, retention, and cache management  |
 
 ### What's New in v0.26.0
 
-See [CHANGELOG.md](CHANGELOG.md) for the full release history. Latest highlights: OS Keychain credential storage, Cloud File Browser, CI/CD improvements, and platform-adaptive UX foundation.
+- **In-App Help Manual** — Contextual help panel expanded to 10 tabs (Asset Detail, Import, Dashboard, Library, Queue, Profiles, Settings, Cloud, Logs) with screenshots and platform-specific tips in all 15 languages
+- **Platform-Adaptive UX** — Native per-OS styling: Mica/Acrylic backdrop on Windows 11, NSVisualEffectView vibrancy on macOS, GTK decorations on Linux; adaptive fonts (Segoe UI Variable / SF Pro / Cantarell) and window controls
+- **Secure Cloud Credentials** — All cloud provider credentials now stored in the OS keychain instead of SQLite plaintext
+- **Cloud File Browser** — Browse, download, and delete remote files on FTP, SFTP, SMB, S3, and Google Drive directly from Settings → Cloud
+- **Log Management Tab** — Configure file logging verbosity (Basic/Normal/Debug), retention (days + MB limits with ZIP compression), and upload logs to developer endpoints
+- **Cache Display** — Monitor and safely clear transcode/proxy and thumbnail caches from Settings → System (blocked if jobs are active)
+- **Path Traversal Protection** — SMB remote paths validated to prevent directory traversal attacks
+- **S3-Compatible Providers** — Full support for MinIO, Wasabi, and Backblaze B2 via path-style endpoints
+- **Google Drive OAuth Device Flow** — Authenticate without storing passwords; 3-step device flow with local token storage
+- **iCloud Drive** — Supported via local folder sync on Windows and macOS
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 ---
 

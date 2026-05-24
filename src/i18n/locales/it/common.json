@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -39,7 +39,9 @@
       "profiles": "Profiles",
       "settings": "Settings",
       "cloud": "Cloud",
-      "logs": "Logs"
+      "logs": "Logs",
+      "assetDetail": "Dettaglio Asset",
+      "import": "Importa"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -120,7 +122,28 @@
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
-        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output.",
+        "logsTab": {
+          "title": "Scheda Log (v0.24.0)",
+          "desc": "Configura la verbosità del logging su file, la politica di conservazione e l'endpoint di caricamento. Visualizza l'utilizzo dello spazio ed esporta o cancella i file di log.",
+          "verbosity": "Verbosità: Base (solo errori), Normale (INFO+), Debug (tutto + clic UI)",
+          "retention": "Conservazione: imposta giorni max e dimensione max (MB). I log vecchi vengono compressi in ZIP.",
+          "upload": "Carica i log su un endpoint sviluppatore per la risoluzione dei problemi"
+        },
+        "cache": {
+          "title": "Visualizzazione Cache (v0.24.0)",
+          "desc": "Monitora e gestisci i file di cache temporanei creati durante l'elaborazione.",
+          "transcodeCache": "Cache di elaborazione — file temporanei di transcodifica e proxy",
+          "thumbCache": "Cache miniature — miniature di anteprima generate",
+          "clear": "Cancella cache in sicurezza (bloccato se i job sono attivi)"
+        },
+        "shortcuts": {
+          "title": "Scorciatoie da Tastiera",
+          "desc": "Scorciatoie da tastiera comuni. Il tasto modificatore dipende dalla tua piattaforma (⌘ su macOS, Ctrl su Windows/Linux).",
+          "exportLogs": "Esporta log su file",
+          "closeWindow": "Chiudi finestra/finestra di dialogo corrente",
+          "navTabs": "Passa tra le schede principali (quando a fuoco)"
+        }
       },
       "cloud": {
         "title": "Cloud — Destinazioni e Browser di File",
@@ -145,6 +168,23 @@
           "tip1": "Ogni job può sovrascrivere la destinazione cloud predefinita impostata in Impostazioni → Cloud.",
           "tip2": "Il progresso del caricamento non è mostrato nell'interfaccia — controlla la scheda Log per lo stato.",
           "tip3": "Google Drive fa l'upsert dei file: se esiste già un file con lo stesso nome nella cartella di destinazione, viene sostituito invece di duplicato."
+        },
+        "gdriveOAuth": {
+          "title": "Google Drive — Flusso Dispositivo OAuth",
+          "desc": "Autentica Google Drive senza memorizzare password. Nexora utilizza il Device Flow OAuth 2.0.",
+          "step1": "Clicca su 'Autentica' — Nexora richiede un codice dispositivo a Google",
+          "step2": "Apri l'URL fornito nel browser e inserisci il codice utente",
+          "step3": "Nexora interroga Google ogni 5 secondi fino all'autorizzazione. Il token viene memorizzato localmente."
+        },
+        "s3": {
+          "title": "S3 e Provider Compatibili",
+          "desc": "Connettiti a AWS S3 o servizi compatibili S3 come MinIO, Wasabi e Backblaze B2.",
+          "providers": "Supportati: AWS S3, MinIO, Wasabi, Backblaze B2 (endpoint path-style)"
+        },
+        "icloud": {
+          "title": "iCloud Drive",
+          "desc": "iCloud è supportato tramite sincronizzazione della cartella locale. Nexora legge/scrive nella cartella iCloud Drive sul disco locale.",
+          "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
         }
       },
       "logs": {
@@ -157,10 +197,48 @@
         "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
+      },
+      "assetDetail": {
+        "title": "Dettaglio Asset — Area di Lavoro File",
+        "desc": "Il Dettaglio Asset è l'area di lavoro principale per un singolo file video. Passa tra le anteprime originale e processata, riproduci in linea, visualizza i metadati tecnici e gestisci il file.",
+        "hero": "Sezione hero con toggle Originale/Processata, pulsante play e barra azioni",
+        "mediaInfo": "Schede MediaInfo: Generale, Video, Audio, Sottotitoli, Tag, SHA-256",
+        "technicalAnalysis": "Confronto tecnico affiancato tra originale e processato",
+        "jobHistory": "Tutti i job di elaborazione per questo asset con fasi della pipeline e punteggi",
+        "tip1": "Usa il toggle per passare tra le anteprime di origine e di output.",
+        "tip2": "Clicca su Play per guardare il video in linea senza uscire dall'app.",
+        "tip3": "La scheda Analisi Tecnica confronta codec, risoluzione, HDR e altro."
+      },
+      "import": {
+        "title": "Importa — Aggiunta Media",
+        "desc": "Importa file video in Nexora tramite drag-and-drop, finestra di dialogo file o scansione cartella. Formati supportati: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "dragDrop": "Trascina i file video in qualsiasi punto della finestra",
+        "fileDialog": "Oppure clicca per aprire il selettore file nativo",
+        "folderScan": "Aggiungi Cartella importa tutti i video supportati da una directory",
+        "batchTitle": "Elaborazione Batch",
+        "batchDesc": "Elabora più file contemporaneamente. Scegli un profilo globale o imposta un profilo diverso per file. Aggiungi opzionalmente destinazioni cloud.",
+        "cloudPicker": "Seleziona destinazioni cloud per il caricamento automatico dopo l'elaborazione",
+        "tip1": "Formati supportati: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Il modale di ingest ti permette di scegliere tra Solo Analisi (metadati) o Importa ed Elabora.",
+        "tip3": "I file con codec HEVC, ProRes, DNxHD o AV1 possono essere messi in quarantena per approvazione manuale."
       }
     },
     "guideOpened": "Guia aberto no browser",
-    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet.",
+    "platform": {
+      "title": "UX Adattiva per Piattaforma (v0.25+)",
+      "desc": "Nexora adatta il proprio aspetto al sistema operativo per un'esperienza nativa.",
+      "windows": "Windows 11: sfondo Mica/Acrylic, font Segoe UI Variable, controlli Fluent",
+      "macos": "macOS: vibrancy NSVisualEffectView, font SF Pro, controlli finestra traffic light",
+      "linux": "Linux: decorazioni GTK stabili, font Cantarell, controlli finestra neutrali"
+    },
+    "security": {
+      "title": "Sicurezza e Privacy",
+      "desc": "Nexora memorizza i dati sensibili in modo sicuro e convalida tutti gli input esterni.",
+      "keychain": "Le credenziali cloud sono memorizzate nel portachiavi del SO (Windows Credential Manager, macOS Keychain, Linux Secret Service)",
+      "pathTraversal": "I percorsi remoti sono convalidati per prevenire attacchi di path traversal",
+      "endpointValidation": "Gli endpoint di caricamento log devono utilizzare i protocolli http:// o https://"
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Assets",

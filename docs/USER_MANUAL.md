@@ -244,5 +244,117 @@ The Logs page shows structured application logs with full-text search.
 
 ---
 
+## 9. Asset Detail
+
+Asset Detail is the main workspace for a single video file.
+
+### Hero Section
+
+- **Toggle Original / Processed** — switch the preview between source and output
+- **Play button** — plays the video inline; the path shown updates with the active view
+- **Open in player** — opens in the system default media player
+
+### MediaInfo Tabs
+
+Sub-tabs within Technical Metadata:
+
+- **General** — format, duration, bitrate, file size
+- **Video** — codec, resolution, frame rate, colour space, HDR data
+- **Audio** — codec, sample rate, channels, bitrate
+- **Subtitles** — embedded subtitle tracks
+- **Tags** — container metadata tags
+- **SHA-256** — file integrity hash
+
+### Technical Analysis
+
+Side-by-side comparison of original vs. processed:
+
+- File name, full path, and file size
+- Codec, resolution, fps, bit depth, HDR, colour space, container, scan type
+
+### Action Bar
+
+| Button         | Action                                                                  |
+| -------------- | ----------------------------------------------------------------------- |
+| Reprocess      | Opens profile picker to queue a new job                                 |
+| View Original  | Opens the source file location in Explorer/Finder                       |
+| View Processed | Tries to open the processed asset in-app; falls back to Explorer/Finder |
+| Download       | Saves the processed file to a chosen destination                        |
+| Delete         | Removes the asset and all jobs; asks whether to delete processed files  |
+
+---
+
+## 10. Cloud Storage
+
+Configure cloud storage destinations for automatic file delivery after transcoding.
+
+### Supported Providers
+
+| Provider         | Protocol    | Browse | Upload | Download | Notes                                   |
+| ---------------- | ----------- | :----: | :----: | :------: | --------------------------------------- |
+| **FTP**          | FTP / FTPS  |   ✅   |   ✅   |    ✅    | Plain FTP or explicit TLS               |
+| **SFTP**         | SSH         |   ✅   |   ✅   |    ✅    | Password or key-based auth              |
+| **SMB**          | CIFS / SMB2 |   ✅   |   ✅   |    ✅    | Windows shares and NAS devices          |
+| **S3**           | HTTPS       |   ✅   |   ✅   |    ✅    | AWS S3, MinIO, Wasabi, Backblaze B2     |
+| **Google Drive** | HTTPS       |   ✅   |   ✅   |    ✅    | OAuth device flow; upserts on re-upload |
+| **iCloud**       | —           |   ❌   |   ❌   |    ❌    | Via local folder sync only              |
+
+### Google Drive Authentication
+
+Nexora uses OAuth 2.0 Device Flow (no password storage):
+
+1. Click **Authenticate** in the Google Drive profile — Nexora requests a device code
+2. Open the provided URL in your browser and enter the user code
+3. Nexora polls Google every 5 seconds until authorized. The token is stored locally.
+
+### Cloud File Browser
+
+Click **Browse** on any profile to open the file browser:
+
+- Navigate into subdirectories
+- Select multiple files with checkboxes
+- Download to a local folder via the native OS file picker
+- Delete files permanently from remote storage
+
+### Automatic Upload
+
+When a job completes, the output file is uploaded to all configured cloud destinations:
+
+- 3 retries with exponential backoff
+- Failed uploads are logged but do not mark the job as failed
+- Google Drive upserts: existing files with the same name are replaced, not duplicated
+
+---
+
+## 11. Security & Privacy
+
+### Credential Storage
+
+Cloud provider credentials are stored in the OS keychain:
+
+- **Windows** — Windows Credential Manager
+- **macOS** — macOS Keychain
+- **Linux** — Secret Service / libsecret
+
+Credentials are **never** stored in plaintext in the SQLite database.
+
+### Path Validation
+
+Remote paths are validated to prevent directory traversal attacks. SMB paths containing `..` components are rejected.
+
+### Log Endpoint Validation
+
+Log upload endpoints must use `http://` or `https://` protocols. URLs without a protocol are rejected.
+
+### Factory Reset
+
+A two-step confirmation process ensures intentional data loss:
+
+1. Confirm the total reset of all data, settings, and history
+2. Choose whether to delete output files from disk
+3. The app restarts automatically after cleanup
+
+---
+
 _Nexora Desktop — Open Source Media Processing_  
 _GitHub: https://github.com/ideiasestrondosas-ctrl/nexora-desktop_

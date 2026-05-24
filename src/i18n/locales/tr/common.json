@@ -39,7 +39,9 @@
       "profiles": "Profiles",
       "settings": "Settings",
       "cloud": "Bulut",
-      "logs": "Logs"
+      "logs": "Logs",
+      "assetDetail": "Varlık Detayı",
+      "import": "İçe Aktar"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -120,7 +122,28 @@
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
-        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output.",
+        "logsTab": {
+          "title": "Günlükler Sekmesi (v0.24.0)",
+          "desc": "Dosya günlüğü ayrıntı düzeyini, saklama politikasını ve yükleme uç noktasını yapılandırın. Depolama kullanımını görüntüleyin ve günlük dosyalarını dışa aktarın veya temizleyin.",
+          "verbosity": "Ayrıntı düzeyi: Temel (yalnızca hatalar), Normal (INFO+), Hata ayıklama (tümü + UI tıklamaları)",
+          "retention": "Saklama: maksimum gün ve maksimum boyut (MB) ayarlayın. Eski günlükler ZIP'e sıkıştırılır.",
+          "upload": "Sorun giderme için günlükleri geliştirici uç noktasına yükleyin"
+        },
+        "cache": {
+          "title": "Önbellek Görünümü (v0.24.0)",
+          "desc": "İşlem sırasında oluşturulan geçici önbellek dosyalarını izleyin ve yönetin.",
+          "transcodeCache": "İşlem Önbelleği — transcode ve proxy geçici dosyaları",
+          "thumbCache": "Küçük Resim Önbelleği — oluşturulan önizleme küçük resimleri",
+          "clear": "Önbelleği güvenle temizleyin (aktif işler varsa engellenir)"
+        },
+        "shortcuts": {
+          "title": "Klavye Kısayolları",
+          "desc": "Yaygın klavye kısayolları. Değiştirici tuş platformunuza bağlıdır (macOS'ta ⌘, Windows/Linux'ta Ctrl).",
+          "exportLogs": "Günlükleri dosyaya dışa aktar",
+          "closeWindow": "Geçerli pencereyi/iletişim kutusunu kapat",
+          "navTabs": "Ana sekmeler arasında geçiş yap (odaklandığında)"
+        }
       },
       "cloud": {
         "title": "Bulut — Hedefler ve Dosya Tarayıcısı",
@@ -145,6 +168,23 @@
           "tip1": "Her iş, Ayarlar → Bulut'ta ayarlanan varsayılan bulut hedefini geçersiz kılabilir.",
           "tip2": "Yükleme ilerleme durumu arayüzde gösterilmez — yükleme durumu için Günlükler sekmesini kontrol edin.",
           "tip3": "Google Drive dosyaları upsert eder: hedef klasörde aynı ada sahip bir dosya zaten mevcutsa, kopyalanmak yerine değiştirilir."
+        },
+        "gdriveOAuth": {
+          "title": "Google Drive — OAuth Cihaz Akışı",
+          "desc": "Şifre saklamadan Google Drive'ı kimlik doğrulayın. Nexora, OAuth 2.0 Cihaz Akışı'nı kullanır.",
+          "step1": "'Kimlik Doğrula'ya tıklayın — Nexora, Google'dan bir cihaz kodu ister",
+          "step2": "Tarayıcınızda verilen URL'yi açın ve kullanıcı kodunu girin",
+          "step3": "Nexora, siz yetkilendirene kadar Google'ı her 5 saniyede bir sorgular. Token yerel olarak saklanır."
+        },
+        "s3": {
+          "title": "S3 & Uyumlu Sağlayıcılar",
+          "desc": "AWS S3 veya MinIO, Wasabi ve Backblaze B2 gibi S3 uyumlu hizmetlere bağlanın.",
+          "providers": "Desteklenen: AWS S3, MinIO, Wasabi, Backblaze B2 (path-style endpoints)"
+        },
+        "icloud": {
+          "title": "iCloud Drive",
+          "desc": "iCloud, yerel klasör senkronizasyonu aracılığıyla desteklenir. Nexora, yerel diskinizdeki iCloud Drive klasörünü okur/yazar.",
+          "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
         }
       },
       "logs": {
@@ -157,7 +197,45 @@
         "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
+      },
+      "assetDetail": {
+        "title": "Varlık Detayı — Dosya Çalışma Alanı",
+        "desc": "Varlık Detayı, tek bir video dosyası için ana çalışma alanıdır. Orijinal ve işlenmiş önizlemeler arasında geçiş yapın, satır içi oynatın, teknik meta verileri görüntüleyin ve dosyayı yönetin.",
+        "hero": "Orijinal/İşlenmiş geçişi, oynatma düğmesi ve eylem çubuğu ile ana bölüm",
+        "mediaInfo": "MediaInfo sekmeleri: Genel, Video, Ses, Altyazılar, Etiketler, SHA-256",
+        "technicalAnalysis": "Orijinal ve işlenmiş dosyanın yan yana teknik karşılaştırması",
+        "jobHistory": "Bu varlık için tüm işleme işleri, pipeline aşamaları ve puanları",
+        "tip1": "Kaynak ve çıktı önizlemeleri arasında geçiş yapmak için anahtarı kullanın.",
+        "tip2": "Uygulamadan ayrılmadan videoyu satır içi izlemek için Oynat'a tıklayın.",
+        "tip3": "Teknik Analiz sekmesi codec, çözünürlük, HDR ve daha fazlasını karşılaştırır."
+      },
+      "import": {
+        "title": "İçe Aktar — Medya Ekleme",
+        "desc": "Video dosyalarını Nexora'ya sürükleyip bırakma, dosya iletişim kutusu veya klasör tarama ile aktarın. Desteklenen formatlar: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "dragDrop": "Videoları pencerenin herhangi bir yerine sürükleyin",
+        "fileDialog": "Veya yerel dosya seçiciyi açmak için tıklayın",
+        "folderScan": "Klasör Ekle, bir dizindeki tüm desteklenen videoları aktarır",
+        "batchTitle": "Toplu İşleme",
+        "batchDesc": "Birden fazla dosyayı aynı anda işleyin. Genel bir profil seçin veya dosya başına farklı bir profil ayarlayın. İsteğe bağlı olarak bulut hedefleri ekleyin.",
+        "cloudPicker": "İşlemeden sonra otomatik yükleme için bulut hedefleri seçin",
+        "tip1": "Desteklenen formatlar: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Aktarım modalı, Sadece Analiz (meta veri) veya İçe Aktar ve İşle arasında seçim yapmanıza olanak tanır.",
+        "tip3": "HEVC, ProRes, DNxHD veya AV1 codec'li dosyalar manuel onay için karantinaya alınabilir."
       }
+    },
+    "platform": {
+      "title": "Platforma Uyarlanmış UX (v0.25+)",
+      "desc": "Nexora, yerel bir his için görünümünü işletim sisteminize uyarlar.",
+      "windows": "Windows 11: Mica/Acrylic arka plan, Segoe UI Variable yazı tipi, Fluent kontroller",
+      "macos": "macOS: NSVisualEffectView vibrancy, SF Pro yazı tipi, trafik ışığı pencere kontrolleri",
+      "linux": "Linux: Kararlı GTK dekorasyonları, Cantarell yazı tipi, nötr pencere kontrolleri"
+    },
+    "security": {
+      "title": "Güvenlik & Gizlilik",
+      "desc": "Nexora hassas verileri güvenli bir şekilde saklar ve tüm harici girdileri doğrular.",
+      "keychain": "Bulut kimlik bilgileri OS anahtarlığında saklanır (Windows Credential Manager, macOS Keychain, Linux Secret Service)",
+      "pathTraversal": "Dizin gezme saldırılarını önlemek için uzaktan yollar doğrulanır",
+      "endpointValidation": "Günlük yükleme uç noktaları http:// veya https:// protokollerini kullanmalıdır"
     },
     "guideOpened": "Guia aberto no browser",
     "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."

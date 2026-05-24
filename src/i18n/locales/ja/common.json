@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "name": "Nexora Media Processing",
     "desktopEdition": "Desktop Edition — Native Multiplatform",
@@ -39,7 +39,9 @@
       "profiles": "Profiles",
       "settings": "Settings",
       "cloud": "クラウド",
-      "logs": "Logs"
+      "logs": "Logs",
+      "assetDetail": "アセット詳細",
+      "import": "インポート"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -120,7 +122,28 @@
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
-        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output.",
+        "logsTab": {
+          "title": "ログタブ (v0.24.0)",
+          "desc": "ファイルログの詳細度、保持ポリシー、アップロードエンドポイントを設定します。ストレージ使用量を確認し、ログファイルをエクスポートまたは削除します。",
+          "verbosity": "詳細度：基本（エラーのみ）、通常（INFO+）、デバッグ（すべて＋UIクリック）",
+          "retention": "保持：最大日数と最大サイズ（MB）を設定。古いログはZIPに圧縮されます。",
+          "upload": "トラブルシューティング用にログを開発者エンドポイントにアップロード"
+        },
+        "cache": {
+          "title": "キャッシュ表示 (v0.24.0)",
+          "desc": "処理中に作成された一時キャッシュファイルを監視・管理します。",
+          "transcodeCache": "処理キャッシュ — トランスコードおよびプロキシの一時ファイル",
+          "thumbCache": "サムネイルキャッシュ — 生成されたプレビューサムネイル",
+          "clear": "キャッシュを安全にクリア（ジョブがアクティブの場合はブロック）"
+        },
+        "shortcuts": {
+          "title": "キーボードショートカット",
+          "desc": "一般的なキーボードショートカット。修飾キーはプラットフォームによって異なります（macOSでは⌘、Windows/LinuxではCtrl）。",
+          "exportLogs": "ログをファイルにエクスポート",
+          "closeWindow": "現在のウィンドウ/ダイアログを閉じる",
+          "navTabs": "メインタブ間を切り替え（フォーカス時）"
+        }
       },
       "cloud": {
         "title": "クラウド — 配信先とファイルブラウザ",
@@ -145,6 +168,23 @@
           "tip1": "各ジョブは設定 → クラウドで設定したデフォルトのクラウド配信先を上書きできます。",
           "tip2": "アップロードの進行状況はUIに表示されません — ログタブでアップロードの状態を確認してください。",
           "tip3": "Google Driveはファイルをアップサートします：配信先フォルダーに同名のファイルが存在する場合、重複せずに置き換えられます。"
+        },
+        "gdriveOAuth": {
+          "title": "Google Drive — OAuth デバイスフロー",
+          "desc": "パスワードを保存せずにGoogle Driveを認証します。NexoraはOAuth 2.0デバイスフローを使用します。",
+          "step1": "「認証」をクリック — NexoraがGoogleにデバイスコードをリクエスト",
+          "step2": "ブラウザで提供されたURLを開き、ユーザーコードを入力",
+          "step3": "Nexoraは5秒ごとにGoogleをポーリングし、承認されるまで待機します。トークンはローカルに保存されます。"
+        },
+        "s3": {
+          "title": "S3 および互換プロバイダー",
+          "desc": "AWS S3またはMinIO、Wasabi、Backblaze B2などのS3互換サービスに接続します。",
+          "providers": "対応：AWS S3、MinIO、Wasabi、Backblaze B2（パススタイルエンドポイント）"
+        },
+        "icloud": {
+          "title": "iCloud Drive",
+          "desc": "iCloudはローカルフォルダー同期を介して対応しています。Nexoraはローカルディスク上のiCloud Driveフォルダーを読み書きします。",
+          "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
         }
       },
       "logs": {
@@ -157,10 +197,48 @@
         "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
+      },
+      "assetDetail": {
+        "title": "アセット詳細 — ファイルワークスペース",
+        "desc": "アセット詳細は、単一の動画ファイルのメイン作業スペースです。オリジナルと処理済みのプレビューを切り替え、インライン再生、技術的メタデータの表示、ファイル管理ができます。",
+        "hero": "オリジナル/処理済み切り替え、再生ボタン、アクションバーを備えたヒーローセクション",
+        "mediaInfo": "MediaInfoタブ：一般、動画、音声、字幕、タグ、SHA-256",
+        "technicalAnalysis": "オリジナルと処理済みの技術的比較（横並び）",
+        "jobHistory": "このアセットのすべての処理ジョブとパイプライン段階・スコア",
+        "tip1": "トグルを使用して、ソースと出力のプレビューを切り替えます。",
+        "tip2": "再生をクリックして、アプリを離れずに動画をインラインで視聴します。",
+        "tip3": "技術分析タブでは、コーデック、解像度、HDRなどを比較します。"
+      },
+      "import": {
+        "title": "インポート — メディアの追加",
+        "desc": "Nexoraに動画ファイルをドラッグ＆ドロップ、ファイルダイアログ、またはフォルダースキャンでインポートします。対応フォーマット：MP4、MKV、MOV、MXF、AVI、WebM、TS、M2TS。",
+        "dragDrop": "ウィンドウのどこにでも動画ファイルをドラッグ",
+        "fileDialog": "またはクリックしてネイティブファイルピッカーを開く",
+        "folderScan": "フォルダーを追加すると、ディレクトリ内のすべての対応動画をインポートします",
+        "batchTitle": "バッチ処理",
+        "batchDesc": "複数のファイルを一度に処理します。グローバルプロファイルを選択するか、ファイルごとに異なるプロファイルを設定します。クラウド送信先を追加することも可能です。",
+        "cloudPicker": "処理後の自動アップロード用クラウド送信先を選択",
+        "tip1": "対応フォーマット：MP4、MKV、MOV、MXF、AVI、WebM、TS、M2TS。",
+        "tip2": "取り込みモーダルでは、「解析のみ（メタデータ）」または「インポート＆処理」を選択できます。",
+        "tip3": "HEVC、ProRes、DNxHD、AV1コーデックのファイルは手動承認のために隔離される場合があります。"
       }
     },
     "guideOpened": "Guia aberto no browser",
-    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet.",
+    "platform": {
+      "title": "プラットフォーム適応型UX (v0.25+)",
+      "desc": "Nexoraは、ネイティブな感覚のためにオペレーティングシステムに合わせて外観を調整します。",
+      "windows": "Windows 11: Mica/Acrylic 背景、Segoe UI Variable フォント、Fluent コントロール",
+      "macos": "macOS: NSVisualEffectView ビブランシー、SF Pro フォント、信号機ウィンドウコントロール",
+      "linux": "Linux: 安定したGTK装飾、Cantarell フォント、ニュートラルウィンドウコントロール"
+    },
+    "security": {
+      "title": "セキュリティとプライバシー",
+      "desc": "Nexoraは機密データを安全に保存し、すべての外部入力を検証します。",
+      "keychain": "クラウド認証情報はOSのキーチェーンに保存されます（Windows資格情報マネージャー、macOSキーチェーン、Linux Secret Service）",
+      "pathTraversal": "リモートパスはディレクトリ横断攻撃を防ぐために検証されます",
+      "endpointValidation": "ログアップロードエンドポイントはhttp://またはhttps://プロトコルを使用する必要があります"
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Assets",

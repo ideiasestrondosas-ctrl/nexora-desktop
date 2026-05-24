@@ -14,6 +14,8 @@ import {
   BookOpen,
   ChevronRight,
   Cloud,
+  FileVideo,
+  Download,
 } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
@@ -35,7 +37,9 @@ type ScreenTab =
   | 'settings'
   | 'logs'
   | 'intro'
-  | 'cloud';
+  | 'cloud'
+  | 'assetDetail'
+  | 'import';
 
 const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] = [
   { id: 'intro', labelKey: 'help.tabs.intro', icon: <BookOpen className="w-4 h-4" /> },
@@ -45,6 +49,8 @@ const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] 
     icon: <LayoutDashboard className="w-4 h-4" />,
   },
   { id: 'library', labelKey: 'help.tabs.library', icon: <Library className="w-4 h-4" /> },
+  { id: 'assetDetail', labelKey: 'help.tabs.assetDetail', icon: <FileVideo className="w-4 h-4" /> },
+  { id: 'import', labelKey: 'help.tabs.import', icon: <Download className="w-4 h-4" /> },
   { id: 'queue', labelKey: 'help.tabs.queue', icon: <ListVideo className="w-4 h-4" /> },
   { id: 'profiles', labelKey: 'help.tabs.profiles', icon: <UserCircle className="w-4 h-4" /> },
   { id: 'settings', labelKey: 'help.tabs.settings', icon: <Settings className="w-4 h-4" /> },
@@ -53,13 +59,15 @@ const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] 
 ];
 
 const TAB_COUNTS: Record<ScreenTab, number> = {
-  intro: 0,
+  intro: 1,
   dashboard: 1,
   library: 2,
+  assetDetail: 2,
+  import: 2,
   queue: 3,
   profiles: 1,
-  settings: 2,
-  cloud: 3,
+  settings: 4,
+  cloud: 5,
   logs: 1,
 };
 
@@ -70,6 +78,11 @@ const SCREENSHOTS = {
   profiles: '/screenshots/profiles.png',
   settings: '/screenshots/settings.png',
   logs: '/screenshots/logs.png',
+  'asset-detail': '/screenshots/asset-detail.png',
+  'ingest-modal': '/screenshots/ingest-modal.png',
+  'settings-logs': '/screenshots/settings-logs-tab.png',
+  'settings-cloud': '/screenshots/settings-cloud-tab.png',
+  'cloud-browser': '/screenshots/cloud-file-browser.png',
   'pipeline-summary': '/screenshots/pipeline-summary-expanded.png',
   'reprocess-popup': '/screenshots/reprocess-popup.png',
   'delete-confirm': '/screenshots/delete-confirm.png',
@@ -296,6 +309,31 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                         {t('help.intro.quickStartDesc')}
                       </p>
                     </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <ScreenCard
+                        title={t('help.platform.title')}
+                        icon={<Settings className="w-4 h-4" />}
+                      >
+                        <p>{t('help.platform.desc')}</p>
+                        <ul className="list-disc list-inside space-y-1 mt-2">
+                          <li>{t('help.platform.windows')}</li>
+                          <li>{t('help.platform.macos')}</li>
+                          <li>{t('help.platform.linux')}</li>
+                        </ul>
+                      </ScreenCard>
+                      <ScreenCard
+                        title={t('help.security.title')}
+                        icon={<HelpCircle className="w-4 h-4" />}
+                      >
+                        <p>{t('help.security.desc')}</p>
+                        <ul className="list-disc list-inside space-y-1 mt-2">
+                          <li>{t('help.security.keychain')}</li>
+                          <li>{t('help.security.pathTraversal')}</li>
+                          <li>{t('help.security.endpointValidation')}</li>
+                        </ul>
+                      </ScreenCard>
+                    </div>
                   </div>
                 )}
 
@@ -356,6 +394,60 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       screenshot={SCREENSHOTS['delete-confirm']}
                     >
                       <p>{t('help.screens.library.deleteConfirmDesc')}</p>
+                    </ScreenCard>
+                  </div>
+                )}
+
+                {activeTab === 'assetDetail' && (
+                  <div className="space-y-4">
+                    <ScreenCard
+                      title={t('help.screens.assetDetail.title')}
+                      icon={<FileVideo className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['asset-detail'])}
+                      tips={[
+                        t('help.screens.assetDetail.tip1'),
+                        t('help.screens.assetDetail.tip2'),
+                        t('help.screens.assetDetail.tip3'),
+                      ]}
+                      screenshot={SCREENSHOTS['asset-detail']}
+                    >
+                      <p>{t('help.screens.assetDetail.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.assetDetail.hero')}</li>
+                        <li>{t('help.screens.assetDetail.mediaInfo')}</li>
+                        <li>{t('help.screens.assetDetail.technicalAnalysis')}</li>
+                        <li>{t('help.screens.assetDetail.jobHistory')}</li>
+                      </ul>
+                    </ScreenCard>
+                  </div>
+                )}
+
+                {activeTab === 'import' && (
+                  <div className="space-y-4">
+                    <ScreenCard
+                      title={t('help.screens.import.title')}
+                      icon={<Download className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['ingest-modal'])}
+                      tips={[
+                        t('help.screens.import.tip1'),
+                        t('help.screens.import.tip2'),
+                        t('help.screens.import.tip3'),
+                      ]}
+                      screenshot={SCREENSHOTS['ingest-modal']}
+                    >
+                      <p>{t('help.screens.import.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.import.dragDrop')}</li>
+                        <li>{t('help.screens.import.fileDialog')}</li>
+                        <li>{t('help.screens.import.folderScan')}</li>
+                      </ul>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.import.batchTitle')}
+                      icon={<Download className="w-4 h-4" />}
+                      tips={[t('help.screens.import.cloudPicker')]}
+                    >
+                      <p>{t('help.screens.import.batchDesc')}</p>
                     </ScreenCard>
                   </div>
                 )}
@@ -469,6 +561,41 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     >
                       <p>{t('help.screens.settings.factoryResetConfirmDesc')}</p>
                     </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.settings.logsTab.title')}
+                      icon={<Terminal className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['settings-logs'])}
+                      screenshot={SCREENSHOTS['settings-logs']}
+                    >
+                      <p>{t('help.screens.settings.logsTab.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.settings.logsTab.verbosity')}</li>
+                        <li>{t('help.screens.settings.logsTab.retention')}</li>
+                        <li>{t('help.screens.settings.logsTab.upload')}</li>
+                      </ul>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.settings.cache.title')}
+                      icon={<Settings className="w-4 h-4" />}
+                    >
+                      <p>{t('help.screens.settings.cache.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.settings.cache.transcodeCache')}</li>
+                        <li>{t('help.screens.settings.cache.thumbCache')}</li>
+                        <li>{t('help.screens.settings.cache.clear')}</li>
+                      </ul>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.settings.shortcuts.title')}
+                      icon={<Settings className="w-4 h-4" />}
+                    >
+                      <p>{t('help.screens.settings.shortcuts.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.settings.shortcuts.exportLogs')}</li>
+                        <li>{t('help.screens.settings.shortcuts.closeWindow')}</li>
+                        <li>{t('help.screens.settings.shortcuts.navTabs')}</li>
+                      </ul>
+                    </ScreenCard>
                   </div>
                 )}
 
@@ -477,6 +604,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.cloud.destinations.title')}
                       icon={<Cloud className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['settings-cloud'])}
+                      screenshot={SCREENSHOTS['settings-cloud']}
                       tips={[
                         t('help.screens.cloud.destinations.tip1'),
                         t('help.screens.cloud.destinations.tip2'),
@@ -489,6 +618,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.cloud.browser.title')}
                       icon={<Cloud className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['cloud-browser'])}
+                      screenshot={SCREENSHOTS['cloud-browser']}
                       tips={[
                         t('help.screens.cloud.browser.tip1'),
                         t('help.screens.cloud.browser.tip2'),
@@ -507,6 +638,31 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       ]}
                     >
                       <p>{t('help.screens.cloud.upload.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.cloud.gdriveOAuth.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[
+                        t('help.screens.cloud.gdriveOAuth.step1'),
+                        t('help.screens.cloud.gdriveOAuth.step2'),
+                        t('help.screens.cloud.gdriveOAuth.step3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.cloud.gdriveOAuth.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.cloud.s3.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[t('help.screens.cloud.s3.providers')]}
+                    >
+                      <p>{t('help.screens.cloud.s3.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.cloud.icloud.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[t('help.screens.cloud.icloud.localPath')]}
+                    >
+                      <p>{t('help.screens.cloud.icloud.desc')}</p>
                     </ScreenCard>
                   </div>
                 )}
