@@ -356,14 +356,23 @@ pub async fn clear_log_files(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+fn validate_log_endpoint(raw: &str) -> Result<String, String> {
+    let endpoint = raw.trim().to_string();
+    if endpoint.is_empty() {
+        return Err("Endpoint não configurado".to_string());
+    }
+    if !endpoint.starts_with("http://") && !endpoint.starts_with("https://") {
+        return Err("Endpoint inválido: deve começar com http:// ou https://".to_string());
+    }
+    Ok(endpoint)
+}
+
 #[tauri::command]
 pub async fn upload_logs_to_server(
     app: tauri::AppHandle,
     endpoint: String,
 ) -> Result<String, String> {
-    if endpoint.trim().is_empty() {
-        return Err("Endpoint não configurado".to_string());
-    }
+    let endpoint = validate_log_endpoint(&endpoint)?;
 
     let bundle_path = export_logs_bundle(app).await?;
 
@@ -438,4 +447,37 @@ pub fn log_user_action(
     crate::logger::write(&log_level, "ui", &message);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_log_endpoint;
+
+    #[test]
+    fn endpoint_vazio_rejeitado() {
+        assert!(validate_log_endpoint("").is_err());
+        assert!(validate_log_endpoint("   ").is_err());
+    }
+
+    #[test]
+    fn endpoint_sem_protocolo_rejeitado() {
+        assert!(validate_log_endpoint("example.com/logs").is_err());
+        assert!(validate_log_endpoint("ftp://example.com").is_err());
+    }
+
+    #[test]
+    fn endpoint_http_aceite() {
+        assert_eq!(
+            validate_log_endpoint("http://logs.example.com/upload").unwrap(),
+            "http://logs.example.com/upload"
+        );
+    }
+
+    #[test]
+    fn endpoint_https_aceite() {
+        assert_eq!(
+            validate_log_endpoint("  https://logs.example.com/upload  ").unwrap(),
+            "https://logs.example.com/upload"
+        );
+    }
 }

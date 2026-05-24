@@ -3,6 +3,10 @@ use async_trait::async_trait;
 use std::path::Path;
 use suppaftp::AsyncFtpStream;
 
+/// Limite máximo de ficheiro para upload via FTP.
+/// Protocolo FTP não suporta retoma; ficheiros maiores devem usar S3 ou SMB.
+const FTP_MAX_FILE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+
 pub struct FtpProvider {
     host: String,
     port: u16,
@@ -83,7 +87,7 @@ impl FtpProvider {
                 local_path.display()
             )
         })?;
-        if metadata.len() > 2 * 1024 * 1024 * 1024 {
+        if metadata.len() > FTP_MAX_FILE_BYTES {
             return Err(format!(
                 "Ficheiro demasiado grande para FTP ({} GB). Use S3 ou SMB para ficheiros > 2 GB",
                 metadata.len() / 1024 / 1024 / 1024

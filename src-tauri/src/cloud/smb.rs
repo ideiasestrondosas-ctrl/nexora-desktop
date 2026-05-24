@@ -2,6 +2,68 @@ use super::provider::CloudProvider;
 use async_trait::async_trait;
 use std::path::Path;
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_provider(base: &str) -> SmbProvider {
+        SmbProvider { base_path: base.to_string() }
+    }
+
+    #[test]
+    fn resolve_caminho_normal() {
+        let p = make_provider("/mnt/share");
+        assert_eq!(p.resolve("videos/clip.mp4"), std::path::PathBuf::from("/mnt/share/videos/clip.mp4"));
+    }
+
+    #[test]
+    fn resolve_remove_barra_inicial() {
+        let p = make_provider("/mnt/share");
+        assert_eq!(p.resolve("/sub/file.mp4"), std::path::PathBuf::from("/mnt/share/sub/file.mp4"));
+    }
+
+    #[test]
+    fn resolve_caminho_vazio_retorna_base() {
+        let p = make_provider("/mnt/share");
+        assert_eq!(p.resolve(""), std::path::PathBuf::from("/mnt/share"));
+    }
+
+    #[test]
+    fn validate_rejeita_traversal_simples() {
+        assert!(SmbProvider::validate_remote_path("../etc/passwd").is_err());
+        assert!(SmbProvider::validate_remote_path("..").is_err());
+    }
+
+    #[test]
+    fn validate_rejeita_traversal_profundo() {
+        assert!(SmbProvider::validate_remote_path("videos/../../etc/shadow").is_err());
+        assert!(SmbProvider::validate_remote_path("a\\..\\b").is_err());
+    }
+
+    #[test]
+    fn validate_aceita_caminhos_normais() {
+        assert!(SmbProvider::validate_remote_path("videos/clip.mp4").is_ok());
+        assert!(SmbProvider::validate_remote_path("").is_ok());
+        assert!(SmbProvider::validate_remote_path("a..b/file").is_ok());
+    }
+
+    #[test]
+    fn resolve_backslash_removida() {
+        let p = make_provider("/mnt/share");
+        // Backslashes no início são tratados como barra
+        let result = p.resolve("\\sub\\file.mp4");
+        assert_eq!(result, std::path::PathBuf::from("/mnt/share/sub/file.mp4"));
+    }
+
+    #[test]
+    fn resolve_base_windows() {
+        let p = make_provider(r"C:\Shares\nexora");
+        let result = p.resolve("clips\\video.mp4");
+        // Path::join no Windows usa os separadores nativos
+        assert!(result.starts_with(r"C:\Shares\nexora"));
+    }
+}
+
 pub struct SmbProvider {
     base_path: String,
 }
@@ -15,17 +77,16 @@ impl SmbProvider {
         Ok(Self { base_path })
     }
 
+    fn validate_remote_path(path: &str) -> Result<(), String> {
+        if path.split(['/', '\\']).any(|c| c == "..") {
+            return Err("Caminho inválido: componentes '..' não são permitidos".to_string());
+        }
+        Ok(())
+    }
+
     fn resolve(&self, remote_path: &str) -> std::path::PathBuf {
         let cleaned = remote_path.trim_start_matches(['/', '\\']);
-        let full = std::path::Path::new(&self.base_path).join(cleaned);
-        // Prevenir path traversal via segmentos ".." — garantir que o caminho resolvido
-        // permanece dentro de base_path (starts_with faz comparação por componentes, não por prefixo de string)
-        let base = std::path::Path::new(&self.base_path);
-        if !full.starts_with(base) {
-            // Fallback seguro: devolve base_path, que falhará graciosamente em read_dir/remove_file
-            return base.to_path_buf();
-        }
-        full
+        std::path::Path::new(&self.base_path).join(cleaned)
     }
 
     async fn copy_file(src: &Path, dst: &Path) -> Result<(), String> {
@@ -65,6 +126,7 @@ impl CloudProvider for SmbProvider {
     }
 
     async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
+        Self::validate_remote_path(remote_path)?;
         let dest = self.resolve(remote_path);
         if let Some(parent) = dest.parent() {
             tokio::fs::create_dir_all(parent)
@@ -76,6 +138,7 @@ impl CloudProvider for SmbProvider {
     }
 
     async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
+        Self::validate_remote_path(remote_path)?;
         let src = self.resolve(remote_path);
         if let Some(parent) = local_path.parent() {
             tokio::fs::create_dir_all(parent)
@@ -87,6 +150,7 @@ impl CloudProvider for SmbProvider {
 
     async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
         use super::provider::RemoteFile;
+        Self::validate_remote_path(path)?;
         let dir = self.resolve(path);
 
         let mut read_dir = tokio::fs::read_dir(&dir).await.map_err(|e| {
@@ -127,6 +191,9 @@ impl CloudProvider for SmbProvider {
     }
 
     async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
+        for path in paths {
+            Self::validate_remote_path(path)?;
+        }
         let mut failed = Vec::new();
         for path in paths {
             let full = self.resolve(path);

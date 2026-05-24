@@ -2,6 +2,9 @@
   "name": "nexora-desktop",
   "private": true,
   "version": "0.25.0",
+  "description": "Native desktop application for media processing and cloud delivery",
+  "author": "Nexora",
+  "license": "UNLICENSED",
   "type": "module",
   "scripts": {
     "dev": "vite",
