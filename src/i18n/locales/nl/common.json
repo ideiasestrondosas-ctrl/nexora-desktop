@@ -141,7 +141,7 @@
         },
         "upload": {
           "title": "Automatisch uploaden",
-          "desc": "Wanneer een transcoderingstranstaak is voltooid, uploadt Nexora het uitvoerbestand automatisch naar alle geconfigureerde cloudbestemmingen. Uploads gebruiken 3 pogingen met exponentiële backoff. Een mislukte upload wordt geregistreerd maar markeert de taak niet als mislukt.",
+          "desc": "Wanneer een transcoderingsklus is voltooid, uploadt Nexora het uitvoerbestand automatisch naar alle geconfigureerde cloudbestemmingen. Uploads gebruiken 3 pogingen met exponentiële backoff. Een mislukte upload wordt geregistreerd maar markeert de taak niet als mislukt.",
           "tip1": "Elke taak kan de standaard cloudbestemming die is ingesteld in Instellingen → Cloud overschrijven.",
           "tip2": "De uploadvoortgang wordt niet weergegeven in de interface — controleer het tabblad Logboeken voor de uploadstatus.",
           "tip3": "Google Drive doet een upsert van bestanden: als er al een bestand met dezelfde naam bestaat in de doelmap, wordt het vervangen in plaats van gedupliceerd."
