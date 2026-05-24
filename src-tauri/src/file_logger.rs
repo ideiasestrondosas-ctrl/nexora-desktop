@@ -148,7 +148,8 @@ pub fn rotate_old_logs(log_dir: &Path) {
             continue;
         }
 
-        let zip_path = path.parent().unwrap().join(format!("{}.zip", name));
+        let Some(parent) = path.parent() else { continue };
+        let zip_path = parent.join(format!("{}.zip", name));
         match compress_to_zip(&path, &zip_path, name) {
             Ok(()) => {
                 if let Err(e) = fs::remove_file(&path) {

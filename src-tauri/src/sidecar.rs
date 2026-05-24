@@ -73,7 +73,7 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>, db_path: &std::path::Path) -> anyhow
     let pid = child.id();
     {
         let state = app.state::<AppState>();
-        *state.sidecar_pid.lock().unwrap() = Some(pid);
+        *state.sidecar_pid.lock().unwrap_or_else(|e| e.into_inner()) = Some(pid);
     }
     info!("Sidecar Node.js PID={} script={:?}", pid, script_path);
 
