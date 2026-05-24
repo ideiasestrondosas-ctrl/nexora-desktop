@@ -94,7 +94,8 @@ impl SmbProvider {
 
     fn resolve(&self, remote_path: &str) -> std::path::PathBuf {
         let cleaned = remote_path.trim_start_matches(['/', '\\']);
-        std::path::Path::new(&self.base_path).join(cleaned)
+        let normalized = cleaned.replace('\\', "/");
+        std::path::Path::new(&self.base_path).join(normalized)
     }
 
     async fn copy_file(src: &Path, dst: &Path) -> Result<(), String> {
