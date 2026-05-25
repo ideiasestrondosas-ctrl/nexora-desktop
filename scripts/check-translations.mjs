@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync, existsSync } from 'fs';
-import { join, resolve } from 'path';
+import { resolve } from 'path';
 
 const localesDir = resolve(process.cwd(), 'src/i18n/locales');
 
