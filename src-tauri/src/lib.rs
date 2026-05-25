@@ -90,8 +90,12 @@ pub fn run() {
             let disk_handle = app.handle().clone();
             let disk_shutdown = Arc::clone(&app.state::<AppState>().shutdown);
             std::thread::spawn(move || {
-                while !disk_shutdown.load(std::sync::atomic::Ordering::Relaxed) {
-                    std::thread::sleep(std::time::Duration::from_secs(10));
+                loop {
+                    // Check flag before work
+                    if disk_shutdown.load(std::sync::atomic::Ordering::Relaxed) {
+                        break;
+                    }
+                    // Do work
                     let stats = disk_handle
                         .path()
                         .app_data_dir()
@@ -106,6 +110,13 @@ pub fn run() {
                                 "diskTotalBytes": s.total_bytes,
                             }),
                         );
+                    }
+                    // Sleep in 1s intervals, checking flag each second
+                    for _ in 0..10 {
+                        if disk_shutdown.load(std::sync::atomic::Ordering::Relaxed) {
+                            return;
+                        }
+                        std::thread::sleep(std::time::Duration::from_secs(1));
                     }
                 }
             });
