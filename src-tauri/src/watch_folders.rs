@@ -84,6 +84,7 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
         // Ficheiros já emitidos nesta sessão — evita emissão duplicada
         let mut ingested: HashSet<PathBuf> = HashSet::new();
 
+        let mut shutdown = false;
         loop {
             // Processar comandos sem bloquear
             while let Ok(cmd) = cmd_rx.try_recv() {
@@ -114,7 +115,14 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
                             }
                         }
                     }
+                    WatchCmd::Shutdown => {
+                        shutdown = true;
+                        break;
+                    }
                 }
+            }
+            if shutdown {
+                break;
             }
 
             // Processar eventos de ficheiro sem bloquear

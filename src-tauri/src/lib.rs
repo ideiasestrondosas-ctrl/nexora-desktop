@@ -11,6 +11,7 @@ mod tray;
 mod watch_folders;
 
 use state::AppState;
+use std::sync::Arc;
 use tauri::{Emitter, Manager};
 
 #[cfg(target_os = "windows")]
@@ -87,27 +88,31 @@ pub fn run() {
 
             // Thread de espaço em disco — emite "disk-space" a cada 10 s
             let disk_handle = app.handle().clone();
-            std::thread::spawn(move || loop {
-                std::thread::sleep(std::time::Duration::from_secs(10));
-                let stats = disk_handle
-                    .path()
-                    .app_data_dir()
-                    .ok()
-                    .and_then(|p| p.to_str().map(str::to_string))
-                    .and_then(|path| commands::system::get_disk_space(path).ok());
-                if let Some(s) = stats {
-                    let _ = disk_handle.emit(
-                        "disk-space",
-                        serde_json::json!({
-                            "diskFreeBytes": s.free_bytes,
-                            "diskTotalBytes": s.total_bytes,
-                        }),
-                    );
+            let disk_shutdown = Arc::clone(&app.state::<AppState>().shutdown);
+            std::thread::spawn(move || {
+                while !disk_shutdown.load(std::sync::atomic::Ordering::Relaxed) {
+                    std::thread::sleep(std::time::Duration::from_secs(10));
+                    let stats = disk_handle
+                        .path()
+                        .app_data_dir()
+                        .ok()
+                        .and_then(|p| p.to_str().map(str::to_string))
+                        .and_then(|path| commands::system::get_disk_space(path).ok());
+                    if let Some(s) = stats {
+                        let _ = disk_handle.emit(
+                            "disk-space",
+                            serde_json::json!({
+                                "diskFreeBytes": s.free_bytes,
+                                "diskTotalBytes": s.total_bytes,
+                            }),
+                        );
+                    }
                 }
             });
 
             // Thread de métricas do sistema — emite "system-metrics" a cada 2 s
             let metrics_handle = app.handle().clone();
+            let metrics_shutdown = Arc::clone(&app.state::<AppState>().shutdown);
             std::thread::spawn(move || {
                 use sysinfo::{Networks, System};
                 let mut sys = System::new();
@@ -117,7 +122,7 @@ pub fn run() {
                 sys.refresh_cpu_usage();
                 std::thread::sleep(std::time::Duration::from_millis(600));
 
-                loop {
+                while !metrics_shutdown.load(std::sync::atomic::Ordering::Relaxed) {
                     std::thread::sleep(std::time::Duration::from_secs(2));
                     sys.refresh_cpu_usage();
                     sys.refresh_memory();
@@ -216,8 +221,20 @@ pub fn run() {
             telemetry::clear_telemetry_events,
             get_startup_status,
         ])
-        .run(tauri::generate_context!())
-        .expect("Erro ao iniciar a aplicação Nexora");
+        .build(tauri::generate_context!())
+        .expect("Erro ao compilar contexto Nexora")
+        .run(|app_handle, event| {
+            if let tauri::RunEvent::ExitRequested { .. } = event {
+                if let Some(state) = app_handle.try_state::<AppState>() {
+                    state.shutdown.store(true, std::sync::atomic::Ordering::Relaxed);
+                    if let Ok(tx) = state.watcher_tx.lock() {
+                        if let Some(sender) = tx.as_ref() {
+                            let _ = sender.send(state::WatchCmd::Shutdown);
+                        }
+                    }
+                }
+            }
+        });
 }
 
 /// Configura o menu nativo da barra de menus para macOS.
