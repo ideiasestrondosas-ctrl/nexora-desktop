@@ -8,6 +8,8 @@ pub fn run(conn: &Connection) -> Result<()> {
     migrate_jobs_status_check(conn)?;
     migrate_assets_v2(conn)?;
     migrate_cloud_v1(conn)?;
+    migrate_watch_folders_v1(conn)?;
+    migrate_telemetry_v1(conn)?;
     Ok(())
 }
 
@@ -117,6 +119,34 @@ fn migrate_jobs_status_check(conn: &Connection) -> Result<()> {
 
         CREATE INDEX IF NOT EXISTS idx_jobs_asset_id ON jobs(asset_id);
         CREATE INDEX IF NOT EXISTS idx_jobs_status   ON jobs(status);
+        "#,
+    )?;
+    Ok(())
+}
+
+fn migrate_watch_folders_v1(conn: &Connection) -> Result<()> {
+    conn.execute_batch(
+        r#"
+        CREATE TABLE IF NOT EXISTS watch_folders (
+            id         TEXT PRIMARY KEY,
+            path       TEXT NOT NULL UNIQUE,
+            enabled    INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL
+        );
+        "#,
+    )?;
+    Ok(())
+}
+
+fn migrate_telemetry_v1(conn: &Connection) -> Result<()> {
+    conn.execute_batch(
+        r#"
+        CREATE TABLE IF NOT EXISTS telemetry_events (
+            id           TEXT PRIMARY KEY,
+            event_type   TEXT NOT NULL,
+            payload_json TEXT,
+            created_at   TEXT NOT NULL
+        );
         "#,
     )?;
     Ok(())
