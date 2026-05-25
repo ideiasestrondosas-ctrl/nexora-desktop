@@ -177,6 +177,48 @@ body {
   background: transparent;
 }
 
+/* ── Phase B: Glassmorphism containers ──────────────────────────────────── */
+
+/* Sidebar — dark */
+html.dark[data-platform='windows'] aside,
+html.dark[data-platform='macos'] aside {
+  background: rgba(10, 13, 20, 0.6);
+  backdrop-filter: blur(20px) saturate(1.4);
+}
+
+/* Sidebar — light */
+html:not(.dark)[data-platform='windows'] aside,
+html:not(.dark)[data-platform='macos'] aside {
+  background: rgba(248, 250, 252, 0.72);
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+
+/* TopBar — dark */
+html.dark[data-platform='windows'] [data-topbar],
+html.dark[data-platform='macos'] [data-topbar] {
+  background: rgba(10, 13, 20, 0.7);
+  backdrop-filter: blur(20px);
+}
+
+/* TopBar — light */
+html:not(.dark)[data-platform='windows'] [data-topbar],
+html:not(.dark)[data-platform='macos'] [data-topbar] {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+}
+
+/* Main content area — sempre transparente para deixar Mica/Vibrancy mostrar */
+html[data-platform='windows'] main,
+html[data-platform='macos'] main {
+  background: transparent;
+}
+
+/* Root shell — transparente */
+html[data-platform='windows'] .flex.h-screen,
+html[data-platform='macos'] .flex.h-screen {
+  background: transparent;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

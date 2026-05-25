@@ -128,11 +128,10 @@
 ## Em progresso agora
 
 ```
-Data:          2026-05-24
-Agente:        OpenCode (kimi-k2.6)
-Ultima sessao: 22 — HelpModal + i18n completo em 15 linguas + README (CONCLUIDO)
-Proximo:       Platform-Adaptive UX Phase A (sem novos deps Rust)
-               Plano: C:\Users\arnal\.claude\plans\lexical-singing-frog.md
+Data:          2026-05-25
+Agente:        Claude Code (claude-sonnet-4-6)
+Ultima sessao: 23 — Platform-Adaptive UX Phase A+B + Glassmorphism (CONCLUIDO)
+Proximo:       ---
 Bloqueios:     Nenhum
 ```
 
@@ -157,12 +156,15 @@ Bloqueios:     Nenhum
 
 - [x] `usePlatform.ts` basico (isMac/isWindows/isLinux + data-platform no html)
 - [x] `get_platform` comando Rust com `#[cfg(target_os)]`
-- [ ] `usePlatform.ts`: adicionar modKey + shortcut()
-- [ ] `WindowControls.tsx`: traffic lights macOS / Fluent controls Windows / neutro Linux
-- [ ] `TopBar.tsx`: integrar WindowControls + padding macOS 76px
-- [ ] `index.css`: vars --app-font e --app-radius por plataforma (Segoe UI Variable / SF Pro / Cantarell)
-- [ ] `window-vibrancy` crate: Mica Windows 11 + NSVisualEffectView macOS (Phase B)
-- [ ] `tauri.conf.json`: transparent + decorations para Phase B
+- [x] `usePlatform.ts`: adicionar modKey, modSymbol, shortcut()
+- [x] `WindowControls.tsx`: componente criado (guardado para uso futuro com decorations:false)
+- [x] `TopBar.tsx`: frame nativo mantido; WindowControls removidos (duplicavam botoes do OS)
+- [x] `index.css`: tokens --app-font, --app-radius, --app-shadow, --app-easing por plataforma
+- [x] `index.css`: scrollbars nativas por plataforma (macOS overlay, Windows auto, Linux thin)
+- [x] `window-vibrancy` crate v0.5.3: apply_mica (Windows) + apply_vibrancy (macOS)
+- [x] `tauri.conf.json`: transparent: true activado
+- [x] `index.css`: glassmorphism em sidebar, topbar, main area (dark + light mode)
+- [x] `PlatformDebugBadge`: badge dev-only mostrando plataforma, fonte nativa, estado Mica
 
 ### Fase 13 - CI/CD e Tooling
 

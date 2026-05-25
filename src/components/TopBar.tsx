@@ -98,7 +98,10 @@ export default function TopBar({ activeTab, onHelpOpen }: TopBarProps) {
   const diskPercent = disk.usedPercent ?? 0;
 
   return (
-    <div className="h-16 bg-bg-primary border-b border-border flex items-center justify-between px-6 shrink-0 z-40">
+    <div
+      data-topbar
+      className="h-16 bg-bg-primary border-b border-border flex items-center justify-between px-6 shrink-0 z-40"
+    >
       {/* Drag area + Título */}
       <div data-tauri-drag-region className="flex-1 flex items-center gap-3 min-w-0">
         <div className="flex flex-col">
