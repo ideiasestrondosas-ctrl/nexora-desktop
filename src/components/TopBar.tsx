@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 import { useGPU } from '@/hooks/useGPU';
 import { useDiskSpace } from '@/hooks/useDiskSpace';
-import { LogOut, Cpu, MemoryStick, HardDrive, Monitor, HelpCircle } from 'lucide-react';
+import { LogOut, Cpu, MemoryStick, HardDrive, Monitor, HelpCircle, Bug } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ScreenInfo {
@@ -80,9 +80,10 @@ function CircularGauge({
 interface TopBarProps {
   activeTab: string;
   onHelpOpen?: () => void;
+  onBugReport?: () => void;
 }
 
-export default function TopBar({ activeTab, onHelpOpen }: TopBarProps) {
+export default function TopBar({ activeTab, onHelpOpen, onBugReport }: TopBarProps) {
   const { t } = useTranslation();
   const metrics = useSystemMetrics();
   const { gpu } = useGPU();
@@ -139,6 +140,17 @@ export default function TopBar({ activeTab, onHelpOpen }: TopBarProps) {
           colorClass="text-yellow-500"
         />
       </div>
+
+      {/* Botão Report Bug */}
+      {onBugReport && (
+        <button
+          onClick={onBugReport}
+          className="p-2.5 rounded-lg text-text-muted hover:text-orange-400 hover:bg-orange-400/10 transition-colors mr-1"
+          title={t('topbar.bugReport')}
+        >
+          <Bug size={20} />
+        </button>
+      )}
 
       {/* Botão Ajuda */}
       {onHelpOpen && (
