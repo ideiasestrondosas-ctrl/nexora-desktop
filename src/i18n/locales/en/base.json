@@ -766,6 +766,13 @@
     "saved": "Saved to {{path}}",
     "titleRequired": "Title is required"
   },
+  "comparator": {
+    "tab": "Comparator",
+    "original": "Original",
+    "processed": "Processed",
+    "noOutput": "Processed file not available",
+    "dragHint": "Drag to compare"
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",

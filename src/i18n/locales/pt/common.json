@@ -807,6 +807,13 @@
     "delivery": "Delivery",
     "deliveryDesc": "Ficheiros movidos para pasta de saída"
   },
+  "comparator": {
+    "tab": "Comparador",
+    "original": "Original",
+    "processed": "Processado",
+    "noOutput": "Ficheiro processado não disponível",
+    "dragHint": "Arrasta para comparar"
+  },
   "common": {
     "save": "Guardar",
     "cancel": "Cancelar",
