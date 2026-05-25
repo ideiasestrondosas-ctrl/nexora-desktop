@@ -219,6 +219,34 @@ html[data-platform='macos'] .flex.h-screen {
   background: transparent;
 }
 
+/* ── Glassmorphism surface — modais, popups, dropdowns ──────────────────── */
+html.dark[data-platform='windows'] .glass-surface,
+html.dark[data-platform='macos'] .glass-surface {
+  background: rgba(14, 18, 28, 0.78);
+  backdrop-filter: blur(24px) saturate(1.4);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+html:not(.dark)[data-platform='windows'] .glass-surface,
+html:not(.dark)[data-platform='macos'] .glass-surface {
+  background: rgba(248, 250, 252, 0.84);
+  backdrop-filter: blur(24px) saturate(1.2);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Sonner toasts — inline styles exigem !important */
+html.dark[data-platform='windows'] [data-sonner-toast],
+html.dark[data-platform='macos'] [data-sonner-toast] {
+  background: rgba(14, 18, 28, 0.88) !important;
+  backdrop-filter: blur(20px) saturate(1.4) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html:not(.dark)[data-platform='windows'] [data-sonner-toast],
+html:not(.dark)[data-platform='macos'] [data-sonner-toast] {
+  background: rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(20px) saturate(1.2) !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

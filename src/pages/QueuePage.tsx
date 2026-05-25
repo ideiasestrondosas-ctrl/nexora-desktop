@@ -667,7 +667,7 @@ export default function QueuePage({
               }}
               data-reprocess-popover
             >
-              <div className="bg-bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden min-w-[200px]">
+              <div className="glass-surface border border-border rounded-xl shadow-2xl overflow-hidden min-w-[200px]">
                 <div className="px-3 py-1.5 border-b border-border">
                   <span className="text-[9px] font-black uppercase tracking-widest text-text-muted">
                     {t('queue.reprocessOptions', 'Opções de reprocessamento')}

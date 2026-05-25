@@ -190,7 +190,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md z-50 shadow-xl">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 glass-surface border border-border rounded-xl p-6 w-full max-w-md z-50 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="text-white font-semibold">
               {editing ? 'Editar Perfil' : 'Novo Perfil Cloud'}
