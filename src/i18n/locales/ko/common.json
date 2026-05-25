@@ -38,7 +38,10 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
-      "logs": "Logs"
+      "cloud": "클라우드",
+      "logs": "Logs",
+      "assetDetail": "에셋 상세",
+      "import": "가져오기"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -114,11 +117,75 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "클라우드 — 클라우드 프로파일, 자격 증명 관리 및 원격 파일 찾아보기(클라우드 탭 참조)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
-        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output.",
+        "logsTab": {
+          "title": "로그 탭 (v0.24.0)",
+          "desc": "파일 로그 상세도, 보존 정책, 업로드 엔드포인트를 구성합니다. 저장소 사용량을 보고 로그 파일을보내거나 삭제합니다.",
+          "verbosity": "상세도: 기본(오류만), 일반(INFO+), 디버그(모두 + UI 클릭)",
+          "retention": "보존: 최대 일수와 최대 크기(MB)를 설정합니다. 오래된 로그는 ZIP으로 압축됩니다.",
+          "upload": "문제 해결을 위해 로그를 개발자 엔드포인트에 업로드"
+        },
+        "cache": {
+          "title": "캐시 표시 (v0.24.0)",
+          "desc": "처리 중 생성된 임시 캐시 파일을 모니터링하고 관리합니다.",
+          "transcodeCache": "처리 캐시 — 트랜스코드 및 프록시 임시 파일",
+          "thumbCache": "썸네일 캐시 — 생성된 미리보기 썸네일",
+          "clear": "작업이 활성 상태인 경우 차단되어 안전하게 캐시를 삭제합니다"
+        },
+        "shortcuts": {
+          "title": "키보드 단축키",
+          "desc": "일반적인 키보드 단축키입니다. 수정 키는 플랫폼에 따라 다릅니다(macOS에서는 ⌘, Windows/Linux에서는 Ctrl).",
+          "exportLogs": "로그를 파일로보내기",
+          "closeWindow": "현재 창/대화 상자 닫기",
+          "navTabs": "포커스 시 주 탭 간 전환"
+        }
+      },
+      "cloud": {
+        "title": "클라우드 — 목적지 및 파일 브라우저",
+        "desc": "트랜스코딩 후 자동 파일 전달을 위한 클라우드 스토리지 목적지를 설정합니다. 지원 공급자: FTP, FTPS, SFTP, SMB, S3(및 호환: MinIO, Wasabi), Google Drive.",
+        "destinations": {
+          "title": "클라우드 목적지",
+          "desc": "설정 → 클라우드에서 클라우드 프로파일을 추가합니다. 각 프로파일은 공급자의 연결 정보를 저장합니다. 하나의 작업에 여러 클라우드 목적지를 설정할 수 있습니다 — 작업 완료 후 파일이 모든 목적지에 자동으로 업로드됩니다.",
+          "tip1": "iCloud는 지원되지 않습니다 — Apple은 타사 앱에 공개 파일 API를 제공하지 않습니다.",
+          "tip2": "자격 증명은 기기에 로컬로 저장됩니다. Nexora 서버로 전송되지 않습니다.",
+          "tip3": "Google Drive는 내부 폴더 ID가 아닌 base_path의 폴더 이름으로 해석합니다."
+        },
+        "browser": {
+          "title": "클라우드 파일 브라우저",
+          "desc": "설정 → 클라우드의 클라우드 프로파일에서 찾아보기 버튼(폴더 아이콘)을 클릭하여 파일 브라우저를 엽니다. 하위 디렉터리로 이동하고, 파일을 선택하고, 기본 파일 대화 상자를 통해 다운로드하거나 원격 스토리지에서 직접 삭제합니다.",
+          "tip1": "각 행의 확인란으로 여러 파일을 선택한 다음 선택 항목 삭제 또는 선택 항목 다운로드를 사용합니다.",
+          "tip2": "다운로드는 저장 위치를 선택하는 OS 기본 파일 선택기를 엽니다.",
+          "tip3": "삭제는 영구적입니다 — 원격 스토리지에는 휴지통이 없습니다."
+        },
+        "upload": {
+          "title": "자동 업로드",
+          "desc": "트랜스코딩 작업이 완료되면 Nexora가 해당 작업에 구성된 모든 클라우드 목적지로 출력 파일을 자동으로 업로드합니다. 업로드는 지수 백오프로 3번 재시도합니다. 실패한 업로드는 기록되지만 작업을 실패로 표시하지 않습니다.",
+          "tip1": "각 작업은 설정 → 클라우드에 설정된 기본 클라우드 목적지를 재정의할 수 있습니다.",
+          "tip2": "업로드 진행 상황은 UI에 표시되지 않습니다 — 업로드 상태는 로그 탭을 확인하세요.",
+          "tip3": "Google Drive는 파일을 업서트합니다: 목적지 폴더에 같은 이름의 파일이 이미 있으면 중복되지 않고 교체됩니다."
+        },
+        "gdriveOAuth": {
+          "title": "Google Drive — OAuth Device Flow",
+          "desc": "비밀번호를 저장하지 않고 Google Drive를 인증합니다. Nexora는 OAuth 2.0 Device Flow를 사용합니다.",
+          "step1": "인증 클릭 — Nexora가 Google에 장치 코드를 요청합니다",
+          "step2": "제공된 URL을 브라우저에서 열고 사용자 코드를 입력하세요",
+          "step3": "Nexora가 승인될 때까지 5초마다 Google을 폴링합니다. 토큰은 로컬에 저장됩니다."
+        },
+        "s3": {
+          "title": "S3 및 호환 제공자",
+          "desc": "AWS S3 또는 MinIO, Wasabi, Backblaze B2와 같은 S3 호환 서비스에 연결합니다.",
+          "providers": "지원: AWS S3, MinIO, Wasabi, Backblaze B2(경로 스타일 엔드포인트)"
+        },
+        "icloud": {
+          "title": "iCloud Drive",
+          "desc": "iCloud는 로컬 폴더 동기화를 통해 지원됩니다. Nexora는 로컬 디스크의 iCloud Drive 폴더를 읽고 씁니다.",
+          "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",
@@ -130,7 +197,45 @@
         "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
+      },
+      "assetDetail": {
+        "title": "에셋 상세 — 파일 작업 공간",
+        "desc": "에셋 상세는 단일 영상 파일의 주 작업 공간입니다. 원본과 처리된 미리보기를 전환하고, 인라인 재생하며, 기술 메타데이터를 보고 파일을 관리합니다.",
+        "hero": "원본/처리 전환, 재생 버튼, 작업 표시줄이 있는 히어로 영역",
+        "mediaInfo": "MediaInfo 탭: 일반, 비디오, 오디오, 자막, 태그, SHA-256",
+        "technicalAnalysis": "원본과 처리된 파일의 나란한 기술 비교",
+        "jobHistory": "이 에셋의 모든 처리 작업과 파이프라인 단계, 점수",
+        "tip1": "전환 버튼을 사용하여 소스와 출력 미리보기를 전환하세요.",
+        "tip2": "재생을 클릭하면 앱을 떠나지 않고 인라인으로 영상을 시청할 수 있습니다.",
+        "tip3": "기술 분석 탭은 코덱, 해상도, HDR 등을 비교합니다."
+      },
+      "import": {
+        "title": "가져오기 — 미디어 추가",
+        "desc": "드래그 앤 드롭, 파일 대화 상자, 또는 폴더 스캔을 통해 Nexora로 영상 파일을 가져옵니다. 지원 형식: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "dragDrop": "창 아무 곳에나 영상 파일을 드래그하세요",
+        "fileDialog": "또는 클릭하여 기본 파일 선택기 열기",
+        "folderScan": "폴더 추가로 디렉터리의 지원 영상을 모두 가져옵니다",
+        "batchTitle": "일괄 처리",
+        "batchDesc": "여러 파일을 한 번에 처리합니다. 전역 프로필을 선택하거나 파일별로 다른 프로필을 설정하세요. 선택적으로 클라우드 목적지를 추가할 수 있습니다.",
+        "cloudPicker": "처리 후 자동 업로드를 위한 클라우드 목적지 선택",
+        "tip1": "지원 형식: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "수집 모달에서는 분석 전용(메타데이터) 또는 가져오기 및 처리 중 선택할 수 있습니다.",
+        "tip3": "HEVC, ProRes, DNxHD, 또는 AV1 코덱을 사용하는 파일은 수동 승인을 위해 격리될 수 있습니다."
       }
+    },
+    "platform": {
+      "title": "플랫폼 적응형 UX (v0.25+)",
+      "desc": "Nexora는 운영 체제에 맞춰 외관을 조정하여 기본 느낌을 제공합니다.",
+      "windows": "Windows 11: Mica/Acrylic 배경, Segoe UI Variable 글꼴, Fluent 컨트롤",
+      "macos": "macOS: NSVisualEffectView 생동감, SF Pro 글꼴, 교통 신호등 창 컨트롤",
+      "linux": "Linux: 안정적인 GTK 장식, Cantarell 글꼴, 중립적인 창 컨트롤"
+    },
+    "security": {
+      "title": "보안 및 개인정보 보호",
+      "desc": "Nexora는 민감한 데이터를 안전하게 저장하고 모든 외부 입력을 검증합니다.",
+      "keychain": "클라우드 자격 증명은 OS 키체인에 저장됩니다(Windows Credential Manager, macOS Keychain, Linux Secret Service)",
+      "pathTraversal": "원격 경로는 디렉터리 탐색 공격을 방지하도록 검증됩니다",
+      "endpointValidation": "로그 업로드 엔드포인트는 http:// 또는 https:// 프로토콜을 사용해야 합니다"
     },
     "guideOpened": "Guia aberto no browser",
     "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
@@ -480,7 +585,9 @@
     "tryRemoveFilters": "Try removing filters",
     "expand": "... (click to expand)",
     "entriesVisible": "{{count}} entry/entries visible",
-    "autoRotate": "Auto-rotation: 2,000 entries max"
+    "autoRotate": "Auto-rotation: 2,000 entries max",
+    "copy": "복사",
+    "copied": "복사됨!"
   },
   "assetDetail": {
     "backToLibrary": "Back to Library",
@@ -700,7 +807,13 @@
     "status": "상태",
     "successToast": "{{count}}개 파일이 제출되었습니다",
     "outputDirTitle": "처리된 파일의 대상 폴더",
-    "outputDirDefault": "임시 폴더"
+    "outputDirDefault": "임시 폴더",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "원본",
@@ -789,5 +902,25 @@
     "yes": "Sim",
     "no": "Não",
     "cancel": "Cancelar"
+  },
+  "cloudBrowser": {
+    "title": "Ficheiros em {{profile}}",
+    "selectAll": "Sel. Todos",
+    "selected": "{{count}} sel.",
+    "download": "Download",
+    "deleteSelected": "Apagar Seleccionados",
+    "deleteAll": "Apagar Tudo",
+    "confirmDeleteSelected": "Apagar {{count}} ficheiros de {{profile}}? Esta acção não pode ser desfeita.",
+    "confirmDeleteAll": "Apagar TODOS os ficheiros em {{path}} de {{profile}}? Esta acção não pode ser desfeita.",
+    "refresh": "Actualizar",
+    "empty": "Pasta vazia",
+    "connectionError": "Não foi possível ligar ao servidor.",
+    "retry": "Tentar novamente",
+    "downloadSuccess": "Ficheiro descarregado: {{name}}",
+    "deletePartialError": "{{count}} ficheiros não foram apagados: {{names}}",
+    "size": "Tamanho",
+    "modified": "Modificado",
+    "notSupported": "Navegação não suportada para iCloud",
+    "browseTooltipDisabled": "Navegação não suportada para iCloud"
   }
 }

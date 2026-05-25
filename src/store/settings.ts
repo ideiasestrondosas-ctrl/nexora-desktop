@@ -14,6 +14,14 @@ interface SettingsState {
   defaultProfile: string;
   autoAnalyze: boolean;
   showProfileModal: boolean;
+  logVerbosity: 'basic' | 'normal' | 'debug';
+  logRetentionDays: number;
+  logMaxSizeMb: number;
+  logUploadEndpoint: string;
+  setLogVerbosity: (v: 'basic' | 'normal' | 'debug') => void;
+  setLogRetentionDays: (days: number) => void;
+  setLogMaxSizeMb: (mb: number) => void;
+  setLogUploadEndpoint: (url: string) => void;
   setOutputDir: (dir: string) => void;
   setMaxConcurrentJobs: (count: number) => void;
   setGpuAcceleration: (enabled: boolean) => void;
@@ -66,6 +74,14 @@ export const useSettingsStore = create<SettingsState>()(
       setDefaultProfile: (profile) => set({ defaultProfile: profile }),
       setAutoAnalyze: (enabled) => set({ autoAnalyze: enabled }),
       setShowProfileModal: (show) => set({ showProfileModal: show }),
+      logVerbosity: 'normal',
+      logRetentionDays: 30,
+      logMaxSizeMb: 200,
+      logUploadEndpoint: '',
+      setLogVerbosity: (v) => set({ logVerbosity: v }),
+      setLogRetentionDays: (days) => set({ logRetentionDays: days }),
+      setLogMaxSizeMb: (mb) => set({ logMaxSizeMb: mb }),
+      setLogUploadEndpoint: (url) => set({ logUploadEndpoint: url }),
     }),
     {
       name: 'nexora-settings',

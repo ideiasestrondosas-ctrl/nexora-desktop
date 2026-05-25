@@ -1,5 +1,7 @@
+mod cloud;
 mod commands;
 mod db;
+mod file_logger;
 mod logger;
 mod queue;
 mod sidecar;
@@ -8,6 +10,11 @@ mod tray;
 
 use state::AppState;
 use tauri::{Emitter, Manager};
+
+#[cfg(target_os = "windows")]
+use window_vibrancy::apply_mica;
+#[cfg(target_os = "macos")]
+use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -30,9 +37,23 @@ pub fn run() {
 
             // Logger personalizado: escreve na DB + emite eventos Tauri
             logger::init(app.handle().clone(), &db_path);
+            file_logger::init(app.handle());
             log::info!("Nexora Desktop v{} a arrancar", env!("CARGO_PKG_VERSION"));
 
             tray::setup(app)?;
+
+            // Efeitos de janela nativos — silencia erro se não suportado (Windows 10, VMs, etc.)
+            let main_window = app.get_webview_window("main").unwrap();
+            #[cfg(target_os = "windows")]
+            apply_mica(&main_window, Some(true)).ok();
+            #[cfg(target_os = "macos")]
+            apply_vibrancy(&main_window, NSVisualEffectMaterial::HudWindow, None, None).ok();
+
+            // Menu nativo da barra de menus — apenas macOS.
+            // Garante que Cmd+C/V/X/Z/A funcionam em campos de texto
+            // e que o menu "Nexora" aparece conforme a HIG da Apple.
+            #[cfg(target_os = "macos")]
+            setup_macos_menu(app)?;
 
             // Verificações de pré-requisitos no arranque
             startup_checks(app.handle());
@@ -129,6 +150,7 @@ pub fn run() {
             commands::system::clear_thumbs_cache,
             commands::system::open_path,
             commands::system::set_queue_concurrency,
+            commands::system::get_platform,
             commands::profiles::list_profiles,
             commands::profiles::create_profile,
             commands::profiles::update_profile,
@@ -139,11 +161,90 @@ pub fn run() {
             commands::logs::get_log_stats,
             commands::logs::write_log,
             commands::logs::export_logs,
+            commands::logs::get_log_storage_info,
+            commands::logs::export_logs_bundle,
+            commands::logs::clear_log_files,
+            commands::logs::upload_logs_to_server,
+            commands::logs::log_user_action,
+            commands::cloud::get_cloud_profiles,
+            commands::cloud::create_cloud_profile,
+            commands::cloud::update_cloud_profile,
+            commands::cloud::delete_cloud_profile,
+            commands::cloud::test_cloud_connection,
+            commands::cloud::get_job_cloud_destinations,
+            commands::cloud::process_cloud_destinations,
+            commands::cloud::retry_cloud_upload,
+            commands::cloud::add_cloud_asset,
+            commands::cloud::gdrive_start_auth,
+            commands::cloud::gdrive_poll_auth,
+            commands::cloud::cloud_list_files,
+            commands::cloud::cloud_delete_files,
+            commands::cloud::cloud_download_file,
             commands::metrics::get_system_metrics,
             get_startup_status,
         ])
         .run(tauri::generate_context!())
         .expect("Erro ao iniciar a aplicação Nexora");
+}
+
+/// Configura o menu nativo da barra de menus para macOS.
+/// Inclui o menu "Nexora" (conforme HIG Apple) e o menu "Editar" com
+/// atalhos padrão de edição de texto (Cmd+C/V/X/Z/A).
+#[cfg(target_os = "macos")]
+fn setup_macos_menu(app: &tauri::App) -> tauri::Result<()> {
+    use tauri::menu::{Menu, PredefinedMenuItem, Submenu};
+
+    let menu = Menu::new(app)?;
+
+    // Menu "Nexora" — conforme Apple Human Interface Guidelines
+    let app_menu = Submenu::with_items(
+        app,
+        "Nexora",
+        true,
+        &[
+            &PredefinedMenuItem::about(app, Some("Sobre o Nexora"), None)?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::hide(app, Some("Ocultar Nexora"))?,
+            &PredefinedMenuItem::hide_others(app, Some("Ocultar Outros"))?,
+            &PredefinedMenuItem::show_all(app, Some("Mostrar Tudo"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::quit(app, Some("Sair do Nexora"))?,
+        ],
+    )?;
+
+    // Menu "Editar" — necessário para Cmd+C/V/X/Z/A em campos de texto
+    let edit_menu = Submenu::with_items(
+        app,
+        "Editar",
+        true,
+        &[
+            &PredefinedMenuItem::undo(app, Some("Desfazer"))?,
+            &PredefinedMenuItem::redo(app, Some("Refazer"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::cut(app, Some("Cortar"))?,
+            &PredefinedMenuItem::copy(app, Some("Copiar"))?,
+            &PredefinedMenuItem::paste(app, Some("Colar"))?,
+            &PredefinedMenuItem::select_all(app, Some("Seleccionar Tudo"))?,
+        ],
+    )?;
+
+    // Menu "Janela" — padrão Apple
+    let window_menu = Submenu::with_items(
+        app,
+        "Janela",
+        true,
+        &[
+            &PredefinedMenuItem::minimize(app, Some("Minimizar"))?,
+            &PredefinedMenuItem::maximize(app, Some("Maximizar"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::bring_all_to_front(app, Some("Trazer Tudo para a Frente"))?,
+        ],
+    )?;
+
+    menu.append_items(&[&app_menu, &edit_menu, &window_menu])?;
+    app.set_menu(menu)?;
+
+    Ok(())
 }
 
 /// Verifica os pré-requisitos do sistema no arranque e loga o resultado.

@@ -77,3 +77,6 @@ graphify-out/
 
 # Superpowers cache
 .superpowers/
+
+# Session info (gerado por agentes em cada sessao, nao commitar)
+.session-info.md

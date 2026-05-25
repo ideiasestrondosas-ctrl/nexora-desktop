@@ -1,6 +1,6 @@
 [package]
 name = "nexora-desktop"
-version = "0.24.0"
+version = "0.27.0"
 description = "Nexora Media Processing - Desktop Native"
 authors = ["Nexora"]
 edition = "2021"
@@ -29,10 +29,20 @@ log = "0.4"
 chrono = { version = "0.4", features = ["serde"] }
 num_cpus = "1"
 sysinfo = { version = "0.32", default-features = false, features = ["system", "network"] }
-tokio = { version = "1", features = ["time", "sync"] }
+tokio = { version = "1", features = ["time", "sync", "rt", "io-util", "net", "macros"] }
 walkdir = "2"
+zip = "2"
+reqwest = { version = "0.12", features = ["multipart", "json"] }
+suppaftp = { version = "6", features = ["async", "native-tls"] }
+futures-lite = "2"
+russh = "0.45"
+russh-sftp = "2"
+async-trait = "0.1"
+rust-s3 = { version = "0.37", default-features = false, features = ["tokio-rustls-tls"] }
 tauri-plugin-clipboard-manager = "2.3.2"
 tauri-plugin-process = "2"
+keyring = "3"
+window-vibrancy = "0.5"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 libc = "0.2"

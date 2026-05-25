@@ -16,13 +16,14 @@ import {
 } from 'lucide-react';
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
-import LibraryPage from '@/pages/LibraryPage';
-import QueuePage from '@/pages/QueuePage';
+const LibraryPage = lazy(() => import('@/pages/LibraryPage'));
+const QueuePage = lazy(() => import('@/pages/QueuePage'));
 const ProfilesPage = lazy(() => import('@/pages/ProfilesPage'));
-import SettingsPage from '@/pages/SettingsPage';
+const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 const LogsPage = lazy(() => import('@/pages/LogsPage'));
-import AssetDetailPage from '@/pages/AssetDetailPage';
+const AssetDetailPage = lazy(() => import('@/pages/AssetDetailPage'));
 import TopBar from '@/components/TopBar';
+import PlatformDebugBadge from '@/components/PlatformDebugBadge';
 import { HelpOverlay } from '@/components/HelpModal';
 import { IngestProfileModal } from '@/components/IngestProfileModal';
 import { BatchSubmitModal } from '@/components/BatchSubmitModal';
@@ -30,7 +31,10 @@ import { hasSupportedExtension } from '@/components/DropZone';
 import { resolveVideoPaths } from '@/lib/scan';
 
 import { useSettingsStore } from '@/store/settings';
+import { useJobsStore } from '@/store/jobs';
+import { useCloudStore, type CloudProfile } from '@/store/cloud';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
+import { useActionLog } from '@/hooks/useActionLog';
 import { cn } from '@/lib/utils';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -54,12 +58,45 @@ function App() {
 
   const theme = useSettingsStore((state) => state.theme);
   const defaultProfile = useSettingsStore((state) => state.defaultProfile ?? 'web-hd');
+  const { logAction } = useActionLog();
+  const setCloudProfiles = useCloudStore((s) => s.setProfiles);
+
+  // Carrega perfis cloud do backend uma vez no arranque da app
+  useEffect(() => {
+    invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
+  }, [setCloudProfiles]);
 
   // Refs para aceder ao tab activo e à função t sem re-registar listeners
   const activeTabRef = useRef<Tab>(activeTab);
   useEffect(() => {
     activeTabRef.current = activeTab;
   }, [activeTab]);
+
+  // Listener global de cliques para nível Debug — regista elementos com data-log-id
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const logId = target.closest('[data-log-id]')?.getAttribute('data-log-id');
+      if (!logId) return;
+      logAction(`button:${logId}`);
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [logAction]);
+
+  // Auto-trigger cloud upload quando um job transita para 'done'
+  // Usa subscribe() em vez de useEffect para disparar independentemente de re-renders
+  useEffect(() => {
+    const unsubscribe = useJobsStore.subscribe((state, prevState) => {
+      state.jobs.forEach((job) => {
+        if (job.status !== 'done') return;
+        const prev = prevState.jobs.find((j) => j.id === job.id);
+        if (!prev || prev.status === 'done') return;
+        invoke('process_cloud_destinations', { jobId: job.id }).catch(console.error);
+      });
+    });
+    return unsubscribe;
+  }, []);
 
   // ── Drag-drop global centralizado ──────────────────────────────────────────
   // Um único listener tauri://drag-drop — intercepta drops em QUALQUER página
@@ -118,14 +155,19 @@ function App() {
   // ── Theme ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const apply = (prefersDark: boolean) => {
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme);
+    };
+
+    apply(mq.matches);
+
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
+      const handler = (e: MediaQueryListEvent) => apply(e.matches);
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
     }
   }, [theme]);
 
@@ -216,6 +258,10 @@ function App() {
         paths={batchPaths}
         defaultProfileId={defaultProfile}
         onClose={() => setBatchOpen(false)}
+        onOpenCloudSettings={() => {
+          setBatchOpen(false);
+          setActiveTab('settings');
+        }}
         onComplete={(count) => {
           setBatchOpen(false);
           setActiveTab('library');
@@ -356,6 +402,8 @@ function App() {
           </ErrorBoundary>
         </div>
       </main>
+
+      <PlatformDebugBadge />
     </div>
   );
 }

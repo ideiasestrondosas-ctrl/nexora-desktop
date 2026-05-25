@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS assets (
     thumbnail_path          TEXT,
     thumbnail_output_path   TEXT,
     output_metadata         TEXT,
-    output_path             TEXT
+    output_path             TEXT,
+    cloud_source_profile    TEXT,
+    cloud_source_path       TEXT
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
@@ -82,3 +84,22 @@ CREATE INDEX IF NOT EXISTS idx_jobs_status   ON jobs(status);
 CREATE INDEX IF NOT EXISTS idx_audit_job_id  ON audit_log(job_id);
 CREATE INDEX IF NOT EXISTS idx_logs_ts       ON logs(ts DESC);
 CREATE INDEX IF NOT EXISTS idx_logs_level    ON logs(level);
+
+CREATE TABLE IF NOT EXISTS cloud_profiles (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    provider    TEXT NOT NULL
+                    CHECK(provider IN ('ftp','sftp','smb','s3','gdrive','icloud')),
+    config      TEXT NOT NULL,
+    created_at  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS job_cloud_destinations (
+    job_id      TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    profile_id  TEXT NOT NULL REFERENCES cloud_profiles(id) ON DELETE CASCADE,
+    status      TEXT NOT NULL DEFAULT 'pending'
+                    CHECK(status IN ('pending','uploading','uploaded','failed')),
+    error_msg   TEXT,
+    uploaded_at TEXT,
+    PRIMARY KEY (job_id, profile_id)
+);

@@ -11,8 +11,13 @@ pub fn setup<R: Runtime>(app: &tauri::App<R>) -> tauri::Result<()> {
 
     let menu = Menu::with_items(app, &[&show_i, &sep, &quit_i])?;
 
+    let Some(icon) = app.default_window_icon() else {
+        eprintln!("[tray] Sem ícone de janela — tray icon não será criado");
+        return Ok(());
+    };
+
     TrayIconBuilder::new()
-        .icon(app.default_window_icon().unwrap().clone())
+        .icon(icon.clone())
         .menu(&menu)
         .tooltip("Nexora Desktop")
         .on_menu_event(|app, event| match event.id.as_ref() {

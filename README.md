@@ -52,27 +52,34 @@ Whether you are preparing content for broadcast, web streaming, or social media,
 
 ### Supported Languages
 
-Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, Italian, Japanese, Korean, Dutch, Polish, Russian, Swedish, Turkish, Arabic, and Chinese.
+Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, Italian, Dutch, Polish, Russian, Chinese (Simplified), Chinese (Traditional), Japanese, Korean, Arabic, and Hindi.
 
 ---
 
 ## Features
 
-| Feature                         | Description                                                                           |
-| ------------------------------- | ------------------------------------------------------------------------------------- |
-| **GPU-Accelerated Transcoding** | Auto-detects NVIDIA NVENC, AMD AMF, Intel QSV, or falls back to CPU (libx264)         |
-| **8-Stage Pipeline**            | Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post → Delivery          |
-| **VMAF Quality Scoring**        | Perceptual quality measurement comparing source vs. output                            |
-| **EBU R128 Loudness**           | Broadcast-standard audio normalization with true peak limiting                        |
-| **QC Quarantine**               | Automatic quarantine of files failing pre-QC checks; manual approve/reject workflow   |
-| **6 System Profiles**           | Broadcast HD/SD, Web 4K/HD, Proxy, Social — plus custom profile editor                |
-| **Real-Time Monitoring**        | Live job queue with visual pipeline, progress bars, system metrics (CPU/RAM/GPU/Disk) |
-| **Drag & Drop Ingest**          | Native file drop from anywhere on the OS; supports MP4, MKV, MOV, MXF, AVI, WebM      |
-| **Multi-Language UI**           | Full i18n with 15 languages; theme switching (System / Light / Dark)                  |
-| **Auto-Updater**                | Built-in Tauri updater checks GitHub releases automatically                           |
-| **Native Notifications**        | System-level notifications for job completion, errors, and quarantine alerts          |
-| **Comprehensive Logging**       | Structured logs with filtering by level, source, and time range; exportable           |
-| **Factory Reset**               | One-click reset to defaults, preserving or wiping all data                            |
+| Feature                         | Description                                                                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **GPU-Accelerated Transcoding** | Auto-detects NVIDIA NVENC, AMD AMF, Intel QSV, or falls back to CPU (libx264)                                                                     |
+| **8-Stage Pipeline**            | Ingest → QC-Pre → Transcode → Audio → Proxy → Thumbnail → QC-Post → Delivery                                                                      |
+| **VMAF Quality Scoring**        | Perceptual quality measurement comparing source vs. output                                                                                        |
+| **EBU R128 Loudness**           | Broadcast-standard audio normalization with true peak limiting                                                                                    |
+| **QC Quarantine**               | Automatic quarantine of files failing pre-QC checks; manual approve/reject workflow                                                               |
+| **6 System Profiles**           | Broadcast HD/SD, Web 4K/HD, Proxy, Social — plus custom profile editor                                                                            |
+| **Real-Time Monitoring**        | Live job queue with visual pipeline, progress bars, system metrics (CPU/RAM/GPU/Disk)                                                             |
+| **Drag & Drop Ingest**          | Native file drop from anywhere on the OS; supports MP4, MKV, MOV, MXF, AVI, WebM                                                                  |
+| **Multi-Language UI**           | Full i18n with 15 languages; theme switching (System / Light / Dark)                                                                              |
+| **Auto-Updater**                | Built-in Tauri updater checks GitHub releases automatically                                                                                       |
+| **Native Notifications**        | System-level notifications for job completion, errors, and quarantine alerts                                                                      |
+| **Comprehensive Logging**       | Structured logs with filtering by level, source, and time range; exportable                                                                       |
+| **Log Management**              | File logging with configurable verbosity (Basic/Normal/Debug), retention policies, and developer upload endpoints                                 |
+| **Cache Management**            | Monitor and clear transcode/thumbnail cache directly from Settings → System                                                                       |
+| **Factory Reset**               | One-click reset to defaults, preserving or wiping all data                                                                                        |
+| **Cloud Destinations**          | Automatic file delivery to FTP, FTPS, SFTP, SMB, S3 (MinIO, Wasabi), and Google Drive after each job                                              |
+| **Cloud File Browser**          | Browse, download, and delete files on remote storage directly from the Settings panel                                                             |
+| **Secure Credentials**          | Cloud provider credentials stored in OS keychain (Windows Credential Manager / macOS Keychain / Linux Secret Service) — never in plaintext SQLite |
+| **Platform-Adaptive UX**        | Native look-and-feel per OS: Mica/Acrylic on Windows 11, Vibrancy on macOS, GTK on Linux with adaptive fonts and window controls                  |
+| **In-App Help Manual**          | Contextual help panel with 10 tabs, screenshots, and tips in all 15 supported languages                                                           |
 
 ---
 
@@ -80,22 +87,35 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 
 > Replace the placeholders below with actual screenshots from your installation.
 
-| Dashboard                                    | Library                                             | Queue                                             |
-| -------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Library](docs/screenshots/library.png)            | ![Queue](docs/screenshots/queue.png)              |
-| System overview with stats and recent jobs   | Asset management with grid/list views and drag-drop | Real-time job monitoring with pipeline visualizer |
+| Dashboard                                    | Library                                             | Asset Detail                                       |
+| -------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Library](docs/screenshots/library.png)            | ![Asset Detail](docs/screenshots/asset-detail.png) |
+| System overview with stats and recent jobs   | Asset management with grid/list views and drag-drop | Deep-dive into asset metadata and QC reports       |
 
-| Profiles                                   | Settings                                   | Asset Detail                                       |
-| ------------------------------------------ | ------------------------------------------ | -------------------------------------------------- |
-| ![Profiles](docs/screenshots/profiles.png) | ![Settings](docs/screenshots/settings.png) | ![Asset Detail](docs/screenshots/asset-detail.png) |
-| Transcode profile editor with presets      | System configuration and diagnostics       | Deep-dive into asset metadata and QC reports       |
+| Queue                                             | Profiles                                   | Settings                                   |
+| ------------------------------------------------- | ------------------------------------------ | ------------------------------------------ |
+| ![Queue](docs/screenshots/queue.png)              | ![Profiles](docs/screenshots/profiles.png) | ![Settings](docs/screenshots/settings.png) |
+| Real-time job monitoring with pipeline visualizer | Transcode profile editor with presets      | System configuration and diagnostics       |
 
-### What's New in v0.23.0
+| Cloud Settings                                             | Cloud File Browser                                        | Logs & Cache                                    |
+| ---------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------- |
+| ![Cloud Settings](docs/screenshots/settings-cloud-tab.png) | ![Cloud Browser](docs/screenshots/cloud-file-browser.png) | ![Logs](docs/screenshots/settings-logs-tab.png) |
+| Manage cloud profiles and destinations                     | Browse, download, and delete remote files                 | Log verbosity, retention, and cache management  |
 
-| Pipeline Summary Expandido                                  | Reprocess Popup                                    | Delete Confirm                                 | Factory Reset Confirm                                |
-| ----------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------- |
-| ![Pipeline](docs/screenshots/pipeline-summary-expanded.png) | ![Reprocess](docs/screenshots/reprocess-popup.png) | ![Delete](docs/screenshots/delete-confirm.png) | ![Reset](docs/screenshots/factory-reset-confirm.png) |
-| Clickable count badges with inline file list                | Portal-rendered foreground popup                   | Two-step delete with file auth                 | Factory reset with file deletion option              |
+### What's New in v0.26.0
+
+- **In-App Help Manual** — Contextual help panel expanded to 10 tabs (Asset Detail, Import, Dashboard, Library, Queue, Profiles, Settings, Cloud, Logs) with screenshots and platform-specific tips in all 15 languages
+- **Platform-Adaptive UX** — Native per-OS styling: Mica/Acrylic backdrop on Windows 11, NSVisualEffectView vibrancy on macOS, GTK decorations on Linux; adaptive fonts (Segoe UI Variable / SF Pro / Cantarell) and window controls
+- **Secure Cloud Credentials** — All cloud provider credentials now stored in the OS keychain instead of SQLite plaintext
+- **Cloud File Browser** — Browse, download, and delete remote files on FTP, SFTP, SMB, S3, and Google Drive directly from Settings → Cloud
+- **Log Management Tab** — Configure file logging verbosity (Basic/Normal/Debug), retention (days + MB limits with ZIP compression), and upload logs to developer endpoints
+- **Cache Display** — Monitor and safely clear transcode/proxy and thumbnail caches from Settings → System (blocked if jobs are active)
+- **Path Traversal Protection** — SMB remote paths validated to prevent directory traversal attacks
+- **S3-Compatible Providers** — Full support for MinIO, Wasabi, and Backblaze B2 via path-style endpoints
+- **Google Drive OAuth Device Flow** — Authenticate without storing passwords; 3-step device flow with local token storage
+- **iCloud Drive** — Supported via local folder sync on Windows and macOS
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 ---
 
@@ -207,6 +227,12 @@ Get the latest release from the [Releases](https://github.com/ideiasestrondosas-
 - Review the **QC Report** with VMAF score, LUFS reading, and verification checks.
 - Quarantined jobs appear in the **Pending Approvals** section of the Queue.
 
+### 6. Configure Cloud Delivery (Optional)
+
+- Go to **Settings → Cloud** and add a cloud profile (FTP, SFTP, SMB, S3, or Google Drive).
+- On your next job, the output file will be uploaded automatically after transcoding completes.
+- Click **Browse** on any profile to manage files directly on the remote storage.
+
 ---
 
 ## Transcoding Profiles
@@ -221,6 +247,30 @@ Get the latest release from the [Releases](https://github.com/ideiasestrondosas-
 | **Social**       | 1080×1080  | H.264 Main     | 4 Mbps   | -14         | 80             | Social media           |
 
 > All profiles use broadcast-standard parameters: closed GOP, no B-frames, YUV 4:2:0, and faststart for web compatibility. See [docs/USER_MANUAL.md](docs/USER_MANUAL.md) for full technical details.
+
+---
+
+## Cloud Destinations
+
+Nexora can automatically upload processed files to remote storage after each job completes. Configure cloud profiles in **Settings → Cloud**.
+
+| Provider         | Protocol    | Browse | Upload | Download | Delete | Notes                                   |
+| ---------------- | ----------- | :----: | :----: | :------: | :----: | --------------------------------------- |
+| **FTP**          | FTP / FTPS  |   ✅   |   ✅   |    ✅    |   ✅   | Plain FTP or explicit TLS               |
+| **SFTP**         | SSH         |   ✅   |   ✅   |    ✅    |   ✅   | Password or key-based auth              |
+| **SMB**          | CIFS / SMB2 |   ✅   |   ✅   |    ✅    |   ✅   | Windows shares and NAS devices          |
+| **S3**           | HTTPS       |   ✅   |   ✅   |    ✅    |   ✅   | AWS S3, MinIO, Wasabi, and compatible   |
+| **Google Drive** | HTTPS       |   ✅   |   ✅   |    ✅    |   ✅   | OAuth device flow; upserts on re-upload |
+| **iCloud**       | —           |   ❌   |   ❌   |    ❌    |   ❌   | Not supported (Apple API restriction)   |
+
+### How it works
+
+1. Go to **Settings → Cloud** and add a cloud profile with your credentials.
+2. When submitting a job, the default cloud destination is used automatically. Override it per-job in the batch submit modal.
+3. After the job completes, Nexora uploads the output file to all configured destinations (3 retries with exponential backoff).
+4. Use the **Browse** button on any profile to open the Cloud File Browser — navigate folders, download files, or delete remote files.
+
+> **Note:** Google Drive uploads perform an upsert — if a file with the same name already exists in the destination folder, it is replaced rather than duplicated.
 
 ---
 
@@ -259,9 +309,15 @@ Get the latest release from the [Releases](https://github.com/ideiasestrondosas-
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org) 20+
-- [Rust](https://rustup.rs) (stable)
-- [Git](https://git-scm.com)
+| Tool                                                | Version           | Notes                                                                                      |
+| --------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------ |
+| [Node.js](https://nodejs.org)                       | 20+ (tested: v24) | Includes npm                                                                               |
+| [Rust](https://rustup.rs)                           | stable            | Install via `rustup`                                                                       |
+| [Tauri CLI](https://tauri.app)                      | 2.x               | `cargo install tauri-cli`                                                                  |
+| [Git](https://git-scm.com)                          | Any recent        | —                                                                                          |
+| **Windows only:** VS Build Tools 2022               | —                 | C++ Desktop workload required for Rust compilation                                         |
+| **macOS only:** Xcode CLI Tools                     | —                 | `xcode-select --install`                                                                   |
+| **Linux only:** `libwebkit2gtk-4.1`, `libgtk-3-dev` | —                 | `sudo apt install ...` — see [Tauri prerequisites](https://tauri.app/start/prerequisites/) |
 
 ### Setup
 
@@ -296,14 +352,31 @@ cd src-tauri && cargo check
 
 ## Development Environment
 
-| Component    | Details                                                    |
-| ------------ | ---------------------------------------------------------- |
-| OS           | Windows 11 Pro (Build 26200)                               |
-| IDE          | Claude Code (Anthropic) + Google Antigravity (when needed) |
-| Shell        | PowerShell 7 + Bash (via Git)                              |
-| Frontend     | React 19 + TypeScript + Vite                               |
-| Backend      | Rust stable (Tauri 2.x)                                    |
-| Media engine | Node.js 20 sidecar + FFmpeg                                |
+### Host Machine
+
+| Component | Details                                               |
+| --------- | ----------------------------------------------------- |
+| **OS**    | Windows 11 Pro (Build 26200)                          |
+| **CPU**   | Intel Core i7-1355U (13th Gen, 10-core, 2.5 GHz base) |
+| **RAM**   | 15.6 GB                                               |
+| **Shell** | PowerShell 7.6.2 + Bash (via Git for Windows)         |
+
+### Runtime Versions (development machine)
+
+| Tool    | Version       | Notes                 |
+| ------- | ------------- | --------------------- |
+| Node.js | v24.15.0      | Minimum required: v20 |
+| Rust    | 1.95.0 stable | Via rustup            |
+| Cargo   | 1.95.0        | Bundled with Rust     |
+
+### AI Development Assistants
+
+| Tool                            | Role                                                            |
+| ------------------------------- | --------------------------------------------------------------- |
+| **Claude Code** (Anthropic)     | Primary — architecture, full-stack implementation, review, docs |
+| **Google Antigravity** (Gemini) | Rust backend and release management                             |
+| **OpenCode** with Kimi K2 2.6   | Supplementary — code generation and refactoring                 |
+| **Codex** (OpenAI)              | Supplementary — targeted completions and short-scope tasks      |
 
 ### Project Structure
 
@@ -352,12 +425,16 @@ See [docs/LICENSE.md](docs/LICENSE.md) for the full license text.
 
 ## AI Tools & Development Assistance
 
-This project was developed with the assistance of AI coding tools:
+This project is developed with the assistance of AI coding tools used for pair-programming, not autonomous generation without human review.
 
-- **[Claude Code](https://claude.ai/code)** (Anthropic) — primary development assistant: architecture, implementation, code review, and documentation
-- **[Google Antigravity](https://antigravity.dev)** — supplementary AI assistance when needed
+| Tool                                                               | Description                                                                                |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| **[Claude Code](https://claude.ai/code)** (Anthropic)              | Primary assistant: architecture, full-stack implementation, code review, and documentation |
+| **[Google Antigravity](https://antigravity.dev)** (Gemini)         | Rust backend development and release management                                            |
+| **[OpenCode](https://opencode.ai)** with **Kimi K2 2.6**           | Supplementary: code generation and targeted refactoring tasks                              |
+| **[Codex](https://platform.openai.com/docs/guides/code)** (OpenAI) | Supplementary: code completions and short-scope implementation                             |
 
-These tools were used for pair-programming, not for autonomous code generation without review.
+Agent instructions, Karpathy Guidelines, and collaboration rules are documented in [`AGENTS.md`](AGENTS.md).
 
 ---
 

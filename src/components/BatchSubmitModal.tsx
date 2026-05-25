@@ -14,10 +14,12 @@ import {
   Play,
   AlertTriangle,
   FolderOpen,
+  Cloud,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { estimateProcessingTime } from '@/lib/estimate';
+import { useCloudStore } from '@/store/cloud';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -50,6 +52,7 @@ export interface BatchSubmitModalProps {
   defaultProfileId?: string;
   onClose: () => void;
   onComplete: (count: number) => void;
+  onOpenCloudSettings?: () => void;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -128,7 +131,7 @@ function ProfileDropdown({
               onClick={() => setOpen(false)}
             />
             <div
-              className="bg-bg-secondary border border-border rounded-xl shadow-2xl max-h-56 overflow-y-auto"
+              className="glass-surface border border-border rounded-xl shadow-2xl max-h-56 overflow-y-auto"
               style={{ ...menuStyle, pointerEvents: 'auto' }}
             >
               {profiles.map((p) => (
@@ -164,6 +167,7 @@ export function BatchSubmitModal({
   defaultProfileId = 'web-hd',
   onClose,
   onComplete,
+  onOpenCloudSettings,
 }: BatchSubmitModalProps) {
   const { t } = useTranslation();
   const [profiles, setProfiles] = useState<TranscodeProfile[]>([]);
@@ -171,6 +175,10 @@ export function BatchSubmitModal({
   const [rows, setRows] = useState<FileRow[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [outputDir, setOutputDir] = useState<string>('');
+  const cloudProfiles = useCloudStore((s) => s.profiles);
+  const [globalCloudIds, setGlobalCloudIds] = useState<string[]>([]);
+  const [perFileOverrides, setPerFileOverrides] = useState<Record<string, string[]>>({});
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
   // Valores anteriores para detectar mudanças durante o render (evita setState em useEffect)
   const [prevOpen, setPrevOpen] = useState(false);
   const [prevPaths, setPrevPaths] = useState<string[]>([]);
@@ -186,6 +194,9 @@ export function BatchSubmitModal({
           status: 'idle',
         })),
       );
+      setGlobalCloudIds([]);
+      setPerFileOverrides({});
+      setExpandedRow(null);
     }
   }
 
@@ -246,8 +257,14 @@ export function BatchSubmitModal({
       setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'processing' } : r)));
 
       try {
+        const cloudIds = perFileOverrides[row.path] ?? globalCloudIds;
         const asset = await invoke<{ id: string }>('ingest_asset', { path: row.path });
-        await invoke('submit_job', { assetId: asset.id, profile: row.profileId, priority: 0 });
+        await invoke('submit_job', {
+          assetId: asset.id,
+          profile: row.profileId,
+          priority: 0,
+          cloudProfileIds: cloudIds,
+        });
         setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'done' } : r)));
         successCount++;
       } catch (err: unknown) {
@@ -264,7 +281,7 @@ export function BatchSubmitModal({
       toast.success(t('batch.successToast', { count: successCount }));
       onComplete(successCount);
     }
-  }, [rows, submitting, t, onComplete]);
+  }, [rows, submitting, t, onComplete, globalCloudIds, perFileOverrides]);
 
   const pendingCount = rows.filter((r) => r.status === 'idle').length;
   const doneCount = rows.filter((r) => r.status === 'done').length;
@@ -277,7 +294,7 @@ export function BatchSubmitModal({
         <Dialog.Content
           className={cn(
             'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
-            'w-full max-w-2xl bg-bg-secondary border border-border rounded-2xl shadow-2xl',
+            'w-full max-w-2xl glass-surface border border-border rounded-2xl shadow-2xl',
             'flex flex-col max-h-[85vh] overflow-hidden',
             'animate-in fade-in zoom-in-95 duration-200',
           )}
@@ -338,6 +355,60 @@ export function BatchSubmitModal({
             </div>
           </div>
 
+          {/* Cloud destination section */}
+          {cloudProfiles.length > 0 ? (
+            <div className="px-6 py-3 border-b border-border bg-bg-primary/30 shrink-0">
+              <div className="flex items-center gap-2 mb-2">
+                <Cloud size={13} className="text-brand shrink-0" />
+                <span className="text-xs font-bold text-text-muted uppercase tracking-widest">
+                  {t('batch.cloudDestLabel')}
+                </span>
+                <span className="text-xs text-text-muted">{t('batch.cloudDestSubtitle')}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {cloudProfiles.map((p) => {
+                  const selected = globalCloudIds.includes(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      data-testid={`global-cloud-${p.id}`}
+                      onClick={() =>
+                        setGlobalCloudIds((prev) =>
+                          prev.includes(p.id) ? prev.filter((x) => x !== p.id) : [...prev, p.id],
+                        )
+                      }
+                      className={cn(
+                        'flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-1.5 border transition-colors',
+                        selected
+                          ? 'bg-brand/20 border-brand text-brand'
+                          : 'bg-bg-primary border-border text-text-muted hover:bg-bg-hover',
+                      )}
+                    >
+                      <Cloud size={10} />
+                      {p.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="px-6 py-2.5 border-b border-border bg-bg-primary/30 shrink-0 flex items-center gap-2">
+              <Cloud size={13} className="text-text-muted shrink-0" />
+              <span className="text-xs text-text-muted">{t('batch.cloudNoneConfigured')}</span>
+              {onOpenCloudSettings && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenCloudSettings();
+                  }}
+                  className="text-xs text-brand hover:underline"
+                >
+                  {t('batch.cloudAddProfile')}
+                </button>
+              )}
+            </div>
+          )}
+
           {paths.length === 0 ? (
             <div className="flex-1 flex items-center justify-center text-text-muted text-sm py-12">
               <AlertTriangle size={16} className="mr-2" />
@@ -358,65 +429,180 @@ export function BatchSubmitModal({
                     <th className="text-right px-4 py-2 text-[10px] font-black uppercase tracking-widest text-text-muted w-24">
                       {t('batch.estimate')}
                     </th>
+                    {cloudProfiles.length > 0 && (
+                      <th className="text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest text-text-muted w-28">
+                        {t('batch.cloudDestColumn')}
+                      </th>
+                    )}
                     <th className="text-center px-4 py-2 text-[10px] font-black uppercase tracking-widest text-text-muted w-16">
                       {t('batch.status')}
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {rows.map((row, i) => (
-                    <tr
-                      key={row.path}
-                      className={cn(
-                        'transition-colors',
-                        row.status === 'done' && 'opacity-60',
-                        row.status === 'error' && 'bg-red-500/5',
-                      )}
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Film size={13} className="text-text-muted shrink-0" />
-                          <span className="font-medium text-text-primary truncate" title={row.path}>
-                            {row.filename}
-                          </span>
-                        </div>
-                        {row.error && (
-                          <p className="text-[10px] text-red-400 mt-0.5 truncate">{row.error}</p>
+                  {rows.map((row, i) => {
+                    const isExpanded = expandedRow === row.path;
+                    const overrideIds = perFileOverrides[row.path];
+                    const effectiveCloudIds = overrideIds ?? globalCloudIds;
+                    const hasOverride = overrideIds !== undefined;
+
+                    const destLabel =
+                      effectiveCloudIds.length === 0
+                        ? '💾 Local'
+                        : effectiveCloudIds.length === 1
+                          ? `☁️ ${cloudProfiles.find((p) => p.id === effectiveCloudIds[0])?.name ?? '…'}`
+                          : `☁️ ${effectiveCloudIds.length} destinos`;
+
+                    return (
+                      <React.Fragment key={row.path}>
+                        <tr
+                          className={cn(
+                            'transition-colors',
+                            row.status === 'done' && 'opacity-60',
+                            row.status === 'error' && 'bg-red-500/5',
+                            isExpanded && 'bg-bg-hover',
+                          )}
+                        >
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Film size={13} className="text-text-muted shrink-0" />
+                              <span
+                                className="font-medium text-text-primary truncate"
+                                title={row.path}
+                              >
+                                {row.filename}
+                              </span>
+                            </div>
+                            {row.error && (
+                              <p className="text-[10px] text-red-400 mt-0.5 truncate">
+                                {row.error}
+                              </p>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {row.status === 'idle' && profiles.length > 0 ? (
+                              <ProfileDropdown
+                                profiles={profiles}
+                                value={row.profileId}
+                                onChange={(id) => handleRowProfileChange(i, id)}
+                                compact
+                              />
+                            ) : (
+                              <span className="text-text-muted text-xs">
+                                {profiles.find((p) => p.id === row.profileId)?.name ??
+                                  row.profileId}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right text-xs text-text-muted tabular-nums">
+                            {estimateProcessingTime(row.profileId, null, null)}
+                          </td>
+                          {cloudProfiles.length > 0 && (
+                            <td className="px-4 py-3">
+                              {row.status === 'idle' ? (
+                                <button
+                                  data-testid={`dest-btn-${row.path}`}
+                                  onClick={() => setExpandedRow(isExpanded ? null : row.path)}
+                                  className={cn(
+                                    'text-xs px-2 py-1 rounded-lg border transition-colors whitespace-nowrap',
+                                    isExpanded && 'ring-1 ring-brand ring-offset-1',
+                                    // amber = indicador visual de override — sem token de design system para este estado
+                                    hasOverride && effectiveCloudIds.length > 0
+                                      ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
+                                      : !hasOverride && effectiveCloudIds.length > 0
+                                        ? 'bg-brand/10 border-brand/50 text-brand'
+                                        : 'bg-bg-primary border-border text-text-muted hover:bg-bg-hover',
+                                  )}
+                                >
+                                  {destLabel}
+                                </button>
+                              ) : (
+                                <span className="text-xs text-text-muted">{destLabel}</span>
+                              )}
+                            </td>
+                          )}
+                          <td className="px-4 py-3 text-center">
+                            {row.status === 'idle' && (
+                              <span className="w-4 h-4 block mx-auto rounded-full bg-border" />
+                            )}
+                            {row.status === 'processing' && (
+                              <Loader2 size={16} className="animate-spin text-brand mx-auto" />
+                            )}
+                            {row.status === 'done' && (
+                              <CheckCircle2 size={16} className="text-green-500 mx-auto" />
+                            )}
+                            {row.status === 'error' && (
+                              <XCircle size={16} className="text-red-500 mx-auto" />
+                            )}
+                          </td>
+                        </tr>
+
+                        {isExpanded && cloudProfiles.length > 0 && (
+                          <tr>
+                            <td colSpan={5} className="px-4 pb-3 pt-0 bg-bg-primary/30">
+                              <div
+                                data-testid={`override-section-${row.path}`}
+                                className="border-t border-border/50 pt-2"
+                              >
+                                <p className="text-[10px] text-text-muted uppercase tracking-widest mb-2">
+                                  {t('batch.cloudOverrideLabel')}
+                                </p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  <button
+                                    data-testid={`override-local-${row.path}`}
+                                    onClick={() =>
+                                      setPerFileOverrides((prev) => ({
+                                        ...prev,
+                                        [row.path]: [],
+                                      }))
+                                    }
+                                    className={cn(
+                                      'text-xs px-2.5 py-1 rounded-lg border transition-colors',
+                                      // amber = indicador visual de override local — sem token de design system para este estado
+                                      hasOverride && effectiveCloudIds.length === 0
+                                        ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
+                                        : 'bg-bg-primary border-border text-text-muted hover:bg-bg-hover',
+                                    )}
+                                  >
+                                    💾 Local
+                                  </button>
+                                  {cloudProfiles.map((p) => {
+                                    const sel = effectiveCloudIds.includes(p.id);
+                                    return (
+                                      <button
+                                        key={p.id}
+                                        data-testid={`override-cloud-${p.id}`}
+                                        onClick={() => {
+                                          setPerFileOverrides((prev) => {
+                                            const current = prev[row.path] ?? [];
+                                            const next = sel
+                                              ? current.filter((x) => x !== p.id)
+                                              : [...current, p.id];
+                                            return { ...prev, [row.path]: next };
+                                          });
+                                        }}
+                                        className={cn(
+                                          'text-xs px-2.5 py-1 rounded-lg border transition-colors',
+                                          // amber = indicador visual de override por perfil — sem token de design system para este estado
+                                          sel && hasOverride
+                                            ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
+                                            : sel
+                                              ? 'bg-brand/10 border-brand/50 text-brand'
+                                              : 'bg-bg-primary border-border text-text-muted hover:bg-bg-hover',
+                                        )}
+                                      >
+                                        ☁️ {p.name}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </td>
-                      <td className="px-4 py-3">
-                        {row.status === 'idle' && profiles.length > 0 ? (
-                          <ProfileDropdown
-                            profiles={profiles}
-                            value={row.profileId}
-                            onChange={(id) => handleRowProfileChange(i, id)}
-                            compact
-                          />
-                        ) : (
-                          <span className="text-text-muted text-xs">
-                            {profiles.find((p) => p.id === row.profileId)?.name ?? row.profileId}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right text-xs text-text-muted tabular-nums">
-                        {estimateProcessingTime(row.profileId, null, null)}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {row.status === 'idle' && (
-                          <span className="w-4 h-4 block mx-auto rounded-full bg-border" />
-                        )}
-                        {row.status === 'processing' && (
-                          <Loader2 size={16} className="animate-spin text-brand mx-auto" />
-                        )}
-                        {row.status === 'done' && (
-                          <CheckCircle2 size={16} className="text-green-500 mx-auto" />
-                        )}
-                        {row.status === 'error' && (
-                          <XCircle size={16} className="text-red-500 mx-auto" />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

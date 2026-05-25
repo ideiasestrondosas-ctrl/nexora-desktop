@@ -68,6 +68,8 @@ pub fn write(level: &str, source: &str, message: &str) {
     if let Some(handle) = APP_HANDLE.get() {
         let _ = handle.emit("log-entry", &entry);
     }
+
+    crate::file_logger::write(level, source, message);
 }
 
 impl Log for NexoraLogger {

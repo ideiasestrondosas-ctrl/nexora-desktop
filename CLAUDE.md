@@ -97,4 +97,70 @@ claude
 | D011 | IPC via Tauri Commands (sem HTTP)     |
 | D012 | Deep links `nexora://`                |
 
-_Última revisão: Maio 2026 — Workspace: C:\Dev\nexora-desktop_
+---
+
+## Regra Obrigatoria: Preencher `.session-info.md`
+
+Antes de comecar qualquer sessao de desenvolvimento no Nexora Desktop:
+
+1. **Verificar** se `.session-info.md` existe no root do projeto (`C:\Dev\nexora-desktop\.session-info.md`)
+2. **Se nao existir**, criar a partir do template em `scripts/session-info-template.md`
+3. **Preencher imediatamente** a secao `Identidade`:
+   - `Agente:` Claude Code
+   - `Modelo:` <modelo actual, ex: claude-sonnet-4-6>
+   - `Data_Inicio:` <data/hora actual ISO8601>
+   - `Versao:` <ver package.json ou versao em desenvolvimento>
+   - `Titulo:` <resumo curto da tarefa desta sessao>
+   - `Descricao:` <descricao mais detalhada do objetivo>
+
+Durante a sessao:
+
+- **Adicionar itens** nas seccoes `Alteracoes` conforme se implementa (nao acumular para o final)
+- **Actualizar `Ficheiros Alterados`** apos cada commit ou grupo de alteracoes
+- Se houver **breaking changes**, anotar imediatamente na secao correspondente
+- Se houver **novas dependencias**, anotar na secao `Dependencias`
+
+No final da sessao:
+
+- Preencher `Data_Fim`
+- Completar `Notas para o proximo agente` com contexto essencial
+- Garantir que o sync.ps1 podera gerar um release completo a partir deste ficheiro
+
+> **IMPORTANTE:** O `sync.ps1` (opcao 3, modo Release) le este ficheiro para gerar o CHANGELOG, release-notes e SYNC-STATE automaticamente. Sem isto, o release fica incompleto e o agente seguinte perde contexto.
+
+---
+
+## Karpathy Guidelines — Regras de Comportamento (Sempre Activas)
+
+### 1. Pensar Antes de Codificar
+
+- Enunciar pressupostos antes de implementar. Se incerto, perguntar.
+- Se existirem múltiplas interpretações válidas, apresentá-las — nunca escolher silenciosamente.
+- Se houver uma abordagem mais simples, dizê-lo e questionar.
+- Se algo não estiver claro, parar. Nomear o que está confuso. Perguntar.
+
+### 2. Simplicidade Primeiro
+
+- Código mínimo que resolve o problema. Nada especulativo.
+- Sem features além do pedido explicitamente.
+- Sem abstrações para código de uso único.
+- Sem error handling para cenários impossíveis.
+- Se 50 linhas chegam, não escrever 200.
+
+### 3. Alterações Cirúrgicas
+
+- Tocar apenas o que é necessário. Limpar apenas o lixo próprio.
+- Não "melhorar" código adjacente, comentários ou formatação não relacionados.
+- Manter o estilo existente, mesmo que se prefira outro.
+- Se se notar dead code não relacionado, mencionar — não apagar silenciosamente.
+- Remover apenas imports/variáveis/funções que AS PRÓPRIAS alterações tornaram unused.
+
+### 4. Execução Orientada a Objectivos
+
+- Transformar tarefas imperativas em critérios verificáveis.
+- Para tarefas multi-passo, enunciar um plano com verify steps antes de começar.
+- "Corrigir o bug" → "Escrever teste que o reproduz, depois fazê-lo passar."
+
+---
+
+_Ultima revisão: Maio 2026 — Workspace: C:\Dev\nexora-desktop_

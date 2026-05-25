@@ -29,7 +29,6 @@ export default defineConfig(async () => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
           tauri: ['@tauri-apps/api', '@tauri-apps/plugin-store', '@tauri-apps/plugin-log'],
           charts: ['recharts'],
           ui: [

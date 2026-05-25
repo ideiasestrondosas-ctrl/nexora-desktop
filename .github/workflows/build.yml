@@ -8,14 +8,78 @@ on:
     inputs:
       release_draft:
         description: 'Criar release como draft?'
-        required: false
-        default: 'true'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
 
 jobs:
+  quality-gate:
+    runs-on: ubuntu-22.04
+    name: Quality Gate
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check (frontend)
+        run: npx tsc --noEmit
+
+      - name: TypeScript check (sidecar)
+        run: npm run sidecar:check
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Unit + component tests
+        run: npm test
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev
+
+      # Placeholders para resources e externalBin — tauri_build::build() valida estes caminhos
+      - name: Create resource placeholders
+        shell: bash
+        run: |
+          mkdir -p sidecar/dist
+          touch sidecar/dist/nexora-sidecar.cjs
+          mkdir -p src-tauri/binaries
+          touch src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
+          touch src-tauri/binaries/ffprobe-x86_64-unknown-linux-gnu
+
+      - name: Rust format check
+        working-directory: src-tauri
+        run: cargo fmt --check
+
+      - name: Rust clippy
+        working-directory: src-tauri
+        run: cargo clippy -- -D warnings
+
   build:
+    needs: quality-gate
     strategy:
       fail-fast: false
       matrix:
@@ -23,39 +87,32 @@ jobs:
           - platform: windows-latest
             label: Windows
             rust-targets: x86_64-pc-windows-msvc
-            bundles: msi,nsis
 
           - platform: macos-latest
             label: macOS (Universal)
             rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
-            bundles: dmg,app
             args: --target universal-apple-darwin
 
           - platform: ubuntu-22.04
             label: Linux
             rust-targets: x86_64-unknown-linux-gnu
-            bundles: deb,appimage
 
     runs-on: ${{ matrix.platform }}
     name: Build — ${{ matrix.label }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.rust-targets }}
 
-      - name: Cache Rust
-        uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
 
@@ -71,6 +128,28 @@ jobs:
             patchelf \
             libxdo-dev \
             libssl-dev
+
+      # Placeholders para resources e externalBin — tauri_build::build() valida estes caminhos
+      - name: Create resource placeholders
+        shell: bash
+        run: |
+          mkdir -p sidecar/dist
+          touch sidecar/dist/nexora-sidecar.cjs
+          mkdir -p src-tauri/binaries
+          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+            touch src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe
+            touch src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe
+          elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
+            touch src-tauri/binaries/ffmpeg-aarch64-apple-darwin
+            touch src-tauri/binaries/ffprobe-aarch64-apple-darwin
+            touch src-tauri/binaries/ffmpeg-x86_64-apple-darwin
+            touch src-tauri/binaries/ffprobe-x86_64-apple-darwin
+            touch src-tauri/binaries/ffmpeg-universal-apple-darwin
+            touch src-tauri/binaries/ffprobe-universal-apple-darwin
+          else
+            touch src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
+            touch src-tauri/binaries/ffprobe-x86_64-unknown-linux-gnu
+          fi
 
       - name: Install frontend dependencies
         run: npm ci
@@ -91,13 +170,6 @@ jobs:
           # Assinatura de actualizações (tauri-plugin-updater)
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          # Assinar no macOS (opcional - configura nos secrets do repo)
-          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          # APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          # APPLE_ID: ${{ secrets.APPLE_ID }}
-          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Nexora Desktop ${{ github.ref_name }}'

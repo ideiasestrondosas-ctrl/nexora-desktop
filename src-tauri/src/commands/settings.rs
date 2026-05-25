@@ -34,6 +34,10 @@ fn default_settings() -> HashMap<String, String> {
     map.insert("auto_ingest".to_string(), "false".to_string());
     map.insert("notifications_enabled".to_string(), "true".to_string());
     map.insert("theme".to_string(), "system".to_string());
+    map.insert("log_verbosity".to_string(), "normal".to_string());
+    map.insert("log_retention_days".to_string(), "30".to_string());
+    map.insert("log_max_size_mb".to_string(), "200".to_string());
+    map.insert("log_upload_endpoint".to_string(), "".to_string());
     map
 }
 

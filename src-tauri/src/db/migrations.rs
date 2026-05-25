@@ -7,6 +7,7 @@ pub fn run(conn: &Connection) -> Result<()> {
     conn.execute_batch(SCHEMA)?;
     migrate_jobs_status_check(conn)?;
     migrate_assets_v2(conn)?;
+    migrate_cloud_v1(conn)?;
     Ok(())
 }
 
@@ -33,6 +34,39 @@ fn get_column_names(conn: &Connection, table: &str) -> Result<Vec<String>> {
         .filter_map(|r| r.ok())
         .collect();
     Ok(names)
+}
+
+fn migrate_cloud_v1(conn: &Connection) -> Result<()> {
+    conn.execute_batch(
+        r#"
+        CREATE TABLE IF NOT EXISTS cloud_profiles (
+            id          TEXT PRIMARY KEY,
+            name        TEXT NOT NULL,
+            provider    TEXT NOT NULL
+                            CHECK(provider IN ('ftp','sftp','smb','s3','gdrive','icloud')),
+            config      TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS job_cloud_destinations (
+            job_id      TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+            profile_id  TEXT NOT NULL REFERENCES cloud_profiles(id) ON DELETE CASCADE,
+            status      TEXT NOT NULL DEFAULT 'pending'
+                            CHECK(status IN ('pending','uploading','uploaded','failed')),
+            error_msg   TEXT,
+            uploaded_at TEXT,
+            PRIMARY KEY (job_id, profile_id)
+        );
+        "#,
+    )?;
+
+    let existing_cols = get_column_names(conn, "assets")?;
+    for col in ["cloud_source_profile", "cloud_source_path"] {
+        if !existing_cols.contains(&col.to_string()) {
+            conn.execute_batch(&format!("ALTER TABLE assets ADD COLUMN {} TEXT;", col))?;
+        }
+    }
+    Ok(())
 }
 
 /// Migração: adiciona suporte para estados 'qc_quarantined' e 'qc_rejected'

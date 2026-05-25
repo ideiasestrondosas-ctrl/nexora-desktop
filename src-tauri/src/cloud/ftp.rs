@@ -1,0 +1,355 @@
+use super::provider::{CloudProvider, RemoteFile};
+use async_trait::async_trait;
+use std::path::Path;
+use suppaftp::AsyncFtpStream;
+
+/// Limite máximo de ficheiro para upload via FTP.
+/// Protocolo FTP não suporta retoma; ficheiros maiores devem usar S3 ou SMB.
+const FTP_MAX_FILE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+
+pub struct FtpProvider {
+    host: String,
+    port: u16,
+    username: String,
+    password: String,
+    base_path: String,
+}
+
+impl FtpProvider {
+    pub fn new(config: &serde_json::Value, creds: &serde_json::Value) -> Result<Self, String> {
+        Ok(Self {
+            host: config["host"]
+                .as_str()
+                .ok_or_else(|| "host é obrigatório".to_string())?
+                .to_string(),
+            port: config["port"].as_u64().unwrap_or(21) as u16,
+            base_path: config["base_path"].as_str().unwrap_or("/").to_string(),
+            username: creds["username"]
+                .as_str()
+                .unwrap_or("anonymous")
+                .to_string(),
+            password: creds["password"].as_str().unwrap_or("").to_string(),
+        })
+    }
+
+    fn addr(&self) -> String {
+        format!("{}:{}", self.host, self.port)
+    }
+
+    fn validate_remote_path(path: &str) -> Result<(), String> {
+        if path.split('/').any(|c| c == "..") {
+            return Err("Caminho inválido: componentes '..' não são permitidos".to_string());
+        }
+        Ok(())
+    }
+
+    // Fix 2: evita double-slash quando base_path é "/" ou vazio
+    fn full_remote_path(&self, relative: &str) -> String {
+        let cleaned = relative.trim_start_matches('/');
+        let base = self.base_path.trim_end_matches('/');
+        if base.is_empty() {
+            format!("/{cleaned}")
+        } else {
+            format!("{base}/{cleaned}")
+        }
+    }
+
+    async fn connect(&self) -> Result<AsyncFtpStream, String> {
+        let mut ftp = AsyncFtpStream::connect(self.addr())
+            .await
+            .map_err(|e| format!("Ligação FTP falhou em {}: {e}", self.addr()))?;
+        ftp.login(&self.username, &self.password)
+            .await
+            .map_err(|e| format!("Autenticação FTP falhou: {e}"))?;
+        Ok(ftp)
+    }
+
+    // Fix 1: lógica real de upload separada para garantir quit() sempre executado
+    async fn do_upload(
+        &self,
+        ftp: &mut AsyncFtpStream,
+        local_path: &Path,
+        remote: &str,
+    ) -> Result<String, String> {
+        // Fix 3: usar rfind('/') em vez de std::path::Path::new no caminho remoto
+        if let Some(last_slash) = remote.rfind('/') {
+            let dir = &remote[..last_slash];
+            if !dir.is_empty() {
+                // Ignora erro — directório pode já existir
+                let _ = ftp.mkdir(dir).await;
+            }
+        }
+
+        // Fix 4: verificar tamanho antes de carregar o ficheiro inteiro em memória
+        let metadata = tokio::fs::metadata(local_path).await.map_err(|e| {
+            format!(
+                "Não foi possível ler metadados de {}: {e}",
+                local_path.display()
+            )
+        })?;
+        if metadata.len() > FTP_MAX_FILE_BYTES {
+            return Err(format!(
+                "Ficheiro demasiado grande para FTP ({} GB). Use S3 ou SMB para ficheiros > 2 GB",
+                metadata.len() / 1024 / 1024 / 1024
+            ));
+        }
+
+        // Ler ficheiro local para memória; &[u8] implementa futures_io::AsyncRead
+        let data = tokio::fs::read(local_path)
+            .await
+            .map_err(|e| format!("Falha ao ler {}: {e}", local_path.display()))?;
+
+        ftp.put_file(remote, &mut data.as_slice())
+            .await
+            .map_err(|e| format!("Upload FTP falhou: {e}"))?;
+
+        Ok(remote.to_string())
+    }
+
+    #[allow(dead_code)]
+    async fn do_download(
+        &self,
+        ftp: &mut AsyncFtpStream,
+        remote: &str,
+        local_path: &Path,
+    ) -> Result<(), String> {
+        use futures_lite::io::AsyncReadExt;
+
+        // Obter stream de leitura e ler todo o conteúdo para buffer
+        let mut stream = ftp
+            .retr_as_stream(remote)
+            .await
+            .map_err(|e| format!("Download FTP falhou: {e}"))?;
+
+        let mut data: Vec<u8> = Vec::new();
+        stream
+            .read_to_end(&mut data)
+            .await
+            .map_err(|e| format!("Leitura do stream FTP falhou: {e}"))?;
+
+        ftp.finalize_retr_stream(stream)
+            .await
+            .map_err(|e| format!("Finalização do stream FTP falhou: {e}"))?;
+
+        // Criar directório local se necessário
+        if let Some(parent) = local_path.parent() {
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| e.to_string())?;
+        }
+        tokio::fs::write(local_path, &data)
+            .await
+            .map_err(|e| e.to_string())?;
+
+        Ok(())
+    }
+}
+
+// Função livre — interpreta uma linha do comando LIST do FTP
+// Suporta formato UNIX (ls -l) e formato DOS/Windows (IIS/FileZilla Server)
+//
+// Formato UNIX:  "-rw-r--r-- 1 user group 12345 Jan 01 12:00 clip.mp4"
+// Formato DOS:   "01-22-26  03:00PM               12345 clip.mp4"
+//                "01-22-26  03:00PM       <DIR>          footage"
+fn parse_ftp_list_line(line: &str, subpath: &str) -> Option<RemoteFile> {
+    let parts: Vec<&str> = line.split_whitespace().collect();
+
+    // Formato DOS/Windows: "MM-DD-YY  HH:MMAM  <DIR>|size  name"
+    // parts: ["01-22-26", "03:00PM", "<DIR>", "footage"]
+    //     ou ["01-22-26", "03:00PM", "12345", "clip.mp4"]
+    if parts.len() >= 4 && parts[0].contains('-') && parts[0].len() == 8 && parts[1].contains(':') {
+        let is_dir = parts[2] == "<DIR>";
+        let size: Option<u64> = if is_dir { None } else { parts[2].parse().ok() };
+        let name = parts[3..].join(" ");
+        if name.is_empty() {
+            return None;
+        }
+        let path = if subpath.is_empty() {
+            name.clone()
+        } else {
+            format!("{}/{}", subpath.trim_end_matches('/'), name)
+        };
+        return Some(RemoteFile {
+            name,
+            path,
+            size,
+            modified: None,
+            is_dir,
+        });
+    }
+
+    // Formato UNIX: "-rwxr-xr-x 1 user group 12345 Jan 01 12:00 clip.mp4"
+    if parts.len() < 9 {
+        return None;
+    }
+    let is_dir = parts[0].starts_with('d');
+    let size: Option<u64> = if is_dir { None } else { parts[4].parse().ok() };
+    let name = parts[8..].join(" ");
+    if name == "." || name == ".." || name.is_empty() {
+        return None;
+    }
+    let path = if subpath.is_empty() {
+        name.clone()
+    } else {
+        format!("{}/{}", subpath.trim_end_matches('/'), name)
+    };
+    Some(RemoteFile {
+        name,
+        path,
+        size,
+        modified: None,
+        is_dir,
+    })
+}
+
+#[async_trait]
+impl CloudProvider for FtpProvider {
+    fn provider_type(&self) -> &'static str {
+        "ftp"
+    }
+
+    async fn test_connection(&self) -> Result<(), String> {
+        let mut ftp = self.connect().await?;
+        let _ = ftp.quit().await;
+        Ok(())
+    }
+
+    // Fix 1: quit() é chamado mesmo que o upload falhe
+    async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
+        Self::validate_remote_path(remote_path)?;
+        let remote = self.full_remote_path(remote_path);
+        let mut ftp = self.connect().await?;
+
+        let result = self.do_upload(&mut ftp, local_path, &remote).await;
+        let _ = ftp.quit().await;
+        result
+    }
+
+    // Fix 1: quit() é chamado mesmo que o download falhe
+    async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
+        Self::validate_remote_path(remote_path)?;
+        let remote = self.full_remote_path(remote_path);
+        let mut ftp = self.connect().await?;
+
+        let result = self.do_download(&mut ftp, &remote, local_path).await;
+        let _ = ftp.quit().await;
+        result
+    }
+
+    async fn list_files(&self, path: &str) -> Result<Vec<super::provider::RemoteFile>, String> {
+        Self::validate_remote_path(path)?;
+        let full = self.full_remote_path(path);
+        let mut ftp = self.connect().await?;
+        // Guardar resultado antes de quit() para garantir que a ligação é sempre encerrada
+        let result = ftp
+            .list(Some(&full))
+            .await
+            .map_err(|e| format!("FTP LIST falhou em {full}: {e}"));
+        let _ = ftp.quit().await;
+        result.map(|lines| {
+            lines
+                .iter()
+                .filter_map(|l| parse_ftp_list_line(l, path))
+                .collect()
+        })
+    }
+
+    async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
+        for path in paths {
+            Self::validate_remote_path(path)?;
+        }
+        let mut ftp = self.connect().await?;
+        let mut failed = Vec::new();
+        for path in paths {
+            let full = self.full_remote_path(path);
+            if let Err(e) = ftp.rm(&full).await {
+                failed.push(format!("{path}: {e}"));
+            }
+        }
+        let _ = ftp.quit().await;
+        Ok(failed)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_ftp_list_line;
+
+    #[test]
+    fn unix_file_line() {
+        let r =
+            parse_ftp_list_line("-rw-r--r-- 1 user group 12345 Jan 01 12:00 clip.mp4", "").unwrap();
+        assert_eq!(r.name, "clip.mp4");
+        assert_eq!(r.path, "clip.mp4");
+        assert_eq!(r.size, Some(12345));
+        assert!(!r.is_dir);
+    }
+
+    #[test]
+    fn unix_dir_line() {
+        let r = parse_ftp_list_line(
+            "drwxr-xr-x 2 user group 4096 Jan 01 12:00 footage",
+            "videos",
+        )
+        .unwrap();
+        assert_eq!(r.name, "footage");
+        assert_eq!(r.path, "videos/footage");
+        assert!(r.is_dir);
+        assert!(r.size.is_none());
+    }
+
+    #[test]
+    fn unix_file_with_spaces() {
+        let r = parse_ftp_list_line(
+            "-rw-r--r-- 1 user group 999 Jan 01 12:00 my clip final.mp4",
+            "",
+        )
+        .unwrap();
+        assert_eq!(r.name, "my clip final.mp4");
+    }
+
+    #[test]
+    fn unix_dot_entries_skipped() {
+        assert!(parse_ftp_list_line("drwxr-xr-x 2 user group 4096 Jan 01 12:00 .", "").is_none());
+        assert!(parse_ftp_list_line("drwxr-xr-x 2 user group 4096 Jan 01 12:00 ..", "").is_none());
+    }
+
+    #[test]
+    fn short_line_skipped() {
+        assert!(parse_ftp_list_line("-rw-r--r-- 1 user group", "").is_none());
+    }
+
+    #[test]
+    fn dos_file_line() {
+        let r = parse_ftp_list_line("01-22-26  03:00PM               12345 clip.mp4", "").unwrap();
+        assert_eq!(r.name, "clip.mp4");
+        assert_eq!(r.size, Some(12345));
+        assert!(!r.is_dir);
+    }
+
+    #[test]
+    fn dos_dir_line() {
+        let r =
+            parse_ftp_list_line("01-22-26  03:00PM       <DIR>          footage", "sub").unwrap();
+        assert_eq!(r.name, "footage");
+        assert_eq!(r.path, "sub/footage");
+        assert!(r.is_dir);
+        assert!(r.size.is_none());
+    }
+
+    #[test]
+    fn validate_remote_path_rejeita_traversal() {
+        use super::FtpProvider;
+        assert!(FtpProvider::validate_remote_path("../etc/passwd").is_err());
+        assert!(FtpProvider::validate_remote_path("videos/../../etc").is_err());
+        assert!(FtpProvider::validate_remote_path("..").is_err());
+    }
+
+    #[test]
+    fn validate_remote_path_aceita_caminhos_normais() {
+        use super::FtpProvider;
+        assert!(FtpProvider::validate_remote_path("videos/clip.mp4").is_ok());
+        assert!(FtpProvider::validate_remote_path("").is_ok());
+        assert!(FtpProvider::validate_remote_path("a..b/file.mp4").is_ok());
+    }
+}

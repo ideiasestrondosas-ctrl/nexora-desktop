@@ -70,6 +70,7 @@ pub fn submit_job(
     asset_id: String,
     profile: String,
     priority: Option<i64>,
+    cloud_profile_ids: Option<Vec<String>>,
     state: State<AppState>,
 ) -> Result<Job, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
@@ -84,12 +85,25 @@ pub fn submit_job(
     )
     .map_err(|e| e.to_string())?;
 
+    let cloud_dest_count = if let Some(ref ids) = cloud_profile_ids {
+        for profile_id in ids {
+            db.execute(
+                "INSERT OR IGNORE INTO job_cloud_destinations (job_id, profile_id, status) VALUES (?1,?2,'pending')",
+                rusqlite::params![id, profile_id],
+            )
+            .map_err(|e| e.to_string())?;
+        }
+        ids.len()
+    } else {
+        0
+    };
+
     crate::logger::write(
         "INFO",
         "jobs",
         &format!(
-            "Job {} submetido — asset: {}, perfil: {}",
-            id, asset_id, profile
+            "Job {} submetido — asset: {}, perfil: {}, destinos_cloud: {}",
+            id, asset_id, profile, cloud_dest_count
         ),
     );
 

@@ -59,6 +59,62 @@
   --color-info: #1a6fd4;
 }
 
+/* ── Platform-Adaptive Tokens ─────────────────────────────────────────────── */
+:root {
+  --app-font: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --app-radius: 6px;
+  --app-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --app-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-platform='windows'] {
+  --app-font: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  --app-radius: 4px;
+  --app-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.14),
+    0 1px 4px rgba(0, 0, 0, 0.08);
+  --app-easing: cubic-bezier(0.1, 0.9, 0.2, 1);
+}
+
+[data-platform='macos'] {
+  --app-font: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  --app-radius: 10px;
+  --app-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  --app-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+[data-platform='linux'] {
+  --app-font: 'Cantarell', 'Ubuntu', system-ui, sans-serif;
+  --app-radius: 6px;
+  --app-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
+  --app-easing: ease-out;
+}
+
+/* ── Platform-Adaptive Scrollbars ──────────────────────────────────────────── */
+[data-platform='macos'] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+[data-platform='macos'] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+[data-platform='macos'] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+[data-platform='macos'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+[data-platform='windows'] {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+[data-platform='linux'] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
 /* ── Dark variant for Tailwind utilities ───────────────────────────────────── */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -100,7 +156,7 @@ body,
 }
 
 body {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--app-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-bg-primary);
@@ -108,6 +164,87 @@ body {
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
+}
+
+/* ── Phase B: Transparent window for Mica/Vibrancy ──────────────────────── */
+[data-platform='windows'] body,
+[data-platform='macos'] body {
+  background: transparent;
+}
+
+[data-platform='windows'] #root,
+[data-platform='macos'] #root {
+  background: transparent;
+}
+
+/* ── Phase B: Glassmorphism containers ──────────────────────────────────── */
+
+/* Sidebar — dark */
+html.dark[data-platform='windows'] aside,
+html.dark[data-platform='macos'] aside {
+  background: rgba(10, 13, 20, 0.6);
+  backdrop-filter: blur(20px) saturate(1.4);
+}
+
+/* Sidebar — light */
+html:not(.dark)[data-platform='windows'] aside,
+html:not(.dark)[data-platform='macos'] aside {
+  background: rgba(248, 250, 252, 0.72);
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+
+/* TopBar — dark */
+html.dark[data-platform='windows'] [data-topbar],
+html.dark[data-platform='macos'] [data-topbar] {
+  background: rgba(10, 13, 20, 0.7);
+  backdrop-filter: blur(20px);
+}
+
+/* TopBar — light */
+html:not(.dark)[data-platform='windows'] [data-topbar],
+html:not(.dark)[data-platform='macos'] [data-topbar] {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+}
+
+/* Main content area — sempre transparente para deixar Mica/Vibrancy mostrar */
+html[data-platform='windows'] main,
+html[data-platform='macos'] main {
+  background: transparent;
+}
+
+/* Root shell — transparente */
+html[data-platform='windows'] .flex.h-screen,
+html[data-platform='macos'] .flex.h-screen {
+  background: transparent;
+}
+
+/* ── Glassmorphism surface — modais, popups, dropdowns ──────────────────── */
+html.dark[data-platform='windows'] .glass-surface,
+html.dark[data-platform='macos'] .glass-surface {
+  background: rgba(14, 18, 28, 0.78);
+  backdrop-filter: blur(24px) saturate(1.4);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+html:not(.dark)[data-platform='windows'] .glass-surface,
+html:not(.dark)[data-platform='macos'] .glass-surface {
+  background: rgba(248, 250, 252, 0.84);
+  backdrop-filter: blur(24px) saturate(1.2);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Sonner toasts — inline styles exigem !important */
+html.dark[data-platform='windows'] [data-sonner-toast],
+html.dark[data-platform='macos'] [data-sonner-toast] {
+  background: rgba(14, 18, 28, 0.88) !important;
+  backdrop-filter: blur(20px) saturate(1.4) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html:not(.dark)[data-platform='windows'] [data-sonner-toast],
+html:not(.dark)[data-platform='macos'] [data-sonner-toast] {
+  background: rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(20px) saturate(1.2) !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
 }
 
 /* Animations */

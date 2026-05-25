@@ -439,6 +439,23 @@ fn run_job<R: Runtime>(
                                             );
                                         }
                                         let _ = app_handle.emit("sidecar:event", &json);
+                                        // Disparar upload para destinos cloud configurados
+                                        let app_for_cloud = app_handle.clone();
+                                        let jid_cloud = job_id_owned.clone();
+                                        tauri::async_runtime::spawn(async move {
+                                            let state = app_for_cloud.state::<AppState>();
+                                            if let Err(e) =
+                                                crate::commands::cloud::run_cloud_uploads(
+                                                    &jid_cloud, &state,
+                                                )
+                                                .await
+                                            {
+                                                error!(
+                                                    "[cloud] Upload falhou para job {}: {}",
+                                                    jid_cloud, e
+                                                );
+                                            }
+                                        });
                                     }
                                     "job:failed" => {
                                         let error = json

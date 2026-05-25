@@ -1,7 +1,8 @@
-param (
+﻿param (
     [string]$Message,
     [switch]$SkipRelease,
     [switch]$Release,
+    [switch]$PublishDraft,
     [switch]$Help
 )
 
@@ -68,10 +69,10 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
 # FUNCAO: Monitorizar GitHub Actions apos release
 # ---------------------------------------------------------
 function Watch-GitHubActions($sha, $version, $token) {
-    $headers    = @{ "Authorization" = "token $token"; "Accept" = "application/vnd.github+json" }
-    $apiUrl     = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?head_sha=$sha"
-    $targets    = @("CI — Verificacao de Qualidade", "Build Nexora Desktop")
-    $startTime  = Get-Date
+    $headers   = @{ "Authorization" = "token $token"; "Accept" = "application/vnd.github+json" }
+    $apiUrl    = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?head_sha=$sha"
+    $targets   = @("CI — Verificacao de Qualidade", "Build Nexora Desktop")
+    $startTime = Get-Date
 
     Write-Host ""
     Write-Host "  [AGUARDAR] GitHub Actions — v$version  ·  Ctrl+C para sair" -ForegroundColor Cyan
@@ -110,7 +111,7 @@ function Watch-GitHubActions($sha, $version, $token) {
                 continue
             }
 
-            $runSec = [math]::Round(((Get-Date) - [System.DateTimeOffset]::Parse($run.created_at).UtcDateTime).TotalSeconds)
+            $runSec = [math]::Round(((Get-Date) - [datetime]$run.created_at).TotalSeconds)
             $runStr = if ($runSec -lt 60) { "${runSec}s" } else { "$([math]::Floor($runSec/60))m$($runSec % 60)s" }
 
             switch ($run.status) {
@@ -123,7 +124,7 @@ function Watch-GitHubActions($sha, $version, $token) {
                     $allDone = $false
                 }
                 "completed" {
-                    if ($run.conclusion -eq "success" -or $run.conclusion -eq "skipped") {
+                    if ($run.conclusion -eq "success") {
                         Write-Host ("  ✅  " + $wfName.PadRight(42) + " sucesso        ($runStr)") -ForegroundColor Green
                     } else {
                         $label = if ($run.conclusion) { $run.conclusion } else { "falhou" }
@@ -131,10 +132,6 @@ function Watch-GitHubActions($sha, $version, $token) {
                         Write-Host "       $($run.html_url)" -ForegroundColor DarkRed
                         $anyFailed = $true
                     }
-                }
-                default {
-                    Write-Warn ("  ?   " + $wfName.PadRight(42) + " estado desconhecido: $($run.status)")
-                    $allDone = $false
                 }
             }
         }
@@ -151,6 +148,805 @@ function Watch-GitHubActions($sha, $version, $token) {
 
         Start-Sleep -Seconds 30
     }
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Gerar titulo automatico da release
+# ---------------------------------------------------------
+function Get-ReleaseTitle($version, $changelogSection) {
+    $lines = $changelogSection -split "`n"
+    $features = @()
+    $fixes = @()
+    $docs = @()
+    $infra = @()
+    $currentCategory = ""
+
+    foreach ($line in $lines) {
+        $trimmed = $line.Trim()
+        # Detectar categoria atual (secao ### Added, ### Fixed, etc.)
+        if ($trimmed -match "^###\s+(.+)$") {
+            $currentCategory = $matches[1].Trim().ToLower()
+            continue
+        }
+        if ($trimmed -match "^-\s*(.+)$") {
+            $item = $matches[1].Trim()
+            # Classificar primeiro pela categoria, depois pelo conteudo do item
+            switch -Regex ($currentCategory) {
+                "fix|security|bug" { $fixes += $item; continue }
+                "added|add|feature|feat|new" { $features += $item; continue }
+                "changed|change|updated|update|refactor|style" { $features += $item; continue }
+                "docs|doc|infrastructure|infra|i18n|test|build|ci" { $docs += $item; continue }
+            }
+            # Fallback: classificar pelo conteudo do item
+            if ($item -match "(?i)fix|corrig|bug|crash|falha|erro|timeout|mutex|poison|race|bloqueio") {
+                $fixes += $item
+            } elseif ($item -match "(?i)doc|manual|guia|screenshot|readme|changelog") {
+                $docs += $item
+            } elseif ($item -match "(?i)ci/cd|pipeline|workflow|dependabot|lint|format|build|infrastructure|plugin|depend") {
+                $infra += $item
+            } else {
+                $features += $item
+            }
+        }
+    }
+
+    # Extrair nome da feature principal (primeira feature ou primeiro item se so houver um tipo)
+    $featureName = ""
+    if ($features.Count -gt 0) {
+        $firstFeature = $features[0]
+        # Remover prefixos de conventional commits (feat:, fix:, docs:, etc.)
+        $firstFeature = $firstFeature -replace '^\s*(feat|fix|docs|style|refactor|chore|test|build|ci)(\([^)]*\))?:\s*', ''
+        # Extrair nome curto: ate primeira virgula, ponto, ou "com", "para", "no", "em"
+        if ($firstFeature -match '^(.*?)(?:,|\.|\s+com\s+|\s+para\s+|\s+no\s+|\s+em\s+|\s+—\s+)') {
+            $featureName = $matches[1].Trim()
+        } else {
+            $featureName = $firstFeature
+        }
+        # Limitar a 40 chars
+        if ($featureName.Length -gt 40) {
+            $featureName = $featureName.Substring(0, 40).TrimEnd()
+        }
+    }
+
+    # Determinar combinacao de tipos
+    $hasFeatures = $features.Count -gt 0
+    $hasFixes = $fixes.Count -gt 0
+    $hasDocs = $docs.Count -gt 0
+    $hasInfra = $infra.Count -gt 0
+
+    if ($hasFeatures -and $hasFixes) {
+        if ($featureName) {
+            return "$featureName, Bug Fixes & Platform Polish"
+        } else {
+            return "Bug Fixes & Platform Polish"
+        }
+    } elseif ($hasFeatures) {
+        if ($featureName) {
+            return "$featureName & Enhancements"
+        } else {
+            return "New Features & Enhancements"
+        }
+    } elseif ($hasFixes) {
+        return "Bug Fixes & Stability"
+    } elseif ($hasDocs -or $hasInfra) {
+        return "Documentation & Platform Updates"
+    } else {
+        return "Nexora Desktop v$version"
+    }
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Extrair secao da versao do CHANGELOG.md
+# ---------------------------------------------------------
+function Parse-ChangelogSection($version) {
+    $changelogPath = Join-Path $WORKSPACE "CHANGELOG.md"
+    if (-not (Test-Path $changelogPath)) {
+        return $null
+    }
+
+    $content = Get-Content $changelogPath -Raw
+    # Procurar secao ## [X.Y.Z] ate a proxima ## [ ou fim do ficheiro
+    # (?s) ativa single-line mode (. captura newlines); $ so matcha fim de string
+    $pattern = "(?s)## \[$version\].*?(?=## \[|$)"
+    if ($content -match $pattern) {
+        $section = $matches[0].Trim()
+        # Remover a linha de cabecalho (## [X.Y.Z] - data)
+        $lines = $section -split "`n"
+        $cleanLines = @()
+        $skipHeader = $true
+        foreach ($line in $lines) {
+            if ($skipHeader -and $line -match "^## \[$version\]") {
+                $skipHeader = $false
+                continue
+            }
+            $cleanLines += $line
+        }
+        return ($cleanLines -join "`n").Trim()
+    }
+    return $null
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Montar corpo estruturado da release
+# ---------------------------------------------------------
+function Build-ReleaseBody($version, $commitMsg) {
+    $body = ""
+
+    # Prioridade 1: release-notes-vX.Y.Z.md
+    $releaseNotesPath = Join-Path $WORKSPACE "release-notes-v$version.md"
+    if (Test-Path $releaseNotesPath) {
+        $notesContent = Get-Content $releaseNotesPath -Raw
+        # Remover o header "## What's New" se existir para evitar duplicacao
+        $notesContent = $notesContent -replace "^## What's New\s*`n+", ""
+        $body = $notesContent.Trim()
+        Write-Info "Corpo da release: release-notes-v$version.md (prioridade 1)"
+        return $body
+    }
+
+    # Prioridade 2: CHANGELOG.md
+    $changelogSection = Parse-ChangelogSection $version
+    if ($changelogSection) {
+        Write-Info "Corpo da release: CHANGELOG.md secao v$version (prioridade 2)"
+
+        # Analisar e categorizar itens
+        $lines = $changelogSection -split "`n"
+        $bugFixes = @()
+        $newFeatures = @()
+        $changed = @()
+        $docsInfra = @()
+        $currentCategory = ""
+
+        foreach ($line in $lines) {
+            $trimmed = $line.Trim()
+            if ($trimmed -match "^###\s+(.+)$") {
+                $currentCategory = $matches[1].Trim().ToLower()
+                continue
+            }
+            if ($trimmed -match "^-\s*(.+)$") {
+                $item = $matches[1].Trim()
+                switch -Regex ($currentCategory) {
+                    "fix|security" { $bugFixes += $item }
+                    "added|add|feature|feat|new" { $newFeatures += $item }
+                    "changed|change|updated|update|refactor|style" { $changed += $item }
+                    "docs|doc|infrastructure|infra|i18n|test|build|ci" { $docsInfra += $item }
+                    default {
+                        # Inferir do conteudo do item
+                        if ($item -match "(?i)fix|corrig|bug|crash|falha|erro") {
+                            $bugFixes += $item
+                        } elseif ($item -match "(?i)doc|manual|guia|screenshot|traduc|i18n|locale") {
+                            $docsInfra += $item
+                        } elseif ($item -match "(?i)ci/cd|pipeline|workflow|dependabot|build|plugin") {
+                            $docsInfra += $item
+                        } else {
+                            $newFeatures += $item
+                        }
+                    }
+                }
+            }
+        }
+
+        # Montar corpo estruturado
+        $parts = @()
+
+        if ($newFeatures.Count -gt 0) {
+            $parts += "### New Features"
+            foreach ($feat in $newFeatures) {
+                $parts += "- $feat"
+            }
+            $parts += ""
+        }
+
+        if ($bugFixes.Count -gt 0) {
+            $parts += "### Bug Fixes"
+            foreach ($fix in $bugFixes) {
+                $parts += "- $fix"
+            }
+            $parts += ""
+        }
+
+        if ($changed.Count -gt 0) {
+            $parts += "### Changed"
+            foreach ($chg in $changed) {
+                $parts += "- $chg"
+            }
+            $parts += ""
+        }
+
+        if ($docsInfra.Count -gt 0) {
+            $parts += "### Infrastructure & Documentation"
+            foreach ($di in $docsInfra) {
+                $parts += "- $di"
+            }
+            $parts += ""
+        }
+
+        $parts += "---"
+        $parts += ""
+        $parts += "### Installers"
+        $parts += ""
+        $parts += "| Platform | File |"
+        $parts += "| -------- | ---- |"
+        $parts += "| Windows | `.msi` or `.exe` (NSIS) |"
+        $parts += "| macOS | `.dmg` (Universal: Intel + Apple Silicon) |"
+        $parts += "| Linux | `.deb` (Debian/Ubuntu) or `.AppImage` |"
+        $parts += ""
+        $parts += "See [CHANGELOG.md](CHANGELOG.md) for full details."
+
+        return ($parts -join "`n")
+    }
+
+    # Prioridade 3: fallback com mensagem de commit
+    Write-Info "Corpo da release: fallback com mensagem de commit (prioridade 3)"
+    return "### Changes in this version`n`n- $commitMsg`n`nSee [CHANGELOG.md](CHANGELOG.md) for full details."
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Detectar/Identificar Agente (Claude/Antigravity/OpenCode)
+# ---------------------------------------------------------
+function Get-AgentInfo {
+    $detectedAgent = $null
+    $detectedModel = $null
+
+    # 1. Tentar ler do SYNC-STATE.md (ultima sessao)
+    $syncStatePath = Join-Path $WORKSPACE "SYNC-STATE.md"
+    if (Test-Path $syncStatePath) {
+        $syncContent = Get-Content $syncStatePath -Raw
+        # Procurar "Agente: ..." na primeira parte do ficheiro
+        if ($syncContent -match '(?m)^Agente:\s*(.+)$') {
+            $detectedAgent = $matches[1].Trim()
+        }
+    }
+
+    # 2. Tentar variavel de ambiente NEXORA_AGENT
+    if (-not $detectedAgent -and $env:NEXORA_AGENT) {
+        $detectedAgent = $env:NEXORA_AGENT.Trim()
+    }
+
+    # 3. Tentar ficheiro .agent no workspace
+    $agentFile = Join-Path $WORKSPACE ".agent"
+    if (-not $detectedAgent -and (Test-Path $agentFile)) {
+        $agentContent = Get-Content $agentFile -Raw
+        if ($agentContent -match 'agent\s*=\s*"([^"]+)"') {
+            $detectedAgent = $matches[1].Trim()
+        } elseif ($agentContent -match '^(.+)$') {
+            $detectedAgent = $agentContent.Trim()
+        }
+    }
+
+    # 4. Pergunta interativa se nao detectou
+    if (-not $detectedAgent) {
+        Write-Host ""
+        Write-Host "Agente nao detectado automaticamente." -ForegroundColor Yellow
+        Write-Host "[1] Claude Code" -ForegroundColor Cyan
+        Write-Host "[2] Google Antigravity" -ForegroundColor Cyan
+        Write-Host "[3] OpenCode" -ForegroundColor Cyan
+        Write-Host "[4] Outro (especificar)" -ForegroundColor Cyan
+        Write-Host "[Enter] para continuar sem agente" -ForegroundColor Gray
+        $agentChoice = Read-Host "Escolha"
+        switch ($agentChoice) {
+            "1" { $detectedAgent = "Claude Code"; $detectedModel = Read-Host "Modelo (ex: claude-sonnet-4-6) [opcional, Enter para ignorar]" }
+            "2" { $detectedAgent = "Google Antigravity"; $detectedModel = Read-Host "Modelo [opcional]" }
+            "3" { $detectedAgent = "OpenCode"; $detectedModel = Read-Host "Modelo [opcional]" }
+            "4" { $detectedAgent = Read-Host "Nome do agente"; $detectedModel = Read-Host "Modelo [opcional]" }
+            default { $detectedAgent = "Agente nao especificado" }
+        }
+    } else {
+        # Confirmar agente detectado
+        Write-Host ""
+        Write-Host "Agente detectado: $detectedAgent" -ForegroundColor Cyan
+        if ($detectedModel) {
+            Write-Host "Modelo: $detectedModel" -ForegroundColor Gray
+        }
+        $confirm = Read-Host "Confirmar agente? [S/N] (Padrao: S)"
+        if ($confirm -match '^[Nn]$') {
+            $detectedAgent = Read-Host "Nome do agente"
+            $detectedModel = Read-Host "Modelo [opcional]"
+        }
+    }
+
+    $result = @{ Agent = $detectedAgent; Model = $detectedModel }
+    return $result
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Listar commits desde a ultima tag
+# ---------------------------------------------------------
+function Get-CommitsSinceLastTag {
+    $lastTag = git describe --tags --abbrev=0 2>$null
+    if (-not $lastTag) {
+        Write-Warn "Nenhuma tag encontrada. A usar todos os commits do branch."
+        $commits = git log --pretty=format:"%h|%s" --no-merges
+    } else {
+        $commits = git log "${lastTag}..HEAD" --pretty=format:"%h|%s" --no-merges
+    }
+
+    $commitList = @()
+    foreach ($line in $commits -split "`n") {
+        if ($line -match '^([^|]+)\|(.+)$') {
+            $commitList += @{
+                Hash    = $matches[1].Trim()
+                Message = $matches[2].Trim()
+            }
+        }
+    }
+    return $commitList
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Categorizar commits em Added/Fixed/Changed/Infra/Docs
+# ---------------------------------------------------------
+function CategorizeCommits($commits) {
+    $added   = @()
+    $fixed  = @()
+    $changed = @()
+    $infra   = @()
+    $docs    = @()
+    $other  = @()
+
+    foreach ($c in $commits) {
+        $msg = $c.Message
+        $cleanMsg = $msg -replace '^(feat|fix|docs|style|refactor|chore|test|build|ci)(\([^)]*\))?:\s*', ''
+
+        if ($msg -match '^(feat|feature)') { $added += $cleanMsg }
+        elseif ($msg -match '^(fix|bug|hotfix)') { $fixed += $cleanMsg }
+        elseif ($msg -match '^(refactor|style|perf|update)') { $changed += $cleanMsg }
+        elseif ($msg -match '^(docs|doc)') { $docs += $cleanMsg }
+        elseif ($msg -match '^(build|ci|chore|deps|infra|test)') { $infra += $cleanMsg }
+        else { $other += $cleanMsg }
+    }
+
+    return @{
+        Added   = $added
+        Fixed   = $fixed
+        Changed = $changed
+        Infra   = $infra
+        Docs    = $docs
+        Other   = $other
+    }
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Gerar ficheiro release-notes-vX.Y.Z.md
+# ---------------------------------------------------------
+function Generate-ReleaseNotesFile($version, $categorized, $sessionInfo) {
+    $lines = @()
+    $lines += "## What's New"
+    $lines += ""
+
+    if ($categorized.Fixed.Count -gt 0) {
+        $lines += "### Bug Fixes"
+        foreach ($item in $categorized.Fixed) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Added.Count -gt 0) {
+        $lines += "### New Features"
+        foreach ($item in $categorized.Added) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Changed.Count -gt 0) {
+        $lines += "### Changed"
+        foreach ($item in $categorized.Changed) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Deprecated.Count -gt 0) {
+        $lines += "### Deprecated"
+        foreach ($item in $categorized.Deprecated) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Removed.Count -gt 0) {
+        $lines += "### Removed"
+        foreach ($item in $categorized.Removed) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Security.Count -gt 0) {
+        $lines += "### Security"
+        foreach ($item in $categorized.Security) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.i18n.Count -gt 0) {
+        $lines += "### i18n"
+        foreach ($item in $categorized.i18n) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Documentation.Count -gt 0) {
+        $lines += "### Documentation"
+        foreach ($item in $categorized.Documentation) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Infrastructure.Count -gt 0) {
+        $lines += "### Infrastructure"
+        foreach ($item in $categorized.Infrastructure) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($categorized.Other.Count -gt 0) {
+        $lines += "### Other"
+        foreach ($item in $categorized.Other) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    # Session info enrichments
+    if ($sessionInfo -and ($sessionInfo.BreakingChanges.Count -gt 0 -or
+                          $sessionInfo.DependenciesAdded.Count -gt 0 -or
+                          $sessionInfo.DependenciesRemoved.Count -gt 0)) {
+        $lines += "---"
+        $lines += ""
+    }
+
+    if ($sessionInfo -and $sessionInfo.BreakingChanges.Count -gt 0) {
+        $lines += "### :warning: Breaking Changes"
+        foreach ($item in $sessionInfo.BreakingChanges) { $lines += "- $item" }
+        $lines += ""
+    }
+
+    if ($sessionInfo -and ($sessionInfo.DependenciesAdded.Count -gt 0 -or $sessionInfo.DependenciesRemoved.Count -gt 0)) {
+        $lines += "### Dependencies"
+        if ($sessionInfo.DependenciesAdded.Count -gt 0) {
+            $lines += "**Added:**"
+            foreach ($item in $sessionInfo.DependenciesAdded) { $lines += "- $item" }
+        }
+        if ($sessionInfo.DependenciesRemoved.Count -gt 0) {
+            $lines += "**Removed:**"
+            foreach ($item in $sessionInfo.DependenciesRemoved) { $lines += "- $item" }
+        }
+        $lines += ""
+    }
+
+    $lines += "---"
+    $lines += ""
+    $lines += "### Installers"
+    $lines += ""
+    $lines += "| Platform | File                                  |"
+    $lines += "| -------- | ------------------------------------- |"
+    $lines += "| Windows  | `.msi` ou `.exe` (NSIS)               |"
+    $lines += "| macOS    | `.dmg` (Universal: Intel + Apple Silicon) |"
+    $lines += "| Linux    | `.deb` (Debian/Ubuntu) ou `.AppImage` |"
+    $lines += ""
+    $lines += "Consulta o [CHANGELOG.md](CHANGELOG.md) para detalhes das alteracoes."
+
+    $content = $lines -join "`n"
+    $filePath = Join-Path $WORKSPACE "release-notes-v$version.md"
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText($filePath, $content, $utf8NoBom)
+    return $filePath
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Atualizar SYNC-STATE.md com nova sessao
+# ---------------------------------------------------------
+function Update-SyncState($version, $agentInfo, $categorized, $filesChanged, $sessionInfo) {
+    $syncPath = Join-Path $WORKSPACE "SYNC-STATE.md"
+    if (-not (Test-Path $syncPath)) {
+        Write-Warn "SYNC-STATE.md nao encontrado. A criar..."
+        $syncContent = "# Estado de Sincronizacao - Nexora Desktop`n`n"
+    } else {
+        $syncContent = Get-Content $syncPath -Raw
+    }
+
+    # Detectar proximo numero de sessao
+    $lastSession = 0
+    if ($syncContent -match '(?m)^### Sessao (\d+)') {
+        $lastSession = [int]$matches[1]
+        # Procurar o maior numero de sessao
+        $allSessions = [regex]::Matches($syncContent, '(?m)^### Sessao (\d+)')
+        foreach ($m in $allSessions) {
+            $num = [int]$m.Groups[1].Value
+            if ($num -gt $lastSession) { $lastSession = $num }
+        }
+    }
+    $newSessionNum = $lastSession + 1
+    $date = Get-Date -Format "yyyy-MM-dd"
+    $agentStr = $agentInfo.Agent
+    if ($agentInfo.Model) { $agentStr += " ($($agentInfo.Model))" }
+
+    # Contar itens por categoria
+    $totalItems = $categorized.Added.Count + $categorized.Fixed.Count + $categorized.Changed.Count + $categorized.Docs.Count + $categorized.Infra.Count + $categorized.Other.Count
+
+    # Construir nova entrada
+    $newEntry = @"
+### Sessao $newSessionNum — Release v$version — CONCLUIDO
+
+**Agente:** $agentStr  
+**Data:** $date
+
+**Resumo:** $(if ($totalItems -gt 0) { "$totalItems itens" } else { "Release v$version" })
+
+$(if ($categorized.Added.Count -gt 0) { "**Novas funcionalidades:**`n" + ($categorized.Added | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($categorized.Fixed.Count -gt 0) { "**Correcoes:**`n" + ($categorized.Fixed | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($categorized.Changed.Count -gt 0) { "**Alteracoes:**`n" + ($categorized.Changed | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($categorized.Infra.Count -gt 0) { "**Infraestrutura:**`n" + ($categorized.Infra | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($categorized.Docs.Count -gt 0) { "**Documentacao:**`n" + ($categorized.Docs | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($filesChanged.Count -gt 0) { "**Ficheiros alterados:** $(($filesChanged | Select-Object -First 10) -join ', ')$(if ($filesChanged.Count -gt 10) { " e mais $($filesChanged.Count - 10)" })`n`n" })
+$(if ($sessionInfo.NotesNextAgent) { "**Notas para o proximo agente:**`n$($sessionInfo.NotesNextAgent)`n`n" })
+---
+
+"@
+
+    # Inserir apos "## O que foi feito"
+    if ($syncContent -match '(?m)^## O que foi feito\s*$') {
+        $syncContent = $syncContent -replace '(?m)^## O que foi feito\s*$', "## O que foi feito`n`n$newEntry"
+    } else {
+        $syncContent = $newEntry + $syncContent
+    }
+
+    # Atualizar header
+    $syncContent = $syncContent -replace '(?m)^Actualizado:.*$', "Actualizado: $date"
+    $syncContent = $syncContent -replace '(?m)^Agente:.*$', "Agente: $agentStr"
+
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText($syncPath, $syncContent, $utf8NoBom)
+    Write-Success "SYNC-STATE.md actualizado (Sessao $newSessionNum)"
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Atualizar src/lib/version.ts
+# ---------------------------------------------------------
+function Update-VersionTs($version, $categorized) {
+    $versionPath = Join-Path $WORKSPACE "src\lib\version.ts"
+    if (-not (Test-Path $versionPath)) {
+        Write-Warn "src/lib/version.ts nao encontrado — a ignorar"
+        return
+    }
+
+    $content = Get-Content $versionPath -Raw
+    $date = Get-Date -Format "yyyy-MM-dd"
+
+    # Construir descricao resumida
+    $descParts = @()
+    if ($categorized.Added.Count -gt 0) {
+        $descParts += ($categorized.Added | Select-Object -First 2) -join ", "
+    }
+    if ($categorized.Fixed.Count -gt 0) {
+        $descParts += ($categorized.Fixed | Select-Object -First 2) -join ", "
+    }
+    $description = "v$version"
+    if ($descParts.Count -gt 0) {
+        $description += ": " + ($descParts -join ", ")
+    }
+    # Limitar descricao
+    if ($description.Length -gt 200) {
+        $description = $description.Substring(0, 197).TrimEnd() + "..."
+    }
+
+    # Verificar se entrada ja existe
+    if ($content -match "version:\s*'$version'") {
+        Write-Warn "Entrada v$version ja existe em version.ts — a ignorar"
+        return
+    }
+
+    # Atualizar APP_VERSION
+    $content = $content -replace "APP_VERSION\s*=\s*'[^']+'", "APP_VERSION = '$version'"
+
+    # Adicionar nova entrada no topo do array
+    $newEntry = @"
+  {
+    version: '$version',
+    description:
+      '$description.',
+  },
+"@
+
+    # Procurar inicio do array VERSION_HISTORY
+    $pattern = '(export const VERSION_HISTORY: VersionEntry\[\] = \[)'
+    $content = $content -replace $pattern, "$1`n$newEntry"
+
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText($versionPath, $content, $utf8NoBom)
+    Write-Success "src/lib/version.ts actualizado -> v$version"
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Preview interativo do release
+# ---------------------------------------------------------
+function Show-ReleasePreview($version, $agentInfo, $categorized, $filesChanged) {
+    Clear-Host
+    Write-Host ""
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host "  PREVIEW DO RELEASE v$version" -ForegroundColor Cyan
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Agente: $($agentInfo.Agent)$(if ($agentInfo.Model) { " ($($agentInfo.Model))" })" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  Ficheiros que serao criados/atualizados:" -ForegroundColor White
+    Write-Host "    CREATE  release-notes-v$version.md" -ForegroundColor Green
+    Write-Host "    UPDATE  CHANGELOG.md (agregar commits)" -ForegroundColor Yellow
+    Write-Host "    UPDATE  SYNC-STATE.md (adicionar sessao)" -ForegroundColor Yellow
+    Write-Host "    UPDATE  PROGRESS-DESKTOP.md (versao $version)" -ForegroundColor Yellow
+    Write-Host "    UPDATE  src/lib/version.ts" -ForegroundColor Yellow
+    Write-Host "    UPDATE  package.json, Cargo.toml, tauri.conf.json" -ForegroundColor Yellow
+    Write-Host ""
+
+    $totalItems = $categorized.Added.Count + $categorized.Fixed.Count + $categorized.Changed.Count + $categorized.Docs.Count + $categorized.Infra.Count + $categorized.Other.Count
+    Write-Host "  Commits desde ultima tag: $totalItems" -ForegroundColor White
+    if ($categorized.Added.Count -gt 0) { Write-Host "    + $($categorized.Added.Count) funcionalidades" -ForegroundColor Gray }
+    if ($categorized.Fixed.Count -gt 0) { Write-Host "    + $($categorized.Fixed.Count) correcoes" -ForegroundColor Gray }
+    if ($categorized.Changed.Count -gt 0) { Write-Host "    + $($categorized.Changed.Count) alteracoes" -ForegroundColor Gray }
+    if ($categorized.Infra.Count -gt 0) { Write-Host "    + $($categorized.Infra.Count) infraestrutura" -ForegroundColor Gray }
+    if ($categorized.Docs.Count -gt 0) { Write-Host "    + $($categorized.Docs.Count) documentacao" -ForegroundColor Gray }
+    Write-Host ""
+
+    $changelogSection = Parse-ChangelogSection $version
+    $releaseTitle = Get-ReleaseTitle $version $changelogSection
+    Write-Host "  Titulo gerado: $releaseTitle" -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  [Enter] Continuar com o release" -ForegroundColor Green
+    Write-Host "  [M]     Modo manual (editar ficheiros primeiro)" -ForegroundColor Yellow
+    Write-Host "  [C]     Cancelar" -ForegroundColor Red
+    Write-Host ""
+
+    $choice = Read-Host "  Escolha"
+    switch ($choice.Trim().ToUpper()) {
+        "" { return "CONTINUE" }
+        "M" { return "MANUAL" }
+        "C" { return "CANCEL" }
+        default {
+            Write-Warn "Opcao invalida. A continuar..."
+            return "CONTINUE"
+        }
+    }
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Ler .session-info.md e extrair dados estruturados
+# ---------------------------------------------------------
+function Read-SessionInfo {
+    $sessionPath = Join-Path $WORKSPACE ".session-info.md"
+    $result = @{
+        HasData         = $false
+        Agente          = $null
+        Modelo          = $null
+        Data_Inicio     = $null
+        Data_Fim        = $null
+        Versao          = $null
+        Titulo          = $null
+        Descricao       = $null
+        Added           = @()
+        Fixed           = @()
+        Changed         = @()
+        Deprecated      = @()
+        Removed         = @()
+        Security        = @()
+        Infrastructure  = @()
+        Documentation   = @()
+        i18n            = @()
+        FilesChanged    = @()
+        BreakingChanges = @()
+        DependenciesAdded = @()
+        DependenciesRemoved = @()
+        Screenshots     = @()
+        NotesNextAgent  = $null
+    }
+
+    if (-not (Test-Path $sessionPath)) {
+        return $result
+    }
+
+    $content = Get-Content $sessionPath -Raw
+    if (-not $content) { return $result }
+
+    # Helper to extract section content
+    function Extract-Section($text, $header) {
+        $pattern = '(?ms)^#{2,3}\s+' + [regex]::Escape($header) + '\s*\n(.*?)(?=^#{2,3}\s+|\z)'
+        if ($text -match $pattern) {
+            return $matches[1].Trim()
+        }
+        return $null
+    }
+
+    # Helper to extract list items
+    function Extract-List($sectionText) {
+        if (-not $sectionText) { return @() }
+        $items = @()
+        foreach ($line in $sectionText -split "`n") {
+            $trimmed = $line.Trim()
+            if ($trimmed -match '^[-*]\s+(.+)$') {
+                $item = $matches[1].Trim()
+                if ($item -and $item -notmatch '^#{1,3}\s') {
+                    $items += $item
+                }
+            }
+        }
+        return $items
+    }
+
+    # Helper to extract key-value pairs
+    function Extract-KeyValue($text, $key) {
+        $pattern = '(?m)^' + [regex]::Escape($key) + ':\s*(.*)$'
+        if ($text -match $pattern) {
+            return $matches[1].Trim()
+        }
+        return $null
+    }
+
+    # Extract identity
+    $identitySection = Extract-Section $content "Identidade"
+    if ($identitySection) {
+        $result.Agente      = Extract-KeyValue $identitySection "Agente"
+        $result.Modelo      = Extract-KeyValue $identitySection "Modelo"
+        $result.Data_Inicio = Extract-KeyValue $identitySection "Data_Inicio"
+        $result.Data_Fim    = Extract-KeyValue $identitySection "Data_Fim"
+    }
+
+    # Extract task
+    $taskSection = Extract-Section $content "Tarefa"
+    if ($taskSection) {
+        $result.Versao    = Extract-KeyValue $taskSection "Versao"
+        $result.Titulo    = Extract-KeyValue $taskSection "Titulo"
+        $result.Descricao = Extract-KeyValue $taskSection "Descricao"
+    }
+
+    # Extract changes by category
+    $changesSection = Extract-Section $content "Alteracoes"
+    if ($changesSection) {
+        $result.Added          = Extract-List (Extract-Section $changesSection "Added (novas funcionalidades)")
+        $result.Fixed          = Extract-List (Extract-Section $changesSection "Fixed (correcoes de bugs)")
+        $result.Changed        = Extract-List (Extract-Section $changesSection "Changed (alteracoes/refactor)")
+        $result.Deprecated     = Extract-List (Extract-Section $changesSection "Deprecated (funcionalidades obsoletas)")
+        $result.Removed        = Extract-List (Extract-Section $changesSection "Removed (funcionalidades removidas)")
+        $result.Security       = Extract-List (Extract-Section $changesSection "Security (correcoes de seguranca)")
+        $result.Infrastructure = Extract-List (Extract-Section $changesSection "Infrastructure (build, CI/CD, deps)")
+        $result.Documentation  = Extract-List (Extract-Section $changesSection "Documentation (docs, screenshots, manual)")
+        $result.i18n           = Extract-List (Extract-Section $changesSection "i18n (traducoes, locales)")
+    }
+
+    # Extract other sections
+    $result.FilesChanged     = Extract-List (Extract-Section $content "Ficheiros Alterados")
+    $result.BreakingChanges  = Extract-List (Extract-Section $content "Breaking Changes")
+
+    $depsSection = Extract-Section $content "Dependencias"
+    if ($depsSection) {
+        $result.DependenciesAdded   = Extract-List (Extract-Section $depsSection "Adicionadas")
+        $result.DependenciesRemoved = Extract-List (Extract-Section $depsSection "Removidas")
+    }
+
+    $result.Screenshots     = Extract-List (Extract-Section $content "Screenshots / Links")
+    $result.NotesNextAgent  = Extract-Section $content "Notas para o proximo agente"
+
+    # Determine if we have meaningful data
+    $hasItems = $result.Added.Count -gt 0 -or
+                $result.Fixed.Count -gt 0 -or
+                $result.Changed.Count -gt 0 -or
+                $result.Descricao
+    $result.HasData = $hasItems
+
+    return $result
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Merge session info with git commits
+# ---------------------------------------------------------
+function Merge-SessionWithCommits($sessionInfo, $gitCommits) {
+    # If session info has data, use it as primary source
+    # If not, fall back to git commits
+    $merged = @{
+        Added           = if ($sessionInfo.Added.Count -gt 0) { $sessionInfo.Added } else { $gitCommits.Added }
+        Fixed           = if ($sessionInfo.Fixed.Count -gt 0) { $sessionInfo.Fixed } else { $gitCommits.Fixed }
+        Changed         = if ($sessionInfo.Changed.Count -gt 0) { $sessionInfo.Changed } else { $gitCommits.Changed }
+        Deprecated      = $sessionInfo.Deprecated
+        Removed         = $sessionInfo.Removed
+        Security        = $sessionInfo.Security
+        Infrastructure  = if ($sessionInfo.Infrastructure.Count -gt 0) { $sessionInfo.Infrastructure } else { $gitCommits.Infra }
+        Documentation   = if ($sessionInfo.Documentation.Count -gt 0) { $sessionInfo.Documentation } else { $gitCommits.Docs }
+        i18n            = $sessionInfo.i18n
+        FilesChanged    = if ($sessionInfo.FilesChanged.Count -gt 0) { $sessionInfo.FilesChanged } else { @() }
+        BreakingChanges = $sessionInfo.BreakingChanges
+        DependenciesAdded = $sessionInfo.DependenciesAdded
+        DependenciesRemoved = $sessionInfo.DependenciesRemoved
+        Screenshots     = $sessionInfo.Screenshots
+        NotesNextAgent  = $sessionInfo.NotesNextAgent
+        Descricao       = $sessionInfo.Descricao
+        Titulo          = $sessionInfo.Titulo
+    }
+    return $merged
 }
 
 # ---------------------------------------------------------
@@ -189,6 +985,12 @@ if ($Help) {
     Write-Host "    Dispara automaticamente o GitHub Actions (build .exe/.dmg/.deb)." -ForegroundColor Gray
     Write-Host "    Usar quando um Prompt Desktop (1/2/3/4) estiver completo." -ForegroundColor Gray
     Write-Host ""
+    Write-Host "  -PublishDraft" -ForegroundColor Magenta
+    Write-Host "    Publica o draft release da tag mais recente no GitHub." -ForegroundColor Gray
+    Write-Host "    Util quando o build.yml criou um draft automatico (apos push da tag)" -ForegroundColor Gray
+    Write-Host "    e queres actualizar o titulo/corpo e publicar sem refazer o release completo." -ForegroundColor Gray
+    Write-Host "    Equivalente a opcao 6 do menu interactivo." -ForegroundColor Gray
+    Write-Host ""
     Write-Host "  -Help" -ForegroundColor Cyan
     Write-Host "    Mostra esta ajuda." -ForegroundColor Gray
     Write-Host ""
@@ -226,6 +1028,9 @@ if ($Help) {
     Write-Host "  # Ver estado do repositorio sem fazer nada" -ForegroundColor Green
     Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1  -> escolhe opcao 4" -ForegroundColor Cyan
     Write-Host ""
+    Write-Host "  # Publicar draft release criado automaticamente pelo build.yml" -ForegroundColor Green
+    Write-Host "  powershell -ExecutionPolicy Bypass -File scripts\sync.ps1 -PublishDraft" -ForegroundColor Magenta
+    Write-Host ""
     Write-Host "  FLUXO DE TRABALHO TIPICO" -ForegroundColor White
     Write-Host "  ------------------------" -ForegroundColor Gray
     Write-Host "  Dia de trabalho normal:" -ForegroundColor Gray
@@ -243,6 +1048,119 @@ if ($Help) {
     Write-Host "  ============================================" -ForegroundColor Cyan
     Write-Host ""
     exit 0
+}
+
+# ---------------------------------------------------------
+# FUNCAO: Publicar draft release existente no GitHub
+# ---------------------------------------------------------
+function Invoke-PublishDraft {
+    param([string]$token, [string]$repoOwner, [string]$repoName, [string]$workspace)
+
+    # Determinar versao a publicar
+    $latestTag = git describe --tags --abbrev=0 2>$null
+    if (-not $latestTag) {
+        Write-Err "Nao foi encontrada nenhuma tag git. Corre 'git tag' para verificar."
+        return
+    }
+
+    $version = $latestTag -replace '^v', ''
+    Write-Host ""
+    Write-Host "  Tag detectada: $latestTag" -ForegroundColor Cyan
+    $confirm = Read-Host "  Publicar draft release para $latestTag? [S/N]"
+    if ($confirm -notmatch '^[Ss]$') {
+        Write-Host "  Cancelado." -ForegroundColor Gray
+        return
+    }
+
+    $headers = @{
+        "Authorization" = "token $token"
+        "Accept"        = "application/vnd.github+json"
+    }
+
+    # Verificar se existe draft para esta tag
+    Write-Step "A verificar draft release $latestTag no GitHub..."
+    $releaseId   = $null
+    $releaseIsDraft = $false
+    try {
+        $existing = Invoke-RestMethod `
+            -Uri "https://api.github.com/repos/$repoOwner/$repoName/releases/tags/$latestTag" `
+            -Method Get `
+            -Headers $headers
+        $releaseId      = $existing.id
+        $releaseIsDraft = $existing.draft
+        if ($releaseIsDraft) {
+            Write-Info "Draft encontrado (id=$releaseId). A actualizar..."
+        } else {
+            Write-Warn "Release $latestTag ja esta publicada (nao e draft)."
+            $overwrite = Read-Host "  Queres actualizar o corpo mesmo assim? [S/N]"
+            if ($overwrite -notmatch '^[Ss]$') { return }
+        }
+    } catch {
+        Write-Warn "Nao existe release para $latestTag no GitHub."
+        $create = Read-Host "  Queres criar uma nova release para $latestTag? [S/N]"
+        if ($create -notmatch '^[Ss]$') { return }
+    }
+
+    # Gerar conteudo rico
+    $changelogSection = Parse-ChangelogSection $version
+    $releaseTitle     = "v$version — $(Get-ReleaseTitle $version $changelogSection)"
+    $releaseBodyText  = Build-ReleaseBody $version ""
+
+    Write-Step "Titulo: $releaseTitle"
+
+    if ($releaseId) {
+        # PATCH — actualizar release existente (draft ou publicada)
+        try {
+            $payload = @{
+                name  = $releaseTitle
+                body  = $releaseBodyText
+                draft = $false
+            } | ConvertTo-Json
+            $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
+            Invoke-RestMethod `
+                -Uri     "https://api.github.com/repos/$repoOwner/$repoName/releases/$releaseId" `
+                -Method  Patch `
+                -Headers $headers `
+                -Body    $payloadBytes `
+                -ContentType "application/json; charset=utf-8" > $null
+            Write-Success "Release $latestTag actualizada e publicada!"
+            Write-Info "https://github.com/$repoOwner/$repoName/releases/tag/$latestTag"
+        } catch {
+            $stream = $_.Exception.Response.GetResponseStream()
+            if ($stream) {
+                Write-Warn "Erro da API GitHub: $((New-Object System.IO.StreamReader($stream)).ReadToEnd())"
+            } else {
+                Write-Warn "Falhou: $_"
+            }
+        }
+    } else {
+        # POST — criar nova release
+        try {
+            $payload = @{
+                tag_name   = $latestTag
+                name       = $releaseTitle
+                body       = $releaseBodyText
+                draft      = $false
+                prerelease = $false
+            } | ConvertTo-Json
+            $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
+            Invoke-RestMethod `
+                -Uri     "https://api.github.com/repos/$repoOwner/$repoName/releases" `
+                -Method  Post `
+                -Headers $headers `
+                -Body    $payloadBytes `
+                -ContentType "application/json; charset=utf-8" > $null
+            Write-Success "Release $latestTag criada e publicada!"
+            Write-Info "https://github.com/$repoOwner/$repoName/releases/tag/$latestTag"
+        } catch {
+            $stream = $_.Exception.Response.GetResponseStream()
+            if ($stream) {
+                Write-Warn "Erro da API GitHub: $((New-Object System.IO.StreamReader($stream)).ReadToEnd())"
+            } else {
+                Write-Warn "Falhou: $_"
+            }
+        }
+    }
 }
 
 $WORKSPACE  = "C:\Dev\nexora-desktop"
@@ -276,7 +1194,7 @@ Push-Location $WORKSPACE
 # ---------------------------------------------------------
 # MENU INTERACTIVO (quando nao ha flags passadas)
 # ---------------------------------------------------------
-if (-not $SkipRelease -and -not $Release -and -not $Message) {
+if (-not $SkipRelease -and -not $Release -and -not $PublishDraft -and -not $Message) {
     $branch = git branch --show-current 2>$null
     $dirty  = git status --short 2>$null
     $currentVersion = "0.1.0"
@@ -305,9 +1223,10 @@ if (-not $SkipRelease -and -not $Release -and -not $Message) {
     Write-Host "  3) Versao pronta para lancamento               (commit + bump + push dev + merge main + GitHub Release)" -ForegroundColor Green
     Write-Host "  4) Ver estado actual                           (git status + ultimos commits)" -ForegroundColor Gray
     Write-Host "  5) Sair" -ForegroundColor Gray
+    Write-Host "  6) Publicar draft release existente            (actualiza e publica draft do GitHub Actions)" -ForegroundColor Magenta
     Write-Host ""
 
-    $choice = Read-Host "  Opcao [1-5]"
+    $choice = Read-Host "  Opcao [1-6]"
 
     switch ($choice) {
         "1" { <# modo normal -- continua o script #> }
@@ -330,6 +1249,7 @@ if (-not $SkipRelease -and -not $Release -and -not $Message) {
             Write-Host "  Saindo." -ForegroundColor Gray
             Pop-Location; exit 0
         }
+        "6" { $PublishDraft = $true }
         default {
             Write-Warn "Opcao invalida. A usar modo 1 (guardar trabalho do dia)."
         }
@@ -370,6 +1290,22 @@ if (Test-Path ".env") {
             if ($val) { $script:GITHUB_TOKEN = $val }
         }
     }
+}
+
+# ---------------------------------------------------------
+# MODO: PUBLICAR DRAFT RELEASE EXISTENTE (-PublishDraft / opcao 6)
+# ---------------------------------------------------------
+if ($PublishDraft) {
+    if (-not $script:GITHUB_TOKEN) {
+        Write-Err "GITHUB_TOKEN nao encontrado. Adiciona GITHUB_TOKEN=<token> ao ficheiro .env"
+        Pop-Location; exit 1
+    }
+    Invoke-PublishDraft `
+        -token     $script:GITHUB_TOKEN `
+        -repoOwner $REPO_OWNER `
+        -repoName  $REPO_NAME `
+        -workspace $WORKSPACE
+    Pop-Location; exit 0
 }
 
 # ---------------------------------------------------------
@@ -746,6 +1682,67 @@ if (-not $SkipRelease -and -not $promoteExisting) {
     }
 
     if ($newVersion) {
+        # ---------------------------------------------------------
+        # PREVIEW INTERATIVO (apenas modo Release)
+        # ---------------------------------------------------------
+        $agentInfo = $null
+        $categorizedForPreview = $null
+        $filesChanged = @()
+        if ($Release) {
+            $agentInfo = Get-AgentInfo
+            $commitsForPreview = Get-CommitsSinceLastTag
+            $categorizedForPreview = CategorizeCommits $commitsForPreview
+            $filesChanged = git diff --name-only HEAD~1..HEAD 2>$null
+            if (-not $filesChanged) { $filesChanged = git diff --cached --name-only 2>$null }
+            if (-not $filesChanged) { $filesChanged = @(git status --porcelain | ForEach-Object { ($_ -split '\s+', 2)[1] }) }
+
+            $previewResult = Show-ReleasePreview $newVersion $agentInfo $categorizedForPreview $filesChanged
+            switch ($previewResult) {
+                "CANCEL" {
+                    Write-Host "Release cancelado pelo utilizador." -ForegroundColor Yellow
+                    Pop-Location; exit 0
+                }
+                "MANUAL" {
+                    Write-Host ""
+                    Write-Host "Modo manual activo. Edita os ficheiros manualmente:" -ForegroundColor Yellow
+                    Write-Host "  - release-notes-v$newVersion.md" -ForegroundColor Cyan
+                    Write-Host "  - SYNC-STATE.md" -ForegroundColor Cyan
+                    Write-Host "  - CHANGELOG.md" -ForegroundColor Cyan
+                    Write-Host "  - src/lib/version.ts" -ForegroundColor Cyan
+                    Write-Host "Depois corre o script novamente com -Release." -ForegroundColor Gray
+                    Pop-Location; exit 0
+                }
+            }
+
+            # Verificar se .session-info.md existe (recomendado mas nao obrigatorio)
+            $sessionInfoPath = Join-Path $WORKSPACE ".session-info.md"
+            if (-not (Test-Path $sessionInfoPath)) {
+                Write-Warn ".session-info.md nao encontrado!"
+                Write-Host "  Este ficheiro e preenchido pelo agente durante a sessao." -ForegroundColor Gray
+                Write-Host "  Sem ele, o release usara apenas as mensagens de commit." -ForegroundColor Gray
+                Write-Host "  Queres continuar mesmo assim? [S/N]" -ForegroundColor Yellow
+                $continueWithout = Read-Host "Escolha"
+                if ($continueWithout -notmatch '^[Ss]$') {
+                    Write-Host "A cancelar. Cria .session-info.md no root do projeto e corre de novo." -ForegroundColor Gray
+                    Pop-Location; exit 0
+                }
+            }
+
+            # Ler .session-info.md (se existir)
+            $sessionInfo = Read-SessionInfo
+            if ($sessionInfo.HasData) {
+                Write-Success ".session-info.md encontrado e carregado"
+                # Merge com dados dos commits
+                $categorizedForPreview = Merge-SessionWithCommits $sessionInfo $categorizedForPreview
+                # Usar descricao e titulo do session info se disponiveis
+                if ($sessionInfo.Descricao) { $commitMsg = $sessionInfo.Descricao }
+                if ($sessionInfo.Titulo) { $releaseTitle = $sessionInfo.Titulo }
+            } else {
+                Write-Warn ".session-info.md nao encontrado ou vazio. A usar apenas commits git."
+                Write-Host "  Dica: Cria .session-info.md no root para um release mais completo." -ForegroundColor Gray
+            }
+        }
+
         Write-Step "Aplicando versao v$newVersion nos ficheiros Tauri..."
 
         # package.json
@@ -794,18 +1791,59 @@ if (-not $SkipRelease -and -not $promoteExisting) {
             }
         }
 
-        # CHANGELOG.md -- criar se nao existir
-        $date     = Get-Date -Format "yyyy-MM-dd"
-        $newEntry = "## [$newVersion] - $date`n`n### Added`n- $commitMsg`n"
+        # CHANGELOG.md -- agregar commits desde ultima tag (modo Release) ou so a mensagem
+        $date = Get-Date -Format "yyyy-MM-dd"
+        if ($Release) {
+            # Modo Release: agregar TODOS os commits desde a ultima tag
+            Write-Step "A agregar commits no CHANGELOG.md..."
+            $allCommits = Get-CommitsSinceLastTag
+            $categorizedForChangelog = CategorizeCommits $allCommits
+
+            $changelogEntry = "## [$newVersion] - $date`n`n"
+            if ($categorizedForChangelog.Added.Count -gt 0) {
+                $changelogEntry += "### Added`n"
+                foreach ($item in $categorizedForChangelog.Added) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Fixed.Count -gt 0) {
+                $changelogEntry += "### Fixed`n"
+                foreach ($item in $categorizedForChangelog.Fixed) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Changed.Count -gt 0) {
+                $changelogEntry += "### Changed`n"
+                foreach ($item in $categorizedForChangelog.Changed) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Docs.Count -gt 0) {
+                $changelogEntry += "### Documentation`n"
+                foreach ($item in $categorizedForChangelog.Docs) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Infra.Count -gt 0) {
+                $changelogEntry += "### Infrastructure`n"
+                foreach ($item in $categorizedForChangelog.Infra) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+            if ($categorizedForChangelog.Other.Count -gt 0) {
+                $changelogEntry += "### Other`n"
+                foreach ($item in $categorizedForChangelog.Other) { $changelogEntry += "- $item`n" }
+                $changelogEntry += "`n"
+            }
+        } else {
+            # Modo normal: apenas a mensagem de commit
+            $changelogEntry = "## [$newVersion] - $date`n`n### Added`n- $commitMsg`n`n"
+        }
+
         if (Test-Path "CHANGELOG.md") {
             $changelog = Get-Content "CHANGELOG.md" -Raw
             if ($changelog -match "## \[Unreleased\]") {
-                $changelog = $changelog -replace "## \[Unreleased\]", "## [Unreleased]`n`n$newEntry"
+                $changelog = $changelog -replace "## \[Unreleased\]", "## [Unreleased]`n`n$changelogEntry"
             } else {
-                $changelog = $changelog -replace "# Changelog", "# Changelog`n`n$newEntry"
+                $changelog = $changelog -replace "# Changelog", "# Changelog`n`n$changelogEntry"
             }
         } else {
-            $changelog = "# Changelog`n`n## [Unreleased]`n`n$newEntry"
+            $changelog = "# Changelog`n`n## [Unreleased]`n`n$changelogEntry"
             Write-Warn "CHANGELOG.md nao existia - criado automaticamente"
         }
         [System.IO.File]::WriteAllText(
@@ -825,8 +1863,30 @@ if (-not $SkipRelease -and -not $promoteExisting) {
             )
         }
 
+        # Modo Release: gerar ficheiros adicionais automaticamente
+        $releaseNotesPath = $null
+        if ($Release) {
+            Write-Step "A gerar ficheiros de release automaticamente..."
+
+            # 1. release-notes-vX.Y.Z.md
+            $releaseNotesPath = Generate-ReleaseNotesFile $newVersion $categorizedForPreview $sessionInfo
+            Write-Success "release-notes-v$newVersion.md criado"
+
+            # 2. SYNC-STATE.md
+            Update-SyncState $newVersion $agentInfo $categorizedForPreview $filesChanged $sessionInfo
+
+            # 3. version.ts
+            Update-VersionTs $newVersion $categorizedForPreview
+        }
+
         # Commit de release + tag (verificar se tag ja existe)
-        git add package.json src-tauri\Cargo.toml src-tauri\tauri.conf.json CHANGELOG.md PROGRESS-DESKTOP.md
+        $filesToAdd = @("package.json", "src-tauri\Cargo.toml", "src-tauri\tauri.conf.json", "CHANGELOG.md", "PROGRESS-DESKTOP.md")
+        if ($Release -and $releaseNotesPath) {
+            $filesToAdd += "release-notes-v$newVersion.md"
+            $filesToAdd += "SYNC-STATE.md"
+            $filesToAdd += "src\lib\version.ts"
+        }
+        git add $filesToAdd
         git commit -m "chore(release): v$newVersion" --no-verify
         $tagExists = git tag -l "v$newVersion" 2>$null
         if ($tagExists) {
@@ -886,19 +1946,12 @@ if ($LASTEXITCODE -eq 0) {
     if ($Release) {
         $devBranch = $branch
         $mergeOk   = Invoke-MergeToMain $newVersion $devBranch $authenticatedUrl
-        if ($mergeOk) {
-            if ($script:GITHUB_TOKEN) {
-                Write-Host ""
-                $watchAns = Read-Host "  Queres aguardar pelos GitHub Actions? [S/N] (Padrao: N)"
-                if ($watchAns -match '^[Ss]$') {
-                    $mainSha = git rev-parse main 2>$null
-                    Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN
-                } else {
-                    Write-Info "Ver Actions em: https://github.com/$REPO_OWNER/$REPO_NAME/actions"
-                }
-            } else {
-                Write-Warn "GITHUB_TOKEN nao configurado -- nao e possivel monitorizar os Actions."
-                Write-Info "Ver Actions em: https://github.com/$REPO_OWNER/$REPO_NAME/actions"
+        if ($mergeOk -and $script:GITHUB_TOKEN) {
+            Write-Host ""
+            $watchAns = Read-Host "  Queres aguardar pelos GitHub Actions? [S/N] (Padrao: N)"
+            if ($watchAns -match '^[Ss]$') {
+                $mainSha = git rev-parse main 2>$null
+                Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN
             }
         }
     }
@@ -928,46 +1981,67 @@ if ($LASTEXITCODE -eq 0) {
             $releaseExists = $false
         }
 
+        # Gerar titulo e corpo ricos (usado tanto no PATCH como no POST)
+        $changelogSection = Parse-ChangelogSection $newVersion
+        $releaseTitle     = Get-ReleaseTitle $newVersion $changelogSection
+        $releaseBodyText  = Build-ReleaseBody $newVersion $commitMsg
+
         if ($releaseExists) {
-            $ans = Read-Host "  Queres recriar a release v$newVersion? [S/N]"
-            if ($ans -match '^[Ss]$') {
-                try {
-                    Invoke-RestMethod `
-                        -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/$existingReleaseId" `
-                        -Method Delete `
-                        -Headers $headers > $null
-                    Write-Success "Release anterior removida."
-                    $releaseExists = $false
-                } catch {
-                    Write-Warn "Nao foi possivel remover a release existente: $_"
+            # O build.yml cria um draft automaticamente ao fazer push da tag.
+            # Actualizamos esse draft (PATCH) para nao perder os assets ja anexados.
+            Write-Step "Draft release v$newVersion detectado. A actualizar com conteudo rico e a publicar..."
+            try {
+                $patchPayload = @{
+                    name  = "$releaseTitle"
+                    body  = $releaseBodyText
+                    draft = $false
+                } | ConvertTo-Json
+
+                $patchBytes = [System.Text.Encoding]::UTF8.GetBytes($patchPayload)
+
+                Invoke-RestMethod `
+                    -Uri     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/$existingReleaseId" `
+                    -Method  Patch `
+                    -Headers $headers `
+                    -Body    $patchBytes `
+                    -ContentType "application/json; charset=utf-8" > $null
+                Write-Success "GitHub Release v$newVersion actualizada e publicada!"
+            } catch {
+                $stream = $_.Exception.Response.GetResponseStream()
+                if ($stream) {
+                    $reader = New-Object System.IO.StreamReader($stream)
+                    Write-Warn "Erro da API GitHub (PATCH): $($reader.ReadToEnd())"
+                } else {
+                    Write-Warn "Nao foi possivel actualizar a Release: $_"
                 }
             }
-        }
-
-        if (-not $releaseExists) {
+        } else {
+            # Nao ha draft pre-existente — criar a release directamente.
             try {
-                $releaseBody = @{
+                Write-Step "A criar GitHub Release: '$releaseTitle'"
+
+                $postPayload = @{
                     tag_name   = "v$newVersion"
-                    name       = "Nexora Desktop v$newVersion"
-                    body       = "### Alteracoes nesta versao`n`n- $commitMsg`n`nConsulte o CHANGELOG.md para detalhes."
+                    name       = "$releaseTitle"
+                    body       = $releaseBodyText
                     draft      = $false
                     prerelease = $false
                 } | ConvertTo-Json
 
-                $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($releaseBody)
+                $postBytes = [System.Text.Encoding]::UTF8.GetBytes($postPayload)
 
                 Invoke-RestMethod `
                     -Uri     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases" `
                     -Method  Post `
                     -Headers $headers `
-                    -Body    $bodyBytes `
+                    -Body    $postBytes `
                     -ContentType "application/json; charset=utf-8" > $null
                 Write-Success "GitHub Release v$newVersion publicada!"
             } catch {
                 $stream = $_.Exception.Response.GetResponseStream()
                 if ($stream) {
                     $reader = New-Object System.IO.StreamReader($stream)
-                    Write-Warn "Erro da API GitHub: $($reader.ReadToEnd())"
+                    Write-Warn "Erro da API GitHub (POST): $($reader.ReadToEnd())"
                 } else {
                     Write-Warn "Nao foi possivel publicar a Release: $_"
                 }

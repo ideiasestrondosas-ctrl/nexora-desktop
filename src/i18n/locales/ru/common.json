@@ -38,7 +38,10 @@
       "queue": "Queue",
       "profiles": "Profiles",
       "settings": "Settings",
-      "logs": "Logs"
+      "cloud": "Облако",
+      "logs": "Logs",
+      "assetDetail": "Детали ресурса",
+      "import": "Импорт"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -114,11 +117,75 @@
         "interface": "Interface — theme (System/Light/Dark) and language",
         "system": "System — OS/hardware info, FFmpeg version, DB stats",
         "advanced": "Advanced — export/import settings, factory reset",
+        "cloud": "Облако — управление облачными профилями, учётными данными и просмотр удалённых файлов (см. вкладку Облако)",
         "tip1": "Set your Output Directory first — this is where all processed files go.",
         "tip2": "More concurrent jobs = more CPU/RAM usage. Start with 2.",
         "tip3": "Factory Reset wipes everything. Export your settings first if unsure.",
         "factoryResetConfirmTitle": "Factory Reset com Confirmação (v0.23.0)",
-        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output."
+        "factoryResetConfirmDesc": "Factory reset com autorização explícita para apagar ficheiros. Primeiro diálogo confirma o reset; segundo pergunta se apaga os ficheiros de output.",
+        "logsTab": {
+          "title": "Вкладка Журналы (v0.24.0)",
+          "desc": "Настройте уровень детализации файловых журналов, политику хранения и endpoint для загрузки. Просматривайте использование хранилища, экспортируйте или очищайте файлы журналов.",
+          "verbosity": "Детализация: Базовый (только ошибки), Нормальный (INFO+), Отладка (всё + клики UI)",
+          "retention": "Хранение: задайте макс. дней и макс. размер (МБ). Старые журналы сжимаются в ZIP.",
+          "upload": "Загрузка журналов на endpoint разработчика для диагностики"
+        },
+        "cache": {
+          "title": "Отображение кэша (v0.24.0)",
+          "desc": "Мониторинг и управление временными кэш-файлами, создаваемыми во время обработки.",
+          "transcodeCache": "Кэш обработки — временные файлы транскодирования и прокси",
+          "thumbCache": "Кэш миниатюр — сгенерированные превью",
+          "clear": "Очистить кэш безопасно (блокируется, если есть активные задания)"
+        },
+        "shortcuts": {
+          "title": "Горячие клавиши",
+          "desc": "Распространённые сочетания клавиш. Клавиша-модификатор зависит от платформы (⌘ на macOS, Ctrl на Windows/Linux).",
+          "exportLogs": "Экспорт журналов в файл",
+          "closeWindow": "Закрыть текущее окно/диалог",
+          "navTabs": "Переключение между основными вкладками (при фокусе)"
+        }
+      },
+      "cloud": {
+        "title": "Облако — назначения и браузер файлов",
+        "desc": "Настройте облачные хранилища для автоматической доставки файлов после транскодирования. Поддерживаемые провайдеры: FTP, FTPS, SFTP, SMB, S3 (и совместимые: MinIO, Wasabi) и Google Drive.",
+        "destinations": {
+          "title": "Облачные назначения",
+          "desc": "Добавьте облачные профили в Настройки → Облако. Каждый профиль хранит данные подключения одного провайдера. Задание может иметь несколько облачных назначений — файл загружается во все из них автоматически после завершения задания.",
+          "tip1": "iCloud не поддерживается — Apple не предоставляет публичный файловый API для сторонних приложений.",
+          "tip2": "Учётные данные хранятся локально на вашем устройстве. Они никогда не отправляются на серверы Nexora.",
+          "tip3": "Google Drive разрешает имена папок из base_path — он не использует внутренние идентификаторы папок."
+        },
+        "browser": {
+          "title": "Облачный браузер файлов",
+          "desc": "Нажмите кнопку «Обзор» (значок папки) на любом облачном профиле в Настройки → Облако, чтобы открыть браузер файлов. Перейдите в подкаталоги, выберите файлы, загрузите их или удалите прямо из удалённого хранилища.",
+          "tip1": "Выберите несколько файлов с помощью флажков в каждой строке, затем используйте «Удалить выбранные» или «Загрузить выбранные».",
+          "tip2": "Загрузка открывает стандартный выбор файлов ОС для выбора места сохранения.",
+          "tip3": "Удаление постоянное — в удалённом хранилище нет корзины."
+        },
+        "upload": {
+          "title": "Автоматическая загрузка",
+          "desc": "Когда задание транскодирования завершается, Nexora автоматически загружает выходной файл во все настроенные облачные назначения. Загрузки используют 3 попытки с экспоненциальной выдержкой. Неудавшаяся загрузка регистрируется, но не отмечает задание как неудавшееся.",
+          "tip1": "Каждое задание может переопределить облачное назначение по умолчанию, установленное в Настройки → Облако.",
+          "tip2": "Прогресс загрузки не отображается в интерфейсе — проверьте вкладку «Журналы» для статуса загрузки.",
+          "tip3": "Google Drive выполняет upsert файлов: если файл с тем же именем уже существует в папке назначения, он заменяется, а не дублируется."
+        },
+        "gdriveOAuth": {
+          "title": "Google Drive — OAuth Device Flow",
+          "desc": "Аутентификация Google Drive без хранения паролей. Nexora использует OAuth 2.0 Device Flow.",
+          "step1": "Нажмите 'Аутентифицировать' — Nexora запрашивает device code у Google",
+          "step2": "Откройте предоставленный URL в браузере и введите user code",
+          "step3": "Nexora опрашивает Google каждые 5 секунд, пока вы не авторизуете. Токен хранится локально."
+        },
+        "s3": {
+          "title": "S3 и совместимые провайдеры",
+          "desc": "Подключение к AWS S3 или S3-совместимым сервисам, таким как MinIO, Wasabi и Backblaze B2.",
+          "providers": "Поддерживаются: AWS S3, MinIO, Wasabi, Backblaze B2 (path-style endpoints)"
+        },
+        "icloud": {
+          "title": "iCloud Drive",
+          "desc": "iCloud поддерживается через локальную синхронизацию папок. Nexora читает/пишет папку iCloud Drive на вашем локальном диске.",
+          "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
+        }
       },
       "logs": {
         "title": "Logs — Diagnostics",
@@ -130,10 +197,48 @@
         "tip1": "Use Ctrl+Shift+E as a shortcut to export logs.",
         "tip2": "Search for specific error messages to find patterns.",
         "tip3": "Clearing logs does not affect the database or jobs."
+      },
+      "assetDetail": {
+        "title": "Детали ресурса — рабочее пространство файла",
+        "desc": "Детали ресурса — это основное рабочее пространство для одного видеофайла. Переключайтесь между оригиналом и обработанным превью, воспроизводите inline, просматривайте технические метаданные и управляйте файлом.",
+        "hero": "Главная секция с переключателем Оригинал/Обработанный, кнопкой воспроизведения и панелью действий",
+        "mediaInfo": "Вкладки MediaInfo: Общее, Видео, Аудио, Субтитры, Теги, SHA-256",
+        "technicalAnalysis": "Порядковое техническое сравнение оригинала и обработанного файла",
+        "jobHistory": "Все задания обработки для этого ресурса с этапами pipeline и оценками",
+        "tip1": "Используйте переключатель для смены превью между исходником и результатом.",
+        "tip2": "Нажмите Play, чтобы посмотреть видео inline, не покидая приложение.",
+        "tip3": "Вкладка Технический анализ сравнивает кодек, разрешение, HDR и многое другое."
+      },
+      "import": {
+        "title": "Импорт — добавление медиа",
+        "desc": "Импортируйте видеофайлы в Nexora через drag-and-drop, диалог выбора файлов или сканирование папки. Поддерживаемые форматы: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "dragDrop": "Перетащите видеофайлы в любое место окна",
+        "fileDialog": "Или нажмите, чтобы открыть нативный диалог выбора файлов",
+        "folderScan": "Добавить папку — импортирует все поддерживаемые видео из директории",
+        "batchTitle": "Пакетная обработка",
+        "batchDesc": "Обработайте несколько файлов одновременно. Выберите глобальный профиль или назначьте разный профиль для каждого файла. По желанию добавьте облачные назначения.",
+        "cloudPicker": "Выберите облачные назначения для автоматической загрузки после обработки",
+        "tip1": "Поддерживаемые форматы: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
+        "tip2": "Модальное окно импорта позволяет выбрать только Анализ (метаданные) или Импорт и Обработка.",
+        "tip3": "Файлы с кодеками HEVC, ProRes, DNxHD или AV1 могут быть помещены в карантин для ручного одобрения."
       }
     },
-    "guideOpened": "Guia aberto no browser",
-    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
+    "guideOpened": "Руководство открыто в браузере",
+    "guideOpenFailed": "Не удалось открыть руководство. Проверьте подключение к интернету.",
+    "platform": {
+      "title": "Адаптивный UX под платформу (v0.25+)",
+      "desc": "Nexora адаптирует внешний вид под вашу операционную систему для нативного ощущения.",
+      "windows": "Windows 11: Mica/Acrylic фон, шрифт Segoe UI Variable, Fluent контролы",
+      "macos": "macOS: NSVisualEffectView vibrancy, шрифт SF Pro, traffic light контролы окна",
+      "linux": "Linux: стабильные GTK декорации, шрифт Cantarell, нейтральные контролы окна"
+    },
+    "security": {
+      "title": "Безопасность и конфиденциальность",
+      "desc": "Nexora надёжно хранит конфиденциальные данные и валидирует все внешние входные данные.",
+      "keychain": "Учётные данные облака хранятся в keychain ОС (Windows Credential Manager, macOS Keychain, Linux Secret Service)",
+      "pathTraversal": "Удалённые пути валидируются для предотвращения path traversal атак",
+      "endpointValidation": "Endpoint для загрузки журналов должен использовать протокол http:// или https://"
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Assets",
@@ -480,7 +585,9 @@
     "tryRemoveFilters": "Try removing filters",
     "expand": "... (click to expand)",
     "entriesVisible": "{{count}} entry/entries visible",
-    "autoRotate": "Auto-rotation: 2,000 entries max"
+    "autoRotate": "Auto-rotation: 2,000 entries max",
+    "copy": "Копировать",
+    "copied": "Скопировано!"
   },
   "assetDetail": {
     "backToLibrary": "Back to Library",
@@ -700,7 +807,13 @@
     "status": "Статус",
     "successToast": "{{count}} файл(ов) успешно отправлено",
     "outputDirTitle": "Папка назначения обработанных файлов",
-    "outputDirDefault": "Временная папка"
+    "outputDirDefault": "Временная папка",
+    "cloudDestLabel": "Cloud destination",
+    "cloudDestSubtitle": "— default for all files",
+    "cloudNoneConfigured": "No cloud profiles configured.",
+    "cloudAddProfile": "+ Add cloud profile →",
+    "cloudOverrideLabel": "Override for this file",
+    "cloudDestColumn": "Destination"
   },
   "detail": {
     "thumbnailOrig": "Оригинал",
@@ -789,5 +902,25 @@
     "yes": "Sim",
     "no": "Não",
     "cancel": "Cancelar"
+  },
+  "cloudBrowser": {
+    "title": "Ficheiros em {{profile}}",
+    "selectAll": "Sel. Todos",
+    "selected": "{{count}} sel.",
+    "download": "Download",
+    "deleteSelected": "Apagar Seleccionados",
+    "deleteAll": "Apagar Tudo",
+    "confirmDeleteSelected": "Apagar {{count}} ficheiros de {{profile}}? Esta acção não pode ser desfeita.",
+    "confirmDeleteAll": "Apagar TODOS os ficheiros em {{path}} de {{profile}}? Esta acção não pode ser desfeita.",
+    "refresh": "Actualizar",
+    "empty": "Pasta vazia",
+    "connectionError": "Não foi possível ligar ao servidor.",
+    "retry": "Tentar novamente",
+    "downloadSuccess": "Ficheiro descarregado: {{name}}",
+    "deletePartialError": "{{count}} ficheiros não foram apagados: {{names}}",
+    "size": "Tamanho",
+    "modified": "Modificado",
+    "notSupported": "Navegação não suportada para iCloud",
+    "browseTooltipDisabled": "Navegação não suportada para iCloud"
   }
 }

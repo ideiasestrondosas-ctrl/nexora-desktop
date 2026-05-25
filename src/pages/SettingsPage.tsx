@@ -33,7 +33,12 @@ import {
   Terminal,
   Info,
   AlertCircle,
+  Cloud,
 } from 'lucide-react';
+import { CloudProfileModal } from '@/components/CloudProfileModal';
+import { CloudFileBrowserModal } from '@/components/CloudFileBrowserModal';
+import { useCloudStore, CloudProfile, PROVIDER_LABELS } from '@/store/cloud';
+import { cn } from '@/lib/utils';
 
 interface Settings {
   output_dir: string;
@@ -60,6 +65,10 @@ interface Settings {
   default_profile: string;
   vmaf_threshold: number;
   target_lufs: number;
+  log_verbosity: 'basic' | 'normal' | 'debug';
+  log_retention_days: number;
+  log_max_size_mb: number;
+  log_upload_endpoint: string;
 }
 
 interface GpuInfo {
@@ -113,7 +122,14 @@ interface TempInfo {
   thumbs_file_count: number;
 }
 
-type SettingsTab = 'general' | 'interface' | 'system' | 'advanced' | 'about';
+interface LogStorageInfo {
+  logDir: string;
+  totalSizeBytes: number;
+  fileCount: number;
+  oldestFileDate: string | null;
+}
+
+type SettingsTab = 'general' | 'interface' | 'system' | 'logs' | 'cloud' | 'advanced' | 'about';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -149,6 +165,21 @@ export default function SettingsPage() {
   const [tempInfo, setTempInfo] = useState<TempInfo | null>(null);
   const [clearingTranscode, setClearingTranscode] = useState(false);
   const [clearingThumbs, setClearingThumbs] = useState(false);
+  const [logInfo, setLogInfo] = useState<LogStorageInfo | null>(null);
+  const [logInfoLoading, setLogInfoLoading] = useState(false);
+
+  const {
+    profiles: cloudProfiles,
+    setProfiles: setCloudProfiles,
+    removeProfile: removeCloudProfile,
+  } = useCloudStore();
+  const [cloudModalOpen, setCloudModalOpen] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<CloudProfile | null>(null);
+  const [browseProfile, setBrowseProfile] = useState<CloudProfile | null>(null);
+
+  useEffect(() => {
+    invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
+  }, [setCloudProfiles]);
 
   const systemTimedOut = useRef(false);
 
@@ -164,6 +195,16 @@ export default function SettingsPage() {
           settingsStore.setNotificationsEnabled(backendSettings.notifications_enabled === 'true');
         if (backendSettings.theme)
           settingsStore.setTheme(backendSettings.theme as 'system' | 'light' | 'dark');
+        if (backendSettings.log_verbosity)
+          settingsStore.setLogVerbosity(
+            backendSettings.log_verbosity as 'basic' | 'normal' | 'debug',
+          );
+        if (backendSettings.log_retention_days)
+          settingsStore.setLogRetentionDays(Number(backendSettings.log_retention_days));
+        if (backendSettings.log_max_size_mb)
+          settingsStore.setLogMaxSizeMb(Number(backendSettings.log_max_size_mb));
+        if (backendSettings.log_upload_endpoint !== undefined)
+          settingsStore.setLogUploadEndpoint(backendSettings.log_upload_endpoint);
         setLocalSettings((prev) => ({
           ...prev,
           language: (backendSettings.language as Settings['language']) || 'pt',
@@ -258,6 +299,17 @@ export default function SettingsPage() {
     return () => {
       cancelled = true;
     };
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'logs') return;
+    setLogInfoLoading(true);
+    invoke<LogStorageInfo>('get_log_storage_info')
+      .then((info) => {
+        setLogInfo(info);
+        setLogInfoLoading(false);
+      })
+      .catch(() => setLogInfoLoading(false));
   }, [activeTab]);
 
   const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
@@ -445,6 +497,8 @@ export default function SettingsPage() {
     { id: 'general', label: t('settings.tabs.general'), icon: Shield },
     { id: 'interface', label: t('settings.tabs.interface'), icon: Palette },
     { id: 'system', label: t('settings.tabs.system'), icon: Server },
+    { id: 'logs', label: 'Logs', icon: Terminal },
+    { id: 'cloud' as const, label: 'Cloud', icon: Cloud },
     { id: 'advanced', label: t('settings.tabs.advanced'), icon: Globe },
     { id: 'about', label: t('settings.tabs.about'), icon: Info },
   ];
@@ -1058,6 +1112,301 @@ export default function SettingsPage() {
               </section>
             </>
           )}
+        </div>
+      )}
+
+      {/* TAB: LOGS */}
+      {activeTab === 'logs' && (
+        <div className="space-y-6">
+          {/* VERBOSIDADE */}
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+            <SectionTitle>Verbosidade</SectionTitle>
+            <p className="text-sm text-text-secondary mb-4">
+              Nível de detalhe dos logs de acção da interface
+            </p>
+            <div className="space-y-3">
+              {(
+                [
+                  { value: 'basic', label: 'Básico', desc: 'Erros e acções críticas' },
+                  {
+                    value: 'normal',
+                    label: 'Normal',
+                    desc: '+ Navegação e alterações de settings',
+                  },
+                  { value: 'debug', label: 'Debug', desc: '+ Todos os cliques e eventos de UI' },
+                ] as { value: 'basic' | 'normal' | 'debug'; label: string; desc: string }[]
+              ).map(({ value, label, desc }) => (
+                <label key={value} className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="log_verbosity"
+                    value={value}
+                    checked={settingsStore.logVerbosity === value}
+                    onChange={() => {
+                      settingsStore.setLogVerbosity(value);
+                      handleUpdateSetting('log_verbosity', value);
+                    }}
+                    className="mt-0.5 accent-brand"
+                  />
+                  <span>
+                    <span className="text-sm font-semibold text-text-primary">{label}</span>
+                    <span className="ml-2 text-xs text-text-muted">{desc}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          {/* ARMAZENAMENTO */}
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+            <SectionTitle>Armazenamento</SectionTitle>
+            {logInfoLoading && <p className="text-sm text-text-muted">A carregar...</p>}
+            {logInfo && !logInfoLoading && (
+              <div className="space-y-4">
+                <div className="text-sm text-text-secondary space-y-1">
+                  <p>
+                    <span className="font-medium text-text-primary">Pasta:</span> {logInfo.logDir}
+                  </p>
+                  <p>
+                    <span className="font-medium text-text-primary">Total:</span>{' '}
+                    {formatBytes(logInfo.totalSizeBytes)} · {logInfo.fileCount} ficheiro
+                    {logInfo.fileCount !== 1 ? 's' : ''}
+                    {logInfo.oldestFileDate && ` · mais antigo: ${logInfo.oldestFileDate}`}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <label className="flex items-center gap-2 text-sm text-text-secondary">
+                    Reter
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      defaultValue={settingsStore.logRetentionDays}
+                      onBlur={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        if (!isNaN(v) && v > 0) {
+                          settingsStore.setLogRetentionDays(v);
+                          handleUpdateSetting('log_retention_days', String(v));
+                        }
+                      }}
+                      className="w-16 rounded-lg border border-border bg-bg-primary px-2 py-1 text-sm text-text-primary text-center"
+                    />
+                    dias
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-text-secondary">
+                    Máximo
+                    <input
+                      type="number"
+                      min={10}
+                      max={2000}
+                      defaultValue={settingsStore.logMaxSizeMb}
+                      onBlur={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        if (!isNaN(v) && v > 0) {
+                          settingsStore.setLogMaxSizeMb(v);
+                          handleUpdateSetting('log_max_size_mb', String(v));
+                        }
+                      }}
+                      className="w-20 rounded-lg border border-border bg-bg-primary px-2 py-1 text-sm text-text-primary text-center"
+                    />
+                    MB
+                  </label>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() =>
+                      invoke('open_path', { path: logInfo.logDir }).catch(console.error)
+                    }
+                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors"
+                  >
+                    Abrir pasta
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const ok = await confirm('Apagar todos os ficheiros de log?', {
+                        title: 'Limpar logs',
+                        kind: 'warning',
+                      });
+                      if (!ok) return;
+                      await invoke('clear_log_files').catch((e: unknown) => toast.error(String(e)));
+                      const info = await invoke<LogStorageInfo>('get_log_storage_info').catch(
+                        () => null,
+                      );
+                      if (info) setLogInfo(info);
+                      toast.success('Logs apagados');
+                    }}
+                    className="rounded-lg border border-red-500/40 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    Limpar
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* ENVIAR AO DESENVOLVEDOR */}
+          <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+            <SectionTitle>Enviar Logs ao Desenvolvedor</SectionTitle>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">
+                  Endpoint de upload
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  defaultValue={settingsStore.logUploadEndpoint}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    settingsStore.setLogUploadEndpoint(v);
+                    handleUpdateSetting('log_upload_endpoint', v);
+                  }}
+                  className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand"
+                />
+                <p className="mt-1 text-xs text-text-muted">
+                  Deixar vazio para desactivar o upload directo
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={async () => {
+                    try {
+                      const bundlePath = await invoke<string>('export_logs_bundle');
+                      const subject = `Nexora Logs v${APP_VERSION} — ${new Date().toISOString().slice(0, 10)}`;
+                      const body = `Logs exportados para:\n${bundlePath}`;
+                      window.open(
+                        `mailto:dev@nexora.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+                      );
+                    } catch (e: unknown) {
+                      toast.error(String(e));
+                    }
+                  }}
+                  className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors"
+                >
+                  <Upload size={14} />
+                  Enviar por email
+                </button>
+                <button
+                  disabled={!settingsStore.logUploadEndpoint}
+                  onClick={async () => {
+                    try {
+                      const result = await invoke<string>('upload_logs_to_server', {
+                        endpoint: settingsStore.logUploadEndpoint,
+                      });
+                      toast.success(`Logs enviados: ${result}`);
+                    } catch (e: unknown) {
+                      toast.error(String(e));
+                    }
+                  }}
+                  className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Server size={14} />
+                  Enviar para servidor
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* TAB: CLOUD */}
+      {activeTab === 'cloud' && (
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-300">Perfis de Cloud</h3>
+              <button
+                onClick={() => {
+                  setEditingProfile(null);
+                  setCloudModalOpen(true);
+                }}
+                className="flex items-center gap-2 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded px-3 py-1.5"
+              >
+                + Novo Perfil
+              </button>
+            </div>
+
+            {cloudProfiles.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Nenhum perfil configurado. Clique em &quot;+ Novo Perfil&quot; para começar.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {cloudProfiles.map((profile) => (
+                  <div
+                    key={profile.id}
+                    className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 border border-gray-700"
+                  >
+                    <div>
+                      <p className="text-sm text-white font-medium">{profile.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {PROVIDER_LABELS[profile.provider]}
+                        {profile.config.host ? ` · ${String(profile.config.host)}` : ''}
+                        {profile.config.bucket ? ` · ${String(profile.config.bucket)}` : ''}
+                        {profile.config.base_path ? ` · ${String(profile.config.base_path)}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          profile.provider !== 'icloud' ? setBrowseProfile(profile) : undefined
+                        }
+                        disabled={profile.provider === 'icloud'}
+                        title={
+                          profile.provider === 'icloud'
+                            ? t('cloudBrowser.browseTooltipDisabled')
+                            : 'Navegar ficheiros'
+                        }
+                        className={cn(
+                          'flex items-center gap-1.5 text-xs border border-gray-600 rounded px-2 py-1 transition-colors',
+                          profile.provider === 'icloud'
+                            ? 'text-gray-600 cursor-not-allowed opacity-40'
+                            : 'text-gray-400 hover:text-white',
+                        )}
+                      >
+                        <FolderOpen size={12} />
+                        Browse
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingProfile(profile);
+                          setCloudModalOpen(true);
+                        }}
+                        className="text-xs text-gray-400 hover:text-white border border-gray-600 rounded px-2 py-1"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const ok = await confirm(
+                            `Apagar perfil "${profile.name}"? Os jobs existentes com este destino não serão afectados.`,
+                            { title: 'Apagar Perfil', kind: 'warning' },
+                          );
+                          if (!ok) return;
+                          await invoke('delete_cloud_profile', { id: profile.id });
+                          removeCloudProfile(profile.id);
+                          toast.success('Perfil apagado');
+                        }}
+                        className="text-xs text-red-400 hover:text-red-300 border border-gray-600 rounded px-2 py-1"
+                      >
+                        Apagar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <CloudProfileModal
+            open={cloudModalOpen}
+            onClose={() => {
+              setCloudModalOpen(false);
+              setEditingProfile(null);
+            }}
+            editing={editingProfile}
+          />
+          <CloudFileBrowserModal profile={browseProfile} onClose={() => setBrowseProfile(null)} />
         </div>
       )}
 

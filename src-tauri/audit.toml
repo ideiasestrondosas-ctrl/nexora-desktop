@@ -1,0 +1,22 @@
+# cargo-audit configuration — advisories aceites com justificação
+# Executar: cargo audit --file audit.toml
+
+[advisories]
+ignore = [
+    # RUSTSEC-2023-0071 — Marvin Attack: timing side-channel no crate `rsa`
+    # via russh-keys → russh (usado pelo provider SFTP).
+    # Impacto: potencial recuperação de chave privada RSA via timing.
+    # Mitigação: o Nexora usa APENAS autenticação por password (authenticate_password),
+    # nunca por chave RSA pública/privada. O caminho de código vulnerável não é atingido.
+    # Sem upgrade disponível (rsa 0.10+ ainda não publicado com fix).
+    "RUSTSEC-2023-0071",
+]
+
+[warnings]
+# async-std (via suppaftp) — descontinuado em Ago 2025.
+# Sem alternativa sem substituir o provider FTP por uma biblioteca tokio-native.
+# Monitorizar actualizações do suppaftp para migração futura.
+unmaintained = "warn"
+
+# GTK3 bindings (atk, gdk, etc.) e unic-* — dependências indirectas do Tauri/WRY.
+# Fora do nosso controlo; actualizações dependem de releases do Tauri.

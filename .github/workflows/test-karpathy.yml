@@ -1,0 +1,30 @@
+name: Test Karpathy Guidelines
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  test-karpathy:
+    name: Validate Karpathy Guidelines Integration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Karpathy Guidelines Test
+        run: node scripts/test-karpathy.mjs
+        env:
+          # The script checks ~/.opencode/skills which won't exist in CI.
+          # For CI, we validate the AGENTS.md and the script structure.
+          # The skill itself is a user-level OpenCode configuration.
+          CI: true
