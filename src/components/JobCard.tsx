@@ -4,7 +4,8 @@ import { Job } from '@/store/jobs';
 import { ProgressBar } from './ProgressBar';
 import { NexoraStatusBadge } from './NexoraStatusBadge';
 import { VMAFGauge } from './VMAFGauge';
-import { FileVideo, XCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import PipelineErrorMessage from '@/components/PipelineErrorMessage';
+import { FileVideo, XCircle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface JobCardProps {
@@ -99,10 +100,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, filename, onCancel }) => 
                 })}
               </>
             ) : isError ? (
-              <>
-                <AlertCircle className="w-3 h-3 text-red-500" />{' '}
-                {job.error || t('jobCard.unknownError')}
-              </>
+              <PipelineErrorMessage rawError={job.error} />
             ) : null}
           </div>
         </div>
