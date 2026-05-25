@@ -1,17 +1,25 @@
 use crate::state::{AppState, WatchCmd};
 use chrono::Utc;
+use notify::event::ModifyKind;
 use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::path::Path;
+use std::collections::{HashMap, HashSet};
+use std::path::{Path, PathBuf};
 use std::sync::mpsc;
+use std::time::Instant;
 use tauri::{Emitter, State};
 use uuid::Uuid;
 
 const VIDEO_EXTS: &[&str] = &[
     "mp4", "mov", "mxf", "avi", "mkv", "webm", "ts", "m2ts", "m4v",
 ];
+
+/// Ficheiro pendente de ingestão — aguarda estabilidade de tamanho por 3 s.
+struct PendingFile {
+    size: u64,
+    stable_since: Instant,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -71,6 +79,11 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
             watched.len()
         );
 
+        // Ficheiros aguardando estabilização de tamanho (path -> PendingFile)
+        let mut pending: HashMap<PathBuf, PendingFile> = HashMap::new();
+        // Ficheiros já emitidos nesta sessão — evita emissão duplicada
+        let mut ingested: HashSet<PathBuf> = HashSet::new();
+
         loop {
             // Processar comandos sem bloquear
             while let Ok(cmd) = cmd_rx.try_recv() {
@@ -103,7 +116,11 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
 
             // Processar eventos de ficheiro sem bloquear
             while let Ok(Ok(event)) = ev_rx.try_recv() {
-                if matches!(event.kind, EventKind::Create(_)) {
+                let is_create = matches!(event.kind, EventKind::Create(_));
+                let is_data_modify =
+                    matches!(event.kind, EventKind::Modify(ModifyKind::Data(_)));
+
+                if is_create || is_data_modify {
                     for file_path in &event.paths {
                         let is_video = file_path
                             .extension()
@@ -111,30 +128,79 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
                             .map(|e| VIDEO_EXTS.contains(&e.to_lowercase().as_str()))
                             .unwrap_or(false);
 
-                        if is_video {
-                            let wf_id = watched
-                                .iter()
-                                .find(|(_, p)| file_path.starts_with(p.as_str()))
-                                .map(|(id, _)| id.clone())
-                                .unwrap_or_default();
+                        if !is_video {
+                            continue;
+                        }
 
-                            let _ = app.emit(
-                                "watch-folder-file-added",
-                                serde_json::json!({
-                                    "path": file_path.to_string_lossy(),
-                                    "watchFolderId": wf_id
-                                }),
-                            );
-                            log::info!(
-                                "watch_folders: ficheiro detectado: {}",
-                                file_path.display()
+                        let size = std::fs::metadata(file_path)
+                            .map(|m| m.len())
+                            .unwrap_or(0);
+
+                        if size == 0 {
+                            // Ficheiro ainda vazio — ignorar por enquanto
+                            continue;
+                        }
+
+                        if let Some(entry) = pending.get_mut(file_path) {
+                            if entry.size != size {
+                                // Tamanho mudou — reiniciar contagem de estabilidade
+                                entry.size = size;
+                                entry.stable_since = Instant::now();
+                            }
+                            // Se tamanho igual, stable_since mantém-se — já está a contar
+                        } else {
+                            pending.insert(
+                                file_path.clone(),
+                                PendingFile {
+                                    size,
+                                    stable_since: Instant::now(),
+                                },
                             );
                         }
+                    }
+                } else if matches!(event.kind, EventKind::Remove(_)) {
+                    for file_path in &event.paths {
+                        pending.remove(file_path);
+                        ingested.remove(file_path);
                     }
                 }
             }
 
-            std::thread::sleep(std::time::Duration::from_millis(250));
+            // Verificar ficheiros pendentes: estáveis ≥ 3 s e ainda não ingeridos
+            let now = Instant::now();
+            let ready: Vec<PathBuf> = pending
+                .iter()
+                .filter(|(path, entry)| {
+                    now.duration_since(entry.stable_since).as_secs() >= 3
+                        && !ingested.contains(*path)
+                })
+                .map(|(path, _)| path.clone())
+                .collect();
+
+            for file_path in ready {
+                let wf_id = watched
+                    .iter()
+                    .find(|(_, p)| file_path.starts_with(p.as_str()))
+                    .map(|(id, _)| id.clone())
+                    .unwrap_or_default();
+
+                let _ = app.emit(
+                    "watch-folder-file-added",
+                    serde_json::json!({
+                        "path": file_path.to_string_lossy(),
+                        "watchFolderId": wf_id
+                    }),
+                );
+                log::info!(
+                    "watch_folders: ficheiro estável, a emitir: {}",
+                    file_path.display()
+                );
+
+                ingested.insert(file_path.clone());
+                pending.remove(&file_path);
+            }
+
+            std::thread::sleep(std::time::Duration::from_millis(1000));
         }
     });
 
