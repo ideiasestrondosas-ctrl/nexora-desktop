@@ -457,7 +457,7 @@ pub fn log_user_action(
 #[tauri::command]
 pub fn get_last_n_logs_text(n: i64, state: State<'_, AppState>) -> Result<String, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let cap = n.min(500).max(1);
+    let cap = n.clamp(1, 500);
     let mut stmt = db
         .prepare(
             "SELECT ts, level, source, message FROM logs ORDER BY ts DESC LIMIT ?1",
