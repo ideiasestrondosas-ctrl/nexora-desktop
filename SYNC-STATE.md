@@ -5,10 +5,38 @@
 
 ---
 
-Actualizado: 2026-05-25 12:00
+Actualizado: 2026-05-25
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 25 — Glassmorphism uniforme em todos os overlays — CONCLUIDO
+
+**Pedido:** Tornar todos os menus, popups, modais e qualquer janela que faça sobreposição uniformemente glass/semi-transparente, igual ao efeito aplicado ao sidebar e topbar.
+
+**Implementacao:**
+
+1. **Classe `.glass-surface` em `src/index.css`:**
+   - Dark + Win/Mac: `rgba(14,18,28,0.78)` + `backdrop-filter: blur(24px) saturate(1.4)` + border `rgba(255,255,255,0.08)`
+   - Light + Win/Mac: `rgba(248,250,252,0.84)` + `backdrop-filter: blur(24px) saturate(1.2)` + border `rgba(0,0,0,0.06)`
+   - Linux/outros: sem override (fundo sólido original mantido)
+   - Toasts Sonner: `[data-sonner-toast]` com `!important` (inline styles da lib)
+
+2. **Componentes actualizados (container raiz de cada overlay):**
+   - `AssetDetailModal.tsx` — `bg-white dark:bg-gray-900` → `glass-surface`
+   - `ConfirmDialog.tsx` — `bg-bg-secondary` → `glass-surface`
+   - `HelpModal.tsx` — `bg-card/95 backdrop-blur-md` → `glass-surface`
+   - `IngestProfileModal.tsx` — modal container + dropdown de perfil
+   - `BatchSubmitModal.tsx` — modal container + `ProfileDropdown` portal
+   - `CloudFileBrowserModal.tsx` — `bg-bg-primary` → `glass-surface`
+   - `CloudProfileModal.tsx` — `bg-gray-900 border border-gray-700` → `glass-surface border border-border` (fix de cores hardcoded)
+   - `QueuePage.tsx` — popover de reprocessamento (portal para body)
+
+**Total:** 9 ficheiros alterados, 1 commit (`2579540`)
+
+**Notas para o proximo agente:** Glassmorphism agora e uniforme. `WindowControls.tsx` existe mas nao esta integrado no TopBar (frame nativo ativo). `PlatformDebugBadge` e dev-only e pode ser removido antes de producao. Branch `dev` tem merge de `main` com todo o trabalho das sessoes 23-25.
+
+---
 
 ### Sessao 24 — Glassmorphism + Correcoes UX — CONCLUIDO
 
