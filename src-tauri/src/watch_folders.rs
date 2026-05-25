@@ -9,7 +9,9 @@ use std::sync::mpsc;
 use tauri::{Emitter, State};
 use uuid::Uuid;
 
-const VIDEO_EXTS: &[&str] = &["mp4", "mov", "mxf", "avi", "mkv", "webm", "ts", "m2ts", "m4v"];
+const VIDEO_EXTS: &[&str] = &[
+    "mp4", "mov", "mxf", "avi", "mkv", "webm", "ts", "m2ts", "m4v",
+];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -89,8 +91,8 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
                     WatchCmd::SetEnabled { id, enabled } => {
                         if let Some(path) = watched.get(&id).cloned() {
                             if enabled {
-                                let _ = watcher
-                                    .watch(Path::new(&path), RecursiveMode::NonRecursive);
+                                let _ =
+                                    watcher.watch(Path::new(&path), RecursiveMode::NonRecursive);
                             } else {
                                 let _ = watcher.unwatch(Path::new(&path));
                             }

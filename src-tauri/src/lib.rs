@@ -6,8 +6,8 @@ mod logger;
 mod queue;
 mod sidecar;
 mod state;
-mod tray;
 mod telemetry;
+mod tray;
 mod watch_folders;
 
 use state::AppState;

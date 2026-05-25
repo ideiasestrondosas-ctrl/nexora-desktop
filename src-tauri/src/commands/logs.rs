@@ -459,9 +459,7 @@ pub fn get_last_n_logs_text(n: i64, state: State<'_, AppState>) -> Result<String
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let cap = n.clamp(1, 500);
     let mut stmt = db
-        .prepare(
-            "SELECT ts, level, source, message FROM logs ORDER BY ts DESC LIMIT ?1",
-        )
+        .prepare("SELECT ts, level, source, message FROM logs ORDER BY ts DESC LIMIT ?1")
         .map_err(|e| e.to_string())?;
     let lines: Vec<String> = stmt
         .query_map(rusqlite::params![cap], |row| {
@@ -487,14 +485,12 @@ pub fn save_bug_report(content: String, app: tauri::AppHandle) -> Result<String,
     let date = chrono::Utc::now().format("%Y-%m-%d_%H%M%S");
     let filename = format!("nexora-bug-{}.txt", date);
 
-    let downloads = app
-        .path()
-        .download_dir()
-        .map_err(|e| e.to_string())?;
+    let downloads = app.path().download_dir().map_err(|e| e.to_string())?;
     let path = downloads.join(&filename);
 
     let mut file = std::fs::File::create(&path).map_err(|e| e.to_string())?;
-    file.write_all(content.as_bytes()).map_err(|e| e.to_string())?;
+    file.write_all(content.as_bytes())
+        .map_err(|e| e.to_string())?;
 
     Ok(path.to_string_lossy().into_owned())
 }
