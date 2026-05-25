@@ -10,6 +10,59 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 26 — Pipeline de Release sync.ps1 — Titulo, Draft com Assets e Corpo Rico — CONCLUIDO
+
+**Pedido:** A release v0.27.0 aparecia como Draft com titulo "Nexora Desktop v0.27.0" sem assets nem corpo rico. Corrigir sync.ps1 para gerar titulos e corpos automaticamente, e garantir que a opcao 6 publica o draft correcto (com instaladores do CI).
+
+**Causa raiz identificada:**
+
+1. **Caminho `-Release` (linha 1986):** chamava `Get-ReleaseTitle` sem prefixo `"v$version — "`, ao contrario da opcao 6 que ja o adicionava. Resultado: titulo "PublishDraft mode, Bug Fixes & Platform Polish" em vez de "v0.27.0 — ..."
+2. **Opcao 6 (`Invoke-PublishDraft`):** usava `GET /releases/tags/{tag}` que so devolve releases **nao-draft**. O draft criado pelo CI (com 6 instaladores) ficava invisivel; a opcao 6 publicava uma release vazia sem assets.
+3. **CHANGELOG v0.27.0:** so tinha o commit do README; faltavam `feat(sync): PublishDraft` e `fix(sync): PATCH draft`.
+4. **Corpo gerado do CHANGELOG:** formato simplificado `### New Features` em ingles, em vez do formato rico em portugues.
+
+**Implementacao:**
+
+1. **`scripts/sync.ps1` — linha 1986:**
+   - `Get-ReleaseTitle ...` → `"v$newVersion — $(Get-ReleaseTitle ...)"` — paridade com opcao 6
+
+2. **`scripts/sync.ps1` — `Invoke-PublishDraft` (opcao 6) — reescrita completa:**
+   - Usa `GET /releases?per_page=50` e filtra `draft=true` + tag correspondente
+   - Prefere o draft com assets do CI; fallback para release publicada se nao houver draft
+   - Gera `release-notes-vX.md` a partir dos commits do range (`git log PREV..CURRENT`)
+   - Apos publicar o draft correcto, apaga automaticamente a release duplicada vazia (se existir)
+
+3. **`scripts/sync.ps1` — `Generate-ReleaseNotesFile` — headers portugueses:**
+   - `## What's New` → `## Resumo` (com contador de itens)
+   - `### New Features` → `## Novas Funcionalidades`
+   - `### Bug Fixes` → `## Correccoes`
+   - `### Changed` → `## Alteracoes`
+   - `## Instaladores` com tabela em portugues
+
+4. **`CHANGELOG.md` v0.27.0:** adicionados commits em falta (`feat(sync): PublishDraft`, `fix(sync): PATCH draft`)
+
+5. **`.env.example`:** `GITHUB_TOKEN=` documentado com instrucoes
+
+6. **v0.27.0 GitHub Release — corrigida manualmente via API:**
+   - Draft com assets (ID 328561164, 6 instaladores) publicado com titulo/corpo/tag correctos
+   - Release vazia (ID 328797290, 0 assets) apagada
+   - Estado final: `v0.27.0 — PublishDraft mode, Bug Fixes & Platform Polish` — Latest — 6 assets
+
+**Commits desta sessao:**
+
+- `4a4086f` fix(sync): adicionar prefixo v$version ao titulo da release em -Release
+- `ee70d0d` docs: adicionar GITHUB_TOKEN ao .env.example
+- `e9ebf41` fix(sync): opcao 6 — encontrar draft com assets via lista completa de releases
+
+**Notas para o proximo agente:**
+
+- A proxima release sera v0.28.0 (tag ja criada, CHANGELOG corrigido)
+- Para publicar a v0.28.0: o CI vai correr automaticamente; depois executar `sync.ps1 -PublishDraft` — a opcao 6 ja encontra o draft do CI correctamente
+- `release-notes-v0.27.0.md` criado localmente (nao commitado, usado pelo sync.ps1)
+- O `.env` com `GITHUB_TOKEN` e necessario para a opcao 6 funcionar (nao esta em git)
+
+---
+
 ### Sessao 25 — Glassmorphism uniforme em todos os overlays — CONCLUIDO
 
 **Pedido:** Tornar todos os menus, popups, modais e qualquer janela que faça sobreposição uniformemente glass/semi-transparente, igual ao efeito aplicado ao sidebar e topbar.

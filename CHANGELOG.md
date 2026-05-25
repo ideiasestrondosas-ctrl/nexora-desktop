@@ -9,9 +9,16 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.28.0] - 2026-05-25
 
 ### Added
-- feat: now published with correct title and 6 CI build assets. Also updated sync.ps1 option 6 to auto-find CI
 
+- feat(sync): .env.example documentado com GITHUB_TOKEN e instrucoes de criacao
+- feat(sync): Generate-ReleaseNotesFile com cabecalhos em portugues (Resumo / Novas Funcionalidades / Correccoes / Alteracoes / Instaladores)
 
+### Fixed
+
+- fix(sync): opcao 6 usava GET /releases/tags/{tag} que ignora drafts; corrigido para GET /releases com filtragem por tag+draft=true — draft do CI (com instaladores) e agora encontrado correctamente
+- fix(sync): opcao 6 gera release-notes-vX.md a partir dos commits do range antes de publicar
+- fix(sync): opcao 6 apaga release duplicada vazia criada pelo sync.ps1 se o CI ja criou o draft
+- fix(sync): caminho -Release nao prefixava o titulo com "v$version —"; corrigido para paridade com opcao 6
 
 ## [0.27.0] - 2026-05-24
 
