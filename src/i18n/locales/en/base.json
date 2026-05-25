@@ -24,7 +24,8 @@
     "ram": "RAM",
     "gpu": "GPU",
     "disk": "Disk",
-    "exit": "Exit"
+    "exit": "Exit",
+    "bugReport": "Report a Problem"
   },
   "dashboard": {
     "assetsTotal": "Total Assets",
@@ -318,6 +319,16 @@
       "disabled": "Paused",
       "addError": "Could not add folder: {{error}}",
       "removeConfirm": "Remove this folder from Watch Folders?"
+    },
+    "privacy": {
+      "tab": "Privacy",
+      "title": "Privacy & Telemetry",
+      "toggle": "Share anonymous error data",
+      "toggleHint": "Error counts and app events — stored only on this device.",
+      "viewData": "View collected data",
+      "clearData": "Delete all data",
+      "noData": "No telemetry data collected yet.",
+      "cleared": "All telemetry data deleted."
     }
   },
   "logs": {
@@ -740,6 +751,20 @@
     "back": "Back",
     "start": "Start using Nexora",
     "stepOf": "Step {{current}} of {{total}}"
+  },
+  "bugReport": {
+    "title": "Report a Problem",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Brief description of the issue",
+    "descLabel": "Description",
+    "descPlaceholder": "Steps to reproduce, expected vs actual behaviour...",
+    "includeLogs": "Include last 50 log lines",
+    "copyClipboard": "Copy to clipboard",
+    "openGitHub": "Open GitHub Issue",
+    "saveFile": "Save as file",
+    "copied": "Copied to clipboard",
+    "saved": "Saved to {{path}}",
+    "titleRequired": "Title is required"
   },
   "common": {
     "save": "Save",

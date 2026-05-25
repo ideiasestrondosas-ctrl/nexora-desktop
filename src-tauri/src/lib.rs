@@ -7,6 +7,7 @@ mod queue;
 mod sidecar;
 mod state;
 mod tray;
+mod telemetry;
 mod watch_folders;
 
 use state::AppState;
@@ -40,6 +41,19 @@ pub fn run() {
             logger::init(app.handle().clone(), &db_path);
             file_logger::init(app.handle());
             log::info!("Nexora Desktop v{} a arrancar", env!("CARGO_PKG_VERSION"));
+
+            // Evento de telemetria de arranque (só se telemetria activada)
+            {
+                let state = app.state::<AppState>();
+                telemetry::record(
+                    &state,
+                    "app_launch",
+                    Some(serde_json::json!({
+                        "version": env!("CARGO_PKG_VERSION"),
+                        "platform": std::env::consts::OS,
+                    })),
+                );
+            }
 
             tray::setup(app)?;
 
@@ -177,6 +191,8 @@ pub fn run() {
             commands::logs::clear_log_files,
             commands::logs::upload_logs_to_server,
             commands::logs::log_user_action,
+            commands::logs::get_last_n_logs_text,
+            commands::logs::save_bug_report,
             commands::cloud::get_cloud_profiles,
             commands::cloud::create_cloud_profile,
             commands::cloud::update_cloud_profile,
@@ -196,6 +212,8 @@ pub fn run() {
             watch_folders::add_watch_folder,
             watch_folders::remove_watch_folder,
             watch_folders::toggle_watch_folder,
+            telemetry::get_telemetry_events,
+            telemetry::clear_telemetry_events,
             get_startup_status,
         ])
         .run(tauri::generate_context!())

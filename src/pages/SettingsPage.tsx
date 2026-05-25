@@ -144,6 +144,7 @@ type SettingsTab =
   | 'logs'
   | 'cloud'
   | 'watchFolders'
+  | 'privacy'
   | 'advanced'
   | 'about';
 
@@ -184,6 +185,11 @@ export default function SettingsPage() {
   const [logInfo, setLogInfo] = useState<LogStorageInfo | null>(null);
   const [logInfoLoading, setLogInfoLoading] = useState(false);
   const [watchFolders, setWatchFolders] = useState<WatchFolder[]>([]);
+  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
+  const [telemetryEvents, setTelemetryEvents] = useState<
+    Array<{ id: string; eventType: string; payloadJson?: string; createdAt: string }>
+  >([]);
+  const [showTelemetryData, setShowTelemetryData] = useState(false);
 
   const {
     profiles: cloudProfiles,
@@ -361,6 +367,13 @@ export default function SettingsPage() {
         setLogInfoLoading(false);
       })
       .catch(() => setLogInfoLoading(false));
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'privacy') return;
+    invoke<Record<string, string>>('get_settings').then((s) => {
+      setTelemetryEnabled(s.telemetry_enabled === 'true');
+    });
   }, [activeTab]);
 
   const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
@@ -544,6 +557,18 @@ export default function SettingsPage() {
     }
   }
 
+  const handleViewTelemetry = async () => {
+    const events = await invoke<typeof telemetryEvents>('get_telemetry_events');
+    setTelemetryEvents(events);
+    setShowTelemetryData(true);
+  };
+
+  const handleClearTelemetry = async () => {
+    await invoke('clear_telemetry_events');
+    setTelemetryEvents([]);
+    setShowTelemetryData(false);
+  };
+
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
     { id: 'general', label: t('settings.tabs.general'), icon: Shield },
     { id: 'interface', label: t('settings.tabs.interface'), icon: Palette },
@@ -551,6 +576,7 @@ export default function SettingsPage() {
     { id: 'logs', label: 'Logs', icon: Terminal },
     { id: 'cloud' as const, label: 'Cloud', icon: Cloud },
     { id: 'watchFolders' as const, label: t('settings.watchFolders.tab'), icon: FolderOpen },
+    { id: 'privacy' as const, label: t('settings.privacy.tab'), icon: Shield },
     { id: 'advanced', label: t('settings.tabs.advanced'), icon: Globe },
     { id: 'about', label: t('settings.tabs.about'), icon: Info },
   ];
@@ -1520,6 +1546,59 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* TAB: PRIVACY */}
+      {activeTab === 'privacy' && (
+        <div className="space-y-6">
+          <h3 className="text-sm font-semibold text-text-primary">{t('settings.privacy.title')}</h3>
+          <div className="flex items-start justify-between gap-4 py-3 border-b border-border">
+            <div>
+              <p className="text-sm font-medium text-text-primary">
+                {t('settings.privacy.toggle')}
+              </p>
+              <p className="text-xs text-text-muted mt-0.5">{t('settings.privacy.toggleHint')}</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={telemetryEnabled}
+              onChange={(e) => {
+                const val = e.target.checked;
+                setTelemetryEnabled(val);
+                invoke('update_settings', {
+                  key: 'telemetry_enabled',
+                  value: val ? 'true' : 'false',
+                });
+              }}
+              className="mt-1 w-4 h-4 accent-brand"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={handleViewTelemetry}
+              className="px-3 py-1.5 rounded-lg border border-border text-sm text-text-muted hover:bg-muted transition-colors"
+            >
+              {t('settings.privacy.viewData')}
+            </button>
+            <button
+              onClick={handleClearTelemetry}
+              className="px-3 py-1.5 rounded-lg border border-red-500/40 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+            >
+              {t('settings.privacy.clearData')}
+            </button>
+          </div>
+          {showTelemetryData && (
+            <div className="bg-bg-secondary rounded-lg border border-border p-3 max-h-64 overflow-y-auto">
+              {telemetryEvents.length === 0 ? (
+                <p className="text-xs text-text-muted">{t('settings.privacy.noData')}</p>
+              ) : (
+                <pre className="text-xs text-text-primary whitespace-pre-wrap">
+                  {JSON.stringify(telemetryEvents, null, 2)}
+                </pre>
+              )}
+            </div>
+          )}
         </div>
       )}
 
