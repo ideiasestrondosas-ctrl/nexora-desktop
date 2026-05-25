@@ -47,14 +47,27 @@ export function VisualComparatorPlayer({
     };
   }, []);
 
+  useEffect(() => {
+    const onWindowMouseUp = () => {
+      isDragging.current = false;
+    };
+    window.addEventListener('mouseup', onWindowMouseUp);
+    return () => window.removeEventListener('mouseup', onWindowMouseUp);
+  }, []);
+
   const togglePlay = useCallback(async () => {
     const left = leftRef.current;
     const right = rightRef.current;
     if (!left || !right) return;
 
     if (left.paused) {
-      await Promise.all([left.play(), right.play()]);
-      setIsPlaying(true);
+      try {
+        await Promise.all([left.play(), right.play()]);
+        setIsPlaying(true);
+      } catch {
+        // AbortError or autoplay block — stay paused
+        setIsPlaying(false);
+      }
     } else {
       left.pause();
       right.pause();
