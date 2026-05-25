@@ -15,7 +15,7 @@
 | Campo                  | Valor                                                         |
 | ---------------------- | ------------------------------------------------------------- |
 | **Nome**               | Nexora Media Processing - Desktop Nativo                      |
-| **Versao**             | 0.28.0                                                        |
+| **Versao**             | 0.29.0-alpha.1                                                |
 | **IDE**                | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT) |
 | **Stack Shell**        | Tauri 2.x (Rust)                                              |
 | **Stack Frontend**     | React 19 + TypeScript + Tailwind CSS + Zustand                |
@@ -104,10 +104,10 @@
 
 - [x] Testar localmente (tauri dev) em 3 plataformas
 - [ ] Testes unitarios passam (>80% cobertura)
-- [ ] Build funciona para Windows (.exe/.msi)
-- [ ] Build funciona para macOS (.dmg universal)
-- [ ] Build funciona para Linux (.AppImage + .deb)
-- [ ] GitHub Release criado com artefactos das 3 plataformas
+- [x] Build funciona para Windows (.exe/.msi)
+- [x] Build funciona para macOS (.dmg universal)
+- [x] Build funciona para Linux (.AppImage + .deb)
+- [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
 
 ---
 
@@ -130,10 +130,94 @@
 ```
 Data:          2026-05-25
 Agente:        Claude Code (claude-sonnet-4-6)
-Ultima sessao: 26 — Pipeline de Release sync.ps1 — Titulo, Draft com Assets e Corpo Rico (CONCLUIDO)
-Proximo:       Publicar v0.28.0 via opcao 6 apos CI terminar
+Ultima sessao: 27 — Alpha Instrumentada v0.29.0 (CONCLUIDO)
+Proximo:       Recolher feedback alpha + bugs + lançar beta publica
 Bloqueios:     Nenhum
 ```
+
+### Fase 15 - Alpha Instrumentada v0.29.0 (Sessao 27)
+
+**Objectivo:** Instrumentar a app para alpha fechado — onboarding, telemetria opt-in, watch folders, bug report, erros de pipeline, e publicar release para testers.
+
+**Watch Folders (backend + frontend):**
+
+- [x] Migracao SQLite: tabelas `watch_folders` e `telemetry_events`
+- [x] Script `check-translations.mjs` com alpha gate PT (exit 1 se chaves em falta)
+- [x] Backend Rust: crate `notify` v6, `WatchCmd` mpsc channel em `AppState`, thread watcher
+- [x] Comandos IPC: `add_watch_folder`, `remove_watch_folder`, `list_watch_folders`, `set_watch_folder_enabled`
+- [x] Frontend React: painel Watch Folders em SettingsPage com add/remove/toggle
+- [x] i18n: chaves `settings.watchFolders.*` em EN e PT
+
+**Onboarding:**
+
+- [x] `OnboardingModal.tsx`: wizard 4 passos (Welcome, Output Folder, Privacy, Done)
+- [x] `STORAGE_KEY = 'nexora_onboarding_complete'` exportado para reset nas Settings
+- [x] Hook `useOnboarding()` verificando localStorage no mount
+- [x] Passo 2: escolha de pasta via `dialogOpen` com fallback gracioso
+- [x] Passo 3: toggle telemetria (opt-in, default desactivado)
+- [x] Passo 4: `invoke('update_settings')` para output_dir e telemetry_enabled
+- [x] Botao "Repor Onboarding" em Settings > Privacy com `STORAGE_KEY`
+
+**Telemetria local (opt-in):**
+
+- [x] `src-tauri/src/telemetry.rs`: `record()` verifica `telemetry_enabled`, insere em `telemetry_events`
+- [x] `get_telemetry_events`: ultimos 200 DESC
+- [x] `clear_telemetry_events`: DELETE all
+- [x] Aba Privacy em Settings: toggle + botoes Ver/Limpar telemetria
+- [x] i18n: chaves `settings.privacy.*` em EN e PT
+
+**Bug Report:**
+
+- [x] `BugReportModal.tsx`: copia para clipboard, abre GitHub issue, guarda ficheiro
+- [x] `invoke('get_last_n_logs_text', { n: 50 })` para incluir logs no report
+- [x] `invoke('save_bug_report', { content })` guarda em Downloads
+- [x] Botao Bug (icone laranja) adicionado ao `TopBar.tsx`
+- [x] i18n: chaves `bugReport.*` e `topbar.bugReport` em EN e PT
+
+**Mensagens de erro de pipeline:**
+
+- [x] `PipelineErrorMessage.tsx`: mapeia padroes FFmpeg (diskFull, permission, corrupt, codec, killed, generic) para titulo + dica
+- [x] i18n: chaves `jobCard.errors.*` em EN e PT
+
+**Novos comandos Rust:**
+
+- [x] `get_last_n_logs_text(n: i64)`: usa `n.clamp(1, 500)` (clippy-safe)
+- [x] `save_bug_report(content: String, app: AppHandle)`: guarda em Downloads com timestamp
+
+**Documentacao alpha:**
+
+- [x] `ALPHA-TESTING.md`: 22 accoes de teste, requisitos minimos, instrucoes de instalacao 3 plataformas
+
+**Release v0.29.0-alpha.1:**
+
+- [x] `tauri.conf.json` versao `0.29.0` (numerica para MSI)
+- [x] `package.json` versao `0.29.0-alpha.1`
+- [x] Tag `v0.29.0-alpha.1` publicada no GitHub
+- [x] CI passou (clippy fix: `n.clamp`, fmt fix: `cargo fmt`)
+- [x] Release publicada com 6 instaladores (Windows MSI/NSIS, macOS DMG/APP, Linux AppImage/DEB)
+- [x] 7 PRs Dependabot seguros mergiados; 3 breaking-change PRs fechados
+
+**Commits desta sessao (17 commits):**
+
+- `1ecb332` feat(db): adicionar tabelas watch_folders e telemetry_events
+- `af22ed9` feat(i18n): script check-translations
+- `7dadbc9` fix(i18n): remover import nao utilizado
+- `4bdd9b6` feat(watch-folders): backend Rust
+- `5884096` feat(watch-folders): frontend React
+- `d43ef8b` feat(ux): PipelineErrorMessage
+- `1d88db3` feat(onboarding): modal 4 passos
+- `a86cd9f` fix(quality): TOTAL_STEPS, STORAGE_KEY, error handling
+- `76db68e` feat(telemetry): registo local opt-in
+- `69de57a` feat(bug-report): BugReportModal
+- `95b54d1` fix(quality): error handling em handlers async
+- `4c2a3ee` docs: ALPHA-TESTING.md
+- `d312428` feat(i18n): traducoes PT
+- `4baa17a` chore(release): v0.29.0-alpha.1
+- `1c67d79` fix(clippy): n.clamp
+- `336099c` fix(fmt): cargo fmt
+- `45d9bcd` fix(release): versao numerica tauri.conf.json
+
+---
 
 ### Fase 14 - HelpModal + i18n Completo (v0.27.0)
 
@@ -521,7 +605,7 @@ nexora-desktop/
 8. [x] ~~Path traversal SMB fix (S2)~~
 9. [x] ~~i18n lazy-load 15 lÃƒÆ’Ã‚Â­nguas (Fase 14)~~
 10. [x] ~~Platform UX adaptativa ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â usePlatform, menus nativos, titlebar (Phase 4)~~
-11. [ ] Watch Folders (pastas de monitorizaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o automÃƒÆ’Ã‚Â¡tica via crate `notify`)
+11. [x] ~~Watch Folders (pastas de monitorizacao automatica via crate `notify`)~~
 12. [ ] Traducao profissional dos locales nao-pt (actualmente gerado/automÃƒÆ’Ã‚Â¡tico)
 13. [ ] tauri dev golden path ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â testar drag-drop end-to-end
 14. [ ] B6: dedup startup_checks ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â cachear resultado em AppState
@@ -577,4 +661,4 @@ nexora-desktop/
 
 _Este ficheiro e a fonte de verdade do projecto Desktop._
 _Em caso de duvida, consulta aqui._
-_Ultima actualizacao: 2026-05-21 por Claude Code (Sonnet 4.6)_
+_Ultima actualizacao: 2026-05-25 por Claude Code (claude-sonnet-4-6)_

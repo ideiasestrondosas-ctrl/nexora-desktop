@@ -10,6 +10,73 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 27 — Alpha Instrumentada v0.29.0 — CONCLUIDO
+
+**Pedido:** Implementar instrumentacao completa para alpha fechado: watch folders, onboarding, telemetria opt-in, bug report modal, mensagens de erro de pipeline, traducoes PT completas, e publicar release v0.29.0-alpha.1.
+
+**Implementacao (11 tasks, 17 commits):**
+
+1. **Migracao SQLite:** tabelas `watch_folders` e `telemetry_events` adicionadas via `migrate_watch_folders_v1` e `migrate_telemetry_v1` em `db/migrations.rs`.
+
+2. **Script check-translations.mjs:** valida paridade de chaves EN vs PT/outros locales; alpha gate — `process.exit(1)` se PT tem chaves em falta.
+
+3. **Watch Folders (Rust):** crate `notify = "6"` em `Cargo.toml`; `WatchCmd` enum + `watcher_tx: Mutex<Option<mpsc::Sender<WatchCmd>>>` em `AppState`; thread watcher gerido em `lib.rs` setup; 4 comandos IPC: `add_watch_folder`, `remove_watch_folder`, `list_watch_folders`, `set_watch_folder_enabled`.
+
+4. **Watch Folders (React):** painel em `SettingsPage.tsx` com add/remove/toggle; interface `WatchFolder { id, path, enabled, createdAt }`.
+
+5. **PipelineErrorMessage.tsx:** componente que mapeia padroes FFmpeg (diskFull, permission, corrupt, codec, killed, generic) para titulo + dica user-friendly.
+
+6. **OnboardingModal.tsx:** wizard 4 passos; `STORAGE_KEY` exportado; `useOnboarding()` hook; passo 2 com `dialogOpen`; passo 3 toggle telemetria; passo 4 `invoke('update_settings')`.
+
+7. **Telemetria local (opt-in):** `src-tauri/src/telemetry.rs` — `record()` verifica setting antes de inserir; `get_telemetry_events` (200 DESC); `clear_telemetry_events`; aba Privacy em Settings.
+
+8. **BugReportModal.tsx:** copia clipboard, abre GitHub issue, guarda ficheiro via `invoke('save_bug_report')`; checkbox `includeLogs` default true; `invoke('get_last_n_logs_text', { n: 50 })`; botao Bug laranja em `TopBar.tsx`.
+
+9. **Novos comandos Rust em `commands/logs.rs`:** `get_last_n_logs_text(n: i64)` com `n.clamp(1, 500)`; `save_bug_report(content: String, app: AppHandle)` guarda em Downloads.
+
+10. **i18n PT completo:** todas as chaves novas (onboarding, bugReport, settings.watchFolders, settings.privacy, jobCard.errors, topbar.bugReport) adicionadas a `pt/common.json`; alpha gate passa `✅`.
+
+11. **ALPHA-TESTING.md:** guia de 22 accoes, requisitos minimos, instrucoes de instalacao para 3 plataformas; contacto: ideiasestrondosas@gmail.com.
+
+**Release v0.29.0-alpha.1:**
+
+- `tauri.conf.json` versao `0.29.0` (numerica para MSI WiX — nao aceita semver pre-release)
+- `package.json` versao `0.29.0-alpha.1`
+- CI corrigido: `n.clamp(1, 500)` (clippy) + `cargo fmt` (rustfmt)
+- Tag `v0.29.0-alpha.1` → commit `45d9bcd` (movida 3x durante fixes)
+- Release publicada: https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releases/tag/v0.29.0-alpha.1
+- 7 PRs Dependabot seguros mergiados; 3 PRs breaking-change fechados (#25 keyring 4, #29 reqwest 0.13, #30 TypeScript 6)
+
+**Commits desta sessao (17):**
+
+- `1ecb332` feat(db): adicionar tabelas watch_folders e telemetry_events
+- `af22ed9` feat(i18n): script check-translations
+- `7dadbc9` fix(i18n): remover import nao utilizado
+- `4bdd9b6` feat(watch-folders): backend Rust
+- `5884096` feat(watch-folders): frontend React
+- `d43ef8b` feat(ux): PipelineErrorMessage
+- `1d88db3` feat(onboarding): modal 4 passos
+- `a86cd9f` fix(quality): TOTAL_STEPS, STORAGE_KEY, error handling
+- `76db68e` feat(telemetry): registo local opt-in
+- `69de57a` feat(bug-report): BugReportModal
+- `95b54d1` fix(quality): error handling em handlers async
+- `4c2a3ee` docs: ALPHA-TESTING.md
+- `d312428` feat(i18n): traducoes PT
+- `4baa17a` chore(release): v0.29.0-alpha.1
+- `1c67d79` fix(clippy): n.clamp
+- `336099c` fix(fmt): cargo fmt
+- `45d9bcd` fix(release): versao numerica tauri.conf.json
+
+**Notas para o proximo agente:**
+
+- **MSI version constraint**: `tauri.conf.json` DEVE ter versao puramente numerica (ex: `0.30.0`); `package.json` pode ter semver (`0.30.0-beta.1`). Nao colocar `-alpha.N` no `tauri.conf.json`.
+- **n.clamp(1, 500)**: em Rust, clippy rejeita `n.min(500).max(1)` como "clamp-like pattern without using clamp function". Usar sempre `.clamp(min, max)`.
+- **Onboarding reset**: `STORAGE_KEY` exportado de `OnboardingModal.tsx`; Settings > Privacy usa `import { STORAGE_KEY as ONBOARDING_STORAGE_KEY }`.
+- **invoke() com update_settings**: usar `invoke('update_settings', { key: 'x', value: 'y' })` — NAO existe `set_output_dir` ou similar.
+- **Proximos passos sugeridos**: recolher feedback dos alpha testers, corrigir bugs reportados, lançar v0.30.0-beta.1 publica.
+
+---
+
 ### Sessao 26 — Pipeline de Release sync.ps1 — Titulo, Draft com Assets e Corpo Rico — CONCLUIDO
 
 **Pedido:** A release v0.27.0 aparecia como Draft com titulo "Nexora Desktop v0.27.0" sem assets nem corpo rico. Corrigir sync.ps1 para gerar titulos e corpos automaticamente, e garantir que a opcao 6 publica o draft correcto (com instaladores do CI).
