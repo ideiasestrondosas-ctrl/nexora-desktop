@@ -10,6 +10,54 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 28 — Beta Stability + VisualComparator v0.30.0-beta.1 — EM DEV (branch dev)
+
+**Pedido:** Analise multi-agente (Gemini, GPT-5.5, Kimi 2.6) identificou 6 bugs que bloqueiam a beta. Implementar fixes + feature premium VisualComparatorPlayer.
+
+**Implementacao (11 commits, subagent-driven development):**
+
+1. **Fix 1 — Watch Folders debounce:** `watch_folders.rs` — HashMap<PathBuf, PendingFile> com verificacao de tamanho 3s. HashSet `ingested` previne duplo ingest. Purge de pending/ingested em WatchCmd::Remove. Loop sleep 250ms -> 1s.
+
+2. **Fix 2 — SQLite WAL tuning:** `db/mod.rs` — adicionado `synchronous=NORMAL` e `wal_autocheckpoint=1000` ao execute_batch existente (WAL ja estava activo).
+
+3. **Fix 3 — Graceful shutdown:** `state.rs` novo campo `shutdown: Arc<AtomicBool>` + `WatchCmd::Shutdown`. `lib.rs`: disk thread verifica flag a cada 1s (max 1s latencia), metrics thread com while loop, RunEvent::ExitRequested handler.
+
+4. **Fix 4 — Event-driven logs:** `useLogs.ts` ja implementado em sessao anterior (listen('log-entry') + fallback 60s). Verificado, sem alteracoes.
+
+5. **Fix 5 — Cloud dedup:** `App.tsx` — removido useEffect que chamava `process_cloud_destinations`. Backend (queue.rs) e unico dono. `cloud.rs` ja filtra status='pending' (idempotente).
+
+6. **Fix 6 — version.ts:** `APP_VERSION = '0.30.0-beta.1'`, historico completo 0.10.0-0.30.0-beta.1 (21 entradas).
+
+7. **Feature 7 — VisualComparatorPlayer:** `src/components/VisualComparatorPlayer.tsx` — split-screen com clip-path dinamico, sincronizacao timeupdate, drag handle, window.mouseup cleanup, try/catch em togglePlay. Nova tab 'Comparador' em AssetDetailPage (condicional a output_path). i18n EN+PT.
+
+8. **Release bump:** `package.json` 0.30.0-beta.1, `Cargo.toml` 0.30.0, `tauri.conf.json` 0.30.0.
+
+**Commits desta sessao (11):**
+
+- `16ffbc8` fix(watch-folders): debounce de tamanho 3s + deduplicacao via ingested set
+- `e00fafe` fix(watch-folders): purge pending/ingested ao remover pasta + guard contra re-pending
+- `f972a9e` fix(db): synchronous=NORMAL e wal_autocheckpoint=1000 na conexao SQLite
+- `808d54d` fix(shutdown): graceful shutdown via AtomicBool + WatchCmd::Shutdown + ExitRequested handler
+- `225fa99` fix(shutdown): disk thread verifica shutdown a cada 1s (nao 10s)
+- `47042c0` chore(logs): Fix 4 verificado — useLogs usa event-driven listen('log-entry') + fallback 60s
+- `d17ef28` fix(cloud): remover trigger duplicado de process_cloud_destinations no frontend
+- `2ffe306` fix(version): actualizar APP_VERSION para 0.30.0-beta.1 + historico completo 0.26-0.30
+- `20a6580` feat(comparator): VisualComparatorPlayer split-screen + tab Comparador no AssetDetail
+- `62ac6c7` fix(comparator): window mouseup cleanup + try/catch no togglePlay
+- `2906ea6` chore(release): bump versoes para 0.30.0-beta.1 / 0.30.0
+
+**Estado:** Tudo implementado em branch `dev`. Nao mergiado para main ainda. Pronto para: merge + tag v0.30.0-beta.1 + GitHub Release (Pre-release).
+
+**Para o proximo agente:**
+
+- Fazer merge dev -> main
+- Criar tag `v0.30.0-beta.1`
+- Criar GitHub Release como Pre-release
+- A versao em `tauri.conf.json` e `0.30.0` (MSI WiX nao aceita semver pre-release) — correcto
+- Criterios de conclusao no spec: `docs/superpowers/specs/2026-05-25-beta-stability-comparator-design.md`
+
+---
+
 ### Sessao 27 — Alpha Instrumentada v0.29.0 — CONCLUIDO
 
 **Pedido:** Implementar instrumentacao completa para alpha fechado: watch folders, onboarding, telemetria opt-in, bug report modal, mensagens de erro de pipeline, traducoes PT completas, e publicar release v0.29.0-alpha.1.

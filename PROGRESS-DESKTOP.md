@@ -15,7 +15,7 @@
 | Campo                  | Valor                                                         |
 | ---------------------- | ------------------------------------------------------------- |
 | **Nome**               | Nexora Media Processing - Desktop Nativo                      |
-| **Versao**             | 0.29.0-alpha.1                                                |
+| **Versao**             | 0.30.0-beta.1 (em desenvolvimento — branch dev)               |
 | **IDE**                | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT) |
 | **Stack Shell**        | Tauri 2.x (Rust)                                              |
 | **Stack Frontend**     | React 19 + TypeScript + Tailwind CSS + Zustand                |
@@ -108,6 +108,18 @@
 - [x] Build funciona para macOS (.dmg universal)
 - [x] Build funciona para Linux (.AppImage + .deb)
 - [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
+
+### Fase 16 - Beta Fechada v0.30.0-beta.1 (Sessao 28)
+
+- [x] Fix 1: Watch Folders debounce 3s + ingested set (watch_folders.rs)
+- [x] Fix 2: SQLite WAL tuning — synchronous=NORMAL + wal_autocheckpoint=1000 (db/mod.rs)
+- [x] Fix 3: Graceful shutdown — AtomicBool + WatchCmd::Shutdown + ExitRequested handler; disk thread responde em 1s
+- [x] Fix 4: Event-driven logs verificado — useLogs.ts ja usa listen('log-entry') + fallback 60s
+- [x] Fix 5: Cloud upload dedup — removido useEffect duplicado em App.tsx
+- [x] Fix 6: version.ts bumped para 0.30.0-beta.1 + historico 0.26-0.30
+- [x] Feature: VisualComparatorPlayer split-screen — tab Comparador no AssetDetail + i18n EN/PT
+- [x] Release bump: package.json (0.30.0-beta.1), Cargo.toml (0.30.0), tauri.conf.json (0.30.0)
+- [ ] Merge dev -> main + tag v0.30.0-beta.1 + GitHub Release
 
 ---
 
