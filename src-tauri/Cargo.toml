@@ -42,7 +42,7 @@ rust-s3 = { version = "0.37", default-features = false, features = ["tokio-rustl
 tauri-plugin-clipboard-manager = "2.3.2"
 tauri-plugin-process = "2"
 keyring = "3"
-window-vibrancy = "0.5"
+window-vibrancy = "0.6"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 libc = "0.2"
