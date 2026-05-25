@@ -558,15 +558,23 @@ export default function SettingsPage() {
   }
 
   const handleViewTelemetry = async () => {
-    const events = await invoke<typeof telemetryEvents>('get_telemetry_events');
-    setTelemetryEvents(events);
-    setShowTelemetryData(true);
+    try {
+      const events = await invoke<typeof telemetryEvents>('get_telemetry_events');
+      setTelemetryEvents(events);
+      setShowTelemetryData(true);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleClearTelemetry = async () => {
-    await invoke('clear_telemetry_events');
-    setTelemetryEvents([]);
-    setShowTelemetryData(false);
+    try {
+      await invoke('clear_telemetry_events');
+      setTelemetryEvents([]);
+      setShowTelemetryData(false);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
@@ -1563,13 +1571,18 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={telemetryEnabled}
-              onChange={(e) => {
+              onChange={async (e) => {
                 const val = e.target.checked;
                 setTelemetryEnabled(val);
-                invoke('update_settings', {
-                  key: 'telemetry_enabled',
-                  value: val ? 'true' : 'false',
-                });
+                try {
+                  await invoke('update_settings', {
+                    key: 'telemetry_enabled',
+                    value: val ? 'true' : 'false',
+                  });
+                } catch (e) {
+                  console.error(e);
+                  setTelemetryEnabled(!val); // reverter em caso de erro
+                }
               }}
               className="mt-1 w-4 h-4 accent-brand"
             />

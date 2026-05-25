@@ -40,23 +40,38 @@ export default function BugReportModal({ open, onClose }: Props) {
 
   const handleCopy = async () => {
     if (!validate()) return;
-    const content = await buildContent();
-    await writeText(content);
-    setStatus(t('bugReport.copied'));
+    setStatus(null);
+    try {
+      const content = await buildContent();
+      await writeText(content);
+      setStatus(t('bugReport.copied'));
+    } catch {
+      setStatus('Failed. Please try again.');
+    }
   };
 
   const handleGitHub = async () => {
     if (!validate()) return;
-    const content = await buildContent();
-    const url = `https://github.com/ideiasestrondosas-ctrl/nexora-desktop/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(content)}`;
-    await openUrl(url);
+    setStatus(null);
+    try {
+      const content = await buildContent();
+      const url = `https://github.com/ideiasestrondosas-ctrl/nexora-desktop/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(content)}`;
+      await openUrl(url);
+    } catch {
+      setStatus('Failed to open browser.');
+    }
   };
 
   const handleSave = async () => {
     if (!validate()) return;
-    const content = await buildContent();
-    const path = await invoke<string>('save_bug_report', { content });
-    setStatus(t('bugReport.saved', { path }));
+    setStatus(null);
+    try {
+      const content = await buildContent();
+      const path = await invoke<string>('save_bug_report', { content });
+      setStatus(t('bugReport.saved', { path }));
+    } catch {
+      setStatus('Failed to save file.');
+    }
   };
 
   return (
