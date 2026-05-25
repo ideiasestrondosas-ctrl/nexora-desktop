@@ -97,8 +97,11 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
                         }
                     }
                     WatchCmd::Remove { id } => {
-                        if let Some(path) = watched.remove(&id) {
-                            let _ = watcher.unwatch(Path::new(&path));
+                        if let Some(folder_path) = watched.remove(&id) {
+                            let _ = watcher.unwatch(Path::new(&folder_path));
+                            // Limpar entradas pending e ingested sob esta pasta
+                            pending.retain(|p, _| !p.starts_with(&folder_path));
+                            ingested.retain(|p| !p.starts_with(&folder_path));
                         }
                     }
                     WatchCmd::SetEnabled { id, enabled } => {
@@ -129,6 +132,11 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
                             .unwrap_or(false);
 
                         if !is_video {
+                            continue;
+                        }
+
+                        // Ficheiro já ingerido — não reentrar na fila
+                        if ingested.contains(file_path) {
                             continue;
                         }
 
