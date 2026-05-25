@@ -1559,6 +1559,22 @@ export default function SettingsPage() {
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>{t('settings.sections.maintenance')}</SectionTitle>
             <div className="space-y-3">
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div>
+                  <p className="text-sm font-medium text-text-primary">Reset Onboarding</p>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Show the welcome wizard again on next launch.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('nexora_onboarding_complete');
+                  }}
+                  className="px-3 py-1.5 rounded-lg border border-border text-sm text-text-muted hover:bg-muted transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
               <button
                 onClick={handleResetSettings}
                 className="flex items-center gap-3 w-full p-3 bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors text-left text-sm font-medium"

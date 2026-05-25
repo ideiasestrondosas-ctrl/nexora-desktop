@@ -25,6 +25,7 @@ const AssetDetailPage = lazy(() => import('@/pages/AssetDetailPage'));
 import TopBar from '@/components/TopBar';
 import PlatformDebugBadge from '@/components/PlatformDebugBadge';
 import { HelpOverlay } from '@/components/HelpModal';
+import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import { IngestProfileModal } from '@/components/IngestProfileModal';
 import { BatchSubmitModal } from '@/components/BatchSubmitModal';
 import { hasSupportedExtension } from '@/components/DropZone';
@@ -47,6 +48,7 @@ function App() {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [appVersion, setAppVersion] = useState('—');
   const [helpOpen, setHelpOpen] = useState(false);
+  const { show: showOnboarding, complete: completeOnboarding } = useOnboarding();
 
   // ── IngestProfileModal state (fallback — mantido para file dialog interno) ──
   const [ingestPaths, setIngestPaths] = useState<string[] | null>(null);
@@ -364,6 +366,7 @@ function App() {
       <main className="flex-1 flex flex-col min-w-0 bg-bg-primary relative">
         <TopBar activeTab={activeTab} onHelpOpen={() => setHelpOpen(true)} />
         <HelpOverlay open={helpOpen} onOpenChange={setHelpOpen} />
+        {showOnboarding && <OnboardingModal onComplete={completeOnboarding} />}
 
         {/* Drag overlay visual — cobre o conteúdo enquanto se arrasta sobre a janela */}
         {isDragging && (
