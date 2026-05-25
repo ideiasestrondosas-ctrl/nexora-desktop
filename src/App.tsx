@@ -33,7 +33,6 @@ import { hasSupportedExtension } from '@/components/DropZone';
 import { resolveVideoPaths } from '@/lib/scan';
 
 import { useSettingsStore } from '@/store/settings';
-import { useJobsStore } from '@/store/jobs';
 import { useCloudStore, type CloudProfile } from '@/store/cloud';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { useActionLog } from '@/hooks/useActionLog';
@@ -87,20 +86,6 @@ function App() {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, [logAction]);
-
-  // Auto-trigger cloud upload quando um job transita para 'done'
-  // Usa subscribe() em vez de useEffect para disparar independentemente de re-renders
-  useEffect(() => {
-    const unsubscribe = useJobsStore.subscribe((state, prevState) => {
-      state.jobs.forEach((job) => {
-        if (job.status !== 'done') return;
-        const prev = prevState.jobs.find((j) => j.id === job.id);
-        if (!prev || prev.status === 'done') return;
-        invoke('process_cloud_destinations', { jobId: job.id }).catch(console.error);
-      });
-    });
-    return unsubscribe;
-  }, []);
 
   // ── Drag-drop global centralizado ──────────────────────────────────────────
   // Um único listener tauri://drag-drop — intercepta drops em QUALQUER página
