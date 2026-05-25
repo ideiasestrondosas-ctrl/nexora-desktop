@@ -18,7 +18,7 @@ function flatten(obj, prefix = '') {
 const enPath = resolve(localesDir, 'en/base.json');
 let enContent = readFileSync(enPath, 'utf8');
 // Strip BOM if present
-if (enContent.charCodeAt(0) === 0xFEFF) {
+if (enContent.charCodeAt(0) === 0xfeff) {
   enContent = enContent.slice(1);
 }
 const enRaw = JSON.parse(enContent);
@@ -37,7 +37,7 @@ for (const lang of langs.sort()) {
   }
   let content = readFileSync(commonPath, 'utf8');
   // Strip BOM if present
-  if (content.charCodeAt(0) === 0xFEFF) {
+  if (content.charCodeAt(0) === 0xfeff) {
     content = content.slice(1);
   }
   const raw = JSON.parse(content);
@@ -50,7 +50,8 @@ for (const lang of langs.sort()) {
     report += `[${lang}] ✓ completo\n`;
   } else {
     report += `\n[${lang}] ${missing.length} em falta, ${orphan.length} órfãs\n`;
-    if (missing.length > 0) report += `  MISSING:\n${missing.map((k) => `    - ${k}`).join('\n')}\n`;
+    if (missing.length > 0)
+      report += `  MISSING:\n${missing.map((k) => `    - ${k}`).join('\n')}\n`;
     if (orphan.length > 0) report += `  ORPHAN:\n${orphan.map((k) => `    + ${k}`).join('\n')}\n`;
     totalMissing += missing.length;
   }
@@ -65,7 +66,7 @@ const ptPath = resolve(localesDir, 'pt/common.json');
 if (existsSync(ptPath)) {
   let ptContent = readFileSync(ptPath, 'utf8');
   // Strip BOM if present
-  if (ptContent.charCodeAt(0) === 0xFEFF) {
+  if (ptContent.charCodeAt(0) === 0xfeff) {
     ptContent = ptContent.slice(1);
   }
   const ptRaw = JSON.parse(ptContent);
