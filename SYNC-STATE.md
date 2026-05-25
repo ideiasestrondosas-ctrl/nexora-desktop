@@ -5,10 +5,52 @@
 
 ---
 
-Actualizado: 2026-05-25 01:00
+Actualizado: 2026-05-25 12:00
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 24 — Glassmorphism + Correcoes UX — CONCLUIDO
+
+**Pedido:** Remover botoes duplicados (frame nativo ja tem os seus), mostrar verificacao Segoe UI Variable e Mica, compactar bottom bar no detalhe, e aplicar glassmorphism nos containers para Mica ser visivel.
+
+**Implementacao:**
+
+1. **Fix botoes duplicados (`TopBar.tsx`):**
+   - Removido `WindowControls` import e uso do TopBar — frame nativo do Windows/Linux/macOS ja tem os botoes proprios
+   - `WindowControls.tsx` mantido como componente guardado para eventual `decorations: false`
+
+2. **`PlatformDebugBadge.tsx` (novo, dev-only):**
+   - Badge no canto inferior direito visivel apenas em `import.meta.env.DEV`
+   - Mostra: plataforma detectada (`🪟 windows`), se Segoe UI Variable esta carregada (✓/~), estado Mica (verifica se `body` tem background transparente)
+   - Proprio painel usa `backdrop-filter: blur(24px)` — provando Mica se o fundo variar com wallpaper
+
+3. **Bottom bar compacta (`AssetDetailPage.tsx`):**
+   - Container: `p-4` → `py-2 px-3`; gap `4` → `2`
+   - Botoes: `px-6/4 py-2 text-sm` → `px-3 py-1.5 text-xs`
+   - Icones mantidos no tamanho original
+
+4. **Glassmorphism (`src/index.css`):**
+   - `aside` (sidebar): `rgba(10,13,20,0.6)` dark / `rgba(248,250,252,0.72)` light + `backdrop-filter: blur(20px) saturate(1.4)`
+   - `[data-topbar]`: `rgba(10,13,20,0.7)` dark / `rgba(255,255,255,0.72)` light + `backdrop-filter: blur(20px)`
+   - `main`: transparente (Mica visivel no fundo do content area)
+   - Root shell `.flex.h-screen`: transparente
+   - `data-topbar` attribute adicionado ao TopBar div para targeting CSS limpo
+
+**Verificacao:**
+
+- `tsc --noEmit`: OK ✅
+- `eslint . --max-warnings 0`: OK ✅
+
+**Commits:**
+
+- `1a83613` fix(platform): remover WindowControls duplicados; badge debug dev; bottom bar compacta
+- `13d3973` feat(platform): glassmorphism sidebar/topbar/main para Mica/Vibrancy + PROGRESS actualizado
+
+**Proximo passo exacto:**
+Arrancar `npm run tauri dev` e verificar: sidebar semi-transparente, topbar glass, Mica visivel no fundo entre containers; PlatformDebugBadge mostra "Segoe UI Variable ✓" e "Mica: active ✓".
+
+---
 
 ### Sessao 23 — Platform-Adaptive UX Phase A + Phase B — CONCLUIDO
 
