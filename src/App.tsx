@@ -152,6 +152,20 @@ function App() {
     setActiveTab('library');
   }, []);
 
+  // Listener para ficheiros detectados por Watch Folders — abre BatchSubmitModal
+  useEffect(() => {
+    const unlistenPromise = listen<{ path: string; watchFolderId: string }>(
+      'watch-folder-file-added',
+      (event) => {
+        setBatchPaths([event.payload.path]);
+        setBatchOpen(true);
+      },
+    );
+    return () => {
+      unlistenPromise.then((fn) => fn());
+    };
+  }, []);
+
   // ── Theme ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const root = window.document.documentElement;

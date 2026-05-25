@@ -305,6 +305,19 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "watchFolders": {
+      "tab": "Watch Folders",
+      "title": "Watch Folders",
+      "description": "Nexora monitors these folders and automatically adds new video files to the queue.",
+      "addFolder": "Add Folder",
+      "noFolders": "No folders configured.",
+      "noFoldersHint": "Click \"Add Folder\" to start monitoring a directory.",
+      "remove": "Remove",
+      "enabled": "Active",
+      "disabled": "Paused",
+      "addError": "Could not add folder: {{error}}",
+      "removeConfirm": "Remove this folder from Watch Folders?"
     }
   },
   "logs": {
@@ -411,7 +424,22 @@
     "cancel": "Cancel Job",
     "processing": "Processing...",
     "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Transcoding error",
+    "errorSuggestion": "See Logs for details",
+    "errors": {
+      "diskFull": "Disk full",
+      "diskFullHint": "Free up disk space and try again",
+      "permission": "Permission denied",
+      "permissionHint": "Check destination folder permissions",
+      "corrupt": "Corrupted or unsupported file",
+      "corruptHint": "Check that the source file is intact",
+      "codec": "Codec not available",
+      "codecHint": "Select a different preset",
+      "killed": "Process interrupted",
+      "killedHint": "Job was cancelled or system ran out of memory",
+      "generic": "Transcoding error",
+      "genericHint": "See Logs for details"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -696,6 +724,22 @@
     "yes": "Yes",
     "no": "No",
     "cancel": "Cancel"
+  },
+  "onboarding": {
+    "step1Title": "Welcome to Nexora Desktop",
+    "step1Desc": "Professional media processing, native on your workstation. Let's get you set up in under a minute.",
+    "step2Title": "Output Folder",
+    "step2Desc": "Where should processed files be saved?",
+    "step2Choose": "Choose folder",
+    "step3Title": "Privacy",
+    "step3Desc": "Help improve Nexora by sharing anonymous error data — stored only on this device, never sent anywhere.",
+    "step3Toggle": "Share anonymous error data",
+    "step4Title": "You're all set!",
+    "step4Desc": "Drag video files onto the app, or use the Library to add files to the queue.",
+    "next": "Next",
+    "back": "Back",
+    "start": "Start using Nexora",
+    "stepOf": "Step {{current}} of {{total}}"
   },
   "common": {
     "save": "Save",

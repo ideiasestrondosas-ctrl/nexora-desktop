@@ -40,6 +40,13 @@ import { CloudFileBrowserModal } from '@/components/CloudFileBrowserModal';
 import { useCloudStore, CloudProfile, PROVIDER_LABELS } from '@/store/cloud';
 import { cn } from '@/lib/utils';
 
+interface WatchFolder {
+  id: string;
+  path: string;
+  enabled: boolean;
+  createdAt: string;
+}
+
 interface Settings {
   output_dir: string;
   max_concurrent_jobs: number;
@@ -129,7 +136,15 @@ interface LogStorageInfo {
   oldestFileDate: string | null;
 }
 
-type SettingsTab = 'general' | 'interface' | 'system' | 'logs' | 'cloud' | 'advanced' | 'about';
+type SettingsTab =
+  | 'general'
+  | 'interface'
+  | 'system'
+  | 'logs'
+  | 'cloud'
+  | 'watchFolders'
+  | 'advanced'
+  | 'about';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -167,6 +182,7 @@ export default function SettingsPage() {
   const [clearingThumbs, setClearingThumbs] = useState(false);
   const [logInfo, setLogInfo] = useState<LogStorageInfo | null>(null);
   const [logInfoLoading, setLogInfoLoading] = useState(false);
+  const [watchFolders, setWatchFolders] = useState<WatchFolder[]>([]);
 
   const {
     profiles: cloudProfiles,
@@ -180,6 +196,32 @@ export default function SettingsPage() {
   useEffect(() => {
     invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
   }, [setCloudProfiles]);
+
+  useEffect(() => {
+    invoke<WatchFolder[]>('list_watch_folders').then(setWatchFolders).catch(console.error);
+  }, []);
+
+  const handleAddWatchFolder = async () => {
+    try {
+      const selected = await open({ directory: true, multiple: false });
+      if (!selected) return;
+      const path = typeof selected === 'string' ? selected : selected[0];
+      const folder = await invoke<WatchFolder>('add_watch_folder', { path });
+      setWatchFolders((prev) => [...prev, folder]);
+    } catch (e) {
+      console.error('add_watch_folder error', e);
+    }
+  };
+
+  const handleRemoveWatchFolder = async (id: string) => {
+    await invoke('remove_watch_folder', { id });
+    setWatchFolders((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const handleToggleWatchFolder = async (id: string, enabled: boolean) => {
+    await invoke('toggle_watch_folder', { id, enabled });
+    setWatchFolders((prev) => prev.map((f) => (f.id === id ? { ...f, enabled } : f)));
+  };
 
   const systemTimedOut = useRef(false);
 
@@ -499,6 +541,7 @@ export default function SettingsPage() {
     { id: 'system', label: t('settings.tabs.system'), icon: Server },
     { id: 'logs', label: 'Logs', icon: Terminal },
     { id: 'cloud' as const, label: 'Cloud', icon: Cloud },
+    { id: 'watchFolders' as const, label: t('settings.watchFolders.tab'), icon: FolderOpen },
     { id: 'advanced', label: t('settings.tabs.advanced'), icon: Globe },
     { id: 'about', label: t('settings.tabs.about'), icon: Info },
   ];
@@ -1407,6 +1450,65 @@ export default function SettingsPage() {
             editing={editingProfile}
           />
           <CloudFileBrowserModal profile={browseProfile} onClose={() => setBrowseProfile(null)} />
+        </div>
+      )}
+
+      {/* TAB: WATCH FOLDERS */}
+      {activeTab === 'watchFolders' && (
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-sm font-semibold text-text-primary mb-1">
+              {t('settings.watchFolders.title')}
+            </h3>
+            <p className="text-xs text-text-muted mb-4">{t('settings.watchFolders.description')}</p>
+            <button
+              onClick={handleAddWatchFolder}
+              className="px-3 py-1.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand/90 transition-colors mb-4"
+            >
+              {t('settings.watchFolders.addFolder')}
+            </button>
+            {watchFolders.length === 0 ? (
+              <div className="text-sm text-text-muted py-4 text-center border border-dashed border-border rounded-lg">
+                <p>{t('settings.watchFolders.noFolders')}</p>
+                <p className="text-xs mt-1 opacity-70">
+                  {t('settings.watchFolders.noFoldersHint')}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {watchFolders.map((folder) => (
+                  <div
+                    key={folder.id}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-bg-secondary border border-border"
+                  >
+                    <FolderOpen size={16} className="text-brand flex-shrink-0" />
+                    <span className="flex-1 text-sm text-text-primary truncate" title={folder.path}>
+                      {folder.path}
+                    </span>
+                    <span
+                      className={`text-xs font-medium ${folder.enabled ? 'text-green-500' : 'text-text-muted'}`}
+                    >
+                      {folder.enabled
+                        ? t('settings.watchFolders.enabled')
+                        : t('settings.watchFolders.disabled')}
+                    </span>
+                    <button
+                      onClick={() => handleToggleWatchFolder(folder.id, !folder.enabled)}
+                      className="text-xs px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors"
+                    >
+                      {folder.enabled ? 'Pause' : 'Resume'}
+                    </button>
+                    <button
+                      onClick={() => handleRemoveWatchFolder(folder.id)}
+                      className="text-xs px-2 py-1 rounded text-red-500 hover:bg-red-500/10 transition-colors"
+                    >
+                      {t('settings.watchFolders.remove')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
