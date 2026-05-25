@@ -10,7 +10,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- feat(sync): PublishDraft mode — actualizar e publicar draft release existente com titulo/corpo ricos do CHANGELOG (opcao 6 no menu interactivo e flag `-PublishDraft`)
 - feat: Actualizar README.md — Conformidade com v0.26.0 + Dev Environment + AI Tools
+
+### Fixed
+
+- fix(sync): PATCH draft release em vez de recriar — preserva assets do CI gerados pelo build.yml
 
 ## [0.26.0] - 2026-05-24
 

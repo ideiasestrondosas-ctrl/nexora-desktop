@@ -1983,7 +1983,7 @@ if ($LASTEXITCODE -eq 0) {
 
         # Gerar titulo e corpo ricos (usado tanto no PATCH como no POST)
         $changelogSection = Parse-ChangelogSection $newVersion
-        $releaseTitle     = Get-ReleaseTitle $newVersion $changelogSection
+        $releaseTitle     = "v$newVersion — $(Get-ReleaseTitle $newVersion $changelogSection)"
         $releaseBodyText  = Build-ReleaseBody $newVersion $commitMsg
 
         if ($releaseExists) {
