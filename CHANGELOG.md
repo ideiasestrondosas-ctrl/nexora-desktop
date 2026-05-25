@@ -9,9 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.27.0] - 2026-05-24
 
 ### Added
-- feat:  Actualizar README.md — Conformidade com v0.26.0 + Dev Environment + AI Tools
 
-
+- feat: Actualizar README.md — Conformidade com v0.26.0 + Dev Environment + AI Tools
 
 ## [0.26.0] - 2026-05-24
 

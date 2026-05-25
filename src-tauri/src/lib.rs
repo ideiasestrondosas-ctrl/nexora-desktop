@@ -43,11 +43,14 @@ pub fn run() {
             tray::setup(app)?;
 
             // Efeitos de janela nativos — silencia erro se não suportado (Windows 10, VMs, etc.)
-            let main_window = app.get_webview_window("main").unwrap();
-            #[cfg(target_os = "windows")]
-            apply_mica(&main_window, Some(true)).ok();
-            #[cfg(target_os = "macos")]
-            apply_vibrancy(&main_window, NSVisualEffectMaterial::HudWindow, None, None).ok();
+            #[cfg(any(target_os = "windows", target_os = "macos"))]
+            {
+                let main_window = app.get_webview_window("main").unwrap();
+                #[cfg(target_os = "windows")]
+                apply_mica(&main_window, Some(true)).ok();
+                #[cfg(target_os = "macos")]
+                apply_vibrancy(&main_window, NSVisualEffectMaterial::HudWindow, None, None).ok();
+            }
 
             // Menu nativo da barra de menus — apenas macOS.
             // Garante que Cmd+C/V/X/Z/A funcionam em campos de texto
