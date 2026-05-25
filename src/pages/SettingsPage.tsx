@@ -36,6 +36,7 @@ import {
   Cloud,
 } from 'lucide-react';
 import { CloudProfileModal } from '@/components/CloudProfileModal';
+import { STORAGE_KEY as ONBOARDING_STORAGE_KEY } from '@/components/OnboardingModal';
 import { CloudFileBrowserModal } from '@/components/CloudFileBrowserModal';
 import { useCloudStore, CloudProfile, PROVIDER_LABELS } from '@/store/cloud';
 import { cn } from '@/lib/utils';
@@ -214,13 +215,21 @@ export default function SettingsPage() {
   };
 
   const handleRemoveWatchFolder = async (id: string) => {
-    await invoke('remove_watch_folder', { id });
-    setWatchFolders((prev) => prev.filter((f) => f.id !== id));
+    try {
+      await invoke('remove_watch_folder', { id });
+      setWatchFolders((prev) => prev.filter((f) => f.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleToggleWatchFolder = async (id: string, enabled: boolean) => {
-    await invoke('toggle_watch_folder', { id, enabled });
-    setWatchFolders((prev) => prev.map((f) => (f.id === id ? { ...f, enabled } : f)));
+    try {
+      await invoke('toggle_watch_folder', { id, enabled });
+      setWatchFolders((prev) => prev.map((f) => (f.id === id ? { ...f, enabled } : f)));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const systemTimedOut = useRef(false);
@@ -1496,7 +1505,9 @@ export default function SettingsPage() {
                       onClick={() => handleToggleWatchFolder(folder.id, !folder.enabled)}
                       className="text-xs px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors"
                     >
-                      {folder.enabled ? 'Pause' : 'Resume'}
+                      {folder.enabled
+                        ? t('settings.watchFolders.enabled')
+                        : t('settings.watchFolders.disabled')}
                     </button>
                     <button
                       onClick={() => handleRemoveWatchFolder(folder.id)}
@@ -1568,7 +1579,7 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => {
-                    localStorage.removeItem('nexora_onboarding_complete');
+                    localStorage.removeItem(ONBOARDING_STORAGE_KEY);
                   }}
                   className="px-3 py-1.5 rounded-lg border border-border text-sm text-text-muted hover:bg-muted transition-colors"
                 >

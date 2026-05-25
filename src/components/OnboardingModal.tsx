@@ -4,7 +4,8 @@ import { open as dialogOpen } from '@tauri-apps/plugin-dialog';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, FolderOpen } from 'lucide-react';
 
-const STORAGE_KEY = 'nexora_onboarding_complete';
+export const STORAGE_KEY = 'nexora_onboarding_complete';
+const TOTAL_STEPS = 4;
 
 interface Props {
   onComplete: () => void;
@@ -15,7 +16,6 @@ export default function OnboardingModal({ onComplete }: Props) {
   const [step, setStep] = useState(1);
   const [outputDir, setOutputDir] = useState('');
   const [telemetryEnabled, setTelemetryEnabled] = useState(false);
-  const TOTAL_STEPS = 4;
 
   // Carregar output_dir actual como sugestão
   useEffect(() => {
@@ -25,10 +25,14 @@ export default function OnboardingModal({ onComplete }: Props) {
   }, []);
 
   const handleChooseFolder = async () => {
-    const selected = await dialogOpen({ directory: true, multiple: false });
-    if (!selected) return;
-    const path = typeof selected === 'string' ? selected : selected[0];
-    setOutputDir(path);
+    try {
+      const selected = await dialogOpen({ directory: true, multiple: false });
+      if (!selected) return;
+      const path = typeof selected === 'string' ? selected : selected[0];
+      setOutputDir(path);
+    } catch {
+      // erro de plugin: ignorar (o utilizador pode tentar de novo)
+    }
   };
 
   const handleComplete = async () => {
@@ -109,7 +113,7 @@ export default function OnboardingModal({ onComplete }: Props) {
                 {t('onboarding.step3Title')}
               </h2>
               <p className="text-sm text-text-muted mb-6">{t('onboarding.step3Desc')}</p>
-              <label className="flex items-center gap-3 cursor-pointer">
+              <div className="flex items-center gap-3 cursor-pointer">
                 <div
                   onClick={() => setTelemetryEnabled((v) => !v)}
                   className={`w-10 h-6 rounded-full transition-colors ${telemetryEnabled ? 'bg-brand' : 'bg-muted'} relative flex-shrink-0`}
@@ -119,7 +123,7 @@ export default function OnboardingModal({ onComplete }: Props) {
                   />
                 </div>
                 <span className="text-sm text-text-primary">{t('onboarding.step3Toggle')}</span>
-              </label>
+              </div>
             </div>
           )}
 
