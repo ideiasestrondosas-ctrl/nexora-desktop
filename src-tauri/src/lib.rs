@@ -7,6 +7,7 @@ mod queue;
 mod sidecar;
 mod state;
 mod tray;
+mod watch_folders;
 
 use state::AppState;
 use tauri::{Emitter, Manager};
@@ -62,6 +63,13 @@ pub fn run() {
             startup_checks(app.handle());
 
             queue::start(app.handle().clone(), &db_path);
+
+            // Iniciar watcher de pastas
+            let watcher_tx = watch_folders::start(app.handle().clone(), db_path.clone());
+            let wf_state = app.state::<AppState>();
+            if let Ok(mut tx) = wf_state.watcher_tx.lock() {
+                *tx = Some(watcher_tx);
+            }
 
             // Thread de espaço em disco — emite "disk-space" a cada 10 s
             let disk_handle = app.handle().clone();
@@ -184,6 +192,10 @@ pub fn run() {
             commands::cloud::cloud_delete_files,
             commands::cloud::cloud_download_file,
             commands::metrics::get_system_metrics,
+            watch_folders::list_watch_folders,
+            watch_folders::add_watch_folder,
+            watch_folders::remove_watch_folder,
+            watch_folders::toggle_watch_folder,
             get_startup_status,
         ])
         .run(tauri::generate_context!())
