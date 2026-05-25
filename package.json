@@ -1,7 +1,7 @@
 {
   "name": "nexora-desktop",
   "private": true,
-  "version": "0.29.0-alpha.1",
+  "version": "0.30.0-beta.1",
   "description": "Native desktop application for media processing and cloud delivery",
   "author": "Nexora",
   "license": "UNLICENSED",
