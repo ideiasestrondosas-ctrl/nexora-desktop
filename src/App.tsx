@@ -23,6 +23,7 @@ const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 const LogsPage = lazy(() => import('@/pages/LogsPage'));
 const AssetDetailPage = lazy(() => import('@/pages/AssetDetailPage'));
 import TopBar from '@/components/TopBar';
+import PlatformDebugBadge from '@/components/PlatformDebugBadge';
 import { HelpOverlay } from '@/components/HelpModal';
 import { IngestProfileModal } from '@/components/IngestProfileModal';
 import { BatchSubmitModal } from '@/components/BatchSubmitModal';
@@ -401,6 +402,8 @@ function App() {
           </ErrorBoundary>
         </div>
       </main>
+
+      <PlatformDebugBadge />
     </div>
   );
 }

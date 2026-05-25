@@ -4,8 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 import { useGPU } from '@/hooks/useGPU';
 import { useDiskSpace } from '@/hooks/useDiskSpace';
-import { usePlatform } from '@/hooks/usePlatform';
-import WindowControls from '@/components/WindowControls';
 import { LogOut, Cpu, MemoryStick, HardDrive, Monitor, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -99,18 +97,10 @@ export default function TopBar({ activeTab, onHelpOpen }: TopBarProps) {
   const gpuPercent = gpu?.available ? 15 : 0;
   const diskPercent = disk.usedPercent ?? 0;
 
-  const { isMac } = usePlatform();
-
   return (
-    <div className="h-16 bg-bg-primary border-b border-border flex items-center justify-between shrink-0 z-40">
-      {/* Spacer macOS — espaço para traffic lights nativos */}
-      <WindowControls />
-
+    <div className="h-16 bg-bg-primary border-b border-border flex items-center justify-between px-6 shrink-0 z-40">
       {/* Drag area + Título */}
-      <div
-        data-tauri-drag-region
-        className={cn('flex-1 flex items-center gap-3 min-w-0 px-6', isMac && 'pl-0')}
-      >
+      <div data-tauri-drag-region className="flex-1 flex items-center gap-3 min-w-0">
         <div className="flex flex-col">
           <h2 className="text-base font-bold text-text-primary leading-tight truncate">
             {screen.name}
@@ -158,16 +148,14 @@ export default function TopBar({ activeTab, onHelpOpen }: TopBarProps) {
         </button>
       )}
 
-      {/* Botão Sair + espaço direito */}
-      <div className="flex items-center pr-2">
-        <button
-          onClick={() => invoke('exit_app')}
-          className="p-2.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
-          title={t('topbar.exit')}
-        >
-          <LogOut size={20} />
-        </button>
-      </div>
+      {/* Botão Sair */}
+      <button
+        onClick={() => invoke('exit_app')}
+        className="p-2.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+        title={t('topbar.exit')}
+      >
+        <LogOut size={20} />
+      </button>
     </div>
   );
 }

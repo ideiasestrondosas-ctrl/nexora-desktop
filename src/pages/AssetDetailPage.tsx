@@ -1050,27 +1050,27 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
       </div>
 
       {/* STICKY ACTION BAR */}
-      <div className="fixed bottom-6 left-[252px] right-8 bg-bg-secondary/80 backdrop-blur-xl border border-border p-4 rounded-2xl shadow-2xl flex items-center justify-between z-40">
-        <div className="flex gap-4">
+      <div className="fixed bottom-4 left-[252px] right-6 bg-bg-secondary/80 backdrop-blur-xl border border-border px-3 py-2 rounded-xl shadow-2xl flex items-center justify-between z-40">
+        <div className="flex gap-2">
           <div className="relative" data-reprocess-menu>
             <button
               onClick={() => {
                 logActivity('Abrir menu reprocessar', 'click', `asset_id=${assetId}`);
                 setReprocessMenuOpen((v) => !v);
               }}
-              className="flex items-center gap-2 px-6 py-2 bg-brand hover:bg-blue-600 text-white rounded-xl font-bold transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand hover:bg-blue-600 text-white rounded-lg font-bold text-xs transition-all"
             >
-              <Play size={18} /> {t('assetDetail.reprocess')}
+              <Play size={16} /> {t('assetDetail.reprocess')}
               <ChevronDown
-                size={14}
+                size={12}
                 className={
                   reprocessMenuOpen ? 'rotate-180 transition-transform' : 'transition-transform'
                 }
               />
             </button>
             {reprocessMenuOpen && profiles.length > 0 && (
-              <div className="absolute bottom-full mb-2 left-0 bg-bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden z-50 min-w-[220px]">
-                <div className="px-4 py-2 border-b border-border">
+              <div className="absolute bottom-full mb-2 left-0 bg-bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden z-50 min-w-[200px]">
+                <div className="px-3 py-1.5 border-b border-border">
                   <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">
                     {t('assetDetail.reprocessProfile', 'Reprocessar com perfil')}
                   </span>
@@ -1079,7 +1079,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                   <button
                     key={p.id}
                     onClick={() => handleReprocess(p.name)}
-                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-bg-hover transition-colors flex items-center justify-between gap-2"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-bg-hover transition-colors flex items-center justify-between gap-2"
                   >
                     <span className="font-bold text-text-primary">
                       {p.label_friendly ?? p.name}
@@ -1099,7 +1099,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
               logActivity('Abrir Original no Explorador', 'execute', `path=${asset.path}`);
               revealItemInDir(asset.path).catch(() => {});
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-bg-hover text-text-secondary rounded-xl font-bold transition-all text-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface hover:bg-bg-hover text-text-secondary rounded-lg font-bold transition-all text-xs"
           >
             <FolderOpen size={16} /> {t('assetDetail.openOriginal', 'Ver Original')}
           </button>
@@ -1114,14 +1114,14 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
               revealItemInDir(out).catch(() => {});
             }}
             disabled={!asset.output_path && !jobs.some((j) => j.output_path)}
-            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-bg-hover text-text-secondary rounded-xl font-bold transition-all text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface hover:bg-bg-hover text-text-secondary rounded-lg font-bold transition-all text-xs disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <FolderOpen size={16} /> {t('assetDetail.openProcessed', 'Ver Processado')}
           </button>
           <button
             onClick={handleDownloadProcessed}
             disabled={!asset.output_path && !jobs.some((j) => j.output_path)}
-            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-bg-hover text-text-secondary rounded-xl font-bold transition-all text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface hover:bg-bg-hover text-text-secondary rounded-lg font-bold transition-all text-xs disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Download size={16} /> {t('assetDetail.downloadProcessed', 'Descarregar')}
           </button>
@@ -1131,9 +1131,9 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
             logActivity('Apagar Asset', 'click', `asset_id=${assetId}`);
             handleDelete();
           }}
-          className="flex items-center gap-2 px-6 py-2 text-red-500 hover:bg-red-500/10 rounded-xl font-bold transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-red-500 hover:bg-red-500/10 rounded-lg font-bold transition-all text-xs"
         >
-          <Trash2 size={18} /> {t('assetDetail.deleteAsset')}
+          <Trash2 size={16} /> {t('assetDetail.deleteAsset')}
         </button>
       </div>
 
