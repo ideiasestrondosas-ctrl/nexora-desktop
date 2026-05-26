@@ -292,7 +292,8 @@
     "duration": "Duration",
     "actions": "Actions",
     "gridView": "Grid view",
-    "listView": "List view"
+    "listView": "List view",
+    "processSelected": "Process {{count}} selected"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",

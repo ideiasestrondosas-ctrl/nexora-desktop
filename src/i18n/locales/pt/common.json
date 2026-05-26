@@ -422,7 +422,8 @@
     "duration": "Duração",
     "actions": "Acções",
     "gridView": "Vista em grelha",
-    "listView": "Vista em lista"
+    "listView": "Vista em lista",
+    "processSelected": "Processar {{count}} selecionados"
   },
   "queue": {
     "pipelineSummary": "Resumo do Pipeline",
