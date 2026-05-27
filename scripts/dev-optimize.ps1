@@ -322,8 +322,57 @@ function Invoke-Setup {
         Write-Warn "Algumas exclusões WSearch falharam. Pode continuar — o Defender já foi configurado."
     }
 
-    # [Task 4 continues here — Docker, WSL, backup save]
-    Write-Warn "Passos 4-5 (Docker/WSL) ainda não implementados — aguarda Task 4."
+    # ── Passo 4: Docker — limites de recursos ────────────────────────────
+    Write-Info ""
+    Write-Info "Passo 4/5 — Docker Desktop: configurar limites..."
+    $dockerCfgPath = $DockerCfgPath
+    if (Test-Path $dockerCfgPath) {
+        try {
+            $dockerCfg = Get-Content $dockerCfgPath -Raw | ConvertFrom-Json
+            $backup.dockerBefore = ($dockerCfg |
+                Select-Object -Property @{N='memoryMiB';E={
+                    if ($_.PSObject.Properties.Name -contains 'memoryMiB') { $_.memoryMiB } else { $null }
+                }}, @{N='cpus';E={
+                    if ($_.PSObject.Properties.Name -contains 'cpus') { $_.cpus } else { $null }
+                }} | ConvertTo-Json -Compress)
+            $dockerCfg | Add-Member -NotePropertyName memoryMiB -NotePropertyValue 4096 -Force
+            $dockerCfg | Add-Member -NotePropertyName cpus      -NotePropertyValue 4    -Force
+            $dockerCfg | ConvertTo-Json -Depth 20 | Set-Content -Path $dockerCfgPath -Encoding UTF8
+            Write-Ok "Docker: 4 GB RAM / 4 CPUs configurados"
+            Write-Warn "Reinicia o Docker Desktop para aplicar os limites."
+        } catch {
+            Write-Warn "Não foi possível configurar Docker: $_"
+        }
+    } else {
+        Write-Warn "Docker settings-store.json não encontrado — configura manualmente em Docker Desktop > Settings > Resources"
+    }
+
+    # ── Passo 5: WSL — validar .wslconfig ────────────────────────────────
+    Write-Info ""
+    Write-Info "Passo 5/5 — WSL: validar .wslconfig..."
+    $wslCfg = "$HOME\.wslconfig"
+    if (Test-Path $wslCfg) {
+        Write-Ok ".wslconfig já existe — não foi alterado:"
+        Get-Content $wslCfg | ForEach-Object { Write-Info "    $_" }
+    } else {
+        $wslContent = @"
+[wsl2]
+memory=6GB
+processors=4
+swap=2GB
+autoMemoryReclaim=gradual
+"@
+        Set-Content -Path $wslCfg -Value $wslContent -Encoding UTF8
+        Write-Ok ".wslconfig criado com valores recomendados"
+    }
+
+    # ── Guardar backup ────────────────────────────────────────────────────
+    $backup | ConvertTo-Json -Depth 5 | Set-Content -Path $BackupFile -Encoding UTF8
+    Write-Host ""
+    Write-Ok "Setup concluído! Backup guardado em: $BackupFile"
+    Write-Info ""
+    Write-Info "Próximo passo: .\dev-optimize.ps1 dev-on"
+    Write-Host ""
 }
 
 # ── Invoke-DevOn (placeholder — implementado na Task 5) ──────────────────────
