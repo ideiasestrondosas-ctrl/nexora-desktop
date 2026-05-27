@@ -168,6 +168,17 @@ function Get-IsPreRelease([string]$version) {
 }
 
 # ---------------------------------------------------------
+# FUNCAO: Converter semver para versao MSI/WiX (4 componentes numericos)
+# "0.30.1-beta.1" -> "0.30.1.1"  |  "0.31.0" -> "0.31.0.0"
+# ---------------------------------------------------------
+function Get-WixVersion([string]$version) {
+    $base = ($version -split '-')[0]           # "0.30.1"
+    $preNum = 0
+    if ($version -match '-[a-zA-Z]+\.(\d+)$') { $preNum = [int]$matches[1] }
+    return "$base.$preNum"
+}
+
+# ---------------------------------------------------------
 # FUNCAO: Gerar titulo automatico da release
 # ---------------------------------------------------------
 function Get-ReleaseTitle($version, $changelogSection) {
@@ -1862,21 +1873,36 @@ if (-not $SkipRelease -and -not $promoteExisting) {
             Write-Warn "src-tauri\Cargo.toml nao encontrado (normal antes do scaffold Tauri)"
         }
 
-        # src-tauri/tauri.conf.json (campo version, se existir)
+        # src-tauri/tauri.conf.json — versao principal + bundle.windows.wix.version (MSI-safe)
         if (Test-Path "src-tauri\tauri.conf.json") {
             $tauriConf = Get-Content "src-tauri\tauri.conf.json" -Raw | ConvertFrom-Json
             if ($tauriConf.PSObject.Properties["version"]) {
                 $tauriConf.version = $newVersion
-                # Escrever sem BOM — Tauri nao suporta UTF-8 BOM no parser JSON
-                $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-                $tauriJson = $tauriConf | ConvertTo-Json -Depth 20
-                [System.IO.File]::WriteAllText(
-                    (Join-Path $WORKSPACE "src-tauri\tauri.conf.json"),
-                    $tauriJson,
-                    $utf8NoBom
-                )
-                Write-Success "src-tauri\tauri.conf.json -> $newVersion"
             }
+            # WiX exige versao puramente numerica (M.m.p.build); mapear pre-release para 4o componente
+            $wixVer = Get-WixVersion $newVersion
+            try {
+                $bundle = $tauriConf.bundle
+                if (-not $bundle.PSObject.Properties["windows"]) {
+                    $bundle | Add-Member -NotePropertyName windows -NotePropertyValue ([PSCustomObject]@{}) -Force
+                }
+                $win = $bundle.windows
+                if (-not $win.PSObject.Properties["wix"]) {
+                    $win | Add-Member -NotePropertyName wix -NotePropertyValue ([PSCustomObject]@{}) -Force
+                }
+                $win.wix | Add-Member -NotePropertyName version -NotePropertyValue $wixVer -Force
+            } catch {
+                Write-Warn "Nao foi possivel actualizar bundle.windows.wix.version: $_"
+            }
+            # Escrever sem BOM — Tauri nao suporta UTF-8 BOM no parser JSON
+            $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+            $tauriJson = $tauriConf | ConvertTo-Json -Depth 20
+            [System.IO.File]::WriteAllText(
+                (Join-Path $WORKSPACE "src-tauri\tauri.conf.json"),
+                $tauriJson,
+                $utf8NoBom
+            )
+            Write-Success "src-tauri\tauri.conf.json -> $newVersion (wix: $wixVer)"
         }
 
         # CHANGELOG.md -- agregar commits desde ultima tag (modo Release) ou so a mensagem
