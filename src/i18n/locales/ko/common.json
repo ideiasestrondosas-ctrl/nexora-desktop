@@ -42,7 +42,8 @@
       "logs": "Logs",
       "assetDetail": "에셋 상세",
       "import": "가져오기",
-      "comparator": "Comparator"
+      "comparator": "Comparator",
+      "betaGuide": "베타 테스트 가이드 (DEV)"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",

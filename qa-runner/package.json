@@ -1,0 +1,19 @@
+{
+  "name": "nexora-qa-runner",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Isolated QA, reporting, and stress runner for Nexora Desktop",
+  "type": "module",
+  "scripts": {
+    "quick": "node scripts/qa-runner.mjs --suite quick",
+    "complete": "node scripts/qa-runner.mjs --suite complete",
+    "video": "node scripts/qa-runner.mjs --suite video",
+    "stress:light": "node scripts/qa-runner.mjs --suite stress-light",
+    "stress:heavy": "node scripts/qa-runner.mjs --suite stress-heavy",
+    "soak": "node scripts/qa-runner.mjs --suite soak",
+    "help": "node scripts/qa-runner.mjs --help"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

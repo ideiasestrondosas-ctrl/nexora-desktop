@@ -6,9 +6,48 @@
 ---
 
 Actualizado: 2026-05-27
-Agente: OpenCode (kimi-k2.6)
+Agente: Codex (GPT-5)
 
 ## O que foi feito
+
+### Sessao 30 — QA Runner Isolado — CONCLUIDO
+
+**Pedido:** Criar um subprojeto separado dentro do mesmo repositorio para testes automaticos, carga/stress, videos de teste, relatorios detalhados e handoff para IA, sem alterar codigo funcional nem dados reais do Nexora Desktop.
+
+**Implementacao:**
+
+1. **Subprojeto isolado:** `qa-runner/` criado com package proprio, scripts e configuracao independente.
+2. **Scripts de utilizador:** Windows `.bat`, macOS `.command` e Linux `.sh` para teste rapido, completo, video, stress leve, stress forte e abrir ultimo relatorio.
+3. **Runner Node.js:** `qa-runner/scripts/qa-runner.mjs` orquestra suites, logs, deteccao da app, descoberta/copia de videos, metricas e relatorios.
+4. **Entrada de videos:** usa `tests/fixtures/test-720p-5s.mp4`, procura `Videos_Tests/`, aceita pasta adicional via parametro tecnico e copia tudo para `qa-input/` dentro do run.
+5. **Relatorios:** gera `index.html`, `report.md`, `report.json`, `stats.json`, `metrics.csv`, `ai-handoff.md`, logs e snapshot de sistema em `.logs/qa-runs/<timestamp>/`.
+6. **Documentacao:** `docs/QA-RUNNER-SPEC.md`, `docs/QA-RUNNER-USAGE.md`, `qa-runner/README-UTILIZADOR.md`, `qa-runner/README-TECHNICAL.md`.
+7. **README GitHub:** adicionada secao "Nexora QA Runner" e links de documentacao.
+
+**Verificacao executada:**
+
+- `node qa-runner/scripts/qa-runner.mjs --help`
+- `node qa-runner/scripts/qa-runner.mjs --suite quick --no-open --no-start-app`
+- `node qa-runner/scripts/qa-runner.mjs --suite video --no-open --no-start-app`
+- `node qa-runner/scripts/qa-runner.mjs --suite stress-light --no-open --no-start-app`
+- `node qa-runner/scripts/qa-runner.mjs --suite complete --no-open --no-start-app`
+- Validacao de artefactos esperados no ultimo run
+- Verificacao de estado Git para confirmar que `src/`, `src-tauri/` e `sidecar/` nao foram alterados
+
+**Notas:**
+
+- A primeira versao e segura e nao destrutiva. Ainda nao automatiza UI Tauri via WebDriver porque isso exigiria tooling/selectors e alteracoes planeadas na app principal.
+- Stress forte cria copias temporarias de videos dentro da pasta do run; os originais nao sao modificados.
+- Relatorio principal mais recente: `.logs/qa-runs/2026-05-27T20-00-28-769Z/index.html`
+
+**Fix CI apos push:**
+
+- GitHub Actions run `26535887021` falhou no job `Lint + Tests`, passo ESLint.
+- Causa: `eslint .` passou a analisar `qa-runner/scripts/**/*.mjs`, mas estes scripts Node.js nao tinham `globals.node` na configuracao.
+- Correcao: adicionado override QA Runner em `eslint.config.js` com `globals.node`, `globals.es2021` e `no-console: off`.
+- Verificacao local apos fix: `npm run lint` OK; `node qa-runner/scripts/qa-runner.mjs --suite quick --no-open --no-start-app` OK.
+
+---
 
 ### Sessao 29 — Documentacao v0.30.0-beta.1 (Comparator, Onboarding, Watch Folders, Bug Report, Pipeline Errors) — CONCLUIDO
 

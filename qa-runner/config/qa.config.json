@@ -1,0 +1,22 @@
+{
+  "projectName": "Nexora Desktop",
+  "runnerName": "Nexora QA Runner",
+  "supportedVideoExtensions": [".mp4", ".mov", ".mxf", ".avi", ".mkv", ".webm", ".ts", ".m2ts"],
+  "defaultFixture": "../tests/fixtures/test-720p-5s.mp4",
+  "optionalVideoDirectory": "../Videos_Tests",
+  "reportsDirectory": "../.logs/qa-runs",
+  "stressProfiles": {
+    "light": {
+      "targetCopies": 5,
+      "durationSeconds": 30
+    },
+    "heavy": {
+      "targetCopies": 20,
+      "durationSeconds": 120
+    },
+    "soak": {
+      "targetCopies": 8,
+      "durationSeconds": 1800
+    }
+  }
+}

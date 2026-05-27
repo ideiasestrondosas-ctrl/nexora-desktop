@@ -37,6 +37,7 @@
 - [Quick Start](#quick-start)
 - [Transcoding Profiles](#transcoding-profiles)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Nexora QA Runner](#nexora-qa-runner)
 - [Documentation](#documentation)
 - [Development](#development)
 - [Contributing](#contributing)
@@ -290,15 +291,42 @@ Nexora can automatically upload processed files to remote storage after each job
 
 ---
 
+## Nexora QA Runner
+
+The repository includes an isolated QA subproject in [`qa-runner/`](qa-runner/) for automated validation, load/stress checks, evidence collection, and AI-ready reports.
+
+It is intentionally separate from the production app code:
+
+- no changes to `src/`, `src-tauri/`, or `sidecar/` are required to use the first version;
+- user videos are copied to a temporary QA area before testing;
+- reports are written to `.logs/qa-runs/<timestamp>/`;
+- Windows, macOS, and Linux scripts are provided for simple double-click usage.
+
+User-friendly entry points:
+
+| Platform | Folder                                     |
+| -------- | ------------------------------------------ |
+| Windows  | [`qa-runner/windows/`](qa-runner/windows/) |
+| macOS    | [`qa-runner/macos/`](qa-runner/macos/)     |
+| Linux    | [`qa-runner/linux/`](qa-runner/linux/)     |
+
+Each run generates `index.html`, `report.md`, `report.json`, `stats.json`, `metrics.csv`, and `ai-handoff.md`. The handoff file is designed to be sent directly to an AI assistant or developer when a problem needs investigation.
+
+See [`docs/QA-RUNNER-SPEC.md`](docs/QA-RUNNER-SPEC.md) for the implementation plan and [`docs/QA-RUNNER-USAGE.md`](docs/QA-RUNNER-USAGE.md) for user instructions.
+
+---
+
 ## Documentation
 
-| Document                                     | Description                                                  |
-| -------------------------------------------- | ------------------------------------------------------------ |
-| [docs/USER_MANUAL.md](docs/USER_MANUAL.md)   | Complete user guide: all screens, pipeline, QC workflow      |
-| [docs/SCREEN_GUIDE.md](docs/SCREEN_GUIDE.md) | Visual guide to every screen, button, badge, and interaction |
-| [docs/FUNCTIONS.md](docs/FUNCTIONS.md)       | Technical reference: commands, workers, database, hooks      |
-| [docs/INSTALL.md](docs/INSTALL.md)           | Platform-specific installation and uninstallation guide      |
-| [docs/LICENSE.md](docs/LICENSE.md)           | GNU General Public License v3.0                              |
+| Document                                           | Description                                                     |
+| -------------------------------------------------- | --------------------------------------------------------------- |
+| [docs/USER_MANUAL.md](docs/USER_MANUAL.md)         | Complete user guide: all screens, pipeline, QC workflow         |
+| [docs/SCREEN_GUIDE.md](docs/SCREEN_GUIDE.md)       | Visual guide to every screen, button, badge, and interaction    |
+| [docs/FUNCTIONS.md](docs/FUNCTIONS.md)             | Technical reference: commands, workers, database, hooks         |
+| [docs/INSTALL.md](docs/INSTALL.md)                 | Platform-specific installation and uninstallation guide         |
+| [docs/QA-RUNNER-SPEC.md](docs/QA-RUNNER-SPEC.md)   | Isolated QA Runner specification, safety rules, and report flow |
+| [docs/QA-RUNNER-USAGE.md](docs/QA-RUNNER-USAGE.md) | Simple QA Runner usage guide for non-technical users            |
+| [docs/LICENSE.md](docs/LICENSE.md)                 | GNU General Public License v3.0                                 |
 
 ---
 

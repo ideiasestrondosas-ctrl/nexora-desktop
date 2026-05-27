@@ -46,7 +46,8 @@
       "system": "Sistema",
       "support": "Suporte",
       "about": "Sobre",
-      "comparator": "Comparator"
+      "comparator": "Comparator",
+      "betaGuide": "Guia de Testes Beta (DEV)"
     },
     "intro": {
       "whatIs": "O que é o Nexora Desktop?",

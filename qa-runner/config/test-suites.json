@@ -1,0 +1,32 @@
+{
+  "quick": {
+    "label": "Teste Rapido",
+    "requiresVideos": false,
+    "description": "Verifica estrutura do runner, ambiente, fixture e relatorio."
+  },
+  "complete": {
+    "label": "Teste Completo",
+    "requiresVideos": true,
+    "description": "Executa validacoes de estrutura, scripts, documentacao, videos e relatorios."
+  },
+  "video": {
+    "label": "Teste Com Video",
+    "requiresVideos": true,
+    "description": "Valida descoberta e copia segura de videos para area QA isolada."
+  },
+  "stress-light": {
+    "label": "Stress Leve",
+    "requiresVideos": true,
+    "description": "Cria entradas temporarias de carga leve e mede estatisticas."
+  },
+  "stress-heavy": {
+    "label": "Stress Forte",
+    "requiresVideos": true,
+    "description": "Cria varias entradas temporarias para procurar limites do fluxo QA."
+  },
+  "soak": {
+    "label": "Soak",
+    "requiresVideos": true,
+    "description": "Executa ciclo prolongado configuravel para observar estabilidade."
+  }
+}
