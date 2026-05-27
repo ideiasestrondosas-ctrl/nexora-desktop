@@ -161,6 +161,13 @@ function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
 }
 
 # ---------------------------------------------------------
+# FUNCAO: Detectar se versao e pre-release (alpha/beta/rc/dev/pre)
+# ---------------------------------------------------------
+function Get-IsPreRelease([string]$version) {
+    return [bool]($version -match '-(?:alpha|beta|rc|dev|pre)\.')
+}
+
+# ---------------------------------------------------------
 # FUNCAO: Gerar titulo automatico da release
 # ---------------------------------------------------------
 function Get-ReleaseTitle($version, $changelogSection) {
@@ -1132,9 +1139,10 @@ function Invoke-PublishDraft {
         # PATCH — actualizar release (draft ou publicada) com titulo/corpo ricos e publicar
         try {
             $payload = @{
-                name  = $releaseTitle
-                body  = $releaseBodyText
-                draft = $false
+                name       = $releaseTitle
+                body       = $releaseBodyText
+                draft      = $false
+                prerelease = (Get-IsPreRelease $version)
             } | ConvertTo-Json
             $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
             Invoke-RestMethod `
@@ -1175,7 +1183,7 @@ function Invoke-PublishDraft {
                 name       = $releaseTitle
                 body       = $releaseBodyText
                 draft      = $false
-                prerelease = $false
+                prerelease = (Get-IsPreRelease $version)
             } | ConvertTo-Json
             $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
             Invoke-RestMethod `
@@ -1697,7 +1705,7 @@ if (-not $SkipRelease -and -not $promoteExisting) {
         $suggestedVersion = "$major.$minor.$($patch + 1)"
     }
 
-    # 3. Menu interactivo
+    # 3. Menu interactivo — nivel de versao
     Write-Host ""
     Write-Host "Escolha a proxima versao:" -ForegroundColor Yellow
     Write-Host "1) Patch ($($major).$($minor).$($patch + 1))"
@@ -1707,13 +1715,41 @@ if (-not $SkipRelease -and -not $promoteExisting) {
 
     $choice = Read-Host "Opcao (Padrao baseada no commit: $suggestedVersion)"
 
-    $newVersion = ""
+    $baseVersion = ""
     switch ($choice) {
-        "1"     { $newVersion = "$($major).$($minor).$($patch + 1)" }
-        "2"     { $newVersion = "$major.$($minor + 1).0" }
-        "3"     { $newVersion = "$($major + 1).0.0" }
-        "4"     { $newVersion = "" }
-        default { if (-not $choice) { $newVersion = $suggestedVersion } }
+        "1"     { $baseVersion = "$($major).$($minor).$($patch + 1)" }
+        "2"     { $baseVersion = "$major.$($minor + 1).0" }
+        "3"     { $baseVersion = "$($major + 1).0.0" }
+        "4"     { $baseVersion = "" }
+        default { if (-not $choice) { $baseVersion = $suggestedVersion } }
+    }
+
+    # 4. Menu interactivo — tipo de versao (estavel / pre-release)
+    $newVersion = ""
+    if ($baseVersion) {
+        Write-Host ""
+        Write-Host "Tipo de versao:" -ForegroundColor Yellow
+        Write-Host "  Enter  Estavel       ($baseVersion)"
+        Write-Host "  a      Alpha         ($baseVersion-alpha.1)"
+        Write-Host "  b      Beta          ($baseVersion-beta.1)"
+        Write-Host "  r      RC            ($baseVersion-rc.1)"
+        $preChoice = (Read-Host "Tipo [Enter=estavel / a / b / r]").Trim().ToLower()
+
+        $preMap = @{ "a" = "alpha"; "alpha" = "alpha"; "b" = "beta"; "beta" = "beta"; "r" = "rc"; "rc" = "rc" }
+        $preLabel = if ($preMap.ContainsKey($preChoice)) { $preMap[$preChoice] } else { $null }
+
+        if ($preLabel) {
+            # Auto-incrementar numero se base + tipo iguais ao actual
+            $preNum = 1
+            if ($currentVersion -match '^(\d+\.\d+\.\d+)-([a-zA-Z]+)\.(\d+)$') {
+                if ($matches[1] -eq $baseVersion -and $matches[2] -eq $preLabel) {
+                    $preNum = [int]$matches[3] + 1
+                }
+            }
+            $newVersion = "$baseVersion-$preLabel.$preNum"
+        } else {
+            $newVersion = $baseVersion
+        }
     }
 
     if ($newVersion) {
@@ -2027,9 +2063,10 @@ if ($LASTEXITCODE -eq 0) {
             Write-Step "Draft release v$newVersion detectado. A actualizar com conteudo rico e a publicar..."
             try {
                 $patchPayload = @{
-                    name  = "$releaseTitle"
-                    body  = $releaseBodyText
-                    draft = $false
+                    name       = "$releaseTitle"
+                    body       = $releaseBodyText
+                    draft      = $false
+                    prerelease = (Get-IsPreRelease $newVersion)
                 } | ConvertTo-Json
 
                 $patchBytes = [System.Text.Encoding]::UTF8.GetBytes($patchPayload)
@@ -2060,7 +2097,7 @@ if ($LASTEXITCODE -eq 0) {
                     name       = "$releaseTitle"
                     body       = $releaseBodyText
                     draft      = $false
-                    prerelease = $false
+                    prerelease = (Get-IsPreRelease $newVersion)
                 } | ConvertTo-Json
 
                 $postBytes = [System.Text.Encoding]::UTF8.GetBytes($postPayload)
