@@ -469,7 +469,13 @@ function Invoke-DevOff {
 
     Write-Header "DEV-OFF — Desactivar Modo Desenvolvimento"
 
-    $state = Get-Content $StateFile -Raw | ConvertFrom-Json
+    try {
+        $state = Get-Content $StateFile -Raw | ConvertFrom-Json
+    } catch {
+        Write-Warn "Ficheiro de estado inválido — a remover e a sair."
+        Remove-Item $StateFile -Force -ErrorAction SilentlyContinue
+        return
+    }
 
     # Retomar apenas os serviços que dev-on parou (idempotente)
     foreach ($svc in $state.stoppedServices) {
