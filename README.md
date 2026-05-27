@@ -40,6 +40,7 @@
 - [Nexora QA Runner](#nexora-qa-runner)
 - [Documentation](#documentation)
 - [Development](#development)
+  - [Dev Environment Optimizer](#dev-environment-optimizer)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -424,6 +425,159 @@ nexora-desktop/
 ├── scripts/                # Build, setup, and utility scripts
 └── docs/                   # Documentation
 ```
+
+---
+
+## Dev Environment Optimizer
+
+`scripts/dev-optimize.ps1` is a PowerShell script that tunes Windows 11 for active development on this project. It reduces unnecessary I/O and CPU overhead from Windows Defender real-time scanning, Windows Search indexing, and background telemetry services — without disabling any security feature entirely.
+
+> **Windows 11 only.** Tested on PowerShell 5.1 and 7+. Some commands require Administrator privileges.
+
+### Quick Start
+
+```powershell
+# First time (run once as Administrator):
+.\scripts\dev-optimize.ps1 setup
+
+# Beginning of each dev session:
+.\scripts\dev-optimize.ps1 dev-on
+
+# Check current state at any time:
+.\scripts\dev-optimize.ps1 status
+
+# End of dev session:
+.\scripts\dev-optimize.ps1 dev-off
+
+# Undo everything setup did (run as Administrator):
+.\scripts\dev-optimize.ps1 reset
+```
+
+### Commands
+
+| Command   | Admin | Per-session | Description                                                     |
+| --------- | :---: | :---------: | --------------------------------------------------------------- |
+| `setup`   |  ✅   |    Once     | Apply permanent optimisations and save a backup                 |
+| `dev-on`  |  🔄¹  |     Yes     | Activate dev mode: stop background services, boost priority     |
+| `dev-off` |  🔄¹  |     Yes     | Deactivate dev mode: restore services and priority              |
+| `status`  |  ❌   |     Any     | Show RAM, dev mode, service state, Docker, WSL, top-5 processes |
+| `reset`   |  ✅   |    Once     | Undo all changes made by `setup`                                |
+| `help`    |  ❌   |     Any     | Print built-in documentation                                    |
+
+¹ Automatically re-launches as Administrator if needed — no manual elevation required.
+
+---
+
+#### `setup` — Permanent Configuration
+
+Applies five steps and saves the original state to `~\.dev-optimize-backup.json` before making any changes (safe to interrupt).
+
+| Step                       | What it does                                                                                                                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1 — Defender paths**     | Adds exclusions for `C:\dev`, `~\.cargo`, `~\AppData\Roaming\npm`, `~\.npm`, `~\.antigravity`, `~\AppData\Local\GitHubDesktop`, `~\AppData\Local\Docker\wsl`, and the WSL Ubuntu `.vhdx` package folder |
+| **2 — Defender processes** | Adds exclusions for `cargo.exe`, `rustc.exe`, `node.exe`, `docker.exe`, `com.docker.backend.exe`                                                                                                        |
+| **3 — Windows Search**     | Sets the NTFS `NotContentIndexed` attribute (`FILE_ATTRIBUTE_NOT_CONTENT_INDEXED`) on all dev folders — Windows Search respects this flag without disabling the service                                 |
+| **4 — Docker Desktop**     | Writes `memoryMiB: 4096` and `cpus: 4` to `settings-store.json`; prompts you to restart Docker Desktop                                                                                                  |
+| **5 — WSL**                | Validates `~\.wslconfig`; creates it with `memory=6GB`, `processors=4`, `swap=2GB`, `autoMemoryReclaim=gradual` if absent; never overwrites an existing file                                            |
+
+Reversible with `reset`. Re-running `setup` without `reset` is a no-op (idempotent).
+
+---
+
+#### `dev-on` — Activate Dev Mode
+
+Stops three Windows background services for the duration of the session. On `dev-off`, only the services that `dev-on` actually stopped are restarted (idempotent — safe to call multiple times).
+
+| Service     | Purpose stopped                                                                |
+| ----------- | ------------------------------------------------------------------------------ |
+| `SysMain`   | Superfetch — pre-loads apps into RAM, unnecessary during active development    |
+| `DiagTrack` | Connected User Experiences & Telemetry — sends data to Microsoft in background |
+| `WerSvc`    | Windows Error Reporting — scans crash dumps, unnecessary during development    |
+
+Additional actions:
+
+- Elevates the **parent terminal process** to `High` priority class.
+- Warns (yellow) if free RAM < 4 GB — does not block.
+- Warns (yellow) if Docker Desktop is using > 2 GB RAM.
+
+State is persisted to `~\.dev-optimize-state.json` so `dev-off` knows exactly what to restore.
+
+---
+
+#### `dev-off` — Deactivate Dev Mode
+
+Reads `~\.dev-optimize-state.json` and restarts **only** the services that `dev-on` stopped. Services that were already stopped before `dev-on` ran are left untouched. Resets terminal priority to `Normal`. Removes the state file.
+
+---
+
+#### `status` — System Overview
+
+Displays a snapshot of the current environment without modifying anything. Does not require Administrator.
+
+```
+  ──────────────────────────────────────────────────
+  STATUS DO SISTEMA
+  ──────────────────────────────────────────────────
+  RAM:      9.4 GB usada / 6.2 GB livre (15.6 GB total)
+  Modo Dev: ON
+
+  ── Configuração permanente (setup) ─────────────────
+  [OK] Defender:  exclusões aplicadas
+  [OK] WSearch:   exclusões aplicadas
+  [OK] Docker:    4 GB / 4 CPUs
+  [OK] WSL:       .wslconfig presente
+
+  ── Serviços (dev-on/off) ───────────────────────────
+  SysMain      Stopped (dev-on activo)
+  DiagTrack    Stopped (dev-on activo)
+  WerSvc       Stopped (dev-on activo)
+
+  ── Top 5 processos por RAM ─────────────────────────
+  nexora_desktop               412 MB
+  node                         318 MB
+  ...
+```
+
+---
+
+#### `reset` — Undo Setup
+
+Reads `~\.dev-optimize-backup.json` and reverses every change `setup` made:
+
+1. Removes Defender path exclusions added by `setup` (does not remove pre-existing ones).
+2. Removes Defender process exclusions added by `setup`.
+3. Clears the `NotContentIndexed` NTFS attribute from all dev folders.
+4. Restores `memoryMiB` and `cpus` in `settings-store.json` to the values captured in the backup.
+5. Deletes `~\.dev-optimize-backup.json` and `~\.dev-optimize-state.json`.
+
+> `~\.wslconfig` is **never** modified or deleted — it was either created by you or left untouched by `setup`.
+
+---
+
+### Safety Guarantees
+
+The following processes and services are **never touched** under any command:
+
+| Process / Service                         | Reason                                    |
+| ----------------------------------------- | ----------------------------------------- |
+| `iCloudDrive`, `iCloudHome`, `iCloudCKKS` | Required for iCloud sync                  |
+| `ApplePhotoStreams`                       | Required for iCloud Photos                |
+| `OneDrive`                                | Required for OneDrive sync                |
+| `chrome.exe`                              | May have unsaved tabs or active work open |
+| Windows Defender (service)                | Never disabled — only exclusions added    |
+| Windows Search (service)                  | Never disabled — only folder attributes   |
+
+---
+
+### Files Created by the Script
+
+| File                              | Purpose                                          | Removed by |
+| --------------------------------- | ------------------------------------------------ | ---------- |
+| `~\.dev-optimize-backup.json`     | Original state snapshot for `reset`              | `reset`    |
+| `~\.dev-optimize-state.json`      | Services stopped by `dev-on` (used by `dev-off`) | `dev-off`  |
+| `~\.wslconfig` _(only if absent)_ | WSL2 memory/processor limits                     | Manual     |
+
+Neither backup file is committed to the repository. They live in your home directory only.
 
 ---
 
