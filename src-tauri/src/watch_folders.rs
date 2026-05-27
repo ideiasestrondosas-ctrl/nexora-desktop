@@ -128,8 +128,7 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
             // Processar eventos de ficheiro sem bloquear
             while let Ok(Ok(event)) = ev_rx.try_recv() {
                 let is_create = matches!(event.kind, EventKind::Create(_));
-                let is_data_modify =
-                    matches!(event.kind, EventKind::Modify(ModifyKind::Data(_)));
+                let is_data_modify = matches!(event.kind, EventKind::Modify(ModifyKind::Data(_)));
 
                 if is_create || is_data_modify {
                     for file_path in &event.paths {
@@ -148,9 +147,7 @@ pub fn start(app: tauri::AppHandle, db_path: std::path::PathBuf) -> mpsc::Sender
                             continue;
                         }
 
-                        let size = std::fs::metadata(file_path)
-                            .map(|m| m.len())
-                            .unwrap_or(0);
+                        let size = std::fs::metadata(file_path).map(|m| m.len()).unwrap_or(0);
 
                         if size == 0 {
                             // Ficheiro ainda vazio — ignorar por enquanto

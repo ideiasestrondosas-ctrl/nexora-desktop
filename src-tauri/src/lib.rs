@@ -237,7 +237,9 @@ pub fn run() {
         .run(|app_handle, event| {
             if let tauri::RunEvent::ExitRequested { .. } = event {
                 if let Some(state) = app_handle.try_state::<AppState>() {
-                    state.shutdown.store(true, std::sync::atomic::Ordering::Relaxed);
+                    state
+                        .shutdown
+                        .store(true, std::sync::atomic::Ordering::Relaxed);
                     if let Ok(tx) = state.watcher_tx.lock() {
                         if let Some(sender) = tx.as_ref() {
                             let _ = sender.send(state::WatchCmd::Shutdown);

@@ -1,9 +1,6 @@
 use rusqlite::Connection;
 use std::collections::HashMap;
-use std::sync::{
-    atomic::AtomicBool,
-    Arc, Mutex,
-};
+use std::sync::{atomic::AtomicBool, Arc, Mutex};
 
 pub enum WatchCmd {
     Add { id: String, path: String },
