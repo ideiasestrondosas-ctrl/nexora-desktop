@@ -9,9 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.30.1] - 2026-05-28
 
 ### Added
+
 - fix(dev-optimize): replace WSearch COM approach with NTFS NotContentIndexed attribute
-
-
 
 ## [0.28.0] - 2026-05-25
 
