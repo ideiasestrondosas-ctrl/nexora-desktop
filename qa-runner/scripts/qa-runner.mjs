@@ -4,7 +4,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { QaLogger } from './logger.mjs';
-import { detectNexoraProcess, findInstalledApp, getSystemSnapshot, startAppIfPossible } from './detect-app.mjs';
+import {
+  detectNexoraProcess,
+  findInstalledApp,
+  getSystemSnapshot,
+  startAppIfPossible,
+} from './detect-app.mjs';
 import { discoverVideos, prepareQaVideos } from './video-input.mjs';
 import { MetricsCollector } from './collect-metrics.mjs';
 import { writeReports } from './generate-report.mjs';
@@ -18,7 +23,13 @@ function readJson(relativePath) {
 }
 
 function parseArgs(argv) {
-  const args = { suite: 'quick', openReport: true, noStartApp: false, videoDir: null, duration: null };
+  const args = {
+    suite: 'quick',
+    openReport: true,
+    noStartApp: false,
+    videoDir: null,
+    duration: null,
+  };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--help' || arg === '-h') args.help = true;
@@ -127,12 +138,24 @@ function openReport(filePath) {
 function copyAppLogs(runDir) {
   const appLog = path.join(runDir, 'logs', 'app.log');
   const sidecarLog = path.join(runDir, 'logs', 'sidecar.log');
-  fs.writeFileSync(appLog, 'QA Runner: nenhum log real da app foi copiado nesta execucao isolada.\n', 'utf8');
-  fs.writeFileSync(sidecarLog, 'QA Runner: nenhum log real do sidecar foi copiado nesta execucao isolada.\n', 'utf8');
+  fs.writeFileSync(
+    appLog,
+    'QA Runner: nenhum log real da app foi copiado nesta execucao isolada.\n',
+    'utf8',
+  );
+  fs.writeFileSync(
+    sidecarLog,
+    'QA Runner: nenhum log real do sidecar foi copiado nesta execucao isolada.\n',
+    'utf8',
+  );
 }
 
 function writeLatestPointer(reportsRoot, runDir) {
-  fs.writeFileSync(path.join(reportsRoot, 'latest.json'), JSON.stringify({ runDir }, null, 2), 'utf8');
+  fs.writeFileSync(
+    path.join(reportsRoot, 'latest.json'),
+    JSON.stringify({ runDir }, null, 2),
+    'utf8',
+  );
 }
 
 async function main() {
@@ -183,14 +206,17 @@ async function main() {
           ? config.stressProfiles.light
           : { targetCopies: suiteConfig.requiresVideos ? 1 : 0, durationSeconds: 0 };
   const targetCopies = Math.max(profile.targetCopies || 0, suiteConfig.requiresVideos ? 1 : 0);
-  const copiedVideos = targetCopies > 0 ? prepareQaVideos(discoveredVideos, runDir, targetCopies) : [];
+  const copiedVideos =
+    targetCopies > 0 ? prepareQaVideos(discoveredVideos, runDir, targetCopies) : [];
   addTest(tests, logger, 'Videos de teste', () => {
     if (!suiteConfig.requiresVideos) {
       return {
         status: discoveredVideos.length > 0 ? 'pass' : 'warning',
         expected: 'Fixture interna ou pasta Videos_Tests disponivel quando possivel.',
         actual: `${discoveredVideos.length} video(s) encontrado(s).`,
-        evidence: discoveredVideos[0] ? path.relative(repoRoot, discoveredVideos[0]) : 'logs/test-run.log',
+        evidence: discoveredVideos[0]
+          ? path.relative(repoRoot, discoveredVideos[0])
+          : 'logs/test-run.log',
       };
     }
     return {
@@ -208,7 +234,9 @@ async function main() {
   addTest(tests, logger, 'Deteccao da aplicacao', () => ({
     status: processInfo.running ? 'pass' : 'warning',
     expected: 'Detectar Nexora Desktop se estiver aberto.',
-    actual: processInfo.running ? 'Processo Nexora encontrado.' : 'Processo Nexora nao encontrado; execucao continua em modo isolado.',
+    actual: processInfo.running
+      ? 'Processo Nexora encontrado.'
+      : 'Processo Nexora nao encontrado; execucao continua em modo isolado.',
     evidence: 'logs/debug.log',
     area: 'app-detection',
   }));
@@ -253,7 +281,9 @@ async function main() {
     'linux/abrir-ultimo-relatorio.sh',
   ];
   addTest(tests, logger, 'Scripts multiplataforma', () => {
-    const missing = requiredScripts.filter((script) => !fs.existsSync(path.join(runnerRoot, script)));
+    const missing = requiredScripts.filter(
+      (script) => !fs.existsSync(path.join(runnerRoot, script)),
+    );
     return {
       status: missing.length === 0 ? 'pass' : 'fail',
       expected: 'Todos os scripts amigaveis existem.',
@@ -282,7 +312,11 @@ async function main() {
   copyAppLogs(runDir);
   addTest(tests, logger, 'Metricas do sistema', () => {
     const snapshot = getSystemSnapshot();
-    fs.writeFileSync(path.join(runDir, 'system-snapshot.json'), JSON.stringify(snapshot, null, 2), 'utf8');
+    fs.writeFileSync(
+      path.join(runDir, 'system-snapshot.json'),
+      JSON.stringify(snapshot, null, 2),
+      'utf8',
+    );
     return {
       status: 'pass',
       expected: 'Guardar snapshot de sistema.',
@@ -319,7 +353,12 @@ async function main() {
     actual: `Relatorio principal: ${reports.html}`,
     evidence: 'index.html',
   }));
-  writeReports(runDir, { ...run, tests, finishedAt: new Date().toISOString(), totalDurationMs: Date.now() - startedMs });
+  writeReports(runDir, {
+    ...run,
+    tests,
+    finishedAt: new Date().toISOString(),
+    totalDurationMs: Date.now() - startedMs,
+  });
 
   logger.step(8, 8, 'A concluir e abrir relatorio visual...');
   if (args.openReport) {

@@ -61,6 +61,21 @@ export default [
       'no-console': 'off',
     },
   },
+  // QA Runner (Node.js, isolated subproject)
+  {
+    files: ['qa-runner/scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        ...globals.es2021,
+      },
+    },
+    rules: {
+      'no-console': 'off',
+    },
+  },
   {
     ignores: [
       'dist/**',

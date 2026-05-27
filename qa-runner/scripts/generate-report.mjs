@@ -110,11 +110,12 @@ export function writeReports(runDir, run) {
 
   const rows = run.tests
     .map(
-      (t) => `<tr class="${statusClass(t.status)}"><td>${escapeHtml(t.name)}</td><td>${escapeHtml(
-        t.status,
-      )}</td><td>${t.durationMs}ms</td><td>${escapeHtml(t.expected)}</td><td>${escapeHtml(
-        t.actual,
-      )}</td><td>${escapeHtml(t.evidence || '-')}</td></tr>`,
+      (t) =>
+        `<tr class="${statusClass(t.status)}"><td>${escapeHtml(t.name)}</td><td>${escapeHtml(
+          t.status,
+        )}</td><td>${t.durationMs}ms</td><td>${escapeHtml(t.expected)}</td><td>${escapeHtml(
+          t.actual,
+        )}</td><td>${escapeHtml(t.evidence || '-')}</td></tr>`,
     )
     .join('\n');
   const html = `<!doctype html>

@@ -27,7 +27,8 @@ export class MetricsCollector {
 
   writeCsv() {
     const file = path.join(this.runDir, 'metrics.csv');
-    const header = 'timestamp,elapsedMs,label,load1,memoryTotalBytes,memoryFreeBytes,memoryUsedBytes\n';
+    const header =
+      'timestamp,elapsedMs,label,load1,memoryTotalBytes,memoryFreeBytes,memoryUsedBytes\n';
     const body = this.rows
       .map((r) =>
         [
@@ -47,7 +48,10 @@ export class MetricsCollector {
 }
 
 export function summarizeDurations(tests) {
-  const durations = tests.map((t) => t.durationMs).filter((n) => Number.isFinite(n)).sort((a, b) => a - b);
+  const durations = tests
+    .map((t) => t.durationMs)
+    .filter((n) => Number.isFinite(n))
+    .sort((a, b) => a - b);
   const percentile = (p) => {
     if (durations.length === 0) return 0;
     const index = Math.min(durations.length - 1, Math.floor((p / 100) * durations.length));

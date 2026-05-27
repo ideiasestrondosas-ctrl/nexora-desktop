@@ -140,6 +140,7 @@
 - [x] Suites `quick`, `video`, `stress-light` e `complete` executadas e relatorios reais gerados
 - [x] Validacao de artefactos de relatorio executada
 - [x] Sem alteracoes em `src/`, `src-tauri/` ou `sidecar/`
+- [x] Fix CI: ESLint override Node para `qa-runner/scripts/**/*.mjs` apos falha no GitHub Actions
 
 ---
 

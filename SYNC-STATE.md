@@ -40,6 +40,13 @@ Agente: Codex (GPT-5)
 - Stress forte cria copias temporarias de videos dentro da pasta do run; os originais nao sao modificados.
 - Relatorio principal mais recente: `.logs/qa-runs/2026-05-27T20-00-28-769Z/index.html`
 
+**Fix CI apos push:**
+
+- GitHub Actions run `26535887021` falhou no job `Lint + Tests`, passo ESLint.
+- Causa: `eslint .` passou a analisar `qa-runner/scripts/**/*.mjs`, mas estes scripts Node.js nao tinham `globals.node` na configuracao.
+- Correcao: adicionado override QA Runner em `eslint.config.js` com `globals.node`, `globals.es2021` e `no-console: off`.
+- Verificacao local apos fix: `npm run lint` OK; `node qa-runner/scripts/qa-runner.mjs --suite quick --no-open --no-start-app` OK.
+
 ---
 
 ### Sessao 29 — Documentacao v0.30.0-beta.1 (Comparator, Onboarding, Watch Folders, Bug Report, Pipeline Errors) — CONCLUIDO
