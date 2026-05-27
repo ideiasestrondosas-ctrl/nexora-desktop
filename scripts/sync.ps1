@@ -1724,29 +1724,46 @@ if (-not $SkipRelease -and -not $promoteExisting) {
         default { if (-not $choice) { $baseVersion = $suggestedVersion } }
     }
 
-    # 4. Menu interactivo — tipo de versao (estavel / pre-release)
+    # 4. Menu interactivo — tipo de versao (lê .release-channel para o default)
+    $defaultChannel = "stable"
+    $channelFile = Join-Path $WORKSPACE ".release-channel"
+    if (Test-Path $channelFile) {
+        $ch = (Get-Content $channelFile -Raw -Encoding utf8).Trim().ToLower()
+        if (@("alpha","beta","rc","stable") -contains $ch) { $defaultChannel = $ch }
+    }
+
     $newVersion = ""
     if ($baseVersion) {
-        Write-Host ""
-        Write-Host "Tipo de versao:" -ForegroundColor Yellow
-        Write-Host "  Enter  Estavel       ($baseVersion)"
-        Write-Host "  a      Alpha         ($baseVersion-alpha.1)"
-        Write-Host "  b      Beta          ($baseVersion-beta.1)"
-        Write-Host "  r      RC            ($baseVersion-rc.1)"
-        $preChoice = (Read-Host "Tipo [Enter=estavel / a / b / r]").Trim().ToLower()
+        # Pre-calcular numeros de pre-release para cada tipo (auto-incremento)
+        $preNums = @{ alpha = 1; beta = 1; rc = 1 }
+        if ($currentVersion -match '^(\d+\.\d+\.\d+)-([a-zA-Z]+)\.(\d+)$') {
+            $curBase = $matches[1]; $curLbl = $matches[2]; $curNum = [int]$matches[3]
+            if ($curBase -eq $baseVersion -and $preNums.ContainsKey($curLbl)) {
+                $preNums[$curLbl] = $curNum + 1
+            }
+        }
 
-        $preMap = @{ "a" = "alpha"; "alpha" = "alpha"; "b" = "beta"; "beta" = "beta"; "r" = "rc"; "rc" = "rc" }
-        $preLabel = if ($preMap.ContainsKey($preChoice)) { $preMap[$preChoice] } else { $null }
+        $defaultHint = if ($defaultChannel -eq "stable") { $baseVersion } else { "$baseVersion-$defaultChannel.$($preNums[$defaultChannel])" }
+
+        Write-Host ""
+        Write-Host "Tipo de versao (canal: $defaultChannel):" -ForegroundColor Yellow
+        Write-Host "  Enter  Padrao    ($defaultHint)" -ForegroundColor Green
+        Write-Host "  s      Estavel   ($baseVersion)"
+        Write-Host "  a      Alpha     ($baseVersion-alpha.$($preNums['alpha']))"
+        Write-Host "  b      Beta      ($baseVersion-beta.$($preNums['beta']))"
+        Write-Host "  r      RC        ($baseVersion-rc.$($preNums['rc']))"
+        $preChoice = (Read-Host "Tipo [Enter=$defaultChannel / s / a / b / r]").Trim().ToLower()
+
+        # Enter usa o canal por defeito
+        if (-not $preChoice) {
+            $preChoice = if ($defaultChannel -eq "stable") { "s" } else { $defaultChannel }
+        }
+
+        $preMap = @{ "s"=""; "stable"=""; "a"="alpha"; "alpha"="alpha"; "b"="beta"; "beta"="beta"; "r"="rc"; "rc"="rc" }
+        $preLabel = if ($preMap.ContainsKey($preChoice)) { $preMap[$preChoice] } else { "" }
 
         if ($preLabel) {
-            # Auto-incrementar numero se base + tipo iguais ao actual
-            $preNum = 1
-            if ($currentVersion -match '^(\d+\.\d+\.\d+)-([a-zA-Z]+)\.(\d+)$') {
-                if ($matches[1] -eq $baseVersion -and $matches[2] -eq $preLabel) {
-                    $preNum = [int]$matches[3] + 1
-                }
-            }
-            $newVersion = "$baseVersion-$preLabel.$preNum"
+            $newVersion = "$baseVersion-$preLabel.$($preNums[$preLabel])"
         } else {
             $newVersion = $baseVersion
         }

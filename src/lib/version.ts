@@ -3,7 +3,7 @@
  * Actualizar aqui em cada release — propaga automaticamente
  * para todos os sítios que mostram a versão.
  */
-export const APP_VERSION = '0.30.0-beta.1';
+export const APP_VERSION = '0.30.1-beta.1';
 
 export interface VersionEntry {
   version: string;
@@ -11,6 +11,11 @@ export interface VersionEntry {
 }
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: '0.30.1-beta.1',
+    description:
+      'v0.30.1-beta.1: Fix WSearch indexing (NTFS NotContentIndexed em vez de COM), correcção de parsing de versões pre-release no sync.ps1, suporte completo a alpha/beta/rc no menu de versão.',
+  },
   {
     version: '0.30.0-beta.1',
     description:
