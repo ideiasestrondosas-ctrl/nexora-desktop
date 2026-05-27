@@ -42,7 +42,8 @@
       "logs": "Logs",
       "assetDetail": "Varlık Detayı",
       "import": "İçe Aktar",
-      "comparator": "Comparator"
+      "comparator": "Comparator",
+      "betaGuide": "Beta Test Kılavuzu (DEV)"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",

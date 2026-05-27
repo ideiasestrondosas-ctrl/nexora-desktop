@@ -20,13 +20,20 @@ import {
   FolderOpen,
   Shield,
   Bug,
+  FlaskConical,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { logActivity } from '@/lib/activityLog';
+import ptGuide from '../../docs/BETA_TESTING_GUIDE.pt.md?raw';
+import enGuide from '../../docs/BETA_TESTING_GUIDE.en.md?raw';
 
 interface HelpOverlayProps {
   open: boolean;
@@ -44,7 +51,8 @@ type ScreenTab =
   | 'cloud'
   | 'assetDetail'
   | 'import'
-  | 'comparator';
+  | 'comparator'
+  | 'betaGuide';
 
 const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] = [
   { id: 'intro', labelKey: 'help.tabs.intro', icon: <BookOpen className="w-4 h-4" /> },
@@ -76,7 +84,16 @@ const TAB_COUNTS: Record<ScreenTab, number> = {
   cloud: 5,
   comparator: 2,
   logs: 1,
+  betaGuide: 0,
 };
+
+const DEV_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] = [
+  {
+    id: 'betaGuide',
+    labelKey: 'help.tabs.betaGuide',
+    icon: <FlaskConical className="w-4 h-4" />,
+  },
+];
 
 const SCREENSHOTS = {
   dashboard: '/screenshots/dashboard.png',
@@ -169,10 +186,137 @@ function ScreenCard({
   );
 }
 
+const MD_COMPONENTS: React.ComponentProps<typeof ReactMarkdown>['components'] = {
+  h1: ({ children }) => (
+    <h1 className="text-base font-bold text-text-primary mt-5 mb-2 pb-1 border-b border-border/50">
+      {children}
+    </h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-sm font-bold text-text-primary mt-4 mb-1.5">{children}</h2>
+  ),
+  h3: ({ children }) => <h3 className="text-xs font-bold text-brand mt-3 mb-1">{children}</h3>,
+  h4: ({ children }) => (
+    <h4 className="text-xs font-semibold text-text-secondary mt-2 mb-1">{children}</h4>
+  ),
+  p: ({ children }) => (
+    <p className="text-xs text-text-secondary leading-relaxed mb-2">{children}</p>
+  ),
+  ul: ({ children }) => (
+    <ul className="list-disc list-inside space-y-0.5 mb-2 text-xs text-text-secondary">
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="list-decimal list-inside space-y-0.5 mb-2 text-xs text-text-secondary">
+      {children}
+    </ol>
+  ),
+  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  blockquote: ({ children }) => (
+    <blockquote className="border-l-2 border-brand/40 pl-3 my-2 text-xs text-text-muted italic">
+      {children}
+    </blockquote>
+  ),
+  code: ({ children, className }) => {
+    const isBlock = className?.includes('language-');
+    return isBlock ? (
+      <pre className="bg-bg-tertiary rounded-lg p-3 my-2 overflow-x-auto text-[11px] font-mono text-text-secondary">
+        <code>{children}</code>
+      </pre>
+    ) : (
+      <code className="bg-bg-tertiary px-1 py-0.5 rounded text-[11px] font-mono text-brand">
+        {children}
+      </code>
+    );
+  },
+  pre: ({ children }) => <>{children}</>,
+  table: ({ children }) => (
+    <div className="overflow-x-auto my-3">
+      <table className="w-full text-xs border-collapse">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="bg-bg-tertiary">{children}</thead>,
+  tbody: ({ children }) => <tbody>{children}</tbody>,
+  tr: ({ children }) => <tr className="border-b border-border/30">{children}</tr>,
+  th: ({ children }) => (
+    <th className="text-left px-2 py-1.5 font-semibold text-text-primary text-[11px] uppercase tracking-wide">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => <td className="px-2 py-1.5 text-text-secondary align-top">{children}</td>,
+  hr: () => <hr className="my-4 border-border/50" />,
+  a: ({ href, children }) => (
+    <a href={href} className="text-brand hover:underline" target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  ),
+  strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
+  em: ({ children }) => <em className="italic text-text-muted">{children}</em>,
+};
+
+function BetaGuidePanel() {
+  const { i18n } = useTranslation();
+  const [saving, setSaving] = useState(false);
+
+  const isPt = i18n.language === 'pt';
+  const content = isPt ? ptGuide : enGuide;
+  const filename = isPt ? 'BETA_TESTING_GUIDE.pt.md' : 'BETA_TESTING_GUIDE.en.md';
+
+  const handleDownload = async () => {
+    setSaving(true);
+    try {
+      const path = await save({
+        defaultPath: filename,
+        filters: [{ name: 'Markdown', extensions: ['md'] }],
+      });
+      if (path) {
+        await writeTextFile(path, content);
+        toast.success(isPt ? 'Guia guardado com sucesso' : 'Guide saved successfully');
+      }
+    } catch (err) {
+      console.error('Save guide failed:', err);
+      toast.error(isPt ? 'Erro ao guardar o guia' : 'Failed to save guide');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full -m-6">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border/50 bg-bg-tertiary/50 shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold text-brand bg-brand/10 px-2 py-0.5 rounded font-mono uppercase tracking-wider">
+            DEV ONLY
+          </span>
+          <span className="text-[11px] text-text-muted">
+            {isPt ? 'Guia de Testes Beta — v0.30.0-beta.1' : 'Beta Testing Guide — v0.30.0-beta.1'}
+          </span>
+        </div>
+        <button
+          onClick={handleDownload}
+          disabled={saving}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-brand/10 text-brand hover:bg-brand/20 transition-colors disabled:opacity-50"
+        >
+          <Download className="w-3.5 h-3.5" />
+          {saving ? (isPt ? 'A guardar…' : 'Saving…') : isPt ? 'Descarregar .md' : 'Download .md'}
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
+          {content}
+        </ReactMarkdown>
+      </div>
+    </div>
+  );
+}
+
 export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) => {
   const [activeTab, setActiveTab] = useState<ScreenTab>('intro');
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const { t } = useTranslation();
+
+  const visibleTabs = import.meta.env.DEV ? [...SCREEN_TABS, ...DEV_TABS] : SCREEN_TABS;
 
   const GUIDE_URL =
     'https://github.com/ideiasestrondosas-ctrl/nexora-desktop/blob/main/docs/USER_MANUAL.md';
@@ -256,7 +400,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
             <div className="flex flex-1 overflow-hidden">
               {/* Sidebar */}
               <div className="w-48 shrink-0 border-r border-border/50 bg-bg-secondary/50 flex flex-col overflow-y-auto h-full">
-                {SCREEN_TABS.map((tab) => (
+                {visibleTabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
@@ -777,6 +921,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     </ScreenCard>
                   </div>
                 )}
+
+                {activeTab === 'betaGuide' && <BetaGuidePanel />}
               </div>
             </div>
           </div>
