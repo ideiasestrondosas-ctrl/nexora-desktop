@@ -133,8 +133,90 @@ function Show-Help {
     Write-Host ""
 }
 
-# ── Show-Status (placeholder — implementado na Task 2) ────────────────────────
-function Show-Status { Write-Warn "Comando 'status' ainda não implementado." }
+# ── Show-Status ──────────────────────────────────────────────────────────────
+function Show-Status {
+    Write-Header "STATUS DO SISTEMA"
+
+    # RAM
+    $os = Get-CimInstance Win32_OperatingSystem
+    $totalGB = [math]::Round($os.TotalVisibleMemorySize / 1MB, 1)
+    $freeGB  = [math]::Round($os.FreePhysicalMemory  / 1MB, 1)
+    $usedGB  = [math]::Round(($os.TotalVisibleMemorySize - $os.FreePhysicalMemory) / 1MB, 1)
+    $freeColor = if ($freeGB -lt 4) { "Yellow" } else { "Green" }
+    Write-Host ""
+    Write-Host "  RAM:      " -NoNewline
+    Write-Host "$usedGB GB usada" -ForegroundColor White -NoNewline
+    Write-Host " / " -NoNewline
+    Write-Host "$freeGB GB livre" -ForegroundColor $freeColor -NoNewline
+    Write-Host " ($totalGB GB total)"
+
+    # Modo dev
+    $devOn = Test-Path $StateFile
+    Write-Host "  Modo Dev: " -NoNewline
+    if ($devOn) { Write-Host "ON" -ForegroundColor Green }
+    else        { Write-Host "OFF" -ForegroundColor Gray }
+
+    Write-Host ""
+    Write-Host "  ── Configuração permanente (setup) ─────────────────" -ForegroundColor DarkCyan
+
+    # Defender
+    $setupDone = Test-Path $BackupFile
+    if ($setupDone) { Write-Ok  "Defender:  exclusões aplicadas" }
+    else            { Write-Warn "Defender:  setup ainda não executado" }
+
+    # WSearch
+    if ($setupDone) { Write-Ok  "WSearch:   exclusões aplicadas" }
+    else            { Write-Warn "WSearch:   setup ainda não executado" }
+
+    # Docker
+    if (Test-Path $DockerCfgPath) {
+        $d = Get-Content $DockerCfgPath -Raw | ConvertFrom-Json
+        $hasMem  = $d.PSObject.Properties.Name -contains "memoryMiB"
+        $hasCpus = $d.PSObject.Properties.Name -contains "cpus"
+        if ($hasMem -and $hasCpus -and $d.memoryMiB -and $d.cpus) {
+            Write-Ok "Docker:    $([math]::Round($d.memoryMiB/1024,1)) GB / $($d.cpus) CPUs"
+        } else {
+            Write-Warn "Docker:    sem limites definidos"
+        }
+    } else {
+        Write-Info "Docker:    settings-store.json não encontrado"
+    }
+
+    # WSL
+    $wslCfg = "$HOME\.wslconfig"
+    if (Test-Path $wslCfg) {
+        $wslContent = Get-Content $wslCfg -Raw
+        if ($wslContent -match "memory" -and $wslContent -match "processors") {
+            Write-Ok "WSL:       .wslconfig presente"
+        } else {
+            Write-Warn "WSL:       .wslconfig incompleto"
+        }
+    } else {
+        Write-Warn "WSL:       .wslconfig não encontrado"
+    }
+
+    Write-Host ""
+    Write-Host "  ── Serviços (dev-on/off) ───────────────────────────" -ForegroundColor DarkCyan
+
+    foreach ($svc in $DevServices) {
+        $s = Get-Service $svc -ErrorAction SilentlyContinue
+        if ($s) {
+            $color = if ($s.Status -eq "Running") { "Gray" } else { "Green" }
+            $label = if ($s.Status -eq "Running") { "Running (normal)" } else { "Stopped (dev-on activo)" }
+            Write-Host "  $($svc.PadRight(12))" -NoNewline
+            Write-Host $label -ForegroundColor $color
+        }
+    }
+
+    Write-Host ""
+    Write-Host "  ── Top 5 processos por RAM ─────────────────────────" -ForegroundColor DarkCyan
+    Get-Process | Sort-Object WorkingSet -Descending | Select-Object -First 5 |
+        ForEach-Object {
+            $mb = [math]::Round($_.WorkingSet / 1MB, 0)
+            Write-Host "  $($_.Name.PadRight(28)) $mb MB"
+        }
+    Write-Host ""
+}
 
 # ── Invoke-Setup (placeholder — implementado nas Tasks 3-4) ──────────────────
 function Invoke-Setup { Write-Warn "Comando 'setup' ainda não implementado." }
