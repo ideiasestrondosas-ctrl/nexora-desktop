@@ -68,14 +68,16 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
 # ---------------------------------------------------------
 # FUNCAO: Monitorizar GitHub Actions apos release
 # ---------------------------------------------------------
-function Watch-GitHubActions($sha, $version, $token) {
+function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
     $headers   = @{ "Authorization" = "token $token"; "Accept" = "application/vnd.github+json" }
-    $apiUrl    = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?head_sha=$sha"
+    # Usa branch em vez de head_sha para apanhar sempre o run mais recente,
+    # mesmo após um push de correcção (fix do cargo fmt, lint, etc.)
+    $apiUrl    = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?branch=$branch&per_page=20"
     $targets   = @("CI — Verificacao de Qualidade", "Build Nexora Desktop")
     $startTime = Get-Date
 
     Write-Host ""
-    Write-Host "  [AGUARDAR] GitHub Actions — v$version  ·  Ctrl+C para sair" -ForegroundColor Cyan
+    Write-Host "  [AGUARDAR] GitHub Actions — v$version  ·  branch: $branch  ·  Ctrl+C para sair" -ForegroundColor Cyan
 
     while ($true) {
         $runs = @()
@@ -103,7 +105,8 @@ function Watch-GitHubActions($sha, $version, $token) {
         $anyFailed = $false
 
         foreach ($wfName in $targets) {
-            $run = $runs | Where-Object { $_.name -eq $wfName } | Select-Object -First 1
+            # Pegar sempre o run MAIS RECENTE para este workflow (Sort por created_at desc)
+            $run = $runs | Where-Object { $_.name -eq $wfName } | Sort-Object { [datetime]$_.created_at } -Descending | Select-Object -First 1
 
             if (-not $run) {
                 Write-Host ("  ⏳  " + $wfName.PadRight(42) + " em fila") -ForegroundColor Gray
@@ -130,7 +133,10 @@ function Watch-GitHubActions($sha, $version, $token) {
                         $label = if ($run.conclusion) { $run.conclusion } else { "falhou" }
                         Write-Host ("  ❌  " + $wfName.PadRight(42) + " $($label.PadRight(15)) ($runStr)") -ForegroundColor Red
                         Write-Host "       $($run.html_url)" -ForegroundColor DarkRed
+                        Write-Host "       (a aguardar novo push para retry...)" -ForegroundColor DarkGray
                         $anyFailed = $true
+                        # Não marca como allDone — mantém loop à espera de novo push
+                        $allDone = $false
                     }
                 }
             }
@@ -138,12 +144,15 @@ function Watch-GitHubActions($sha, $version, $token) {
 
         if ($allDone) {
             Write-Host ""
-            if ($anyFailed) {
-                Write-Err "Um ou mais workflows falharam. Corrige os erros e volta a lancar."
-            } else {
-                Write-Success "Todos os Actions passaram! Release v$version concluida."
-            }
+            Write-Success "Todos os Actions passaram! Release v$version concluida."
             return
+        }
+
+        # Se só há falhas e nenhum workflow está em progresso, espera por novo push
+        $anyActive = $runs | Where-Object { $_.name -in $targets -and $_.status -in @("queued","in_progress") }
+        if ($anyFailed -and -not $anyActive) {
+            Write-Host ""
+            Write-Host "  💡  Corrige os erros, faz push, e o monitor actualiza automaticamente." -ForegroundColor Yellow
         }
 
         Start-Sleep -Seconds 30
@@ -1975,7 +1984,7 @@ if ($LASTEXITCODE -eq 0) {
             $watchAns = Read-Host "  Queres aguardar pelos GitHub Actions? [S/N] (Padrao: N)"
             if ($watchAns -match '^[Ss]$') {
                 $mainSha = git rev-parse main 2>$null
-                Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN
+                Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN "main"
             }
         }
     }
