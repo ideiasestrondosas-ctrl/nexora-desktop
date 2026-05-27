@@ -1682,10 +1682,11 @@ if (-not $SkipRelease -and -not $promoteExisting) {
     Write-Host "Versao actual: $currentVersion" -ForegroundColor Gray
 
     # 2. Deduzir proxima versao com base no tipo de commit
+    # Suporte a versoes com pre-release tag: "1.2.3-beta.1" → patch = 3
     $vParts = $currentVersion.Split('.')
     $major  = [int]$vParts[0]
     $minor  = [int]$vParts[1]
-    $patch  = [int]$vParts[2]
+    $patch  = [int]($vParts[2] -replace '[-+].*$', '')
 
     $suggestedVersion = ""
     if ($commitMsg -match "BREAKING CHANGE") {
