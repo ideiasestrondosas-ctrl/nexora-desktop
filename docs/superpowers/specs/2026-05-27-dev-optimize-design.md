@@ -154,7 +154,7 @@ Guarda em `$HOME\.dev-optimize-backup.json`:
 | Aviso se RAM livre < 4 GB    | Imprime alerta amarelo mas não bloqueia                                    |
 | Aviso se Docker > 2 GB RAM   | Lembra que está a usar muitos recursos                                     |
 
-**Nunca toca em:** `iCloudDrive`, `iCloudHome`, `iCloudCKKS`, `ApplePhotoStreams`, `iCloudCKKS`, `OneDrive`, `chrome.exe`
+**Nunca toca em:** `iCloudDrive`, `iCloudHome`, `iCloudCKKS`, `ApplePhotoStreams`, `OneDrive`, `chrome.exe`
 
 Guarda estado `dev-on` em `$HOME\.dev-optimize-state.json` para que `dev-off` saiba o que foi alterado.
 
