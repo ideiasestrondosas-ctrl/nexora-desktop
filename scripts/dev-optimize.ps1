@@ -39,6 +39,7 @@ $DefenderPaths = @(
 
 $DefenderProcesses = @("cargo.exe", "rustc.exe", "node.exe", "docker.exe", "com.docker.backend.exe")
 $DevServices       = @("SysMain", "DiagTrack", "WerSvc")
+# Documentação dos processos nunca tocados — a garantia é implícita (só $DevServices é parado)
 $NeverTouchProcs   = @("iCloudDrive", "iCloudHome", "iCloudCKKS", "ApplePhotoStreams", "OneDrive", "chrome")
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -285,6 +286,9 @@ function Invoke-Setup {
         addedDefenderProcs = [System.Collections.Generic.List[string]]@()
     }
 
+    # Guardar backup inicial antes de aplicar alterações (permite reset mesmo se o script for interrompido)
+    $backup | ConvertTo-Json -Depth 5 | Set-Content -Path $BackupFile -Encoding UTF8
+
     # ── Passo 1: Defender — exclusões de pastas ───────────────────────────
     Write-Info ""
     Write-Info "Passo 1/5 — Windows Defender: exclusões de pastas..."
@@ -366,7 +370,7 @@ autoMemoryReclaim=gradual
         Write-Ok ".wslconfig criado com valores recomendados"
     }
 
-    # ── Guardar backup ────────────────────────────────────────────────────
+    # ── Actualizar backup com estado final ───────────────────────────────
     $backup | ConvertTo-Json -Depth 5 | Set-Content -Path $BackupFile -Encoding UTF8
     Write-Host ""
     Write-Ok "Setup concluído! Backup guardado em: $BackupFile"
