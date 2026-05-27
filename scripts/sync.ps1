@@ -6,9 +6,10 @@
     [switch]$Help
 )
 
-# Configuracoes de codificacao para o terminal
+# Configuracoes de codificacao para o terminal — UTF-8 em todo o pipeline
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding  = [System.Text.Encoding]::UTF8  # decodifica output de git/externos como UTF-8
 
 # Funcoes de Log (definidas cedo para usar no bloco Help)
 function Write-Step($msg)    { Write-Host "[STEP]  $msg" -ForegroundColor Cyan }
@@ -253,7 +254,7 @@ function Parse-ChangelogSection($version) {
         return $null
     }
 
-    $content = Get-Content $changelogPath -Raw
+    $content = Get-Content $changelogPath -Raw -Encoding utf8
     # Procurar secao ## [X.Y.Z] ate a proxima ## [ ou fim do ficheiro
     # (?s) ativa single-line mode (. captura newlines); $ so matcha fim de string
     $pattern = "(?s)## \[$version\].*?(?=## \[|$)"
@@ -284,7 +285,7 @@ function Build-ReleaseBody($version, $commitMsg) {
     # Prioridade 1: release-notes-vX.Y.Z.md
     $releaseNotesPath = Join-Path $WORKSPACE "release-notes-v$version.md"
     if (Test-Path $releaseNotesPath) {
-        $notesContent = Get-Content $releaseNotesPath -Raw
+        $notesContent = Get-Content $releaseNotesPath -Raw -Encoding utf8
         # Remover o header "## What's New" se existir para evitar duplicacao
         $notesContent = $notesContent -replace "^## What's New\s*`n+", ""
         $body = $notesContent.Trim()
@@ -827,7 +828,7 @@ function Read-SessionInfo {
         return $result
     }
 
-    $content = Get-Content $sessionPath -Raw
+    $content = Get-Content $sessionPath -Raw -Encoding utf8
     if (-not $content) { return $result }
 
     # Helper to extract section content
