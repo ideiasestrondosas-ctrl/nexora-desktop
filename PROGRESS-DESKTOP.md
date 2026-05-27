@@ -119,7 +119,24 @@
 - [x] Fix 6: version.ts bumped para 0.30.0-beta.1 + historico 0.26-0.30
 - [x] Feature: VisualComparatorPlayer split-screen — tab Comparador no AssetDetail + i18n EN/PT
 - [x] Release bump: package.json (0.30.0-beta.1), Cargo.toml (0.30.0), tauri.conf.json (0.30.0)
-- [ ] Merge dev -> main + tag v0.30.0-beta.1 + GitHub Release
+- [x] Merge dev -> main + tag v0.30.0-beta.1 + GitHub Release
+
+### Fase 17 - Documentacao Completa v0.30.0-beta.1 (Sessao 29)
+
+**Objectivo:** Documentar todas as novas funcionalidades da beta (Comparator, Onboarding, Watch Folders, Bug Report, Pipeline Errors) em HelpModal, User Manual, Screen Guide e README.
+
+**Documentacao implementada:**
+
+- [x] HelpModal — nova aba "Comparator" + 5 ScreenCards (Comparator, Onboarding, Watch Folders, Privacy, Bug Report)
+- [x] i18n — secao `help.comparator` adicionada a 15 locales (EN + 13 linguas)
+- [x] USER_MANUAL.md — +5 secoes (Comparator, Onboarding, Watch Folders, Bug Report, Pipeline Errors)
+- [x] SCREEN_GUIDE.md — +6 secoes (Comparator, Onboarding, Bug Report, Pipeline Errors, Watch Folders, Shortcuts)
+- [x] README.md — "What's New in v0.30.0-beta.1" actualizado
+
+**Screenshots capturados (16):**
+
+- onboarding-wizard, watch-folders, privacy-telemetry, bug-report, pipeline-error, comparator, batch-submit, asset-detail-cloud, dashboard-updated, queue-expanded
+- +6 existentes actualizados
 
 ---
 
@@ -140,10 +157,10 @@
 ## Em progresso agora
 
 ```
-Data:          2026-05-25
-Agente:        Claude Code (claude-sonnet-4-6)
-Ultima sessao: 27 — Alpha Instrumentada v0.29.0 (CONCLUIDO)
-Proximo:       Recolher feedback alpha + bugs + lançar beta publica
+Data:          2026-05-27
+Agente:        OpenCode (kimi-k2.6)
+Ultima sessao: 29 — Documentacao v0.30.0-beta.1 (CONCLUIDO)
+Proximo:       Merge dev -> main + tag v0.30.0-beta.1 + GitHub Release
 Bloqueios:     Nenhum
 ```
 

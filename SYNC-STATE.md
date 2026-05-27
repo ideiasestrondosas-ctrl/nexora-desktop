@@ -5,10 +5,94 @@
 
 ---
 
-Actualizado: 2026-05-25
-Agente: Claude Code (claude-sonnet-4-6)
+Actualizado: 2026-05-27
+Agente: OpenCode (kimi-k2.6)
 
 ## O que foi feito
+
+### Sessao 29 — Documentacao v0.30.0-beta.1 (Comparator, Onboarding, Watch Folders, Bug Report, Pipeline Errors) — CONCLUIDO
+
+**Pedido:** Analisar workspace e verificar alteracoes/nouidades que ainda nao estejam mencionadas no menu manual (HelpModal), screenshots, USER_MANUAL, SCREEN_GUIDE e README do GitHub. Actualizar tudo.
+
+**Analise:**
+
+1. **Funcionalidades nao documentadas identificadas:**
+   - Visual Comparator (split-screen A/B) — codigo presente, zero documentacao
+   - Onboarding Wizard (4 passos) — codigo presente, zero documentacao
+   - Watch Folders (Settings → Watch Folders) — codigo presente, zero documentacao documentacao
+   - Privacy / Telemetry (Settings → Privacy) — codigo presente, zero documentacao
+   - Bug Report (TopBar botao laranja) — codigo presente, zero documentacao
+   - Pipeline Error Messages (categorizacao de erros) — codigo presente, zero documentacao
+   - Batch Submit Modal (multi-select + estimativas) — parcialmente documentado
+   - Cloud Destination Section no Asset Detail — parcialmente documentado
+
+2. **Screenshots faltantes (16 capturas identificadas):**
+   - onboarding-wizard, watch-folders, privacy-telemetry, bug-report, pipeline-error, comparator, batch-submit, asset-detail-cloud, dashboard-updated, queue-expanded + 6 actualizacoes
+
+**Implementacao:**
+
+1. **HelpModal.tsx:**
+   - Nova aba "comparator" adicionada ao ScreenTab type + SCREEN_TABS array
+   - Screenshots mapeados: comparator, onboarding, watch-folders, privacy-telemetry, bug-report, pipeline-error, batch-submit
+   - 4 novos ScreenCards: Visual Comparator, Onboarding, Watch Folders, Privacy, Bug Report
+   - TAB_COUNTS actualizado (comparator: 2, intro: 4, settings: 6)
+
+2. **i18n (15 linguas):**
+   - Adicionado `help.tabs.comparator` em todos os locales
+   - Secao `help.comparator` com: title, desc, splitScreen, scrubSync, playPause, tip1-3
+   - Sub-secoes: onboarding, watchFolders, privacy, bugReport
+   - 14 locales PT/ES/FR/DE/IT/NL/PL/RU/Ja/KO/ZH/AR/SV/TR + EN
+
+3. **USER_MANUAL.md:**
+   - +5 novas secoes: 12 (Visual Comparator), 13 (Onboarding), 14 (Watch Folders), 15 (Bug Report), 16 (Pipeline Error Messages)
+   - Total: 360 → +85 linhas
+
+4. **SCREEN_GUIDE.md:**
+   - +6 novas secoes: 12 (Comparator), 13 (Onboarding), 14 (Bug Report), 15 (Pipeline Errors), 16 (Watch Folders), 17 (Keyboard Shortcuts updated)
+   - ASCII art, tabelas de interaccao, badges de erro, layout completo
+   - Total: 887 → +209 linhas
+
+5. **README.md:**
+   - Secao "What's New" actualizada de v0.26.0 → v0.30.0-beta.1
+   - Features table actualizada: Bug Reporting, Watch Folders, Visual Comparator
+   - Screenshots section mantida (novos screenshots capturados pelo utilizador)
+
+**Screenshots capturados pelo utilizador (16 novos):**
+
+- onboarding-wizard.png, watch-folders.png, privacy-telemetry.png, bug-report.png, pipeline-error.png, comparator.png, batch-submit.png, asset-detail-cloud.png, dashboard-updated.png, queue-expanded.png
+- 6 existentes actualizados: asset-detail.png, ingest-modal.png, queue.png
+
+**Verificacao:**
+
+- JSON valido (15/15 locales): ✅
+- HelpModal compila: ✅ (tsc --noEmit)
+- Git diff: 23 ficheiros, 966 insercoes / 52 remocoes
+
+**Notas:**
+
+- Scripts temporarios (patch-i18n.cjs, patch-i18n-v2.cjs) removidos
+- Foi necessario reverter `src/i18n/locales/en/common.json` de git HEAD apos corrupcao durante edicao (multiplas insercoes duplicadas); depois repatch com script Node.js
+
+---
+
+## Estado das branches
+
+- `dev`: v0.30.0-beta.1 em desenvolvimento (Sessao 28 + Sessao 29)
+- `main`: v0.29.0-alpha.1 (Sessao 27)
+- Pronto para: merge dev → main, tag v0.30.0-beta.1, GitHub Release (Pre-release)
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Visual Comparator** — so aparece quando `asset.output_path` existe; usa `convertFileSrc` para loading de ficheiros locais; videos sincronizados via event listeners `timeupdate` + `loadedmetadata`
+- **Onboarding** — `STORAGE_KEY = 'nexora_onboarding_complete'` exportado de `OnboardingModal.tsx`; Settings > Privacy usa `import { STORAGE_KEY as ONBOARDING_STORAGE_KEY }`
+- **Watch Folders** — debounce 3s + dedup via `ingested` set; limpa pending/ingested ao remover pasta via `WatchCmd::Remove`
+- **Bug Report** — `BugReportModal.tsx` usa `get_last_n_logs_text(n: 50)`; inclui versao, plataforma, OS; copy/clipboard, GitHub, ou save file
+- **Pipeline Error** — categorias: diskFull, permission, corrupt, codec, killed, generic; mapeia via string match em lowercase; hints user-friendly
+- **i18n patch** — se adicionar novas chaves, usar script (ex: scripts/patch-i18n.cjs) para evitar corrupcao manual do JSON; sempre validar com `ConvertFrom-Json`
+
+---
 
 ### Sessao 28 — Beta Stability + VisualComparator v0.30.0-beta.1 — EM DEV (branch dev)
 

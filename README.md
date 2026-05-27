@@ -79,7 +79,7 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 | **Cloud File Browser**          | Browse, download, and delete files on remote storage directly from the Settings panel                                                             |
 | **Secure Credentials**          | Cloud provider credentials stored in OS keychain (Windows Credential Manager / macOS Keychain / Linux Secret Service) — never in plaintext SQLite |
 | **Platform-Adaptive UX**        | Native look-and-feel per OS: Mica/Acrylic on Windows 11, Vibrancy on macOS, GTK on Linux with adaptive fonts and window controls                  |
-| **In-App Help Manual**          | Contextual help panel with 10 tabs, screenshots, and tips in all 15 supported languages                                                           |
+| **Bug Reporting**               | In-app bug reports with logs; copy to clipboard, GitHub, or file                                                                                  |
 
 ---
 
@@ -102,18 +102,15 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 | ![Cloud Settings](docs/screenshots/settings-cloud-tab.png) | ![Cloud Browser](docs/screenshots/cloud-file-browser.png) | ![Logs](docs/screenshots/settings-logs-tab.png) |
 | Manage cloud profiles and destinations                     | Browse, download, and delete remote files                 | Log verbosity, retention, and cache management  |
 
-### What's New in v0.26.0
+### What's New in v0.30.0-beta.1
 
-- **In-App Help Manual** — Contextual help panel expanded to 10 tabs (Asset Detail, Import, Dashboard, Library, Queue, Profiles, Settings, Cloud, Logs) with screenshots and platform-specific tips in all 15 languages
-- **Platform-Adaptive UX** — Native per-OS styling: Mica/Acrylic backdrop on Windows 11, NSVisualEffectView vibrancy on macOS, GTK decorations on Linux; adaptive fonts (Segoe UI Variable / SF Pro / Cantarell) and window controls
-- **Secure Cloud Credentials** — All cloud provider credentials now stored in the OS keychain instead of SQLite plaintext
-- **Cloud File Browser** — Browse, download, and delete remote files on FTP, SFTP, SMB, S3, and Google Drive directly from Settings → Cloud
-- **Log Management Tab** — Configure file logging verbosity (Basic/Normal/Debug), retention (days + MB limits with ZIP compression), and upload logs to developer endpoints
-- **Cache Display** — Monitor and safely clear transcode/proxy and thumbnail caches from Settings → System (blocked if jobs are active)
-- **Path Traversal Protection** — SMB remote paths validated to prevent directory traversal attacks
-- **S3-Compatible Providers** — Full support for MinIO, Wasabi, and Backblaze B2 via path-style endpoints
-- **Google Drive OAuth Device Flow** — Authenticate without storing passwords; 3-step device flow with local token storage
-- **iCloud Drive** — Supported via local folder sync on Windows and macOS
+- **Visual Comparator** — Side-by-side A/B comparison of original vs. processed video with synchronized playback, scrubbing, and adjustable divider
+- **Onboarding Wizard** — 4-step first-launch setup: Welcome, Output Directory, Privacy/Telemetry (opt-in), Done
+- **Watch Folders** — Automatically monitor local directories; new files are ingested after a 3-second debounce
+- **Bug Report** — Report issues directly from the app via the TopBar bug icon; copy to clipboard, open GitHub issue, or save to file
+- **Pipeline Error Messages** — Categorized job errors (disk full, permission denied, corrupt file, codec error, killed, generic) with actionable hints
+- **6 Beta Fixes** — Graceful shutdown (AtomicBool + WatchCmd), SQLite WAL tuning (synchronous=NORMAL), event-driven logs, cloud upload dedup, watch folders debounce, and more
+- **In-App Help Manual** — Contextual help panel expanded to 11 tabs including Comparator, with screenshots and platform-specific tips in all 15 languages
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
