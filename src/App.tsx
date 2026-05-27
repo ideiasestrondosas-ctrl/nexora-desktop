@@ -23,15 +23,16 @@ const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 const LogsPage = lazy(() => import('@/pages/LogsPage'));
 const AssetDetailPage = lazy(() => import('@/pages/AssetDetailPage'));
 import TopBar from '@/components/TopBar';
+import BugReportModal from '@/components/BugReportModal';
 import PlatformDebugBadge from '@/components/PlatformDebugBadge';
 import { HelpOverlay } from '@/components/HelpModal';
+import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal';
 import { IngestProfileModal } from '@/components/IngestProfileModal';
 import { BatchSubmitModal } from '@/components/BatchSubmitModal';
 import { hasSupportedExtension } from '@/components/DropZone';
 import { resolveVideoPaths } from '@/lib/scan';
 
 import { useSettingsStore } from '@/store/settings';
-import { useJobsStore } from '@/store/jobs';
 import { useCloudStore, type CloudProfile } from '@/store/cloud';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { useActionLog } from '@/hooks/useActionLog';
@@ -47,6 +48,8 @@ function App() {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [appVersion, setAppVersion] = useState('—');
   const [helpOpen, setHelpOpen] = useState(false);
+  const [bugReportOpen, setBugReportOpen] = useState(false);
+  const { show: showOnboarding, complete: completeOnboarding } = useOnboarding();
 
   // ── IngestProfileModal state (fallback — mantido para file dialog interno) ──
   const [ingestPaths, setIngestPaths] = useState<string[] | null>(null);
@@ -83,20 +86,6 @@ function App() {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, [logAction]);
-
-  // Auto-trigger cloud upload quando um job transita para 'done'
-  // Usa subscribe() em vez de useEffect para disparar independentemente de re-renders
-  useEffect(() => {
-    const unsubscribe = useJobsStore.subscribe((state, prevState) => {
-      state.jobs.forEach((job) => {
-        if (job.status !== 'done') return;
-        const prev = prevState.jobs.find((j) => j.id === job.id);
-        if (!prev || prev.status === 'done') return;
-        invoke('process_cloud_destinations', { jobId: job.id }).catch(console.error);
-      });
-    });
-    return unsubscribe;
-  }, []);
 
   // ── Drag-drop global centralizado ──────────────────────────────────────────
   // Um único listener tauri://drag-drop — intercepta drops em QUALQUER página
@@ -150,6 +139,20 @@ function App() {
   // Callback quando ingest+jobs foram submetidos com sucesso
   const handleIngestComplete = useCallback((_count: number) => {
     setActiveTab('library');
+  }, []);
+
+  // Listener para ficheiros detectados por Watch Folders — abre BatchSubmitModal
+  useEffect(() => {
+    const unlistenPromise = listen<{ path: string; watchFolderId: string }>(
+      'watch-folder-file-added',
+      (event) => {
+        setBatchPaths([event.payload.path]);
+        setBatchOpen(true);
+      },
+    );
+    return () => {
+      unlistenPromise.then((fn) => fn());
+    };
   }, []);
 
   // ── Theme ──────────────────────────────────────────────────────────────────
@@ -348,8 +351,14 @@ function App() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 bg-bg-primary relative">
-        <TopBar activeTab={activeTab} onHelpOpen={() => setHelpOpen(true)} />
+        <TopBar
+          activeTab={activeTab}
+          onHelpOpen={() => setHelpOpen(true)}
+          onBugReport={() => setBugReportOpen(true)}
+        />
         <HelpOverlay open={helpOpen} onOpenChange={setHelpOpen} />
+        <BugReportModal open={bugReportOpen} onClose={() => setBugReportOpen(false)} />
+        {showOnboarding && <OnboardingModal onComplete={completeOnboarding} />}
 
         {/* Drag overlay visual — cobre o conteúdo enquanto se arrasta sobre a janela */}
         {isDragging && (

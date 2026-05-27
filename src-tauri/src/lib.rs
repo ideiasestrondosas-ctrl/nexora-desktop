@@ -6,9 +6,12 @@ mod logger;
 mod queue;
 mod sidecar;
 mod state;
+mod telemetry;
 mod tray;
+mod watch_folders;
 
 use state::AppState;
+use std::sync::Arc;
 use tauri::{Emitter, Manager};
 
 #[cfg(target_os = "windows")]
@@ -40,6 +43,19 @@ pub fn run() {
             file_logger::init(app.handle());
             log::info!("Nexora Desktop v{} a arrancar", env!("CARGO_PKG_VERSION"));
 
+            // Evento de telemetria de arranque (só se telemetria activada)
+            {
+                let state = app.state::<AppState>();
+                telemetry::record(
+                    &state,
+                    "app_launch",
+                    Some(serde_json::json!({
+                        "version": env!("CARGO_PKG_VERSION"),
+                        "platform": std::env::consts::OS,
+                    })),
+                );
+            }
+
             tray::setup(app)?;
 
             // Efeitos de janela nativos — silencia erro se não suportado (Windows 10, VMs, etc.)
@@ -63,29 +79,51 @@ pub fn run() {
 
             queue::start(app.handle().clone(), &db_path);
 
+            // Iniciar watcher de pastas
+            let watcher_tx = watch_folders::start(app.handle().clone(), db_path.clone());
+            let wf_state = app.state::<AppState>();
+            if let Ok(mut tx) = wf_state.watcher_tx.lock() {
+                *tx = Some(watcher_tx);
+            }
+
             // Thread de espaço em disco — emite "disk-space" a cada 10 s
             let disk_handle = app.handle().clone();
-            std::thread::spawn(move || loop {
-                std::thread::sleep(std::time::Duration::from_secs(10));
-                let stats = disk_handle
-                    .path()
-                    .app_data_dir()
-                    .ok()
-                    .and_then(|p| p.to_str().map(str::to_string))
-                    .and_then(|path| commands::system::get_disk_space(path).ok());
-                if let Some(s) = stats {
-                    let _ = disk_handle.emit(
-                        "disk-space",
-                        serde_json::json!({
-                            "diskFreeBytes": s.free_bytes,
-                            "diskTotalBytes": s.total_bytes,
-                        }),
-                    );
+            let disk_shutdown = Arc::clone(&app.state::<AppState>().shutdown);
+            std::thread::spawn(move || {
+                loop {
+                    // Check flag before work
+                    if disk_shutdown.load(std::sync::atomic::Ordering::Relaxed) {
+                        break;
+                    }
+                    // Do work
+                    let stats = disk_handle
+                        .path()
+                        .app_data_dir()
+                        .ok()
+                        .and_then(|p| p.to_str().map(str::to_string))
+                        .and_then(|path| commands::system::get_disk_space(path).ok());
+                    if let Some(s) = stats {
+                        let _ = disk_handle.emit(
+                            "disk-space",
+                            serde_json::json!({
+                                "diskFreeBytes": s.free_bytes,
+                                "diskTotalBytes": s.total_bytes,
+                            }),
+                        );
+                    }
+                    // Sleep in 1s intervals, checking flag each second
+                    for _ in 0..10 {
+                        if disk_shutdown.load(std::sync::atomic::Ordering::Relaxed) {
+                            return;
+                        }
+                        std::thread::sleep(std::time::Duration::from_secs(1));
+                    }
                 }
             });
 
             // Thread de métricas do sistema — emite "system-metrics" a cada 2 s
             let metrics_handle = app.handle().clone();
+            let metrics_shutdown = Arc::clone(&app.state::<AppState>().shutdown);
             std::thread::spawn(move || {
                 use sysinfo::{Networks, System};
                 let mut sys = System::new();
@@ -95,7 +133,7 @@ pub fn run() {
                 sys.refresh_cpu_usage();
                 std::thread::sleep(std::time::Duration::from_millis(600));
 
-                loop {
+                while !metrics_shutdown.load(std::sync::atomic::Ordering::Relaxed) {
                     std::thread::sleep(std::time::Duration::from_secs(2));
                     sys.refresh_cpu_usage();
                     sys.refresh_memory();
@@ -169,6 +207,8 @@ pub fn run() {
             commands::logs::clear_log_files,
             commands::logs::upload_logs_to_server,
             commands::logs::log_user_action,
+            commands::logs::get_last_n_logs_text,
+            commands::logs::save_bug_report,
             commands::cloud::get_cloud_profiles,
             commands::cloud::create_cloud_profile,
             commands::cloud::update_cloud_profile,
@@ -184,10 +224,28 @@ pub fn run() {
             commands::cloud::cloud_delete_files,
             commands::cloud::cloud_download_file,
             commands::metrics::get_system_metrics,
+            watch_folders::list_watch_folders,
+            watch_folders::add_watch_folder,
+            watch_folders::remove_watch_folder,
+            watch_folders::toggle_watch_folder,
+            telemetry::get_telemetry_events,
+            telemetry::clear_telemetry_events,
             get_startup_status,
         ])
-        .run(tauri::generate_context!())
-        .expect("Erro ao iniciar a aplicação Nexora");
+        .build(tauri::generate_context!())
+        .expect("Erro ao compilar contexto Nexora")
+        .run(|app_handle, event| {
+            if let tauri::RunEvent::ExitRequested { .. } = event {
+                if let Some(state) = app_handle.try_state::<AppState>() {
+                    state.shutdown.store(true, std::sync::atomic::Ordering::Relaxed);
+                    if let Ok(tx) = state.watcher_tx.lock() {
+                        if let Some(sender) = tx.as_ref() {
+                            let _ = sender.send(state::WatchCmd::Shutdown);
+                        }
+                    }
+                }
+            }
+        });
 }
 
 /// Configura o menu nativo da barra de menus para macOS.

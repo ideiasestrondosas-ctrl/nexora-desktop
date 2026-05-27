@@ -884,4 +884,211 @@ Fixed at bottom of page:
 
 ---
 
-_Last updated: 2026-05-18 for Nexora Desktop v0.23.0_
+## 12. Visual Comparator (v0.30.0-beta.1)
+
+### Layout
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Asset Detail → Comparator tab                                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌──────────────┬──────────────┐                                     │
+│  │ [original]   ││ [processed]  │                                     │
+│  │              ││              │  ← Adjustable vertical divider       │
+│  │              ││              │     (drag left/right)                │
+│  └──────────────┴──────────────┘                                     │
+│                                                                         │
+│  [▶ / ⏸ ]  ━━━━━━━━━━●━━━━━━━━                   [time / duration]  │
+│  Play/Pause        Scrubber                                           │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Elements:**
+
+- **Left panel**: Original video (source file)
+- **Right panel**: Processed output
+- **Vertical divider**: Drag to adjust split (default 50%)
+- **Play/Pause button**: Synchronized playback for both videos
+- **Scrubber**: Navigate to any timestamp — both videos stay in sync
+- **Time display**: Current time / total duration
+
+### Interaction
+
+| Action        | Result                                        |
+| ------------- | --------------------------------------------- |
+| Drag divider  | Adjusts left/right panel ratio                |
+| Click Play    | Both videos start playing simultaneously      |
+| Click Pause   | Both videos pause at current frame            |
+| Drag scrubber | Navigate to specific timestamp in both videos |
+| Click outside | No effect (click is captured by player)       |
+
+### Notes
+
+- The Comparator tab only appears when a processed output exists
+- Both videos use `convertFileSrc` for local file loading
+- Videos are synchronised via `timeupdate` event listeners
+- Mouse-up cleanup prevents drag-state leaks
+
+---
+
+## 13. Onboarding Wizard (v0.30.0-beta.1)
+
+### Layout
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Welcome to Nexora Desktop!                                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ Step 1/4                                                          │  │
+│  │                                                                   │  │
+│  │ Welcome to Nexora, a professional media processing application.   │  │
+│  │                                                                   │  │
+│  │ [Next →]                                                          │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                         │
+│  Progress: ●──○──○──○                                                  │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Steps:**
+
+1. **Welcome** — Overview of core features
+2. **Output Directory** — Choose where processed files will be saved
+3. **Privacy & Telemetry** — Opt-in to anonymous telemetry (disabled by default)
+4. **Done** — Ready to start
+
+### Interaction
+
+- **Next/Back**: Navigate between steps
+- **Skip**: Close wizard and use defaults
+- **Toggle telemetry** (step 3): Enable/disable anonymous event collection
+
+---
+
+## 14. Bug Report Modal (v0.30.0-beta.1)
+
+### Layout
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Report a Problem                                                    [x] │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Title: [Describe the issue...]                                       │
+│                                                                         │
+│  Description:                                                         │
+│  [Tell us more details about the problem...]                          │
+│                                                                         │
+│  [☑] Include recent logs (last 50 entries)                             │
+│                                                                         │
+│  [Copy to Clipboard]  [Open GitHub Issue]  [Save to File]              │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Buttons:**
+
+- **Copy to Clipboard**: Copies the report (with logs) to system clipboard
+- **Open GitHub Issue**: Opens pre-filled `github.com/ideiasestrondosas-ctrl/nexora-desktop/issues/new`
+- **Save to File**: Saves as `.txt` in the user's Downloads/Reports folder
+
+### Data Included (when "Include logs" is checked)
+
+- Title and description from the form
+- App version, platform, OS info
+- Last 50 log entries (INFO, WARN, ERROR levels)
+- Recent job status (if any jobs in last 24h)
+
+---
+
+## 15. Pipeline Error Messages (v0.30.0-beta.1)
+
+### Error Categories
+
+When a job fails, the error is categorized automatically:
+
+| Category              | Visual Badge    | Description                          |
+| --------------------- | --------------- | ------------------------------------ |
+| **Disk Full**         | 🔴 Red badge    | Disk quota exceeded — free up space  |
+| **Permission Denied** | 🟠 Orange badge | File/directory access denied         |
+| **Corrupt File**      | 🟡 Yellow badge | Source file is corrupt or unreadable |
+| **Codec Error**       | 🔴 Red badge    | Unsupported or missing codec         |
+| **Killed**            | ⚫ Grey badge   | Process killed by OS (OOM, signal)   |
+| **Generic**           | 🟤 Brown badge  | Unclassified error — check logs      |
+
+### Error Card
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 🚨 Disk Full                                                            │
+│ The disk is full. Free up space and retry.                            │
+│ [Retry]  [View Logs]                                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Actions:**
+
+- **Retry**: Requeues the job with the same profile
+- **View Logs**: Opens the Log page filtered to the job's error level
+
+---
+
+## 16. Watch Folders (v0.30.0-beta.1)
+
+### Layout
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Settings → Watch Folders                                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  [+ Add Folder]                                                        │
+│                                                                         │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ 📁 /Users/movies/inbox             [Toggle: ON]  [🗑 Remove]       │  │
+│  │ 📁 /Users/movies/done              [Toggle: OFF] [🗑 Remove]      │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Elements:**
+
+- **Add Folder**: Opens native directory picker
+- **Toggle**: Enable/disable monitoring per folder
+- **Remove**: Stop monitoring and remove from list
+
+### Interaction
+
+| Action     | Result                                         |
+| ---------- | ---------------------------------------------- |
+| Add Folder | Native OS directory picker opens               |
+| Toggle ON  | Watcher starts monitoring (debounced 3s)       |
+| Toggle OFF | Watcher pauses; existing jobs are not affected |
+| Remove     | Folder removed from list; no jobs cancelled    |
+
+---
+
+## 17. Keyboard Shortcuts (Updated)
+
+| Shortcut           | Action                                 |
+| ------------------ | -------------------------------------- |
+| `Ctrl + 1`         | Go to Dashboard                        |
+| `Ctrl + 2`         | Go to Library                          |
+| `Ctrl + 3`         | Go to Queue                            |
+| `Ctrl + 4`         | Go to Profiles                         |
+| `Ctrl + 5`         | Go to Settings                         |
+| `Ctrl + L`         | Go to Logs                             |
+| `Ctrl + D`         | Go to Asset Detail (if asset selected) |
+| `Esc`              | Close modal / overlay / go back        |
+| `F1`               | Open Help / User Manual                |
+| `Ctrl + Shift + E` | Export logs                            |
+
+---
+
+_Last updated: 2026-05-27 for Nexora Desktop v0.30.0-beta.1_

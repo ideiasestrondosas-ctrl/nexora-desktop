@@ -510,91 +510,79 @@ function CategorizeCommits($commits) {
 # ---------------------------------------------------------
 function Generate-ReleaseNotesFile($version, $categorized, $sessionInfo) {
     $lines = @()
-    $lines += "## What's New"
+
+    # Resumo: uma linha descritiva baseada no conteudo
+    $totalItems = 0
+    foreach ($key in @('Added','Fixed','Changed','Infra','Docs','Other','Security','i18n','Documentation','Infrastructure','Deprecated','Removed')) {
+        if ($categorized.ContainsKey($key)) { $totalItems += $categorized[$key].Count }
+    }
+    $lines += "## Resumo"
+    $lines += ""
+    $lines += "Release v$version — $totalItems alteracoes."
     $lines += ""
 
-    if ($categorized.Fixed.Count -gt 0) {
-        $lines += "### Bug Fixes"
-        foreach ($item in $categorized.Fixed) { $lines += "- $item" }
-        $lines += ""
-    }
-
     if ($categorized.Added.Count -gt 0) {
-        $lines += "### New Features"
+        $lines += "## Novas Funcionalidades"
+        $lines += ""
         foreach ($item in $categorized.Added) { $lines += "- $item" }
         $lines += ""
     }
 
+    if ($categorized.Fixed.Count -gt 0) {
+        $lines += "## Correccoes"
+        $lines += ""
+        foreach ($item in $categorized.Fixed) { $lines += "- $item" }
+        $lines += ""
+    }
+
     if ($categorized.Changed.Count -gt 0) {
-        $lines += "### Changed"
+        $lines += "## Alteracoes"
+        $lines += ""
         foreach ($item in $categorized.Changed) { $lines += "- $item" }
         $lines += ""
     }
 
-    if ($categorized.Deprecated.Count -gt 0) {
-        $lines += "### Deprecated"
-        foreach ($item in $categorized.Deprecated) { $lines += "- $item" }
+    # Melhorias = Security + i18n juntos (categorias especiais do CategorizeCommits expandido)
+    $melhorias = @()
+    foreach ($key in @('Security','i18n')) {
+        if ($categorized.ContainsKey($key)) { $melhorias += $categorized[$key] }
+    }
+    if ($melhorias.Count -gt 0) {
+        $lines += "## Melhorias"
+        $lines += ""
+        foreach ($item in $melhorias) { $lines += "- $item" }
         $lines += ""
     }
 
-    if ($categorized.Removed.Count -gt 0) {
-        $lines += "### Removed"
-        foreach ($item in $categorized.Removed) { $lines += "- $item" }
+    # Infra / Docs — agrupados
+    $infraDocs = @()
+    foreach ($key in @('Infra','Docs','Documentation','Infrastructure','Other')) {
+        if ($categorized.ContainsKey($key)) { $infraDocs += $categorized[$key] }
+    }
+    if ($infraDocs.Count -gt 0) {
+        $lines += "## Infraestrutura e Documentacao"
+        $lines += ""
+        foreach ($item in $infraDocs) { $lines += "- $item" }
         $lines += ""
     }
 
-    if ($categorized.Security.Count -gt 0) {
-        $lines += "### Security"
-        foreach ($item in $categorized.Security) { $lines += "- $item" }
-        $lines += ""
-    }
-
-    if ($categorized.i18n.Count -gt 0) {
-        $lines += "### i18n"
-        foreach ($item in $categorized.i18n) { $lines += "- $item" }
-        $lines += ""
-    }
-
-    if ($categorized.Documentation.Count -gt 0) {
-        $lines += "### Documentation"
-        foreach ($item in $categorized.Documentation) { $lines += "- $item" }
-        $lines += ""
-    }
-
-    if ($categorized.Infrastructure.Count -gt 0) {
-        $lines += "### Infrastructure"
-        foreach ($item in $categorized.Infrastructure) { $lines += "- $item" }
-        $lines += ""
-    }
-
-    if ($categorized.Other.Count -gt 0) {
-        $lines += "### Other"
-        foreach ($item in $categorized.Other) { $lines += "- $item" }
-        $lines += ""
-    }
-
-    # Session info enrichments
-    if ($sessionInfo -and ($sessionInfo.BreakingChanges.Count -gt 0 -or
-                          $sessionInfo.DependenciesAdded.Count -gt 0 -or
-                          $sessionInfo.DependenciesRemoved.Count -gt 0)) {
-        $lines += "---"
-        $lines += ""
-    }
-
+    # Session info — breaking changes e dependencias
     if ($sessionInfo -and $sessionInfo.BreakingChanges.Count -gt 0) {
-        $lines += "### :warning: Breaking Changes"
+        $lines += "## :warning: Breaking Changes"
+        $lines += ""
         foreach ($item in $sessionInfo.BreakingChanges) { $lines += "- $item" }
         $lines += ""
     }
 
     if ($sessionInfo -and ($sessionInfo.DependenciesAdded.Count -gt 0 -or $sessionInfo.DependenciesRemoved.Count -gt 0)) {
-        $lines += "### Dependencies"
+        $lines += "## Dependencias"
+        $lines += ""
         if ($sessionInfo.DependenciesAdded.Count -gt 0) {
-            $lines += "**Added:**"
+            $lines += "**Adicionadas:**"
             foreach ($item in $sessionInfo.DependenciesAdded) { $lines += "- $item" }
         }
         if ($sessionInfo.DependenciesRemoved.Count -gt 0) {
-            $lines += "**Removed:**"
+            $lines += "**Removidas:**"
             foreach ($item in $sessionInfo.DependenciesRemoved) { $lines += "- $item" }
         }
         $lines += ""
@@ -602,13 +590,13 @@ function Generate-ReleaseNotesFile($version, $categorized, $sessionInfo) {
 
     $lines += "---"
     $lines += ""
-    $lines += "### Installers"
+    $lines += "## Instaladores"
     $lines += ""
-    $lines += "| Platform | File                                  |"
-    $lines += "| -------- | ------------------------------------- |"
-    $lines += "| Windows  | `.msi` ou `.exe` (NSIS)               |"
-    $lines += "| macOS    | `.dmg` (Universal: Intel + Apple Silicon) |"
-    $lines += "| Linux    | `.deb` (Debian/Ubuntu) ou `.AppImage` |"
+    $lines += "| Plataforma | Ficheiro                                  |"
+    $lines += "| ---------- | ----------------------------------------- |"
+    $lines += "| Windows    | `.msi` ou `.exe` (NSIS)                   |"
+    $lines += "| macOS      | `.dmg` (Universal: Intel + Apple Silicon) |"
+    $lines += "| Linux      | `.deb` (Debian/Ubuntu) ou `.AppImage`     |"
     $lines += ""
     $lines += "Consulta o [CHANGELOG.md](CHANGELOG.md) para detalhes das alteracoes."
 
@@ -1077,39 +1065,61 @@ function Invoke-PublishDraft {
         "Accept"        = "application/vnd.github+json"
     }
 
-    # Verificar se existe draft para esta tag
-    Write-Step "A verificar draft release $latestTag no GitHub..."
-    $releaseId   = $null
-    $releaseIsDraft = $false
+    # Listar TODAS as releases — GET /releases/tags/{tag} so devolve nao-drafts,
+    # pelo que o draft criado pelo CI ficaria invisivel com o endpoint antigo.
+    Write-Step "A procurar releases para $latestTag no GitHub..."
+    $allReleases = @()
     try {
-        $existing = Invoke-RestMethod `
-            -Uri "https://api.github.com/repos/$repoOwner/$repoName/releases/tags/$latestTag" `
-            -Method Get `
+        $allReleases = Invoke-RestMethod `
+            -Uri     "https://api.github.com/repos/$repoOwner/$repoName/releases?per_page=50" `
+            -Method  Get `
             -Headers $headers
-        $releaseId      = $existing.id
-        $releaseIsDraft = $existing.draft
-        if ($releaseIsDraft) {
-            Write-Info "Draft encontrado (id=$releaseId). A actualizar..."
-        } else {
-            Write-Warn "Release $latestTag ja esta publicada (nao e draft)."
-            $overwrite = Read-Host "  Queres actualizar o corpo mesmo assim? [S/N]"
-            if ($overwrite -notmatch '^[Ss]$') { return }
-        }
     } catch {
-        Write-Warn "Nao existe release para $latestTag no GitHub."
+        Write-Err "Nao foi possivel listar releases: $_"
+        return
+    }
+
+    $draftRelease     = $allReleases | Where-Object { $_.tag_name -eq $latestTag -and $_.draft -eq $true  } | Select-Object -First 1
+    $publishedRelease = $allReleases | Where-Object { $_.tag_name -eq $latestTag -and $_.draft -eq $false } | Select-Object -First 1
+
+    # Preferir draft (tem assets do CI); se so existir publicada, actualizar essa
+    $targetRelease = if ($draftRelease) { $draftRelease } else { $publishedRelease }
+
+    if ($draftRelease) {
+        Write-Info "Draft com assets encontrado (id=$($draftRelease.id), assets=$($draftRelease.assets.Count)). A actualizar..."
+    } elseif ($publishedRelease) {
+        Write-Warn "Nao existe draft para $latestTag. A actualizar release ja publicada (id=$($publishedRelease.id))."
+    } else {
+        Write-Warn "Nao existe nenhuma release para $latestTag no GitHub."
         $create = Read-Host "  Queres criar uma nova release para $latestTag? [S/N]"
         if ($create -notmatch '^[Ss]$') { return }
     }
 
-    # Gerar conteudo rico
+    # Gerar release-notes-vX.Y.Z.md a partir dos commits do range desta tag
+    $prevTag = git describe --tags --abbrev=0 "${latestTag}^" 2>$null
+    $commitRange = if ($prevTag) { "${prevTag}..${latestTag}" } else { $latestTag }
+    $rawCommits = git log $commitRange --pretty=format:"%h|%s" --no-merges 2>$null
+    $commitList = @()
+    foreach ($line in ($rawCommits -split "`n")) {
+        if ($line -match '^([^|]+)\|(.+)$') {
+            $commitList += @{ Hash = $matches[1].Trim(); Message = $matches[2].Trim() }
+        }
+    }
+    if ($commitList.Count -gt 0) {
+        $categorized = CategorizeCommits $commitList
+        Generate-ReleaseNotesFile $version $categorized $null | Out-Null
+        Write-Info "release-notes-v$version.md gerado de $($commitList.Count) commits"
+    }
+
+    # Titulo e corpo ricos (Build-ReleaseBody usa release-notes file como prioridade 1)
     $changelogSection = Parse-ChangelogSection $version
     $releaseTitle     = "v$version — $(Get-ReleaseTitle $version $changelogSection)"
     $releaseBodyText  = Build-ReleaseBody $version ""
 
     Write-Step "Titulo: $releaseTitle"
 
-    if ($releaseId) {
-        # PATCH — actualizar release existente (draft ou publicada)
+    if ($targetRelease) {
+        # PATCH — actualizar release (draft ou publicada) com titulo/corpo ricos e publicar
         try {
             $payload = @{
                 name  = $releaseTitle
@@ -1118,13 +1128,27 @@ function Invoke-PublishDraft {
             } | ConvertTo-Json
             $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
             Invoke-RestMethod `
-                -Uri     "https://api.github.com/repos/$repoOwner/$repoName/releases/$releaseId" `
+                -Uri     "https://api.github.com/repos/$repoOwner/$repoName/releases/$($targetRelease.id)" `
                 -Method  Patch `
                 -Headers $headers `
                 -Body    $payloadBytes `
                 -ContentType "application/json; charset=utf-8" > $null
             Write-Success "Release $latestTag actualizada e publicada!"
             Write-Info "https://github.com/$repoOwner/$repoName/releases/tag/$latestTag"
+
+            # Apagar release publicada duplicada sem assets (criada pelo sync.ps1 antes do CI terminar)
+            if ($draftRelease -and $publishedRelease -and $publishedRelease.assets.Count -eq 0) {
+                Write-Step "A apagar release duplicada vazia (id=$($publishedRelease.id))..."
+                try {
+                    Invoke-RestMethod `
+                        -Uri     "https://api.github.com/repos/$repoOwner/$repoName/releases/$($publishedRelease.id)" `
+                        -Method  Delete `
+                        -Headers $headers
+                    Write-Success "Release duplicada apagada."
+                } catch {
+                    Write-Warn "Nao foi possivel apagar release duplicada: $_"
+                }
+            }
         } catch {
             $stream = $_.Exception.Response.GetResponseStream()
             if ($stream) {
@@ -1134,7 +1158,7 @@ function Invoke-PublishDraft {
             }
         }
     } else {
-        # POST — criar nova release
+        # POST — criar nova release (nao havia nenhuma)
         try {
             $payload = @{
                 tag_name   = $latestTag
@@ -1983,7 +2007,7 @@ if ($LASTEXITCODE -eq 0) {
 
         # Gerar titulo e corpo ricos (usado tanto no PATCH como no POST)
         $changelogSection = Parse-ChangelogSection $newVersion
-        $releaseTitle     = Get-ReleaseTitle $newVersion $changelogSection
+        $releaseTitle     = "v$newVersion — $(Get-ReleaseTitle $newVersion $changelogSection)"
         $releaseBodyText  = Build-ReleaseBody $newVersion $commitMsg
 
         if ($releaseExists) {

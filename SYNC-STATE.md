@@ -5,10 +5,262 @@
 
 ---
 
-Actualizado: 2026-05-25
-Agente: Claude Code (claude-sonnet-4-6)
+Actualizado: 2026-05-27
+Agente: OpenCode (kimi-k2.6)
 
 ## O que foi feito
+
+### Sessao 29 — Documentacao v0.30.0-beta.1 (Comparator, Onboarding, Watch Folders, Bug Report, Pipeline Errors) — CONCLUIDO
+
+**Pedido:** Analisar workspace e verificar alteracoes/nouidades que ainda nao estejam mencionadas no menu manual (HelpModal), screenshots, USER_MANUAL, SCREEN_GUIDE e README do GitHub. Actualizar tudo.
+
+**Analise:**
+
+1. **Funcionalidades nao documentadas identificadas:**
+   - Visual Comparator (split-screen A/B) — codigo presente, zero documentacao
+   - Onboarding Wizard (4 passos) — codigo presente, zero documentacao
+   - Watch Folders (Settings → Watch Folders) — codigo presente, zero documentacao documentacao
+   - Privacy / Telemetry (Settings → Privacy) — codigo presente, zero documentacao
+   - Bug Report (TopBar botao laranja) — codigo presente, zero documentacao
+   - Pipeline Error Messages (categorizacao de erros) — codigo presente, zero documentacao
+   - Batch Submit Modal (multi-select + estimativas) — parcialmente documentado
+   - Cloud Destination Section no Asset Detail — parcialmente documentado
+
+2. **Screenshots faltantes (16 capturas identificadas):**
+   - onboarding-wizard, watch-folders, privacy-telemetry, bug-report, pipeline-error, comparator, batch-submit, asset-detail-cloud, dashboard-updated, queue-expanded + 6 actualizacoes
+
+**Implementacao:**
+
+1. **HelpModal.tsx:**
+   - Nova aba "comparator" adicionada ao ScreenTab type + SCREEN_TABS array
+   - Screenshots mapeados: comparator, onboarding, watch-folders, privacy-telemetry, bug-report, pipeline-error, batch-submit
+   - 4 novos ScreenCards: Visual Comparator, Onboarding, Watch Folders, Privacy, Bug Report
+   - TAB_COUNTS actualizado (comparator: 2, intro: 4, settings: 6)
+
+2. **i18n (15 linguas):**
+   - Adicionado `help.tabs.comparator` em todos os locales
+   - Secao `help.comparator` com: title, desc, splitScreen, scrubSync, playPause, tip1-3
+   - Sub-secoes: onboarding, watchFolders, privacy, bugReport
+   - 14 locales PT/ES/FR/DE/IT/NL/PL/RU/Ja/KO/ZH/AR/SV/TR + EN
+
+3. **USER_MANUAL.md:**
+   - +5 novas secoes: 12 (Visual Comparator), 13 (Onboarding), 14 (Watch Folders), 15 (Bug Report), 16 (Pipeline Error Messages)
+   - Total: 360 → +85 linhas
+
+4. **SCREEN_GUIDE.md:**
+   - +6 novas secoes: 12 (Comparator), 13 (Onboarding), 14 (Bug Report), 15 (Pipeline Errors), 16 (Watch Folders), 17 (Keyboard Shortcuts updated)
+   - ASCII art, tabelas de interaccao, badges de erro, layout completo
+   - Total: 887 → +209 linhas
+
+5. **README.md:**
+   - Secao "What's New" actualizada de v0.26.0 → v0.30.0-beta.1
+   - Features table actualizada: Bug Reporting, Watch Folders, Visual Comparator
+   - Screenshots section mantida (novos screenshots capturados pelo utilizador)
+
+**Screenshots capturados pelo utilizador (16 novos):**
+
+- onboarding-wizard.png, watch-folders.png, privacy-telemetry.png, bug-report.png, pipeline-error.png, comparator.png, batch-submit.png, asset-detail-cloud.png, dashboard-updated.png, queue-expanded.png
+- 6 existentes actualizados: asset-detail.png, ingest-modal.png, queue.png
+
+**Verificacao:**
+
+- JSON valido (15/15 locales): ✅
+- HelpModal compila: ✅ (tsc --noEmit)
+- Git diff: 23 ficheiros, 966 insercoes / 52 remocoes
+
+**Notas:**
+
+- Scripts temporarios (patch-i18n.cjs, patch-i18n-v2.cjs) removidos
+- Foi necessario reverter `src/i18n/locales/en/common.json` de git HEAD apos corrupcao durante edicao (multiplas insercoes duplicadas); depois repatch com script Node.js
+
+---
+
+## Estado das branches
+
+- `dev`: v0.30.0-beta.1 em desenvolvimento (Sessao 28 + Sessao 29)
+- `main`: v0.29.0-alpha.1 (Sessao 27)
+- Pronto para: merge dev → main, tag v0.30.0-beta.1, GitHub Release (Pre-release)
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Visual Comparator** — so aparece quando `asset.output_path` existe; usa `convertFileSrc` para loading de ficheiros locais; videos sincronizados via event listeners `timeupdate` + `loadedmetadata`
+- **Onboarding** — `STORAGE_KEY = 'nexora_onboarding_complete'` exportado de `OnboardingModal.tsx`; Settings > Privacy usa `import { STORAGE_KEY as ONBOARDING_STORAGE_KEY }`
+- **Watch Folders** — debounce 3s + dedup via `ingested` set; limpa pending/ingested ao remover pasta via `WatchCmd::Remove`
+- **Bug Report** — `BugReportModal.tsx` usa `get_last_n_logs_text(n: 50)`; inclui versao, plataforma, OS; copy/clipboard, GitHub, ou save file
+- **Pipeline Error** — categorias: diskFull, permission, corrupt, codec, killed, generic; mapeia via string match em lowercase; hints user-friendly
+- **i18n patch** — se adicionar novas chaves, usar script (ex: scripts/patch-i18n.cjs) para evitar corrupcao manual do JSON; sempre validar com `ConvertFrom-Json`
+
+---
+
+### Sessao 28 — Beta Stability + VisualComparator v0.30.0-beta.1 — EM DEV (branch dev)
+
+**Pedido:** Analise multi-agente (Gemini, GPT-5.5, Kimi 2.6) identificou 6 bugs que bloqueiam a beta. Implementar fixes + feature premium VisualComparatorPlayer.
+
+**Implementacao (11 commits, subagent-driven development):**
+
+1. **Fix 1 — Watch Folders debounce:** `watch_folders.rs` — HashMap<PathBuf, PendingFile> com verificacao de tamanho 3s. HashSet `ingested` previne duplo ingest. Purge de pending/ingested em WatchCmd::Remove. Loop sleep 250ms -> 1s.
+
+2. **Fix 2 — SQLite WAL tuning:** `db/mod.rs` — adicionado `synchronous=NORMAL` e `wal_autocheckpoint=1000` ao execute_batch existente (WAL ja estava activo).
+
+3. **Fix 3 — Graceful shutdown:** `state.rs` novo campo `shutdown: Arc<AtomicBool>` + `WatchCmd::Shutdown`. `lib.rs`: disk thread verifica flag a cada 1s (max 1s latencia), metrics thread com while loop, RunEvent::ExitRequested handler.
+
+4. **Fix 4 — Event-driven logs:** `useLogs.ts` ja implementado em sessao anterior (listen('log-entry') + fallback 60s). Verificado, sem alteracoes.
+
+5. **Fix 5 — Cloud dedup:** `App.tsx` — removido useEffect que chamava `process_cloud_destinations`. Backend (queue.rs) e unico dono. `cloud.rs` ja filtra status='pending' (idempotente).
+
+6. **Fix 6 — version.ts:** `APP_VERSION = '0.30.0-beta.1'`, historico completo 0.10.0-0.30.0-beta.1 (21 entradas).
+
+7. **Feature 7 — VisualComparatorPlayer:** `src/components/VisualComparatorPlayer.tsx` — split-screen com clip-path dinamico, sincronizacao timeupdate, drag handle, window.mouseup cleanup, try/catch em togglePlay. Nova tab 'Comparador' em AssetDetailPage (condicional a output_path). i18n EN+PT.
+
+8. **Release bump:** `package.json` 0.30.0-beta.1, `Cargo.toml` 0.30.0, `tauri.conf.json` 0.30.0.
+
+**Commits desta sessao (11):**
+
+- `16ffbc8` fix(watch-folders): debounce de tamanho 3s + deduplicacao via ingested set
+- `e00fafe` fix(watch-folders): purge pending/ingested ao remover pasta + guard contra re-pending
+- `f972a9e` fix(db): synchronous=NORMAL e wal_autocheckpoint=1000 na conexao SQLite
+- `808d54d` fix(shutdown): graceful shutdown via AtomicBool + WatchCmd::Shutdown + ExitRequested handler
+- `225fa99` fix(shutdown): disk thread verifica shutdown a cada 1s (nao 10s)
+- `47042c0` chore(logs): Fix 4 verificado — useLogs usa event-driven listen('log-entry') + fallback 60s
+- `d17ef28` fix(cloud): remover trigger duplicado de process_cloud_destinations no frontend
+- `2ffe306` fix(version): actualizar APP_VERSION para 0.30.0-beta.1 + historico completo 0.26-0.30
+- `20a6580` feat(comparator): VisualComparatorPlayer split-screen + tab Comparador no AssetDetail
+- `62ac6c7` fix(comparator): window mouseup cleanup + try/catch no togglePlay
+- `2906ea6` chore(release): bump versoes para 0.30.0-beta.1 / 0.30.0
+
+**Estado:** Tudo implementado em branch `dev`. Nao mergiado para main ainda. Pronto para: merge + tag v0.30.0-beta.1 + GitHub Release (Pre-release).
+
+**Para o proximo agente:**
+
+- Fazer merge dev -> main
+- Criar tag `v0.30.0-beta.1`
+- Criar GitHub Release como Pre-release
+- A versao em `tauri.conf.json` e `0.30.0` (MSI WiX nao aceita semver pre-release) — correcto
+- Criterios de conclusao no spec: `docs/superpowers/specs/2026-05-25-beta-stability-comparator-design.md`
+
+---
+
+### Sessao 27 — Alpha Instrumentada v0.29.0 — CONCLUIDO
+
+**Pedido:** Implementar instrumentacao completa para alpha fechado: watch folders, onboarding, telemetria opt-in, bug report modal, mensagens de erro de pipeline, traducoes PT completas, e publicar release v0.29.0-alpha.1.
+
+**Implementacao (11 tasks, 17 commits):**
+
+1. **Migracao SQLite:** tabelas `watch_folders` e `telemetry_events` adicionadas via `migrate_watch_folders_v1` e `migrate_telemetry_v1` em `db/migrations.rs`.
+
+2. **Script check-translations.mjs:** valida paridade de chaves EN vs PT/outros locales; alpha gate — `process.exit(1)` se PT tem chaves em falta.
+
+3. **Watch Folders (Rust):** crate `notify = "6"` em `Cargo.toml`; `WatchCmd` enum + `watcher_tx: Mutex<Option<mpsc::Sender<WatchCmd>>>` em `AppState`; thread watcher gerido em `lib.rs` setup; 4 comandos IPC: `add_watch_folder`, `remove_watch_folder`, `list_watch_folders`, `set_watch_folder_enabled`.
+
+4. **Watch Folders (React):** painel em `SettingsPage.tsx` com add/remove/toggle; interface `WatchFolder { id, path, enabled, createdAt }`.
+
+5. **PipelineErrorMessage.tsx:** componente que mapeia padroes FFmpeg (diskFull, permission, corrupt, codec, killed, generic) para titulo + dica user-friendly.
+
+6. **OnboardingModal.tsx:** wizard 4 passos; `STORAGE_KEY` exportado; `useOnboarding()` hook; passo 2 com `dialogOpen`; passo 3 toggle telemetria; passo 4 `invoke('update_settings')`.
+
+7. **Telemetria local (opt-in):** `src-tauri/src/telemetry.rs` — `record()` verifica setting antes de inserir; `get_telemetry_events` (200 DESC); `clear_telemetry_events`; aba Privacy em Settings.
+
+8. **BugReportModal.tsx:** copia clipboard, abre GitHub issue, guarda ficheiro via `invoke('save_bug_report')`; checkbox `includeLogs` default true; `invoke('get_last_n_logs_text', { n: 50 })`; botao Bug laranja em `TopBar.tsx`.
+
+9. **Novos comandos Rust em `commands/logs.rs`:** `get_last_n_logs_text(n: i64)` com `n.clamp(1, 500)`; `save_bug_report(content: String, app: AppHandle)` guarda em Downloads.
+
+10. **i18n PT completo:** todas as chaves novas (onboarding, bugReport, settings.watchFolders, settings.privacy, jobCard.errors, topbar.bugReport) adicionadas a `pt/common.json`; alpha gate passa `✅`.
+
+11. **ALPHA-TESTING.md:** guia de 22 accoes, requisitos minimos, instrucoes de instalacao para 3 plataformas; contacto: ideiasestrondosas@gmail.com.
+
+**Release v0.29.0-alpha.1:**
+
+- `tauri.conf.json` versao `0.29.0` (numerica para MSI WiX — nao aceita semver pre-release)
+- `package.json` versao `0.29.0-alpha.1`
+- CI corrigido: `n.clamp(1, 500)` (clippy) + `cargo fmt` (rustfmt)
+- Tag `v0.29.0-alpha.1` → commit `45d9bcd` (movida 3x durante fixes)
+- Release publicada: https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releases/tag/v0.29.0-alpha.1
+- 7 PRs Dependabot seguros mergiados; 3 PRs breaking-change fechados (#25 keyring 4, #29 reqwest 0.13, #30 TypeScript 6)
+
+**Commits desta sessao (17):**
+
+- `1ecb332` feat(db): adicionar tabelas watch_folders e telemetry_events
+- `af22ed9` feat(i18n): script check-translations
+- `7dadbc9` fix(i18n): remover import nao utilizado
+- `4bdd9b6` feat(watch-folders): backend Rust
+- `5884096` feat(watch-folders): frontend React
+- `d43ef8b` feat(ux): PipelineErrorMessage
+- `1d88db3` feat(onboarding): modal 4 passos
+- `a86cd9f` fix(quality): TOTAL_STEPS, STORAGE_KEY, error handling
+- `76db68e` feat(telemetry): registo local opt-in
+- `69de57a` feat(bug-report): BugReportModal
+- `95b54d1` fix(quality): error handling em handlers async
+- `4c2a3ee` docs: ALPHA-TESTING.md
+- `d312428` feat(i18n): traducoes PT
+- `4baa17a` chore(release): v0.29.0-alpha.1
+- `1c67d79` fix(clippy): n.clamp
+- `336099c` fix(fmt): cargo fmt
+- `45d9bcd` fix(release): versao numerica tauri.conf.json
+
+**Notas para o proximo agente:**
+
+- **MSI version constraint**: `tauri.conf.json` DEVE ter versao puramente numerica (ex: `0.30.0`); `package.json` pode ter semver (`0.30.0-beta.1`). Nao colocar `-alpha.N` no `tauri.conf.json`.
+- **n.clamp(1, 500)**: em Rust, clippy rejeita `n.min(500).max(1)` como "clamp-like pattern without using clamp function". Usar sempre `.clamp(min, max)`.
+- **Onboarding reset**: `STORAGE_KEY` exportado de `OnboardingModal.tsx`; Settings > Privacy usa `import { STORAGE_KEY as ONBOARDING_STORAGE_KEY }`.
+- **invoke() com update_settings**: usar `invoke('update_settings', { key: 'x', value: 'y' })` — NAO existe `set_output_dir` ou similar.
+- **Proximos passos sugeridos**: recolher feedback dos alpha testers, corrigir bugs reportados, lançar v0.30.0-beta.1 publica.
+
+---
+
+### Sessao 26 — Pipeline de Release sync.ps1 — Titulo, Draft com Assets e Corpo Rico — CONCLUIDO
+
+**Pedido:** A release v0.27.0 aparecia como Draft com titulo "Nexora Desktop v0.27.0" sem assets nem corpo rico. Corrigir sync.ps1 para gerar titulos e corpos automaticamente, e garantir que a opcao 6 publica o draft correcto (com instaladores do CI).
+
+**Causa raiz identificada:**
+
+1. **Caminho `-Release` (linha 1986):** chamava `Get-ReleaseTitle` sem prefixo `"v$version — "`, ao contrario da opcao 6 que ja o adicionava. Resultado: titulo "PublishDraft mode, Bug Fixes & Platform Polish" em vez de "v0.27.0 — ..."
+2. **Opcao 6 (`Invoke-PublishDraft`):** usava `GET /releases/tags/{tag}` que so devolve releases **nao-draft**. O draft criado pelo CI (com 6 instaladores) ficava invisivel; a opcao 6 publicava uma release vazia sem assets.
+3. **CHANGELOG v0.27.0:** so tinha o commit do README; faltavam `feat(sync): PublishDraft` e `fix(sync): PATCH draft`.
+4. **Corpo gerado do CHANGELOG:** formato simplificado `### New Features` em ingles, em vez do formato rico em portugues.
+
+**Implementacao:**
+
+1. **`scripts/sync.ps1` — linha 1986:**
+   - `Get-ReleaseTitle ...` → `"v$newVersion — $(Get-ReleaseTitle ...)"` — paridade com opcao 6
+
+2. **`scripts/sync.ps1` — `Invoke-PublishDraft` (opcao 6) — reescrita completa:**
+   - Usa `GET /releases?per_page=50` e filtra `draft=true` + tag correspondente
+   - Prefere o draft com assets do CI; fallback para release publicada se nao houver draft
+   - Gera `release-notes-vX.md` a partir dos commits do range (`git log PREV..CURRENT`)
+   - Apos publicar o draft correcto, apaga automaticamente a release duplicada vazia (se existir)
+
+3. **`scripts/sync.ps1` — `Generate-ReleaseNotesFile` — headers portugueses:**
+   - `## What's New` → `## Resumo` (com contador de itens)
+   - `### New Features` → `## Novas Funcionalidades`
+   - `### Bug Fixes` → `## Correccoes`
+   - `### Changed` → `## Alteracoes`
+   - `## Instaladores` com tabela em portugues
+
+4. **`CHANGELOG.md` v0.27.0:** adicionados commits em falta (`feat(sync): PublishDraft`, `fix(sync): PATCH draft`)
+
+5. **`.env.example`:** `GITHUB_TOKEN=` documentado com instrucoes
+
+6. **v0.27.0 GitHub Release — corrigida manualmente via API:**
+   - Draft com assets (ID 328561164, 6 instaladores) publicado com titulo/corpo/tag correctos
+   - Release vazia (ID 328797290, 0 assets) apagada
+   - Estado final: `v0.27.0 — PublishDraft mode, Bug Fixes & Platform Polish` — Latest — 6 assets
+
+**Commits desta sessao:**
+
+- `4a4086f` fix(sync): adicionar prefixo v$version ao titulo da release em -Release
+- `ee70d0d` docs: adicionar GITHUB_TOKEN ao .env.example
+- `e9ebf41` fix(sync): opcao 6 — encontrar draft com assets via lista completa de releases
+
+**Notas para o proximo agente:**
+
+- A proxima release sera v0.28.0 (tag ja criada, CHANGELOG corrigido)
+- Para publicar a v0.28.0: o CI vai correr automaticamente; depois executar `sync.ps1 -PublishDraft` — a opcao 6 ja encontra o draft do CI correctamente
+- `release-notes-v0.27.0.md` criado localmente (nao commitado, usado pelo sync.ps1)
+- O `.env` com `GITHUB_TOKEN` e necessario para a opcao 6 funcionar (nao esta em git)
+
+---
 
 ### Sessao 25 — Glassmorphism uniforme em todos os overlays — CONCLUIDO
 

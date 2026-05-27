@@ -3,7 +3,7 @@
  * Actualizar aqui em cada release — propaga automaticamente
  * para todos os sítios que mostram a versão.
  */
-export const APP_VERSION = '0.25.0';
+export const APP_VERSION = '0.30.0-beta.1';
 
 export interface VersionEntry {
   version: string;
@@ -11,6 +11,31 @@ export interface VersionEntry {
 }
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: '0.30.0-beta.1',
+    description:
+      'v0.30.0-beta.1: Beta fechada — Watch Folders debounce (ficheiros grandes), SQLite WAL tuning, graceful shutdown de threads, cloud upload deduplicado, VisualComparatorPlayer split-screen para comparar original vs processado.',
+  },
+  {
+    version: '0.29.0-alpha.1',
+    description:
+      'v0.29.0-alpha.1: Alpha Instrumentada — Watch Folders, Onboarding Wizard, Telemetria local opt-in, Bug Report integrado, mapeamento automático de erros do pipeline, keychain OS para credenciais cloud.',
+  },
+  {
+    version: '0.28.0',
+    description:
+      'v0.28.0: Platform-Adaptive UX — design tokens CSS por plataforma (Windows/macOS/Linux), WindowControls.tsx (botões min/max/close Fluent), efeitos Mica (Windows 11) e Vibrancy (macOS), scrollbars nativas.',
+  },
+  {
+    version: '0.27.0',
+    description:
+      'v0.27.0: Segurança cloud — credenciais armazenadas no OS keychain (Windows Credential Manager / macOS Keychain / Linux Secret Service), fix path traversal SMB, auditoria de segurança completa.',
+  },
+  {
+    version: '0.26.0',
+    description:
+      'v0.26.0: CI/CD release pipeline, sync automático CHANGELOG + SYNC-STATE, check-translations gate, builds assinados Windows/macOS.',
+  },
   {
     version: '0.25.0',
     description:

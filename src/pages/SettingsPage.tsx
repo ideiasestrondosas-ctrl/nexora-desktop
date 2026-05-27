@@ -36,9 +36,17 @@ import {
   Cloud,
 } from 'lucide-react';
 import { CloudProfileModal } from '@/components/CloudProfileModal';
+import { STORAGE_KEY as ONBOARDING_STORAGE_KEY } from '@/components/OnboardingModal';
 import { CloudFileBrowserModal } from '@/components/CloudFileBrowserModal';
 import { useCloudStore, CloudProfile, PROVIDER_LABELS } from '@/store/cloud';
 import { cn } from '@/lib/utils';
+
+interface WatchFolder {
+  id: string;
+  path: string;
+  enabled: boolean;
+  createdAt: string;
+}
 
 interface Settings {
   output_dir: string;
@@ -129,7 +137,16 @@ interface LogStorageInfo {
   oldestFileDate: string | null;
 }
 
-type SettingsTab = 'general' | 'interface' | 'system' | 'logs' | 'cloud' | 'advanced' | 'about';
+type SettingsTab =
+  | 'general'
+  | 'interface'
+  | 'system'
+  | 'logs'
+  | 'cloud'
+  | 'watchFolders'
+  | 'privacy'
+  | 'advanced'
+  | 'about';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -167,6 +184,12 @@ export default function SettingsPage() {
   const [clearingThumbs, setClearingThumbs] = useState(false);
   const [logInfo, setLogInfo] = useState<LogStorageInfo | null>(null);
   const [logInfoLoading, setLogInfoLoading] = useState(false);
+  const [watchFolders, setWatchFolders] = useState<WatchFolder[]>([]);
+  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
+  const [telemetryEvents, setTelemetryEvents] = useState<
+    Array<{ id: string; eventType: string; payloadJson?: string; createdAt: string }>
+  >([]);
+  const [showTelemetryData, setShowTelemetryData] = useState(false);
 
   const {
     profiles: cloudProfiles,
@@ -180,6 +203,40 @@ export default function SettingsPage() {
   useEffect(() => {
     invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
   }, [setCloudProfiles]);
+
+  useEffect(() => {
+    invoke<WatchFolder[]>('list_watch_folders').then(setWatchFolders).catch(console.error);
+  }, []);
+
+  const handleAddWatchFolder = async () => {
+    try {
+      const selected = await open({ directory: true, multiple: false });
+      if (!selected) return;
+      const path = typeof selected === 'string' ? selected : selected[0];
+      const folder = await invoke<WatchFolder>('add_watch_folder', { path });
+      setWatchFolders((prev) => [...prev, folder]);
+    } catch (e) {
+      console.error('add_watch_folder error', e);
+    }
+  };
+
+  const handleRemoveWatchFolder = async (id: string) => {
+    try {
+      await invoke('remove_watch_folder', { id });
+      setWatchFolders((prev) => prev.filter((f) => f.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleToggleWatchFolder = async (id: string, enabled: boolean) => {
+    try {
+      await invoke('toggle_watch_folder', { id, enabled });
+      setWatchFolders((prev) => prev.map((f) => (f.id === id ? { ...f, enabled } : f)));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const systemTimedOut = useRef(false);
 
@@ -310,6 +367,13 @@ export default function SettingsPage() {
         setLogInfoLoading(false);
       })
       .catch(() => setLogInfoLoading(false));
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'privacy') return;
+    invoke<Record<string, string>>('get_settings').then((s) => {
+      setTelemetryEnabled(s.telemetry_enabled === 'true');
+    });
   }, [activeTab]);
 
   const handleUpdateSetting = async (key: keyof Settings, value: unknown) => {
@@ -493,12 +557,34 @@ export default function SettingsPage() {
     }
   }
 
+  const handleViewTelemetry = async () => {
+    try {
+      const events = await invoke<typeof telemetryEvents>('get_telemetry_events');
+      setTelemetryEvents(events);
+      setShowTelemetryData(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleClearTelemetry = async () => {
+    try {
+      await invoke('clear_telemetry_events');
+      setTelemetryEvents([]);
+      setShowTelemetryData(false);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
     { id: 'general', label: t('settings.tabs.general'), icon: Shield },
     { id: 'interface', label: t('settings.tabs.interface'), icon: Palette },
     { id: 'system', label: t('settings.tabs.system'), icon: Server },
     { id: 'logs', label: 'Logs', icon: Terminal },
     { id: 'cloud' as const, label: 'Cloud', icon: Cloud },
+    { id: 'watchFolders' as const, label: t('settings.watchFolders.tab'), icon: FolderOpen },
+    { id: 'privacy' as const, label: t('settings.privacy.tab'), icon: Shield },
     { id: 'advanced', label: t('settings.tabs.advanced'), icon: Globe },
     { id: 'about', label: t('settings.tabs.about'), icon: Info },
   ];
@@ -1410,6 +1496,125 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* TAB: WATCH FOLDERS */}
+      {activeTab === 'watchFolders' && (
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-sm font-semibold text-text-primary mb-1">
+              {t('settings.watchFolders.title')}
+            </h3>
+            <p className="text-xs text-text-muted mb-4">{t('settings.watchFolders.description')}</p>
+            <button
+              onClick={handleAddWatchFolder}
+              className="px-3 py-1.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand/90 transition-colors mb-4"
+            >
+              {t('settings.watchFolders.addFolder')}
+            </button>
+            {watchFolders.length === 0 ? (
+              <div className="text-sm text-text-muted py-4 text-center border border-dashed border-border rounded-lg">
+                <p>{t('settings.watchFolders.noFolders')}</p>
+                <p className="text-xs mt-1 opacity-70">
+                  {t('settings.watchFolders.noFoldersHint')}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {watchFolders.map((folder) => (
+                  <div
+                    key={folder.id}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-bg-secondary border border-border"
+                  >
+                    <FolderOpen size={16} className="text-brand flex-shrink-0" />
+                    <span className="flex-1 text-sm text-text-primary truncate" title={folder.path}>
+                      {folder.path}
+                    </span>
+                    <span
+                      className={`text-xs font-medium ${folder.enabled ? 'text-green-500' : 'text-text-muted'}`}
+                    >
+                      {folder.enabled
+                        ? t('settings.watchFolders.enabled')
+                        : t('settings.watchFolders.disabled')}
+                    </span>
+                    <button
+                      onClick={() => handleToggleWatchFolder(folder.id, !folder.enabled)}
+                      className="text-xs px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors"
+                    >
+                      {folder.enabled
+                        ? t('settings.watchFolders.enabled')
+                        : t('settings.watchFolders.disabled')}
+                    </button>
+                    <button
+                      onClick={() => handleRemoveWatchFolder(folder.id)}
+                      className="text-xs px-2 py-1 rounded text-red-500 hover:bg-red-500/10 transition-colors"
+                    >
+                      {t('settings.watchFolders.remove')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB: PRIVACY */}
+      {activeTab === 'privacy' && (
+        <div className="space-y-6">
+          <h3 className="text-sm font-semibold text-text-primary">{t('settings.privacy.title')}</h3>
+          <div className="flex items-start justify-between gap-4 py-3 border-b border-border">
+            <div>
+              <p className="text-sm font-medium text-text-primary">
+                {t('settings.privacy.toggle')}
+              </p>
+              <p className="text-xs text-text-muted mt-0.5">{t('settings.privacy.toggleHint')}</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={telemetryEnabled}
+              onChange={async (e) => {
+                const val = e.target.checked;
+                setTelemetryEnabled(val);
+                try {
+                  await invoke('update_settings', {
+                    key: 'telemetry_enabled',
+                    value: val ? 'true' : 'false',
+                  });
+                } catch (e) {
+                  console.error(e);
+                  setTelemetryEnabled(!val); // reverter em caso de erro
+                }
+              }}
+              className="mt-1 w-4 h-4 accent-brand"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={handleViewTelemetry}
+              className="px-3 py-1.5 rounded-lg border border-border text-sm text-text-muted hover:bg-muted transition-colors"
+            >
+              {t('settings.privacy.viewData')}
+            </button>
+            <button
+              onClick={handleClearTelemetry}
+              className="px-3 py-1.5 rounded-lg border border-red-500/40 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+            >
+              {t('settings.privacy.clearData')}
+            </button>
+          </div>
+          {showTelemetryData && (
+            <div className="bg-bg-secondary rounded-lg border border-border p-3 max-h-64 overflow-y-auto">
+              {telemetryEvents.length === 0 ? (
+                <p className="text-xs text-text-muted">{t('settings.privacy.noData')}</p>
+              ) : (
+                <pre className="text-xs text-text-primary whitespace-pre-wrap">
+                  {JSON.stringify(telemetryEvents, null, 2)}
+                </pre>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* TAB: ADVANCED */}
       {activeTab === 'advanced' && (
         <div className="space-y-6">
@@ -1457,6 +1662,22 @@ export default function SettingsPage() {
           <section className="rounded-xl border border-border p-6 bg-bg-secondary">
             <SectionTitle>{t('settings.sections.maintenance')}</SectionTitle>
             <div className="space-y-3">
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div>
+                  <p className="text-sm font-medium text-text-primary">Reset Onboarding</p>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Show the welcome wizard again on next launch.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+                  }}
+                  className="px-3 py-1.5 rounded-lg border border-border text-sm text-text-muted hover:bg-muted transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
               <button
                 onClick={handleResetSettings}
                 className="flex items-center gap-3 w-full p-3 bg-surface hover:bg-surface-hover text-text-primary rounded-lg transition-colors text-left text-sm font-medium"

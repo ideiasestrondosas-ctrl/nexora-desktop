@@ -160,6 +160,12 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
     setDeleteConfirm({ open: true, id: null, multi: true });
   };
 
+  const handleProcessSelected = useCallback(() => {
+    if (!onImportRequest || selectedIds.size === 0) return;
+    const paths = assets.filter((a) => selectedIds.has(a.id)).map((a) => a.path);
+    onImportRequest(paths);
+  }, [assets, selectedIds, onImportRequest]);
+
   const executeDelete = async () => {
     // Capturar valores antes de fechar o diálogo — o state será stale após setDeleteConfirm
     const targetId = deleteConfirm.id;
@@ -361,13 +367,22 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
         {/* Botões de adicionar — sempre visíveis */}
         <div className="flex items-center gap-2 ml-auto">
           {selectedIds.size > 0 && (
-            <button
-              onClick={handleDeleteSelected}
-              className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg text-xs font-bold hover:bg-red-500 hover:text-white transition-colors"
-            >
-              <Trash2 size={14} />
-              {t('library.deleteSelected', { defaultValue: `Apagar ${selectedIds.size}` })}
-            </button>
+            <>
+              <button
+                onClick={handleProcessSelected}
+                className="flex items-center gap-1.5 px-3 py-2 bg-brand/10 border border-brand/30 text-brand rounded-lg text-xs font-bold hover:bg-brand hover:text-white transition-colors"
+              >
+                <Play size={14} />
+                {t('library.processSelected', { count: selectedIds.size })}
+              </button>
+              <button
+                onClick={handleDeleteSelected}
+                className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg text-xs font-bold hover:bg-red-500 hover:text-white transition-colors"
+              >
+                <Trash2 size={14} />
+                {t('library.deleteSelected', { defaultValue: `Apagar ${selectedIds.size}` })}
+              </button>
+            </>
           )}
           <button
             onClick={handleAddFolderDialog}

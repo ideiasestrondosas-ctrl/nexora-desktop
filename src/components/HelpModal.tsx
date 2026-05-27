@@ -16,6 +16,10 @@ import {
   Cloud,
   FileVideo,
   Download,
+  ScanLine,
+  FolderOpen,
+  Shield,
+  Bug,
 } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
@@ -39,7 +43,8 @@ type ScreenTab =
   | 'intro'
   | 'cloud'
   | 'assetDetail'
-  | 'import';
+  | 'import'
+  | 'comparator';
 
 const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] = [
   { id: 'intro', labelKey: 'help.tabs.intro', icon: <BookOpen className="w-4 h-4" /> },
@@ -55,19 +60,21 @@ const SCREEN_TABS: { id: ScreenTab; labelKey: string; icon: React.ReactNode }[] 
   { id: 'profiles', labelKey: 'help.tabs.profiles', icon: <UserCircle className="w-4 h-4" /> },
   { id: 'settings', labelKey: 'help.tabs.settings', icon: <Settings className="w-4 h-4" /> },
   { id: 'cloud', labelKey: 'help.tabs.cloud', icon: <Cloud className="w-4 h-4" /> },
+  { id: 'comparator', labelKey: 'help.tabs.comparator', icon: <ScanLine className="w-4 h-4" /> },
   { id: 'logs', labelKey: 'help.tabs.logs', icon: <Terminal className="w-4 h-4" /> },
 ];
 
 const TAB_COUNTS: Record<ScreenTab, number> = {
-  intro: 1,
+  intro: 4,
   dashboard: 1,
   library: 2,
-  assetDetail: 2,
-  import: 2,
-  queue: 3,
+  assetDetail: 3,
+  import: 3,
+  queue: 4,
   profiles: 1,
-  settings: 4,
+  settings: 6,
   cloud: 5,
+  comparator: 2,
   logs: 1,
 };
 
@@ -87,6 +94,14 @@ const SCREENSHOTS = {
   'reprocess-popup': '/screenshots/reprocess-popup.png',
   'delete-confirm': '/screenshots/delete-confirm.png',
   'factory-reset': '/screenshots/factory-reset-confirm.png',
+  // Novos screenshots v0.30.0-beta.1
+  onboarding: '/screenshots/onboarding-wizard.png',
+  'watch-folders': '/screenshots/watch-folders.png',
+  'privacy-telemetry': '/screenshots/privacy-telemetry.png',
+  'bug-report': '/screenshots/bug-report.png',
+  'pipeline-error': '/screenshots/pipeline-error.png',
+  comparator: '/screenshots/comparator.png',
+  'batch-submit': '/screenshots/batch-submit.png',
 } as const;
 
 function ScreenCard({
@@ -663,6 +678,78 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       tips={[t('help.screens.cloud.icloud.localPath')]}
                     >
                       <p>{t('help.screens.cloud.icloud.desc')}</p>
+                    </ScreenCard>
+                  </div>
+                )}
+
+                {activeTab === 'comparator' && (
+                  <div className="space-y-4">
+                    <ScreenCard
+                      title={t('help.screens.comparator.title')}
+                      icon={<ScanLine className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS.comparator)}
+                      tips={[
+                        t('help.screens.comparator.tip1'),
+                        t('help.screens.comparator.tip2'),
+                        t('help.screens.comparator.tip3'),
+                      ]}
+                      screenshot={SCREENSHOTS.comparator}
+                    >
+                      <p>{t('help.screens.comparator.desc')}</p>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        <li>{t('help.screens.comparator.splitScreen')}</li>
+                        <li>{t('help.screens.comparator.scrubSync')}</li>
+                        <li>{t('help.screens.comparator.playPause')}</li>
+                      </ul>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.comparator.onboarding.title')}
+                      icon={<BookOpen className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS.onboarding)}
+                      screenshot={SCREENSHOTS.onboarding}
+                      tips={[
+                        t('help.screens.comparator.onboarding.tip1'),
+                        t('help.screens.comparator.onboarding.tip2'),
+                      ]}
+                    >
+                      <p>{t('help.screens.comparator.onboarding.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.comparator.watchFolders.title')}
+                      icon={<FolderOpen className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['watch-folders'])}
+                      screenshot={SCREENSHOTS['watch-folders']}
+                      tips={[
+                        t('help.screens.comparator.watchFolders.tip1'),
+                        t('help.screens.comparator.watchFolders.tip2'),
+                      ]}
+                    >
+                      <p>{t('help.screens.comparator.watchFolders.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.comparator.privacy.title')}
+                      icon={<Shield className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['privacy-telemetry'])}
+                      screenshot={SCREENSHOTS['privacy-telemetry']}
+                      tips={[
+                        t('help.screens.comparator.privacy.tip1'),
+                        t('help.screens.comparator.privacy.tip2'),
+                      ]}
+                    >
+                      <p>{t('help.screens.comparator.privacy.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.comparator.bugReport.title')}
+                      icon={<Bug className="w-4 h-4" />}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['bug-report'])}
+                      screenshot={SCREENSHOTS['bug-report']}
+                      tips={[
+                        t('help.screens.comparator.bugReport.tip1'),
+                        t('help.screens.comparator.bugReport.tip2'),
+                        t('help.screens.comparator.bugReport.tip3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.comparator.bugReport.desc')}</p>
                     </ScreenCard>
                   </div>
                 )}

@@ -41,7 +41,8 @@
       "cloud": "Облако",
       "logs": "Logs",
       "assetDetail": "Детали ресурса",
-      "import": "Импорт"
+      "import": "Импорт",
+      "comparator": "Comparator"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -238,6 +239,41 @@
       "keychain": "Учётные данные облака хранятся в keychain ОС (Windows Credential Manager, macOS Keychain, Linux Secret Service)",
       "pathTraversal": "Удалённые пути валидируются для предотвращения path traversal атак",
       "endpointValidation": "Endpoint для загрузки журналов должен использовать протокол http:// или https://"
+    },
+    "comparator": {
+      "title": "Visual Comparator",
+      "desc": "Compare the original and processed video side-by-side with synchronized playback, scrubbing, and adjustable divider.",
+      "splitScreen": "Drag the vertical divider to reveal more of one side or the other",
+      "scrubSync": "Move the timeline scrubber to navigate to any frame — both videos stay in sync",
+      "playPause": "Use the Play/Pause button to toggle playback on both videos simultaneously",
+      "tip1": "The comparator only appears when a processed output exists.",
+      "tip2": "Both videos load from local paths via convertFileSrc for best performance.",
+      "tip3": "Click the divider and drag horizontally to adjust the split between original and processed.",
+      "onboarding": {
+        "title": "Onboarding Wizard",
+        "desc": "At first launch, a 4-step wizard guides new users through choosing an output directory, setting preferences, and completing privacy/telemetry settings.",
+        "tip1": "Step 1: Welcome — overview of Nexora's core features.",
+        "tip2": "Step 2: Output Directory — pick where processed files will be saved."
+      },
+      "watchFolders": {
+        "title": "Watch Folders",
+        "desc": "Automatically monitor local directories for new video files. When a new file is detected and stabilised (debounced), it is automatically ingested into the Library.",
+        "tip1": "Add folders in Settings → Watch Folders.",
+        "tip2": "A 3-second debounce prevents ingesting incomplete/copied files."
+      },
+      "privacy": {
+        "title": "Privacy & Telemetry",
+        "desc": "Telemetry is opt-in and disabled by default. When enabled, Nexora collects anonymised startup events for diagnostics.",
+        "tip1": "Telemetry never sends file names, paths, or any personal data.",
+        "tip2": "Telemetry can be enabled/disabled at any time in Settings → Privacy."
+      },
+      "bugReport": {
+        "title": "Bug Reporting",
+        "desc": "Report issues directly from the app via the orange bug icon in the TopBar. The Bug Report form lets you copy logs to clipboard or open a pre-filled GitHub issue.",
+        "tip1": "Attach recent logs (50 lines) to provide context.",
+        "tip2": "The GitHub issue link pre-fills the title and body from your report.",
+        "tip3": "Bug reports are sent to GitHub — not to any Nexora server."
+      }
     }
   },
   "dashboard": {

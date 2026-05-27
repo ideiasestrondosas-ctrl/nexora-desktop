@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { logActivity } from '@/lib/activityLog';
 import { MediaInfoPanel } from '@/components/MediaInfoPanel';
 import type { DetailedMediaInfo } from '@/components/MediaInfoPanel';
+import { VisualComparatorPlayer } from '@/components/VisualComparatorPlayer';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAssetsStore } from '@/store/assets';
 import { useJobsStore } from '@/store/jobs';
@@ -105,9 +106,9 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
   const [asset, setAsset] = useState<Asset | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeDetailTab, setActiveDetailTab] = useState<'qc' | 'metadata' | 'media' | 'history'>(
-    'qc',
-  );
+  const [activeDetailTab, setActiveDetailTab] = useState<
+    'qc' | 'metadata' | 'media' | 'history' | 'comparator'
+  >('qc');
   const [heroView, setHeroView] = useState<'orig' | 'out'>('orig');
   const [playerActive, setPlayerActive] = useState(false);
   const { t, i18n } = useTranslation();
@@ -534,6 +535,22 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
             {jobs.length}
           </span>
         </button>
+        {asset.output_path && (
+          <button
+            onClick={() => {
+              logActivity('Separador Comparador', 'click');
+              setActiveDetailTab('comparator');
+            }}
+            className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all duration-200 ${
+              activeDetailTab === 'comparator'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-text-muted hover:text-text-secondary hover:bg-surface/10'
+            }`}
+          >
+            <ScanLine size={15} />
+            {t('comparator.tab')}
+          </button>
+        )}
       </div>
 
       {/* TAB PANELS */}
@@ -1045,6 +1062,12 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                 </div>
               </div>
             )}
+          </section>
+        )}
+
+        {activeDetailTab === 'comparator' && asset.output_path && (
+          <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <VisualComparatorPlayer originalPath={asset.path} processedPath={asset.output_path} />
           </section>
         )}
       </div>

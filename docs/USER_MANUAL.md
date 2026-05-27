@@ -356,5 +356,88 @@ A two-step confirmation process ensures intentional data loss:
 
 ---
 
-_Nexora Desktop — Open Source Media Processing_  
+## 12. Visual Comparator (v0.30.0-beta.1)
+
+The Visual Comparator lets you compare original and processed videos side-by-side with synchronized playback.
+
+### Features
+
+- **Split-Screen**: Drag the vertical divider to reveal more of one side or the other
+- **Synchronized Scrubbing**: Move the timeline scrubber to navigate to any frame — both videos stay in sync
+- **Play/Pause**: Toggle playback on both videos simultaneously
+- **Auto-Appearance**: The Comparator tab only appears when a processed output exists
+
+### How to Use
+
+1. Process a job to completion (status = "Done")
+2. Open the asset in **Asset Detail**
+3. Click the **"Comparator"** tab
+4. Drag the divider to adjust the split
+5. Use the scrubber or Play/Pause to navigate frames
+
+---
+
+## 13. Onboarding Wizard (v0.30.0-beta.1)
+
+At first launch, a 4-step wizard guides new users through initial setup.
+
+### Steps
+
+1. **Welcome** — Overview of Nexora's core features
+2. **Output Directory** — Choose where processed files will be saved
+3. **Privacy & Telemetry** — Opt-in to anonymous telemetry (disabled by default)
+4. **Done** — Start processing
+
+---
+
+## 14. Watch Folders (v0.30.0-beta.1)
+
+Automatically monitor local directories for new video files. When a new file is detected and stabilised (debounced for 3 seconds), it is automatically ingested into the Library.
+
+### Usage
+
+- Go to **Settings → Watch Folders**
+- Click "Add Folder" to monitor a directory
+- Toggle enable/disable per folder
+- Files are ingested automatically after the debounce period
+
+---
+
+## 15. Bug Reporting (v0.30.0-beta.1)
+
+Report issues directly from the app via the orange bug icon in the TopBar.
+
+### Features
+
+- **Copy to Clipboard**: Copy the bug report with recent logs (50 lines) to your clipboard
+- **GitHub Issue**: Open a pre-filled GitHub issue with the report attached
+- **Save to File**: Save the report as a text file for later use
+
+### How to Report
+
+1. Click the **Bug icon** (orange) in the TopBar
+2. Fill in the title and description
+3. Optionally include recent logs
+4. Choose: Copy, GitHub, or Save
+
+---
+
+## 16. Pipeline Error Messages (v0.30.0-beta.1)
+
+When a job fails, Nexora now categorizes the error and provides actionable hints.
+
+### Categories
+
+| Category              | Trigger                                 | Hint                                          |
+| --------------------- | --------------------------------------- | --------------------------------------------- |
+| **Disk Full**         | "no space left", "disk full"            | Free up disk space or change output directory |
+| **Permission Denied** | "permission denied", "access is denied" | Check file/directory permissions              |
+| **Corrupt File**      | "invalid data", "moov atom not found"   | Re-encode the source file                     |
+| **Codec Error**       | "encoder not found", "codec not found"  | Update FFmpeg or reinstall                    |
+| **Killed**            | "SIGKILL", "signal 9"                   | Check system logs for OOM killer              |
+| **Generic**           | Any other error                         | Check logs for details                        |
+
+---
+
+_Nexora Desktop — Open Source Media Processing_
 _GitHub: https://github.com/ideiasestrondosas-ctrl/nexora-desktop_

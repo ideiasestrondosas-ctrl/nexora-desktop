@@ -25,7 +25,7 @@
     "gpu": "GPU",
     "disk": "Disco",
     "exit": "Sair do programa",
-    "help": "Ajuda"
+    "bugReport": "Reportar Problema"
   },
   "help": {
     "title": "Manual do Utilizador",
@@ -40,10 +40,13 @@
       "queue": "Fila",
       "profiles": "Perfis",
       "settings": "Definições",
-      "cloud": "Cloud",
       "logs": "Registos",
-      "assetDetail": "Detalhe do Asset",
-      "import": "Importar"
+      "usage": "Como usar",
+      "metrics": "Métricas",
+      "system": "Sistema",
+      "support": "Suporte",
+      "about": "Sobre",
+      "comparator": "Comparator"
     },
     "intro": {
       "whatIs": "O que é o Nexora Desktop?",
@@ -58,8 +61,13 @@
         "profiles": "Perfis",
         "profilesDesc": "6 predefinições integradas (Broadcast HD/SD, Web 4K/HD, Proxy, Social) mais um editor completo de perfis personalizados.",
         "gpuAuto": "Deteção Automática",
-        "gpuAutoDesc": "Métricas do sistema, deteção de GPU e estado dos binários são verificados automaticamente no arranque."
-      }
+        "gpuAutoDesc": "Métricas do sistema, deteção de GPU e estado dos binários são verificados automaticamente no arranque.",
+        "offline": "Processamento totalmente offline — sem necessidade de internet",
+        "broadcast": "Perfis conformes com broadcast (BBC, Netflix, DPP)",
+        "gpu": "Aceleração GPU (NVENC, AMF, QSV)",
+        "vmaf": "Pontuação VMAF ativa com limiares por perfil"
+      },
+      "architecture": "Construído com Tauri 2.x (Rust) para a shell nativa, React 19 para a UI e um sidecar Node.js para orquestração de média. O SQLite guarda todos os metadados localmente."
     },
     "screens": {
       "dashboard": {
@@ -238,6 +246,162 @@
       "keychain": "As credenciais cloud são armazenadas no keychain do SO (Windows Credential Manager, macOS Keychain, Linux Secret Service)",
       "pathTraversal": "Os caminhos remotos são validados para prevenir ataques de path traversal",
       "endpointValidation": "Os endpoints de upload de registos devem usar os protocolos http:// ou https://"
+    },
+    "usage": {
+      "workflow": "Fluxo de trabalho",
+      "steps": {
+        "1": "Adicionar média via drag & drop ou diálogo de ficheiros",
+        "2": "Seleccionar um perfil de transcodificação (broadcast-hd, web-4k, etc.)",
+        "3": "Submeter para a fila — os jobs processam automaticamente",
+        "4": "Rever relatórios QC e aprovar/rejeitar itens em quarentena",
+        "5": "Aceder aos ficheiros processados na pasta de saída"
+      },
+      "tips": "Dicas",
+      "tipsList": {
+        "1": "Use aceleração GPU para transcodes 5-10x mais rápidos",
+        "2": "Active notificações para receber alertas quando os jobs terminam",
+        "3": "Consulte a página de Registos para output detalhado do FFmpeg",
+        "4": "O Reset de Fábrica apaga tudo — use com cuidado"
+      },
+      "step1Title": "Abrir o separador \"Processar\"",
+      "step1Desc": "Clique no ícone de foguetão na barra de navegação para aceder à página de processamento.",
+      "step2Title": "Arrastar o ficheiro de vídeo",
+      "step2Desc": "Arraste um MP4, MXF, MOV ou qualquer formato suportado pelo FFmpeg para a zona de drop. Também pode clicar para abrir o seletor de ficheiros.",
+      "step3Title": "Seleccionar o perfil de codificação",
+      "step3Desc": "Escolha o perfil adequado para o destino final (broadcast, web, social). Cada perfil tem parâmetros pré-configurados para conformidade e qualidade óptima.",
+      "step4Title": "Iniciar o processamento",
+      "step4Desc": "Clique em Processar. O job é adicionado à fila e processado em segundo plano. A app mantém-se responsiva durante o processamento.",
+      "step5Title": "Monitorizar no \"Dashboard\"",
+      "step5Desc": "O Dashboard mostra jobs activos, pontuação VMAF média e espaço em disco. A barra de progresso actualiza em tempo real.",
+      "step6Title": "Consultar resultados no \"Histórico\"",
+      "step6Desc": "Após a conclusão, o asset aparece no Histórico com codec, duração, tamanho e pontuação VMAF. Use o botão de detalhes para ver todos os metadados.",
+      "tip1": "Active a GPU nas Definições para transcodificação 5-10x mais rápida",
+      "tip2": "O perfil Proxy é ideal para criar versões de edição — nunca para entrega final",
+      "tip3": "Guarde registos em Definições → Registos para resolução de problemas",
+      "tip4": "A pasta de saída pode ser definida globalmente ou por perfil nas Definições"
+    },
+    "profiles": {
+      "title": "Perfis de codificação disponíveis",
+      "broadcastHd": {
+        "name": "Broadcast HD",
+        "desc": "Conformidade total broadcast — H.264 High 4.1, 50 Mbps, -23 LUFS"
+      },
+      "broadcastSd": {
+        "name": "Broadcast SD",
+        "desc": "Definição standard — H.264 Main 3.0, 15 Mbps"
+      },
+      "web4k": {
+        "name": "Web 4K",
+        "desc": "Streaming 4K UHD — H.265, 25 Mbps, VMAF ≥ 93"
+      },
+      "webHd": {
+        "name": "Web HD",
+        "desc": "Optimizado para web e streaming — H.264, 8 Mbps"
+      },
+      "proxy": {
+        "name": "Proxy",
+        "desc": "Edição offline rápida — 720p, 2 Mbps, baixa latência"
+      },
+      "social": {
+        "name": "Social",
+        "desc": "Redes sociais — formatos vertical e quadrado"
+      },
+      "note": "Os perfis de sistema não podem ser editados. Duplique-os para criar variantes personalizadas.",
+      "broadcastNote": "Todos os perfis broadcast utilizam:"
+    },
+    "metrics": {
+      "title": "Métricas de qualidade",
+      "vmaf": "O VMAF (Video Multi-Method Assessment Fusion) pontua a qualidade perceptual de 0 a 100. Limiares: 85 (web), 90 (broadcast SD), 93 (broadcast HD/4K).",
+      "lufs": "O LUFS (Loudness Units Full Scale) mede a intensidade sonora. Alvo: -23 LUFS para broadcast, -14 LUFS para web/social.",
+      "truePeak": "O True Peak (dBTP) previne clipping digital. Limite: -1 dBTP para todos os perfis.",
+      "realtime": "As métricas em tempo real actualizam a cada 2 segundos durante jobs activos.",
+      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
+      "vmafDescription": "Métrica de qualidade de vídeo perceptual desenvolvida pela Netflix. Simula a percepção humana comparando o vídeo processado com o original.",
+      "vmafUnacceptable": "Inaceitável",
+      "vmafAcceptable": "Aceitável",
+      "vmafGood": "Bom",
+      "vmafBroadcast": "Broadcast",
+      "lufsTitle": "LUFS — Loudness Units Full Scale",
+      "lufsDescription": "Medida de intensidade sonora integrada segundo a norma EBU R128. O alvo standard para broadcast europeu é −23 LUFS ±1 LU. Para streaming (Spotify, YouTube) o alvo é tipicamente −14 LUFS.",
+      "realtimeTitle": "Métricas em tempo real (barra superior)",
+      "cpuDesc": "CPU % — utilização global do processador (actualizado a cada 2s)",
+      "ramDesc": "RAM — memória usada / total em GB",
+      "networkDesc": "Rede ↓↑ — débito agregado de download e upload de todas as interfaces"
+    },
+    "system": {
+      "components": "Componentes instalados",
+      "stack": "Stack tecnológica",
+      "loading": "A carregar informação do sistema...",
+      "database": "Base de dados",
+      "techStack": "Stack tecnológica",
+      "stackShell": "Shell nativa: Tauri 2.x (Rust stable)",
+      "stackFrontend": "Frontend: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
+      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
+      "stackDb": "BD: SQLite (rusqlite bundled)",
+      "stackCodec": "Codec: FFmpeg com GPU auto-detectada"
+    },
+    "support": {
+      "troubleshooting": "Resolução de Problemas",
+      "factoryResetTitle": "Reset de Fábrica (Limpeza Total)",
+      "factoryResetWarning": "Isto irá apagar TODOS os dados, definições e histórico. A app irá reiniciar. Esta acção não pode ser desfeita.",
+      "commonProblems": "Problemas Comuns",
+      "problems": {
+        "1": "GPU não detectada — Instale os drivers gráficos mais recentes",
+        "2": "Jobs a falhar na transcodificação — Verifique se o binário FFmpeg está incluído"
+      },
+      "factoryResetDescription": "Se a app mostrar comportamento inconsistente, dados que não limpam ou erros de base de dados, pode efectuar um Reset Total em Definições → Avançado.",
+      "factoryResetAssets": "Apaga todos os assets e histórico",
+      "factoryResetProfiles": "Remove perfis personalizados e definições",
+      "factoryResetTemp": "Limpa ficheiros temporários do sidecar",
+      "factoryResetRestart": "Reinicia a aplicação do zero",
+      "problem1Title": "O processamento não inicia?",
+      "problem1Desc": "Verifique se o FFmpeg está correctamente detectado no separador Sistema.",
+      "problem2Title": "Erro de permissão na pasta de saída?",
+      "problem2Desc": "Certifique-se de que o Nexora tem permissões de escrita na pasta configurada."
+    },
+    "about": {
+      "appName": "Nexora Desktop",
+      "version": "Versão",
+      "license": "Licença",
+      "platforms": "Plataformas",
+      "year": "Ano",
+      "footer": "Nexora Media Processing — Pipeline de média profissional para broadcast e web.",
+      "reportIssues": "Para reportar problemas ou sugestões, consulte os registos do sistema e inclua o output relevante no seu relatório."
+    },
+    "comparator": {
+      "title": "Visual Comparator",
+      "desc": "Compare the original and processed video side-by-side with synchronized playback, scrubbing, and adjustable divider.",
+      "splitScreen": "Drag the vertical divider to reveal more of one side or the other",
+      "scrubSync": "Move the timeline scrubber to navigate to any frame — both videos stay in sync",
+      "playPause": "Use the Play/Pause button to toggle playback on both videos simultaneously",
+      "tip1": "The comparator only appears when a processed output exists.",
+      "tip2": "Both videos load from local paths via convertFileSrc for best performance.",
+      "tip3": "Click the divider and drag horizontally to adjust the split between original and processed.",
+      "onboarding": {
+        "title": "Onboarding Wizard",
+        "desc": "At first launch, a 4-step wizard guides new users through choosing an output directory, setting preferences, and completing privacy/telemetry settings.",
+        "tip1": "Step 1: Welcome — overview of Nexora's core features.",
+        "tip2": "Step 2: Output Directory — pick where processed files will be saved."
+      },
+      "watchFolders": {
+        "title": "Watch Folders",
+        "desc": "Automatically monitor local directories for new video files. When a new file is detected and stabilised (debounced), it is automatically ingested into the Library.",
+        "tip1": "Add folders in Settings → Watch Folders.",
+        "tip2": "A 3-second debounce prevents ingesting incomplete/copied files."
+      },
+      "privacy": {
+        "title": "Privacy & Telemetry",
+        "desc": "Telemetry is opt-in and disabled by default. When enabled, Nexora collects anonymised startup events for diagnostics.",
+        "tip1": "Telemetry never sends file names, paths, or any personal data.",
+        "tip2": "Telemetry can be enabled/disabled at any time in Settings → Privacy."
+      },
+      "bugReport": {
+        "title": "Bug Reporting",
+        "desc": "Report issues directly from the app via the orange bug icon in the TopBar. The Bug Report form lets you copy logs to clipboard or open a pre-filled GitHub issue.",
+        "tip1": "Attach recent logs (50 lines) to provide context.",
+        "tip2": "The GitHub issue link pre-fills the title and body from your report.",
+        "tip3": "Bug reports are sent to GitHub — not to any Nexora server."
+      }
     }
   },
   "dashboard": {
@@ -281,6 +445,7 @@
     "noAssets": "Sem assets na biblioteca",
     "dragHint": "Arrasta ficheiros de vídeo para aqui ou clica no botão para começar.",
     "addVideos": "Adicionar Vídeos",
+    "adding": "A adicionar...",
     "showing": "Mostrar {{count}} de {{total}} assets",
     "previous": "Anterior",
     "next": "Próximo",
@@ -288,11 +453,13 @@
     "filesAdded": "{{count}} ficheiro(s) adicionados com sucesso",
     "deleteConfirm": "Tens a certeza que queres apagar este asset?",
     "deleteError": "Erro ao apagar asset",
+    "qcOk": "QC OK",
     "file": "Ficheiro",
     "duration": "Duração",
     "actions": "Acções",
     "gridView": "Vista em grelha",
-    "listView": "Vista em lista"
+    "listView": "Vista em lista",
+    "processSelected": "Processar {{count}} selecionados"
   },
   "queue": {
     "pipelineSummary": "Resumo do Pipeline",
@@ -549,6 +716,29 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "watchFolders": {
+      "tab": "Watch Folders",
+      "title": "Watch Folders",
+      "description": "O Nexora monitoriza estas pastas e adiciona automaticamente novos ficheiros de vídeo à fila.",
+      "addFolder": "Adicionar Pasta",
+      "noFolders": "Sem pastas configuradas.",
+      "noFoldersHint": "Clica em \"Adicionar Pasta\" para começar a monitorizar uma directoria.",
+      "remove": "Remover",
+      "enabled": "Activa",
+      "disabled": "Em pausa",
+      "addError": "Não foi possível adicionar a pasta: {{error}}",
+      "removeConfirm": "Remover esta pasta das Watch Folders?"
+    },
+    "privacy": {
+      "tab": "Privacidade",
+      "title": "Privacidade e Telemetria",
+      "toggle": "Partilhar dados anónimos de erros",
+      "toggleHint": "Contagem de erros e eventos da app — guardados apenas neste dispositivo.",
+      "viewData": "Ver dados recolhidos",
+      "clearData": "Apagar todos os dados",
+      "noData": "Ainda não foram recolhidos dados de telemetria.",
+      "cleared": "Todos os dados de telemetria foram apagados."
     }
   },
   "logs": {
@@ -654,6 +844,13 @@
     "delivery": "Delivery",
     "deliveryDesc": "Ficheiros movidos para pasta de saída"
   },
+  "comparator": {
+    "tab": "Comparador",
+    "original": "Original",
+    "processed": "Processado",
+    "noOutput": "Ficheiro processado não disponível",
+    "dragHint": "Arrasta para comparar"
+  },
   "common": {
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -706,10 +903,25 @@
     "showLess": "Ver menos"
   },
   "jobCard": {
-    "cancel": "Cancel Job",
-    "processing": "Processing...",
-    "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "cancel": "Cancelar Job",
+    "processing": "A processar...",
+    "completedAt": "Concluído às {{date}}",
+    "unknownError": "Erro de transcodificação",
+    "errorSuggestion": "Consulta os Registos para detalhes",
+    "errors": {
+      "diskFull": "Disco cheio",
+      "diskFullHint": "Liberta espaço em disco e tenta novamente",
+      "permission": "Sem permissão",
+      "permissionHint": "Verifica as permissões da pasta de destino",
+      "corrupt": "Ficheiro corrompido ou formato não suportado",
+      "corruptHint": "Verifica se o ficheiro original está íntegro",
+      "codec": "Codec não disponível",
+      "codecHint": "Selecciona um preset diferente",
+      "killed": "Processo interrompido",
+      "killedHint": "A conversão foi cancelada ou o sistema ficou sem memória",
+      "generic": "Erro de transcodificação",
+      "genericHint": "Consulta os Registos para detalhes"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -922,5 +1134,35 @@
     "modified": "Modificado",
     "notSupported": "Navegação não suportada para iCloud",
     "browseTooltipDisabled": "Navegação não suportada para iCloud"
+  },
+  "onboarding": {
+    "step1Title": "Bem-vindo ao Nexora Desktop",
+    "step1Desc": "Processamento de media profissional, nativo no teu computador. Vamos configurar em menos de um minuto.",
+    "step2Title": "Pasta de destino",
+    "step2Desc": "Onde devem ser guardados os ficheiros processados?",
+    "step2Choose": "Escolher pasta",
+    "step3Title": "Privacidade",
+    "step3Desc": "Ajuda a melhorar o Nexora partilhando dados anónimos de erros — guardados apenas neste dispositivo, nunca enviados.",
+    "step3Toggle": "Partilhar dados anónimos de erros",
+    "step4Title": "Está tudo pronto!",
+    "step4Desc": "Arrasta ficheiros de vídeo para a app, ou usa a Biblioteca para adicionar ficheiros à fila.",
+    "next": "Seguinte",
+    "back": "Anterior",
+    "start": "Começar a usar o Nexora",
+    "stepOf": "Passo {{current}} de {{total}}"
+  },
+  "bugReport": {
+    "title": "Reportar Problema",
+    "titleLabel": "Título",
+    "titlePlaceholder": "Descrição breve do problema",
+    "descLabel": "Descrição",
+    "descPlaceholder": "Passos para reproduzir, comportamento esperado vs actual...",
+    "includeLogs": "Incluir últimas 50 linhas de log",
+    "copyClipboard": "Copiar para clipboard",
+    "openGitHub": "Abrir GitHub Issue",
+    "saveFile": "Guardar como ficheiro",
+    "copied": "Copiado para o clipboard",
+    "saved": "Guardado em {{path}}",
+    "titleRequired": "O título é obrigatório"
   }
 }
