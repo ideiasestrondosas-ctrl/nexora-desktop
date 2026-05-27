@@ -1,4 +1,4 @@
-#Requires -Version 7.0
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Optimizador de ambiente de desenvolvimento para Windows 11.
