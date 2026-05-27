@@ -173,8 +173,8 @@ function Show-Status {
         $d = Get-Content $DockerCfgPath -Raw | ConvertFrom-Json
         $hasMem  = $d.PSObject.Properties.Name -contains "memoryMiB"
         $hasCpus = $d.PSObject.Properties.Name -contains "cpus"
-        if ($hasMem -and $hasCpus -and $d.memoryMiB -and $d.cpus) {
-            Write-Ok "Docker:    $([math]::Round($d.memoryMiB/1024,1)) GB / $($d.cpus) CPUs"
+        if ($hasMem -and $hasCpus -and [int]$d.memoryMiB -gt 0 -and [int]$d.cpus -gt 0) {
+            Write-Ok "Docker:    $([math]::Round([int]$d.memoryMiB/1024,1)) GB / $([int]$d.cpus) CPUs"
         } else {
             Write-Warn "Docker:    sem limites definidos"
         }
@@ -202,7 +202,13 @@ function Show-Status {
         $s = Get-Service $svc -ErrorAction SilentlyContinue
         if ($s) {
             $color = if ($s.Status -eq "Running") { "Gray" } else { "Green" }
-            $label = if ($s.Status -eq "Running") { "Running (normal)" } else { "Stopped (dev-on activo)" }
+            $label = if ($s.Status -eq "Running") {
+                "Running (normal)"
+            } elseif ($devOn) {
+                "Stopped (dev-on activo)"
+            } else {
+                "Stopped"
+            }
             Write-Host "  $($svc.PadRight(12))" -NoNewline
             Write-Host $label -ForegroundColor $color
         }
