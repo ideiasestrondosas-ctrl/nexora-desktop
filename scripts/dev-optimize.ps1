@@ -225,26 +225,21 @@ function Show-Status {
     Write-Host ""
 }
 
-# ── Helper: Windows Search exclusão via COM ──────────────────────────────────
+# ── Helper: Windows Search — atributo NTFS NotContentIndexed ─────────────────
 function Set-WSearchExclusion {
     param([string]$FolderPath, [bool]$Exclude = $true)
-    # ISearchManager via CLSID 7D096C5F-AC08-4F1F-BEB7-5C22C517CE39
+    # FILE_ATTRIBUTE_NOT_CONTENT_INDEXED (0x2000) — o Windows Search respeita este flag
     try {
-        $type = [Type]::GetTypeFromCLSID([Guid]"7D096C5F-AC08-4F1F-BEB7-5C22C517CE39")
-        if (-not $type) { throw "COM não disponível" }
-        $sm  = [Activator]::CreateInstance($type)
-        $cat = $sm.GetCatalog("SystemIndex")
-        $csm = $cat.GetCrawlScopeManager()
-        $url = "file:///" + $FolderPath.Replace("\", "/").TrimEnd("/") + "/"
+        if (-not (Test-Path $FolderPath -ErrorAction SilentlyContinue)) { return $true }
+        $item = Get-Item -LiteralPath $FolderPath -ErrorAction Stop
         if ($Exclude) {
-            $csm.AddDefaultScopeRule($url, 0, 1)   # 0 = excluir, 1 = persistente
+            $item.Attributes = $item.Attributes -bor [System.IO.FileAttributes]::NotContentIndexed
         } else {
-            try { $csm.RemoveScopeRule($url) } catch { <# já não existe #> }
+            $item.Attributes = $item.Attributes -band (-bnot [System.IO.FileAttributes]::NotContentIndexed)
         }
-        $csm.SaveAll()
         return $true
     } catch {
-        Write-Warn "WSearch COM falhou para '$FolderPath': $_"
+        Write-Warn "WSearch: falhou para '$FolderPath': $_"
         return $false
     }
 }
