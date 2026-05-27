@@ -224,8 +224,107 @@ function Show-Status {
     Write-Host ""
 }
 
-# ── Invoke-Setup (placeholder — implementado nas Tasks 3-4) ──────────────────
-function Invoke-Setup { Write-Warn "Comando 'setup' ainda não implementado." }
+# ── Helper: Windows Search exclusão via COM ──────────────────────────────────
+function Set-WSearchExclusion {
+    param([string]$FolderPath, [bool]$Exclude = $true)
+    # ISearchManager via CLSID 7D096C5F-AC08-4F1F-BEB7-5C22C517CE39
+    try {
+        $type = [Type]::GetTypeFromCLSID([Guid]"7D096C5F-AC08-4F1F-BEB7-5C22C517CE39")
+        if (-not $type) { throw "COM não disponível" }
+        $sm  = [Activator]::CreateInstance($type)
+        $cat = $sm.GetCatalog("SystemIndex")
+        $csm = $cat.GetCrawlScopeManager()
+        $url = "file:///" + $FolderPath.Replace("\", "/").TrimEnd("/") + "/"
+        if ($Exclude) {
+            $csm.AddDefaultScopeRule($url, 0, 1)   # 0 = excluir, 1 = persistente
+        } else {
+            try { $csm.RemoveScopeRule($url) } catch { <# já não existe #> }
+        }
+        $csm.SaveAll()
+        return $true
+    } catch {
+        Write-Warn "WSearch COM falhou para '$FolderPath': $_"
+        return $false
+    }
+}
+
+# ── Invoke-Setup ─────────────────────────────────────────────────────────────
+function Invoke-Setup {
+    Require-Admin
+
+    if (Test-Path $BackupFile) {
+        Write-Warn "Setup já foi executado anteriormente. Use 'reset' primeiro se quiser re-aplicar."
+        return
+    }
+
+    Write-Header "SETUP — Configuração Permanente"
+
+    # ── Backup do estado actual ───────────────────────────────────────────
+    Write-Info "A guardar backup do estado actual..."
+    try {
+        $existingDefenderPaths = (Get-MpPreference).ExclusionPath
+        $existingDefenderProcs = (Get-MpPreference).ExclusionProcess
+    } catch {
+        $existingDefenderPaths = @()
+        $existingDefenderProcs = @()
+    }
+
+    # Resolver caminho CanonicalGroupLimited* aqui (evita I/O em every invocation)
+    $allDefenderPaths = [System.Collections.Generic.List[string]]$DefenderPaths
+    $canonicalPkg = Get-ChildItem "$HOME\AppData\Local\Packages" `
+        -Filter "CanonicalGroupLimited*" -Directory -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($canonicalPkg) { $allDefenderPaths.Add($canonicalPkg.FullName) }
+
+    $backup = [PSCustomObject]@{
+        timestamp          = (Get-Date -Format "o")
+        defenderPaths      = $existingDefenderPaths
+        defenderProcesses  = $existingDefenderProcs
+        dockerBefore       = $null
+        addedDefenderPaths = [System.Collections.Generic.List[string]]@()
+        addedDefenderProcs = [System.Collections.Generic.List[string]]@()
+    }
+
+    # ── Passo 1: Defender — exclusões de pastas ───────────────────────────
+    Write-Info ""
+    Write-Info "Passo 1/5 — Windows Defender: exclusões de pastas..."
+    foreach ($p in $allDefenderPaths) {
+        if (Test-Path $p -ErrorAction SilentlyContinue) {
+            Add-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue
+            $backup.addedDefenderPaths.Add($p)
+            Write-Ok "Defender excluiu: $p"
+        } else {
+            Write-Info "Pasta não existe (ignorada): $p"
+        }
+    }
+
+    # ── Passo 2: Defender — exclusões de processos ────────────────────────
+    Write-Info ""
+    Write-Info "Passo 2/5 — Windows Defender: exclusões de processos..."
+    foreach ($proc in $DefenderProcesses) {
+        Add-MpPreference -ExclusionProcess $proc -ErrorAction SilentlyContinue
+        $backup.addedDefenderProcs.Add($proc)
+        Write-Ok "Defender excluiu processo: $proc"
+    }
+
+    # ── Passo 3: WSearch — excluir pastas da indexação ────────────────────
+    Write-Info ""
+    Write-Info "Passo 3/5 — Windows Search: excluir pastas da indexação..."
+    $wSearchOk = $true
+    foreach ($p in $allDefenderPaths) {
+        if (Test-Path $p -ErrorAction SilentlyContinue) {
+            $ok = Set-WSearchExclusion -FolderPath $p -Exclude $true
+            if ($ok) { Write-Ok "WSearch excluiu: $p" }
+            else     { $wSearchOk = $false }
+        }
+    }
+    if (-not $wSearchOk) {
+        Write-Warn "Algumas exclusões WSearch falharam. Pode continuar — o Defender já foi configurado."
+    }
+
+    # [Task 4 continues here — Docker, WSL, backup save]
+    Write-Warn "Passos 4-5 (Docker/WSL) ainda não implementados — aguarda Task 4."
+}
 
 # ── Invoke-DevOn (placeholder — implementado na Task 5) ──────────────────────
 function Invoke-DevOn { Write-Warn "Comando 'dev-on' ainda não implementado." }
