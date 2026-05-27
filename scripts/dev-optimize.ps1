@@ -504,8 +504,82 @@ function Invoke-DevOff {
     Write-Host ""
 }
 
-# ── Invoke-Reset (placeholder — implementado na Task 6) ──────────────────────
-function Invoke-Reset { Write-Warn "Comando 'reset' ainda não implementado." }
+# ── Invoke-Reset ─────────────────────────────────────────────────────────────
+function Invoke-Reset {
+    Require-Admin
+
+    if (-not (Test-Path $BackupFile)) {
+        Write-Warn "Backup não encontrado — setup não foi executado ou já foi feito reset."
+        return
+    }
+
+    Write-Header "RESET — Desfazer Configuração Permanente"
+
+    try {
+        $backup = Get-Content $BackupFile -Raw | ConvertFrom-Json
+    } catch {
+        Write-Err "Ficheiro de backup inválido: $_"
+        return
+    }
+
+    # ── Remover exclusões Defender adicionadas ────────────────────────────
+    Write-Info "A remover exclusões do Windows Defender..."
+    foreach ($p in $backup.addedDefenderPaths) {
+        Remove-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue
+        Write-Ok "Defender: removeu exclusão de pasta $p"
+    }
+    foreach ($proc in $backup.addedDefenderProcs) {
+        Remove-MpPreference -ExclusionProcess $proc -ErrorAction SilentlyContinue
+        Write-Ok "Defender: removeu exclusão de processo $proc"
+    }
+
+    # ── Remover exclusões WSearch ─────────────────────────────────────────
+    Write-Info ""
+    Write-Info "A remover exclusões do Windows Search..."
+    foreach ($p in $backup.addedDefenderPaths) {
+        $ok = Set-WSearchExclusion -FolderPath $p -Exclude $false
+        if ($ok) { Write-Ok "WSearch: removeu exclusão $p" }
+    }
+
+    # ── Restaurar Docker ──────────────────────────────────────────────────
+    Write-Info ""
+    Write-Info "A restaurar configuração Docker..."
+    if ($backup.PSObject.Properties.Name -contains 'dockerBefore' -and $backup.dockerBefore) {
+        if (Test-Path $DockerCfgPath) {
+            try {
+                $current = Get-Content $DockerCfgPath -Raw | ConvertFrom-Json
+                $hasMem  = $backup.dockerBefore.PSObject.Properties.Name -contains 'memoryMiB'
+                $hasCpus = $backup.dockerBefore.PSObject.Properties.Name -contains 'cpus'
+                if ($hasMem) {
+                    $current | Add-Member -NotePropertyName memoryMiB `
+                        -NotePropertyValue $backup.dockerBefore.memoryMiB -Force
+                }
+                if ($hasCpus) {
+                    $current | Add-Member -NotePropertyName cpus `
+                        -NotePropertyValue $backup.dockerBefore.cpus -Force
+                }
+                $current | ConvertTo-Json -Depth 20 |
+                    Set-Content -Path $DockerCfgPath -Encoding UTF8
+                Write-Ok "Docker: configuração restaurada do backup"
+            } catch {
+                Write-Warn "Não foi possível restaurar Docker: $_"
+            }
+        } else {
+            Write-Info "Docker settings-store.json não encontrado — nada a restaurar"
+        }
+    } else {
+        Write-Info "Backup não continha configuração Docker prévia — nada a restaurar"
+    }
+
+    # ── Limpar ficheiros de estado ────────────────────────────────────────
+    Write-Info ""
+    Remove-Item $BackupFile -Force
+    if (Test-Path $StateFile) { Remove-Item $StateFile -Force }
+
+    Write-Host ""
+    Write-Ok "Reset concluído. Sistema no estado pré-setup."
+    Write-Host ""
+}
 
 # ── Dispatcher ───────────────────────────────────────────────────────────────
 switch ($Command) {
