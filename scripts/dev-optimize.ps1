@@ -329,12 +329,12 @@ function Invoke-Setup {
     if (Test-Path $dockerCfgPath) {
         try {
             $dockerCfg = Get-Content $dockerCfgPath -Raw | ConvertFrom-Json
-            $backup.dockerBefore = ($dockerCfg |
+            $backup.dockerBefore = $dockerCfg |
                 Select-Object -Property @{N='memoryMiB';E={
                     if ($_.PSObject.Properties.Name -contains 'memoryMiB') { $_.memoryMiB } else { $null }
                 }}, @{N='cpus';E={
                     if ($_.PSObject.Properties.Name -contains 'cpus') { $_.cpus } else { $null }
-                }} | ConvertTo-Json -Compress)
+                }}
             $dockerCfg | Add-Member -NotePropertyName memoryMiB -NotePropertyValue 4096 -Force
             $dockerCfg | Add-Member -NotePropertyName cpus      -NotePropertyValue 4    -Force
             $dockerCfg | ConvertTo-Json -Depth 20 | Set-Content -Path $dockerCfgPath -Encoding UTF8
