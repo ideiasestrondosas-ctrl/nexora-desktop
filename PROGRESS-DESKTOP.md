@@ -121,6 +121,28 @@
 - [x] Release bump: package.json (0.30.0-beta.1), Cargo.toml (0.30.0), tauri.conf.json (0.30.0)
 - [x] Merge dev -> main + tag v0.30.0-beta.1 + GitHub Release
 
+### Fase 18 - QA Runner Isolado (Sessao 30)
+
+**Objectivo:** Criar um subprojeto isolado para testes automaticos, carga/stress, recolha de evidencias e relatorios detalhados para humanos e agentes IA, sem tocar no codigo funcional do Nexora Desktop.
+
+**Implementado:**
+
+- [x] `qa-runner/` criado como subprojeto separado, com package proprio e sem dependencias externas
+- [x] Scripts amigaveis Windows/macOS/Linux para teste rapido, completo, video e stress
+- [x] Runner Node.js com logs passo a passo, deteccao da app, descoberta de videos, copia QA isolada, metricas e relatorios
+- [x] Relatorios gerados em `.logs/qa-runs/<timestamp>/`: HTML, Markdown, JSON, stats, CSV e handoff IA
+- [x] Documentacao criada: `docs/QA-RUNNER-SPEC.md`, `docs/QA-RUNNER-USAGE.md`, `qa-runner/README-UTILIZADOR.md`, `qa-runner/README-TECHNICAL.md`
+- [x] README GitHub actualizado com nova secao "Nexora QA Runner"
+
+**Verificacao:**
+
+- [x] Runner `--help` executado
+- [x] Suites `quick`, `video`, `stress-light` e `complete` executadas e relatorios reais gerados
+- [x] Validacao de artefactos de relatorio executada
+- [x] Sem alteracoes em `src/`, `src-tauri/` ou `sidecar/`
+
+---
+
 ### Fase 17 - Documentacao Completa v0.30.0-beta.1 (Sessao 29)
 
 **Objectivo:** Documentar todas as novas funcionalidades da beta (Comparator, Onboarding, Watch Folders, Bug Report, Pipeline Errors) em HelpModal, User Manual, Screen Guide e README.
@@ -158,9 +180,9 @@
 
 ```
 Data:          2026-05-27
-Agente:        OpenCode (kimi-k2.6)
-Ultima sessao: 29 — Documentacao v0.30.0-beta.1 (CONCLUIDO)
-Proximo:       Merge dev -> main + tag v0.30.0-beta.1 + GitHub Release
+Agente:        Codex (GPT-5)
+Ultima sessao: 30 — QA Runner Isolado (CONCLUIDO)
+Proximo:       Rever relatorios QA e expandir E2E real quando houver plano para selectors/WebDriver
 Bloqueios:     Nenhum
 ```
 
