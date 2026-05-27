@@ -375,11 +375,128 @@ autoMemoryReclaim=gradual
     Write-Host ""
 }
 
-# ── Invoke-DevOn (placeholder — implementado na Task 5) ──────────────────────
-function Invoke-DevOn { Write-Warn "Comando 'dev-on' ainda não implementado." }
+# ── Invoke-DevOn ─────────────────────────────────────────────────────────────
+function Invoke-DevOn {
+    if (Test-Path $StateFile) {
+        Write-Warn "Modo dev já está ON. Usa 'dev-off' primeiro."
+        return
+    }
 
-# ── Invoke-DevOff (placeholder — implementado na Task 5) ─────────────────────
-function Invoke-DevOff { Write-Warn "Comando 'dev-off' ainda não implementado." }
+    # Requer Admin para parar serviços do sistema
+    if (-not (Test-IsAdmin)) {
+        Write-Info "A re-lançar como Administrador para parar serviços..."
+        $scriptPath = (Get-Item $PSCommandPath).FullName
+        Start-Process pwsh -Verb RunAs `
+            -ArgumentList "-NonInteractive", "-File", "`"$scriptPath`"", "dev-on" `
+            -Wait
+        return
+    }
+
+    Write-Header "DEV-ON — Activar Modo Desenvolvimento"
+
+    # Verificar RAM
+    $os     = Get-CimInstance Win32_OperatingSystem
+    $freeGB = [math]::Round($os.FreePhysicalMemory / 1024 / 1024, 1)
+    if ($freeGB -lt 4) {
+        Write-Warn "RAM livre: $freeGB GB (< 4 GB) — considera fechar algumas aplicações"
+    }
+
+    # Verificar Docker RAM
+    $dockerProc = Get-Process "Docker Desktop" -ErrorAction SilentlyContinue
+    if ($dockerProc) {
+        $dockerMB = [math]::Round(($dockerProc | Measure-Object WorkingSet -Sum).Sum / 1MB, 0)
+        if ($dockerMB -gt 2048) {
+            Write-Warn "Docker Desktop a usar $dockerMB MB — considera se precisas dele nesta sessão"
+        }
+    }
+
+    # Parar serviços e registar os que foram efectivamente parados
+    $stopped = [System.Collections.Generic.List[string]]@()
+    foreach ($svc in $DevServices) {
+        $s = Get-Service $svc -ErrorAction SilentlyContinue
+        if ($s -and $s.Status -eq "Running") {
+            try {
+                Stop-Service $svc -Force -ErrorAction Stop
+                $stopped.Add($svc)
+                Write-Ok "Parado: $svc"
+            } catch {
+                Write-Warn "Não foi possível parar $svc`: $_"
+            }
+        } else {
+            Write-Info "Já estava parado (ignorado): $svc"
+        }
+    }
+
+    # Elevar prioridade do processo pai (o terminal que lançou este script)
+    try {
+        $parentPid  = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId
+        $parentProc = Get-Process -Id $parentPid -ErrorAction SilentlyContinue
+        if ($parentProc) {
+            $parentProc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::High
+            Write-Ok "Prioridade do terminal elevada para High (PID $parentPid)"
+        }
+    } catch {
+        Write-Info "Não foi possível elevar prioridade do terminal (não crítico)"
+    }
+
+    # Guardar estado
+    [PSCustomObject]@{
+        stoppedServices = $stopped
+        startedAt       = (Get-Date -Format "o")
+    } | ConvertTo-Json | Set-Content -Path $StateFile -Encoding UTF8
+
+    Write-Host ""
+    Write-Ok "Modo dev ON. Usa 'dev-off' para repor o estado."
+    Write-Host ""
+}
+
+# ── Invoke-DevOff ─────────────────────────────────────────────────────────────
+function Invoke-DevOff {
+    if (-not (Test-Path $StateFile)) {
+        Write-Warn "Modo dev não está ON (ficheiro de estado não encontrado)."
+        return
+    }
+
+    # Requer Admin para retomar serviços do sistema
+    if (-not (Test-IsAdmin)) {
+        Write-Info "A re-lançar como Administrador para retomar serviços..."
+        $scriptPath = (Get-Item $PSCommandPath).FullName
+        Start-Process pwsh -Verb RunAs `
+            -ArgumentList "-NonInteractive", "-File", "`"$scriptPath`"", "dev-off" `
+            -Wait
+        return
+    }
+
+    Write-Header "DEV-OFF — Desactivar Modo Desenvolvimento"
+
+    $state = Get-Content $StateFile -Raw | ConvertFrom-Json
+
+    # Retomar apenas os serviços que dev-on parou (idempotente)
+    foreach ($svc in $state.stoppedServices) {
+        try {
+            Start-Service $svc -ErrorAction Stop
+            Write-Ok "Retomado: $svc"
+        } catch {
+            Write-Warn "Não foi possível retomar $svc`: $_"
+        }
+    }
+
+    # Repor prioridade do terminal
+    try {
+        $parentPid  = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId
+        $parentProc = Get-Process -Id $parentPid -ErrorAction SilentlyContinue
+        if ($parentProc) {
+            $parentProc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::Normal
+            Write-Ok "Prioridade do terminal reposta para Normal"
+        }
+    } catch {
+        Write-Info "Não foi possível repor prioridade do terminal (não crítico)"
+    }
+
+    Remove-Item $StateFile -Force
+    Write-Ok "Modo dev OFF. Sistema reposto."
+    Write-Host ""
+}
 
 # ── Invoke-Reset (placeholder — implementado na Task 6) ──────────────────────
 function Invoke-Reset { Write-Warn "Comando 'reset' ainda não implementado." }
