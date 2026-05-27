@@ -262,14 +262,14 @@ function Invoke-Setup {
     # ── Backup do estado actual ───────────────────────────────────────────
     Write-Info "A guardar backup do estado actual..."
     try {
-        $existingDefenderPaths = (Get-MpPreference).ExclusionPath
-        $existingDefenderProcs = (Get-MpPreference).ExclusionProcess
+        $existingDefenderPaths = @((Get-MpPreference).ExclusionPath)
+        $existingDefenderProcs = @((Get-MpPreference).ExclusionProcess)
     } catch {
         $existingDefenderPaths = @()
         $existingDefenderProcs = @()
     }
 
-    # Resolver caminho CanonicalGroupLimited* aqui (evita I/O em every invocation)
+    # Resolver caminho CanonicalGroupLimited* aqui (evita I/O em cada invocação)
     $allDefenderPaths = [System.Collections.Generic.List[string]]$DefenderPaths
     $canonicalPkg = Get-ChildItem "$HOME\AppData\Local\Packages" `
         -Filter "CanonicalGroupLimited*" -Directory -ErrorAction SilentlyContinue |
