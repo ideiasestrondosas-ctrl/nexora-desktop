@@ -18,6 +18,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # ── Constantes ──────────────────────────────────────────────────────────────
 $BackupFile = "$HOME\.dev-optimize-backup.json"
@@ -33,11 +34,8 @@ $DefenderPaths = @(
     "$HOME\AppData\Local\GitHubDesktop",
     "$HOME\AppData\Local\Docker\wsl"
 )
-# Pacote WSL Ubuntu (wildcard)
-$canonicalPkg = Get-ChildItem "$HOME\AppData\Local\Packages" `
-    -Filter "CanonicalGroupLimited*" -Directory -ErrorAction SilentlyContinue |
-    Select-Object -First 1
-if ($canonicalPkg) { $DefenderPaths += $canonicalPkg.FullName }
+# Nota: o caminho CanonicalGroupLimited* (WSL Ubuntu .vhdx) é resolvido
+# dentro de Invoke-Setup para evitar I/O desnecessário em cada invocação.
 
 $DefenderProcesses = @("cargo.exe", "rustc.exe", "node.exe", "docker.exe", "com.docker.backend.exe")
 $DevServices       = @("SysMain", "DiagTrack", "WerSvc")
