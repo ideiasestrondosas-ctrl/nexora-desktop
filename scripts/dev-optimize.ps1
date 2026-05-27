@@ -539,6 +539,7 @@ function Invoke-Reset {
     foreach ($p in $backup.addedDefenderPaths) {
         $ok = Set-WSearchExclusion -FolderPath $p -Exclude $false
         if ($ok) { Write-Ok "WSearch: removeu exclusão $p" }
+        else     { Write-Warn "WSearch: falhou ao remover exclusão $p" }
     }
 
     # ── Restaurar Docker ──────────────────────────────────────────────────
