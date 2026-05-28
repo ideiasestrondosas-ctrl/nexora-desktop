@@ -180,11 +180,11 @@
 ## Em progresso agora
 
 ```
-Data:          2026-05-28
+Data:          2026-05-28 (23:45)
 Agente:        Claude Code (claude-sonnet-4-6)
-Ultima sessao: 31 - SEA Engine + Help Manual Fixes + System Diagnostics UI (CONCLUIDO)
-Proximo:       Push do branch dev (aguarda PAT com scope workflow); testes Windows Sandbox v0.30.2-beta.1
-Bloqueios:     PAT sem scope workflow - git push rejeitado pelo GitHub
+Ultima sessao: 31b - CI Fixes + Build v0.30.2-beta.1 + sync.ps1 v1.2.0 (CONCLUIDO)
+Proximo:       Publicar draft release v0.30.2-beta.1 com sync.ps1 opcao 4; testar no Windows Sandbox
+Bloqueios:     Nenhum
 ```
 
 ### Fase 19 - SEA Engine + Diagnosticos + Help Fixes v0.30.2-beta.1 (Sessao 31)
@@ -204,6 +204,16 @@ Bloqueios:     PAT sem scope workflow - git push rejeitado pelo GitHub
 - [x] Settings -> Sistema: secao Componentes Necessarios com semaforos e links de download
 - [x] README actualizado (overview, features, whats-new v0.30.2-beta.1)
 - [x] 48/48 testes passam
+
+### Fase 19b - CI Fixes + Build v0.30.2-beta.1 + sync.ps1 v1.2.0 (Sessao 31b)
+
+- [x] cargo fmt: `lib.rs` warn! multi-linha, `sidecar.rs` if-else em bloco
+- [x] prettier: CHANGELOG.md, package.json, tauri.conf.json reformatados
+- [x] `ci.yml`: placeholder `nexora-engine` adicionado para 3 plataformas (tauri_build falhava)
+- [x] Build v0.30.2-beta.1: Quality Gate + Windows + macOS + Linux - todos verdes
+- [x] Draft release criado com 6 instaladores (3 plataformas x 2 formatos)
+- [x] sync.ps1 v1.2.0: Watch-GitHubActions multi-branch, minCreatedAt, label branch, timeout 45min
+- [x] main sincronizado com dev (ca496d7)
 
 ### Fase 15 - Alpha Instrumentada v0.29.0 (Sessao 27)
 

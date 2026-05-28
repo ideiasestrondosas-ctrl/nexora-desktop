@@ -5,10 +5,73 @@
 
 ---
 
-Actualizado: 2026-05-28
+Actualizado: 2026-05-28 (23:45)
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 31b — CI Fixes + Build v0.30.2-beta.1 + sync.ps1 v1.2.0 — CONCLUIDO
+
+**Pedido:** Verificar e corrigir erros no GitHub Actions para v0.30.2-beta.1; corrigir sync.ps1 que ficava em loop eterno ao monitorizar CI.
+
+**Implementacao:**
+
+1. **CI fixes — cargo fmt:**
+   - `src-tauri/src/lib.rs:321` — `log::warn!` expandido para multi-linha (linha demasiado longa para rustfmt)
+   - `src-tauri/src/sidecar.rs:43` — `if cfg!(target_os = "windows") { ".exe" } else { "" }` expandido para bloco
+
+2. **CI fixes — prettier:**
+   - `CHANGELOG.md`, `package.json`, `src-tauri/tauri.conf.json` reformatados com `npm run format`
+
+3. **CI fix — ci.yml:**
+   - `rust-check` job não criava placeholder `nexora-engine` → `tauri_build::build()` falhava com "custom build command failed"
+   - Adicionados placeholders `nexora-engine-{triple}` para Windows, macOS (3 variantes) e Linux
+   - Removido `sidecar/dist/nexora-sidecar.cjs` que já não está nas resources
+
+4. **Build v0.30.2-beta.1 — SUCESSO:**
+   - Quality Gate ✅ (3m49s)
+   - Build Windows ✅ (20m13s)
+   - Build macOS Universal ✅ (12m12s)
+   - Build Linux ✅ (11m14s)
+   - Draft release criado com instaladores para 3 plataformas
+
+5. **sync.ps1 v1.2.0 — Watch-GitHubActions corrigido:**
+   - Problema: script ficava em loop eterno a monitorizar um run antigo e falhado (hash `a87a53e`) porque o sync fez merge para main ANTES dos CI fixes
+   - Fix: consulta `main+dev+tag` em simultâneo; filtra por `minCreatedAt = -2min` para ignorar runs históricos; mostra label `[branch]` por run; timeout 45min; poll 20s
+   - `$SYNC_VERSION` bumped para `1.2.0`
+
+6. **Main branch actualizado:**
+   - Merged dev → main (com todos os CI fixes incluídos)
+   - main está agora em `ca496d7` (paridade com dev)
+
+**Commits desta extensao (5):**
+
+- `a87a53e` 3: screenshots em falta (sync script)
+- `69b4dcb` fix(ci): cargo fmt + prettier
+- `eee54e8` fix(ci): add nexora-engine placeholder to ci.yml rust-check job
+- `e84e276` fix(sync): Watch-GitHubActions monitors all branches, ignores old runs, adds timeout
+- `ca496d7` chore(sync): bump version to 1.2.0
+
+**Estado:** Branch `dev` e `main` em `ca496d7`. Draft release `v0.30.2-beta.1` no GitHub com 6 instaladores. Publicar com sync.ps1 opcao 4.
+
+---
+
+## Estado das branches
+
+- `dev`: `ca496d7` — limpo, CI verde
+- `main`: `ca496d7` — paridade com dev
+- Tag `v0.30.2-beta.1`: `eee54e8` — build concluido, draft criado
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Publicar release**: executar `sync.ps1` opcao 4 (Publicar release existente) — aguarda CI e publica o draft como Latest
+- **Node.js 20 actions deprecated**: GitHub avisa que `actions/checkout@v4` e `actions/setup-node@v4` vao ser forcados para Node 24 em Junho 2026. Actualizar para `@v5` quando conveniente.
+- **Watch-GitHubActions (v1.2.0)**: agora monitoriza multi-branch e ignora runs historicos. Se voltar a ficar preso, verificar se o `minCreatedAt` de -2min e suficiente (pode precisar de -5min em merges lentos).
+- **nexora-engine nao e commitado** — binario de ~55MB excluido por `.gitignore`. Gerado em CI automaticamente.
+
+---
 
 ### Sessao 31 — SEA Engine + Help Manual Fixes + System Diagnostics UI — CONCLUIDO
 
