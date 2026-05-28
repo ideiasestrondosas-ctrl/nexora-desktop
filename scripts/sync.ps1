@@ -1150,10 +1150,11 @@ function Invoke-PublishDraft {
         # PATCH — actualizar release (draft ou publicada) com titulo/corpo ricos e publicar
         try {
             $payload = @{
-                name       = $releaseTitle
-                body       = $releaseBodyText
-                draft      = $false
-                prerelease = (Get-IsPreRelease $version)
+                name        = $releaseTitle
+                body        = $releaseBodyText
+                draft       = $false
+                prerelease  = $false
+                make_latest = "true"
             } | ConvertTo-Json
             $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
             Invoke-RestMethod `
@@ -1190,11 +1191,12 @@ function Invoke-PublishDraft {
         # POST — criar nova release (nao havia nenhuma)
         try {
             $payload = @{
-                tag_name   = $latestTag
-                name       = $releaseTitle
-                body       = $releaseBodyText
-                draft      = $false
-                prerelease = (Get-IsPreRelease $version)
+                tag_name    = $latestTag
+                name        = $releaseTitle
+                body        = $releaseBodyText
+                draft       = $false
+                prerelease  = $false
+                make_latest = "true"
             } | ConvertTo-Json
             $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
             Invoke-RestMethod `
@@ -2106,10 +2108,11 @@ if ($LASTEXITCODE -eq 0) {
             Write-Step "Draft release v$newVersion detectado. A actualizar com conteudo rico e a publicar..."
             try {
                 $patchPayload = @{
-                    name       = "$releaseTitle"
-                    body       = $releaseBodyText
-                    draft      = $false
-                    prerelease = (Get-IsPreRelease $newVersion)
+                    name        = "$releaseTitle"
+                    body        = $releaseBodyText
+                    draft       = $false
+                    prerelease  = $false
+                    make_latest = "true"
                 } | ConvertTo-Json
 
                 $patchBytes = [System.Text.Encoding]::UTF8.GetBytes($patchPayload)
@@ -2136,11 +2139,12 @@ if ($LASTEXITCODE -eq 0) {
                 Write-Step "A criar GitHub Release: '$releaseTitle'"
 
                 $postPayload = @{
-                    tag_name   = "v$newVersion"
-                    name       = "$releaseTitle"
-                    body       = $releaseBodyText
-                    draft      = $false
-                    prerelease = (Get-IsPreRelease $newVersion)
+                    tag_name    = "v$newVersion"
+                    name        = "$releaseTitle"
+                    body        = $releaseBodyText
+                    draft       = $false
+                    prerelease  = $false
+                    make_latest = "true"
                 } | ConvertTo-Json
 
                 $postBytes = [System.Text.Encoding]::UTF8.GetBytes($postPayload)
