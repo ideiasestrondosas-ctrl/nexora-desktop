@@ -1139,6 +1139,49 @@ function Invoke-PublishDraft {
         Write-Info "release-notes-v$version.md gerado de $($commitList.Count) commits"
     }
 
+    # Aguardar CI "Build Nexora Desktop" se ainda estiver em progresso para esta tag
+    $buildWorkflow = "Build Nexora Desktop"
+    $ciHeaders     = @{ "Authorization" = "token $token"; "Accept" = "application/vnd.github+json" }
+    $ciStartTime   = Get-Date
+    Write-Host ""
+    Write-Host "  A verificar estado do CI para $latestTag..." -ForegroundColor Cyan
+    while ($true) {
+        $ciRuns = @()
+        try {
+            $ciResp = Invoke-RestMethod `
+                -Uri     "https://api.github.com/repos/$repoOwner/$repoName/actions/runs?per_page=30" `
+                -Method  Get `
+                -Headers $ciHeaders `
+                -ErrorAction Stop
+            $ciRuns = @($ciResp.workflow_runs | Where-Object { $_.name -eq $buildWorkflow -and $_.head_branch -match "^(main|dev)$" } | Sort-Object { [datetime]$_.created_at } -Descending)
+        } catch {
+            Write-Warn "Nao foi possivel verificar CI: $($_.Exception.Message)"
+            break
+        }
+        # Encontrar run mais recente que inclua o commit desta tag
+        $tagCommit = git rev-list -n 1 $latestTag 2>$null
+        $matchRun  = $ciRuns | Where-Object { $_.head_sha -eq $tagCommit } | Select-Object -First 1
+        if (-not $matchRun) {
+            # Sem run exacto para o commit — sem CI pendente, prosseguir
+            Write-Info "Sem run CI especifico para $latestTag — a prosseguir."
+            break
+        }
+        if ($matchRun.status -eq "completed") {
+            if ($matchRun.conclusion -eq "success") {
+                Write-Success "CI '$buildWorkflow' concluiu com sucesso."
+            } else {
+                Write-Warn "CI '$buildWorkflow' terminou com '$($matchRun.conclusion)'. Continuar na mesma? [S/N]"
+                $cont = Read-Host "  "
+                if ($cont -notmatch '^[Ss]$') { return }
+            }
+            break
+        }
+        $elapsed = [math]::Round(((Get-Date) - $ciStartTime).TotalSeconds)
+        $elStr   = if ($elapsed -lt 60) { "${elapsed}s" } else { "$([math]::Floor($elapsed/60))m$($elapsed % 60)s" }
+        Write-Host ("  ⏳  " + $buildWorkflow.PadRight(30) + " $($matchRun.status.PadRight(12)) (elapsed: $elStr)") -ForegroundColor Yellow
+        Start-Sleep -Seconds 30
+    }
+
     # Titulo e corpo ricos (Build-ReleaseBody usa release-notes file como prioridade 1)
     $changelogSection = Parse-ChangelogSection $version
     $releaseTitle     = "v$version — $(Get-ReleaseTitle $version $changelogSection)"
@@ -1276,18 +1319,19 @@ if (-not $SkipRelease -and -not $Release -and -not $PublishDraft -and -not $Mess
     Write-Host "  1) Guardar trabalho do dia                     (commit + bump versao + push dev)" -ForegroundColor Cyan
     Write-Host "  2) Guardar sem alterar versao                  (commit + push dev, sem bump)" -ForegroundColor Cyan
     Write-Host "  3) Versao pronta para lancamento               (commit + bump + push dev + merge main + GitHub Release)" -ForegroundColor Green
-    Write-Host "  4) Ver estado actual                           (git status + ultimos commits)" -ForegroundColor Gray
-    Write-Host "  5) Sair" -ForegroundColor Gray
-    Write-Host "  6) Publicar draft release existente            (actualiza e publica draft do GitHub Actions)" -ForegroundColor Magenta
+    Write-Host "  4) Publicar release existente                  (aguarda CI + publica draft como Latest)" -ForegroundColor Magenta
+    Write-Host "  5) Ver estado actual                           (git status + ultimos commits)" -ForegroundColor Gray
+    Write-Host "  0) Sair" -ForegroundColor Gray
     Write-Host ""
 
-    $choice = Read-Host "  Opcao [1-6]"
+    $choice = Read-Host "  Opcao [0-5]"
 
     switch ($choice) {
         "1" { <# modo normal -- continua o script #> }
         "2" { $SkipRelease = $true }
         "3" { $Release = $true }
-        "4" {
+        "4" { $PublishDraft = $true }
+        "5" {
             Write-Host ""
             Write-Host "  -- Ficheiros modificados --" -ForegroundColor White
             git status --short | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
@@ -1300,11 +1344,10 @@ if (-not $SkipRelease -and -not $Release -and -not $PublishDraft -and -not $Mess
             Write-Host ""
             Pop-Location; exit 0
         }
-        "5" {
+        "0" {
             Write-Host "  Saindo." -ForegroundColor Gray
             Pop-Location; exit 0
         }
-        "6" { $PublishDraft = $true }
         default {
             Write-Warn "Opcao invalida. A usar modo 1 (guardar trabalho do dia)."
         }
