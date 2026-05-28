@@ -6,6 +6,11 @@
     [switch]$Help
 )
 
+# Versao do script sync.ps1 — incrementar em cada alteracao significativa
+# 1.0.0  baseline: menu 1-6, versoes pre-release, WiX version, make_latest, .release-channel
+# 1.1.0  menu resequenciado (0=Sair last, 4=PublishDraft); Invoke-PublishDraft aguarda CI antes de publicar
+$SYNC_VERSION = "1.1.0"
+
 # Configuracoes de codificacao para o terminal — UTF-8 em todo o pipeline
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -972,7 +977,7 @@ if ($Help) {
     Clear-Host
     Write-Host ""
     Write-Host "  ============================================" -ForegroundColor Cyan
-    Write-Host "  NEXORA DESKTOP SYNC  --  Ajuda" -ForegroundColor Cyan
+    Write-Host "  NEXORA DESKTOP SYNC  v$SYNC_VERSION  --  Ajuda" -ForegroundColor Cyan
     Write-Host "  ============================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "  UTILIZACAO" -ForegroundColor White
@@ -1303,7 +1308,7 @@ if (-not $SkipRelease -and -not $Release -and -not $PublishDraft -and -not $Mess
     Clear-Host
     Write-Host ""
     Write-Host "  ============================================" -ForegroundColor Cyan
-    Write-Host "  NEXORA DESKTOP SYNC" -ForegroundColor Cyan
+    Write-Host "  NEXORA DESKTOP SYNC  v$SYNC_VERSION" -ForegroundColor Cyan
     Write-Host "  ============================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "  Branch:  $branch" -ForegroundColor White
