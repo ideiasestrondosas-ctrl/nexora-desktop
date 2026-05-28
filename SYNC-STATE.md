@@ -5,6 +5,53 @@
 
 ---
 
+Actualizado: 2026-05-28
+Agente: Claude Code (claude-sonnet-4-6)
+
+## O que foi feito
+
+### Sessao 31 — SEA Engine + Help Manual Fixes + System Diagnostics UI — CONCLUIDO
+
+**Pedido:** Corrigir erros do Windows Sandbox v0.30.1-beta.1: toast "Componente interno em falta" (sidecar / Node.js), problemas no Help Manual (comparador em chaves i18n, TAB_COUNTS errados, screenshots em falta). Implementar SEA Engine, diagnostico de dependencias in-app, actualizar README.
+
+**Implementacao:**
+
+1. **SEA Engine** — `@yao-pkg/pkg` v6.20.0; scripts `engine:build:*`; `sidecar.rs` → `resolve_engine_path`; `queue.rs` invoca `nexora-engine` directamente; `get_startup_status` simplificado (`engineOk` em vez de `nodeOk`+`sidecarOk`); `tauri.conf.json` actualizado; CI `build.yml` constroi e faz stage do binario por plataforma.
+
+2. **Help Manual i18n** — `help.comparator.*` movido para `help.screens.comparator.*` em 15 locales via script `fix-i18n-comparator.mjs`. TAB_COUNTS corrigidos em 6 tabs. Startup keys limpas (nodeMissing/sidecarMissing → engineMissing/engineDetails) em todos os locales.
+
+3. **Screenshots** — 4 PNGs reais (settings-cache, cloud-gdrive-oauth, cloud-s3, cloud-icloud) adicionados. 6 SVG placeholders apagados. Cards sem UI dedicada (shortcuts, cloud-upload) ficam como texto.
+
+4. **System Diagnostics UI** — `useSystemHealth` store; `SystemDiagnosticsModal`; badge ⚠ na sidebar; secao "Componentes Necessarios" em Settings → Sistema com semaforos e links de download.
+
+5. **README** — overview, features, whats-new e arquitectura actualizados.
+
+**Commits:** `d9448d4` → `9f078e8` (9 commits, branch dev v0.30.2-beta.1)
+
+**Estado:** Push pendente — PAT precisa scope `workflow` em github.com/settings/tokens.
+
+**Verificacao:** 48/48 testes ✅ · typecheck ✅ · lint ✅ · cargo check ✅
+
+---
+
+## Estado das branches
+
+- `dev`: v0.30.2-beta.1 — pronto para push (aguarda PAT com scope `workflow`)
+- `main`: ultima versao antes desta sessao
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Push pendente**: `git push origin dev --follow-tags` — requer PAT com scope `workflow` activo.
+- **nexora-engine**: binario ~55MB gerado por `npm run engine:build:win/mac/linux`. Nao commitado. CI constroi em `src-tauri/binaries/nexora-engine-{triple}`.
+- **PKG target**: `node22` (nao `node20`) — prebuilt node20 ausente para pkg v6.20.0.
+- **SystemDiagnosticsModal**: abrivel via (a) action do toast, (b) badge ⚠ sidebar Settings, (c) Settings → Sistema → Componentes Necessarios.
+- **TAB_COUNTS `intro: 4`**: deveria ser 6 — minor, deixado para sessao futura.
+- **diagnostics i18n**: apenas EN e PT; outros 13 locales fazem fallback silencioso para EN.
+
+---
+
 Actualizado: 2026-05-27
 Agente: Codex (GPT-5)
 
