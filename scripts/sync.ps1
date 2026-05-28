@@ -9,7 +9,9 @@
 # Versao do script sync.ps1 — incrementar em cada alteracao significativa
 # 1.0.0  baseline: menu 1-6, versoes pre-release, WiX version, make_latest, .release-channel
 # 1.1.0  menu resequenciado (0=Sair last, 4=PublishDraft); Invoke-PublishDraft aguarda CI antes de publicar
-$SYNC_VERSION = "1.1.0"
+# 1.2.0  Watch-GitHubActions: monitoriza main+dev+tag simultaneamente, ignora runs historicos (minCreatedAt),
+#         mostra label de branch, timeout 45min com prompt, poll 20s, nao fica preso em runs antigos
+$SYNC_VERSION = "1.2.0"
 
 # Configuracoes de codificacao para o terminal — UTF-8 em todo o pipeline
 $OutputEncoding = [System.Text.Encoding]::UTF8
