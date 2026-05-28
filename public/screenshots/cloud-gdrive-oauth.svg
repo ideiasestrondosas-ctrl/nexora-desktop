@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360">
+  <rect width="640" height="360" fill="#0f172a"/>
+  <rect x="170" y="110" width="100" height="70" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="220" y="142" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="ui-monospace,monospace">Browser</text>
+  <rect x="220" y="150" width="50" height="16" rx="3" fill="#1e40af"/>
+  <text x="245" y="162" text-anchor="middle" fill="white" font-size="8" font-family="ui-monospace,monospace">Authorize</text>
+  <line x1="270" y1="145" x2="318" y2="145" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="320" y="110" width="100" height="70" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="370" y="142" text-anchor="middle" fill="#3b82f6" font-size="9" font-family="ui-monospace,monospace">Nexora</text>
+  <text x="370" y="156" text-anchor="middle" fill="#64748b" font-size="8" font-family="ui-monospace,monospace">polling...</text>
+  <line x1="420" y1="145" x2="468" y2="145" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="470" y="110" width="100" height="70" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="520" y="142" text-anchor="middle" fill="#ea4335" font-size="8" font-family="ui-monospace,monospace">Google</text>
+  <text x="520" y="156" text-anchor="middle" fill="#64748b" font-size="8" font-family="ui-monospace,monospace">OAuth 2.0</text>
+  <text x="320" y="268" text-anchor="middle" fill="#64748b" font-size="12" font-family="ui-monospace,monospace">Google Drive OAuth Device Flow</text>
+</svg>

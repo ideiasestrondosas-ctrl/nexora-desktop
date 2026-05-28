@@ -223,6 +223,41 @@
         "tip1": "Formatos soportados: MP4, MKV, MOV, MXF, AVI, WebM, TS, M2TS.",
         "tip2": "El modal de ingesta le permite elegir entre Solo Analizar (metadatos) o Importar y Procesar.",
         "tip3": "Los archivos con códecs HEVC, ProRes, DNxHD o AV1 pueden ponerse en cuarentena para aprobación manual."
+      },
+      "comparator": {
+        "title": "Visual Comparator",
+        "desc": "Compare the original and processed video side-by-side with synchronized playback, scrubbing, and adjustable divider.",
+        "splitScreen": "Drag the vertical divider to reveal more of one side or the other",
+        "scrubSync": "Move the timeline scrubber to navigate to any frame — both videos stay in sync",
+        "playPause": "Use the Play/Pause button to toggle playback on both videos simultaneously",
+        "tip1": "The comparator only appears when a processed output exists.",
+        "tip2": "Both videos load from local paths via convertFileSrc for best performance.",
+        "tip3": "Click the divider and drag horizontally to adjust the split between original and processed.",
+        "onboarding": {
+          "title": "Onboarding Wizard",
+          "desc": "At first launch, a 4-step wizard guides new users through choosing an output directory, setting preferences, and completing privacy/telemetry settings.",
+          "tip1": "Step 1: Welcome — overview of Nexora's core features.",
+          "tip2": "Step 2: Output Directory — pick where processed files will be saved."
+        },
+        "watchFolders": {
+          "title": "Watch Folders",
+          "desc": "Automatically monitor local directories for new video files. When a new file is detected and stabilised (debounced), it is automatically ingested into the Library.",
+          "tip1": "Add folders in Settings → Watch Folders.",
+          "tip2": "A 3-second debounce prevents ingesting incomplete/copied files."
+        },
+        "privacy": {
+          "title": "Privacy & Telemetry",
+          "desc": "Telemetry is opt-in and disabled by default. When enabled, Nexora collects anonymised startup events for diagnostics.",
+          "tip1": "Telemetry never sends file names, paths, or any personal data.",
+          "tip2": "Telemetry can be enabled/disabled at any time in Settings → Privacy."
+        },
+        "bugReport": {
+          "title": "Bug Reporting",
+          "desc": "Report issues directly from the app via the orange bug icon in the TopBar. The Bug Report form lets you copy logs to clipboard or open a pre-filled GitHub issue.",
+          "tip1": "Attach recent logs (50 lines) to provide context.",
+          "tip2": "The GitHub issue link pre-fills the title and body from your report.",
+          "tip3": "Bug reports are sent to GitHub — not to any Nexora server."
+        }
       }
     },
     "platform": {
@@ -240,42 +275,7 @@
       "endpointValidation": "Los endpoints de carga de registros deben usar protocolos http:// o https://"
     },
     "guideOpened": "Guia aberto no browser",
-    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet.",
-    "comparator": {
-      "title": "Visual Comparator",
-      "desc": "Compare the original and processed video side-by-side with synchronized playback, scrubbing, and adjustable divider.",
-      "splitScreen": "Drag the vertical divider to reveal more of one side or the other",
-      "scrubSync": "Move the timeline scrubber to navigate to any frame — both videos stay in sync",
-      "playPause": "Use the Play/Pause button to toggle playback on both videos simultaneously",
-      "tip1": "The comparator only appears when a processed output exists.",
-      "tip2": "Both videos load from local paths via convertFileSrc for best performance.",
-      "tip3": "Click the divider and drag horizontally to adjust the split between original and processed.",
-      "onboarding": {
-        "title": "Onboarding Wizard",
-        "desc": "At first launch, a 4-step wizard guides new users through choosing an output directory, setting preferences, and completing privacy/telemetry settings.",
-        "tip1": "Step 1: Welcome — overview of Nexora's core features.",
-        "tip2": "Step 2: Output Directory — pick where processed files will be saved."
-      },
-      "watchFolders": {
-        "title": "Watch Folders",
-        "desc": "Automatically monitor local directories for new video files. When a new file is detected and stabilised (debounced), it is automatically ingested into the Library.",
-        "tip1": "Add folders in Settings → Watch Folders.",
-        "tip2": "A 3-second debounce prevents ingesting incomplete/copied files."
-      },
-      "privacy": {
-        "title": "Privacy & Telemetry",
-        "desc": "Telemetry is opt-in and disabled by default. When enabled, Nexora collects anonymised startup events for diagnostics.",
-        "tip1": "Telemetry never sends file names, paths, or any personal data.",
-        "tip2": "Telemetry can be enabled/disabled at any time in Settings → Privacy."
-      },
-      "bugReport": {
-        "title": "Bug Reporting",
-        "desc": "Report issues directly from the app via the orange bug icon in the TopBar. The Bug Report form lets you copy logs to clipboard or open a pre-filled GitHub issue.",
-        "tip1": "Attach recent logs (50 lines) to provide context.",
-        "tip2": "The GitHub issue link pre-fills the title and body from your report.",
-        "tip3": "Bug reports are sent to GitHub — not to any Nexora server."
-      }
-    }
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
   },
   "dashboard": {
     "assetsTotal": "Total Assets",

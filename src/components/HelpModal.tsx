@@ -76,13 +76,13 @@ const TAB_COUNTS: Record<ScreenTab, number> = {
   intro: 4,
   dashboard: 1,
   library: 2,
-  assetDetail: 3,
-  import: 3,
-  queue: 4,
+  assetDetail: 1,
+  import: 2,
+  queue: 3,
   profiles: 1,
-  settings: 6,
-  cloud: 5,
-  comparator: 2,
+  settings: 5,
+  cloud: 6,
+  comparator: 5,
   logs: 1,
   betaGuide: 0,
 };
@@ -119,6 +119,13 @@ const SCREENSHOTS = {
   'pipeline-error': '/screenshots/pipeline-error.png',
   comparator: '/screenshots/comparator.png',
   'batch-submit': '/screenshots/batch-submit.png',
+  // v0.30.1 SVG placeholders
+  'settings-cache': '/screenshots/settings-cache.svg',
+  'settings-shortcuts': '/screenshots/settings-shortcuts.svg',
+  'cloud-upload': '/screenshots/cloud-upload.svg',
+  'cloud-gdrive-oauth': '/screenshots/cloud-gdrive-oauth.svg',
+  'cloud-s3': '/screenshots/cloud-s3.svg',
+  'cloud-icloud': '/screenshots/cloud-icloud.svg',
 } as const;
 
 function ScreenCard({
@@ -605,6 +612,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       title={t('help.screens.import.batchTitle')}
                       icon={<Download className="w-4 h-4" />}
                       tips={[t('help.screens.import.cloudPicker')]}
+                      screenshot={SCREENSHOTS['batch-submit']}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['batch-submit'])}
                     >
                       <p>{t('help.screens.import.batchDesc')}</p>
                     </ScreenCard>
@@ -736,6 +745,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.settings.cache.title')}
                       icon={<Settings className="w-4 h-4" />}
+                      screenshot={SCREENSHOTS['settings-cache']}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['settings-cache'])}
                     >
                       <p>{t('help.screens.settings.cache.desc')}</p>
                       <ul className="list-disc list-inside space-y-1 mt-2">
@@ -747,6 +758,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.settings.shortcuts.title')}
                       icon={<Settings className="w-4 h-4" />}
+                      screenshot={SCREENSHOTS['settings-shortcuts']}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['settings-shortcuts'])}
                     >
                       <p>{t('help.screens.settings.shortcuts.desc')}</p>
                       <ul className="list-disc list-inside space-y-1 mt-2">
@@ -790,6 +803,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.cloud.upload.title')}
                       icon={<Cloud className="w-4 h-4" />}
+                      screenshot={SCREENSHOTS['cloud-upload']}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['cloud-upload'])}
                       tips={[
                         t('help.screens.cloud.upload.tip1'),
                         t('help.screens.cloud.upload.tip2'),
@@ -801,6 +816,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.cloud.gdriveOAuth.title')}
                       icon={<Cloud className="w-4 h-4" />}
+                      screenshot={SCREENSHOTS['cloud-gdrive-oauth']}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['cloud-gdrive-oauth'])}
                       tips={[
                         t('help.screens.cloud.gdriveOAuth.step1'),
                         t('help.screens.cloud.gdriveOAuth.step2'),
@@ -812,6 +829,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.cloud.s3.title')}
                       icon={<Cloud className="w-4 h-4" />}
+                      screenshot={SCREENSHOTS['cloud-s3']}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['cloud-s3'])}
                       tips={[t('help.screens.cloud.s3.providers')]}
                     >
                       <p>{t('help.screens.cloud.s3.desc')}</p>
@@ -819,6 +838,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.cloud.icloud.title')}
                       icon={<Cloud className="w-4 h-4" />}
+                      screenshot={SCREENSHOTS['cloud-icloud']}
+                      onImageClick={() => setLightboxImage(SCREENSHOTS['cloud-icloud'])}
                       tips={[t('help.screens.cloud.icloud.localPath')]}
                     >
                       <p>{t('help.screens.cloud.icloud.desc')}</p>
