@@ -34,6 +34,8 @@ import { resolveVideoPaths } from '@/lib/scan';
 
 import { useSettingsStore } from '@/store/settings';
 import { useCloudStore, type CloudProfile } from '@/store/cloud';
+import { useSystemHealth } from '@/store/systemHealth';
+import { SystemDiagnosticsModal } from '@/components/SystemDiagnosticsModal';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { useActionLog } from '@/hooks/useActionLog';
 import { cn } from '@/lib/utils';
@@ -58,6 +60,9 @@ function App() {
   const [batchOpen, setBatchOpen] = useState(false);
   /** overlay visual de "a arrastar" sobre o conteúdo */
   const [isDragging, setIsDragging] = useState(false);
+
+  const { setHealth, health } = useSystemHealth();
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
 
   const theme = useSettingsStore((state) => state.theme);
   const defaultProfile = useSettingsStore((state) => state.defaultProfile ?? 'web-hd');
@@ -192,15 +197,22 @@ function App() {
       allOk: boolean;
     }>('get_startup_status')
       .then((status) => {
+        setHealth(status);
         if (!status.ffmpegOk || !status.ffprobeOk) {
           toast.error(t('startup.ffmpegMissing'), { duration: Number.POSITIVE_INFINITY });
         }
         if (!status.engineOk) {
-          toast.warning(t('startup.engineMissing'), { duration: Number.POSITIVE_INFINITY });
+          toast.warning(t('startup.engineMissing'), {
+            duration: Number.POSITIVE_INFINITY,
+            action: {
+              label: t('startup.engineDetails'),
+              onClick: () => setDiagnosticsOpen(true),
+            },
+          });
         }
       })
       .catch(console.error);
-  }, [t]);
+  }, [t, setHealth, setDiagnosticsOpen]);
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   const navItems = [
@@ -287,13 +299,18 @@ function App() {
                     : 'text-text-muted hover:text-text-secondary hover:bg-bg-hover',
                 )}
               >
-                <Icon
-                  size={20}
-                  className={cn(
-                    'transition-transform',
-                    isActive ? 'text-brand' : 'group-hover:scale-110',
+                <div className="relative">
+                  <Icon
+                    size={20}
+                    className={cn(
+                      'transition-transform',
+                      isActive ? 'text-brand' : 'group-hover:scale-110',
+                    )}
+                  />
+                  {item.id === 'settings' && !health.allOk && health.checked && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-yellow-400" />
                   )}
-                />
+                </div>
                 <span className="text-sm">{item.label}</span>
                 {isActive && (
                   <div className="absolute left-0 w-1 h-6 bg-brand rounded-r-full"></div>
@@ -390,6 +407,7 @@ function App() {
         </div>
       </main>
 
+      <SystemDiagnosticsModal open={diagnosticsOpen} onOpenChange={setDiagnosticsOpen} />
       <PlatformDebugBadge />
     </div>
   );

@@ -1116,6 +1116,13 @@
     "engineMissing": "Nexora Engine não encontrado. Reinstala a aplicação para restaurar o processamento de vídeo.",
     "engineDetails": "Ver detalhes"
   },
+  "diagnostics": {
+    "title": "Diagnóstico do Sistema",
+    "desc": "Estado dos componentes necessários para o processamento de vídeo.",
+    "bundled": "incluído ✓",
+    "notFound": "não encontrado",
+    "reinstall": "Descarregar versão mais recente"
+  },
   "cloudBrowser": {
     "title": "Ficheiros em {{profile}}",
     "selectAll": "Sel. Todos",

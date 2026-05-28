@@ -888,6 +888,13 @@
     "engineMissing": "Nexora Engine not found. Reinstall the app to restore video processing.",
     "engineDetails": "View details"
   },
+  "diagnostics": {
+    "title": "System Diagnostics",
+    "desc": "Status of the components required for video processing.",
+    "bundled": "bundled ✓",
+    "notFound": "not found",
+    "reinstall": "Download latest release"
+  },
   "jobCard": {
     "cancel": "Cancel Job",
     "processing": "Processing...",
