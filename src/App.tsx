@@ -186,39 +186,17 @@ function App() {
 
     // Verificar pré-requisitos no arranque
     invoke<{
-      nodeOk: boolean;
-      sidecarOk: boolean;
+      engineOk: boolean;
       ffprobeOk: boolean;
       ffmpegOk: boolean;
       allOk: boolean;
     }>('get_startup_status')
       .then((status) => {
-        if (!status.nodeOk) {
-          toast.error(
-            t(
-              'startup.nodeMissing',
-              'As ferramentas de processamento de vídeo não foram encontradas. Consulte a secção Ajuda para instalar os requisitos.',
-            ),
-            { duration: Number.POSITIVE_INFINITY },
-          );
-        }
         if (!status.ffmpegOk || !status.ffprobeOk) {
-          toast.error(
-            t(
-              'startup.ffmpegMissing',
-              'O motor de conversão de vídeo não está disponível. Consulte a secção Ajuda para instalar os requisitos.',
-            ),
-            { duration: Number.POSITIVE_INFINITY },
-          );
+          toast.error(t('startup.ffmpegMissing'), { duration: Number.POSITIVE_INFINITY });
         }
-        if (!status.sidecarOk) {
-          toast.warning(
-            t(
-              'startup.sidecarMissing',
-              'Componente interno em falta. Reinstale a aplicação ou contacte o suporte.',
-            ),
-            { duration: Number.POSITIVE_INFINITY },
-          );
+        if (!status.engineOk) {
+          toast.warning(t('startup.engineMissing'), { duration: Number.POSITIVE_INFINITY });
         }
       })
       .catch(console.error);

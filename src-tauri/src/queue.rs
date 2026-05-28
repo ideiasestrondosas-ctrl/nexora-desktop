@@ -254,11 +254,11 @@ fn run_job<R: Runtime>(
 ) -> anyhow::Result<()> {
     use std::io::{BufRead, BufReader, Write};
 
-    let script_path = super::sidecar::resolve_script_path(app);
-    if !script_path.exists() {
+    let engine_path = super::sidecar::resolve_engine_path(app);
+    if !engine_path.exists() {
         return Err(anyhow::anyhow!(
-            "Sidecar script not found: {:?}",
-            script_path
+            "Nexora Engine não encontrado: {:?}",
+            engine_path
         ));
     }
 
@@ -321,9 +321,8 @@ fn run_job<R: Runtime>(
         "assetSizeBytes": size_bytes,
     });
 
-    let mut cmd = Command::new("node");
-    cmd.arg(&script_path)
-        .env("NEXORA_DB_PATH", db_path)
+    let mut cmd = Command::new(&engine_path);
+    cmd.env("NEXORA_DB_PATH", db_path)
         .env("NEXORA_FFMPEG_PATH", &ffmpeg_path)
         .env("NEXORA_FFPROBE_PATH", &ffprobe_path)
         .env(

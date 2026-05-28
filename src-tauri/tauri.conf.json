@@ -54,8 +54,8 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/ffmpeg", "binaries/ffprobe"],
-    "resources": ["../sidecar/dist/nexora-sidecar.cjs", "resources/vmaf_models"]
+    "externalBin": ["binaries/ffmpeg", "binaries/ffprobe", "binaries/nexora-engine"],
+    "resources": ["resources/vmaf_models"]
   },
   "plugins": {
     "updater": {

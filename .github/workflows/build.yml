@@ -64,11 +64,12 @@ jobs:
       - name: Create resource placeholders
         shell: bash
         run: |
-          mkdir -p sidecar/dist
+          mkdir -p sidecar/dist sidecar/bin
           touch sidecar/dist/nexora-sidecar.cjs
           mkdir -p src-tauri/binaries
           touch src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
           touch src-tauri/binaries/ffprobe-x86_64-unknown-linux-gnu
+          touch src-tauri/binaries/nexora-engine-x86_64-unknown-linux-gnu
 
       - name: Rust format check
         working-directory: src-tauri
@@ -130,15 +131,14 @@ jobs:
             libssl-dev
 
       # Placeholders para resources e externalBin — tauri_build::build() valida estes caminhos
-      - name: Create resource placeholders
+      - name: Create binary placeholders
         shell: bash
         run: |
-          mkdir -p sidecar/dist
-          touch sidecar/dist/nexora-sidecar.cjs
-          mkdir -p src-tauri/binaries
+          mkdir -p src-tauri/binaries sidecar/bin
           if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
             touch src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe
             touch src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe
+            touch src-tauri/binaries/nexora-engine-x86_64-pc-windows-msvc.exe
           elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
             touch src-tauri/binaries/ffmpeg-aarch64-apple-darwin
             touch src-tauri/binaries/ffprobe-aarch64-apple-darwin
@@ -146,9 +146,13 @@ jobs:
             touch src-tauri/binaries/ffprobe-x86_64-apple-darwin
             touch src-tauri/binaries/ffmpeg-universal-apple-darwin
             touch src-tauri/binaries/ffprobe-universal-apple-darwin
+            touch src-tauri/binaries/nexora-engine-aarch64-apple-darwin
+            touch src-tauri/binaries/nexora-engine-x86_64-apple-darwin
+            touch src-tauri/binaries/nexora-engine-universal-apple-darwin
           else
             touch src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
             touch src-tauri/binaries/ffprobe-x86_64-unknown-linux-gnu
+            touch src-tauri/binaries/nexora-engine-x86_64-unknown-linux-gnu
           fi
 
       - name: Install frontend dependencies
@@ -158,9 +162,31 @@ jobs:
       - name: Download media binaries
         run: node scripts/download-media-binaries.js
 
-      # Build do sidecar Node.js
-      - name: Build sidecar
-        run: npm run sidecar:build
+      # Build do Nexora Engine (SEA — standalone binary)
+      - name: Build Nexora Engine (SEA)
+        shell: bash
+        run: |
+          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+            npm run engine:build:win
+          elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
+            npm run engine:build:mac
+          else
+            npm run engine:build:linux
+          fi
+
+      - name: Stage engine binary
+        shell: bash
+        run: |
+          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+            cp sidecar/bin/nexora-engine.exe \
+               src-tauri/binaries/nexora-engine-x86_64-pc-windows-msvc.exe
+          elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
+            cp sidecar/bin/nexora-engine \
+               src-tauri/binaries/nexora-engine-universal-apple-darwin
+          else
+            cp sidecar/bin/nexora-engine \
+               src-tauri/binaries/nexora-engine-x86_64-unknown-linux-gnu
+          fi
 
       # Build + empacotamento por plataforma
       - name: Build Tauri app

@@ -327,14 +327,14 @@ fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
         log::warn!("[startup] Node.js NÃO encontrado no PATH — o processamento de vídeos não vai funcionar. Instala Node.js 20+ em https://nodejs.org");
     }
 
-    // 2. Sidecar script
-    let script_path = sidecar::resolve_script_path(app);
-    if script_path.exists() {
-        log::info!("[startup] Sidecar: OK ({:?})", script_path);
+    // 2. Engine binary
+    let engine_path = sidecar::resolve_engine_path(app);
+    if engine_path.exists() {
+        log::info!("[startup] Engine: OK ({:?})", engine_path);
     } else {
         log::warn!(
-            "[startup] Sidecar script NÃO encontrado em {:?} — executa 'npm run sidecar:build'",
-            script_path
+            "[startup] Engine binary NÃO encontrado em {:?} — executa 'npm run engine:build'",
+            engine_path
         );
     }
 
@@ -382,14 +382,8 @@ fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
 fn get_startup_status(app: tauri::AppHandle) -> serde_json::Value {
     use std::process::Command;
 
-    let node_ok = Command::new("node")
-        .arg("--version")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
-
-    let script_path = sidecar::resolve_script_path(&app);
-    let sidecar_ok = script_path.exists();
+    let engine_path = sidecar::resolve_engine_path(&app);
+    let engine_ok = engine_path.exists();
 
     let ffprobe_path = sidecar::resolve_media_binary_path(&app, "ffprobe");
     let ffprobe_ok = ffprobe_path.exists()
@@ -408,10 +402,9 @@ fn get_startup_status(app: tauri::AppHandle) -> serde_json::Value {
             .unwrap_or(false);
 
     serde_json::json!({
-        "nodeOk": node_ok,
-        "sidecarOk": sidecar_ok,
+        "engineOk": engine_ok,
         "ffprobeOk": ffprobe_ok,
         "ffmpegOk": ffmpeg_ok,
-        "allOk": node_ok && sidecar_ok && ffprobe_ok && ffmpeg_ok,
+        "allOk": engine_ok && ffprobe_ok && ffmpeg_ok,
     })
 }

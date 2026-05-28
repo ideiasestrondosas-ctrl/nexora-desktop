@@ -80,3 +80,7 @@ graphify-out/
 
 # Session info (gerado por agentes em cada sessao, nao commitar)
 .session-info.md
+
+# Sidecar engine binaries (NUNCA commitar - compilar com npm run engine:build)
+sidecar/bin/
+src-tauri/binaries/nexora-engine*

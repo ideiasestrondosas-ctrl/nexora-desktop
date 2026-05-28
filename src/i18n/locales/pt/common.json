@@ -1112,9 +1112,9 @@
     "size": "Tamanho"
   },
   "startup": {
-    "nodeMissing": "As ferramentas de processamento de vídeo não foram encontradas. Consulte a secção Ajuda para instalar os requisitos.",
     "ffmpegMissing": "O motor de conversão de vídeo não está disponível. Consulte a secção Ajuda para instalar os requisitos.",
-    "sidecarMissing": "Componente interno em falta. Reinstale a aplicação ou contacte o suporte."
+    "engineMissing": "Nexora Engine não encontrado. Reinstala a aplicação para restaurar o processamento de vídeo.",
+    "engineDetails": "Ver detalhes"
   },
   "cloudBrowser": {
     "title": "Ficheiros em {{profile}}",
