@@ -74,16 +74,15 @@ jobs:
             patchelf \
             libssl-dev
 
-      # Placeholders para resources e externalBin — tauri_build::build() valida estes caminhos
+      # Placeholders para externalBin — tauri_build::build() valida estes caminhos
       - name: Create resource placeholders
         shell: bash
         run: |
-          mkdir -p sidecar/dist
-          touch sidecar/dist/nexora-sidecar.cjs
           mkdir -p src-tauri/binaries
           if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
             touch src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe
             touch src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe
+            touch src-tauri/binaries/nexora-engine-x86_64-pc-windows-msvc.exe
           elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
             touch src-tauri/binaries/ffmpeg-aarch64-apple-darwin
             touch src-tauri/binaries/ffprobe-aarch64-apple-darwin
@@ -91,9 +90,13 @@ jobs:
             touch src-tauri/binaries/ffprobe-x86_64-apple-darwin
             touch src-tauri/binaries/ffmpeg-universal-apple-darwin
             touch src-tauri/binaries/ffprobe-universal-apple-darwin
+            touch src-tauri/binaries/nexora-engine-aarch64-apple-darwin
+            touch src-tauri/binaries/nexora-engine-x86_64-apple-darwin
+            touch src-tauri/binaries/nexora-engine-universal-apple-darwin
           else
             touch src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
             touch src-tauri/binaries/ffprobe-x86_64-unknown-linux-gnu
+            touch src-tauri/binaries/nexora-engine-x86_64-unknown-linux-gnu
           fi
 
       - name: Rust format check
