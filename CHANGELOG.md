@@ -6,6 +6,19 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.30.3-beta.1] - 2026-05-29
+
+### Added
+
+- Auto-updater operacional: modal de actualização no startup com versão actual/nova e notas de release
+- Assinatura de instaladores activa (TAURI_SIGNING_PRIVATE_KEY configurado)
+- Hooks de sessão Claude Code: SessionStart injec-ta WIP, Stop notifica via Windows toast com debounce de 3 minutos
+
+### Fixed
+
+- Updater endpoint retornava 404 (latest.json em falta) — corrigido com novo par de chaves e build com assinatura
+- tauri.conf.json: pubkey actualizado para par de chaves regenerado
+
 ## [0.30.2-beta.1] - 2026-05-28
 
 ### Added

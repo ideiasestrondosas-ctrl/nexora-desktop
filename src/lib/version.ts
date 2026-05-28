@@ -3,7 +3,7 @@
  * Actualizar aqui em cada release — propaga automaticamente
  * para todos os sítios que mostram a versão.
  */
-export const APP_VERSION = '0.30.1-beta.1';
+export const APP_VERSION = '0.30.3-beta.1';
 
 export interface VersionEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface VersionEntry {
 }
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: '0.30.3-beta.1',
+    description:
+      'v0.30.3-beta.1: Auto-updater operacional — modal de actualização no startup com versão actual/nova e release notes; assinatura de instaladores activa; hooks de sessão Claude Code com notificação Windows.',
+  },
+  {
+    version: '0.30.2-beta.1',
+    description:
+      'v0.30.2-beta.1: SEA Engine (nexora-engine standalone, sem Node.js), System Diagnostics UI, Help Manual i18n fixes, CI fixes cargo fmt + prettier.',
+  },
   {
     version: '0.30.1-beta.1',
     description:
