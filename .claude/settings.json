@@ -1,8 +1,4 @@
-﻿{
-  "project_name": "Nexora Desktop",
-  "workspace": "C:\\Dev\\nexora-desktop",
-  "base_project": "C:\\Dev\\Nexora Media Processing",
-  "base_project_access": "read-only",
+{
   "permissions": {
     "allow": [
       "Bash(git:*)",
@@ -16,5 +12,12 @@
       "Write(C:\\Dev\\nexora-desktop\\**)"
     ],
     "deny": ["Write(C:\\Dev\\Nexora Media Processing\\**)"]
+  },
+  "project_name": "Nexora Desktop",
+  "workspace": "C:\\Dev\\nexora-desktop",
+  "base_project": "C:\\Dev\\Nexora Media Processing",
+  "base_project_access": "read-only",
+  "enabledPlugins": {
+    "claude-code-setup@claude-plugins-official": true
   }
 }
