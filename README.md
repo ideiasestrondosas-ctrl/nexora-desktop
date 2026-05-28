@@ -48,7 +48,7 @@
 
 ## Overview
 
-**Nexora Desktop** is a native, multiplatform desktop application for professional media processing. Built with [Tauri 2.x](https://tauri.app) (Rust backend), [React 19](https://react.dev) (frontend), and a Node.js sidecar, it delivers a fast, secure, and lightweight experience across Windows, macOS, and Linux.
+**Nexora Desktop** is a native, multiplatform desktop application for professional media processing. Built with [Tauri 2.x](https://tauri.app) (Rust backend), [React 19](https://react.dev) (frontend), and a self-contained Nexora Engine binary (compiled via `@yao-pkg/pkg` — no Node.js installation required), it delivers a fast, secure, and lightweight experience across Windows, macOS, and Linux.
 
 Whether you are preparing content for broadcast, web streaming, or social media, Nexora provides a complete pipeline: ingest, quality control, GPU-accelerated transcoding, audio normalization, proxy generation, thumbnail extraction, post-QC with VMAF, and final delivery.
 
@@ -78,6 +78,7 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 | **Cache Management**            | Monitor and clear transcode/thumbnail cache directly from Settings → System                                                                       |
 | **Factory Reset**               | One-click reset to defaults, preserving or wiping all data                                                                                        |
 | **Cloud Destinations**          | Automatic file delivery to FTP, FTPS, SFTP, SMB, S3 (MinIO, Wasabi), and Google Drive after each job                                              |
+| **System Diagnostics**          | Settings → System shows real-time status of all required components (FFmpeg, FFprobe, Nexora Engine) with download links for missing dependencies |
 | **Cloud File Browser**          | Browse, download, and delete files on remote storage directly from the Settings panel                                                             |
 | **Secure Credentials**          | Cloud provider credentials stored in OS keychain (Windows Credential Manager / macOS Keychain / Linux Secret Service) — never in plaintext SQLite |
 | **Platform-Adaptive UX**        | Native look-and-feel per OS: Mica/Acrylic on Windows 11, Vibrancy on macOS, GTK on Linux with adaptive fonts and window controls                  |
@@ -103,6 +104,13 @@ Nexora supports **15 languages**: English, Portuguese, Spanish, French, German, 
 | ---------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------- |
 | ![Cloud Settings](docs/screenshots/settings-cloud-tab.png) | ![Cloud Browser](docs/screenshots/cloud-file-browser.png) | ![Logs](docs/screenshots/settings-logs-tab.png) |
 | Manage cloud profiles and destinations                     | Browse, download, and delete remote files                 | Log verbosity, retention, and cache management  |
+
+### What's New in v0.30.2-beta.1
+
+- **Self-Contained Engine** — `nexora-engine` is now a standalone binary (no Node.js required on the host system). Compiles the sidecar with `@yao-pkg/pkg` and ships it as `externalBin` alongside FFmpeg
+- **System Diagnostics** — New component health panel in Settings → System shows real-time status of FFmpeg, FFprobe, and Nexora Engine with direct download links if any component is missing
+- **Dependency Badge** — Warning badge (⚠) on the Settings sidebar icon when a required component is not found; toast on startup with "View details" action opening the diagnostics modal
+- **Help Manual fixes** — Comparator tab now shows translated text (was showing raw i18n keys); sidebar counters corrected for all 11 tabs; 4 new real screenshots (Cache, Google Drive OAuth, S3, iCloud)
 
 ### What's New in v0.30.0-beta.1
 
@@ -418,7 +426,7 @@ nexora-desktop/
 │   ├── src/commands/       # IPC command handlers
 │   ├── src/db/             # SQLite schema and migrations
 │   └── icons/              # Application icons
-├── sidecar/                # Node.js sidecar (workers + orchestrator)
+├── sidecar/                # Nexora Engine source (compiled to standalone binary via pkg)
 │   ├── workers/            # 8 pipeline workers
 │   └── profiles/           # Transcoding profile definitions
 ├── tests/                  # Vitest test suite

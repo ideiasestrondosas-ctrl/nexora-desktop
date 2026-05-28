@@ -39,6 +39,8 @@ import { CloudProfileModal } from '@/components/CloudProfileModal';
 import { STORAGE_KEY as ONBOARDING_STORAGE_KEY } from '@/components/OnboardingModal';
 import { CloudFileBrowserModal } from '@/components/CloudFileBrowserModal';
 import { useCloudStore, CloudProfile, PROVIDER_LABELS } from '@/store/cloud';
+import { useSystemHealth } from '@/store/systemHealth';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { cn } from '@/lib/utils';
 
 interface WatchFolder {
@@ -154,6 +156,73 @@ function formatBytes(bytes: number): string {
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+const RELEASES_URL = 'https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releases/latest';
+
+function DependencySection() {
+  const { health } = useSystemHealth();
+
+  const items = [
+    {
+      label: 'FFmpeg / FFprobe',
+      ok: health.ffmpegOk && health.ffprobeOk,
+      detail: health.ffmpegOk && health.ffprobeOk ? 'incluído no instalador' : 'não encontrado',
+      downloadUrl: 'https://ffmpeg.org/download.html',
+    },
+    {
+      label: 'Nexora Engine',
+      ok: health.engineOk,
+      detail: health.engineOk ? 'incluído no instalador' : 'não encontrado',
+      downloadUrl: RELEASES_URL,
+    },
+  ];
+
+  if (!health.checked) return null;
+
+  return (
+    <section className="rounded-xl border border-border p-6 bg-bg-secondary">
+      <h3 className="text-xs font-black uppercase tracking-widest text-text-muted mb-4">
+        Componentes Necessários
+      </h3>
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className="flex items-center justify-between p-3 rounded-lg bg-bg-primary border border-border"
+          >
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`w-2 h-2 rounded-full shrink-0 ${item.ok ? 'bg-green-400' : 'bg-red-400'}`}
+              />
+              <span className="text-sm font-medium text-text-primary">{item.label}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-text-muted font-mono">{item.detail}</span>
+              {!item.ok && (
+                <button
+                  onClick={() => openUrl(item.downloadUrl).catch(console.error)}
+                  className="flex items-center gap-1 text-xs text-brand hover:underline"
+                >
+                  <ExternalLink size={11} /> Descarregar
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        {health.allOk && (
+          <p className="text-xs text-green-400 pt-1">
+            ✓ Todos os componentes estão presentes e operacionais.
+          </p>
+        )}
+        {!health.allOk && (
+          <p className="text-xs text-text-muted pt-1">
+            Reinstala a aplicação ou descarrega os componentes em falta usando os links acima.
+          </p>
+        )}
+      </div>
+    </section>
+  );
 }
 
 export default function SettingsPage() {
@@ -1081,14 +1150,6 @@ export default function SettingsPage() {
                         : t('settings.system.unavailable')}
                     </span>
                   </div>
-                  <div className="flex justify-between border-b border-border pb-2">
-                    <span className="text-text-muted flex items-center gap-2">
-                      <Terminal size={12} /> Node.js
-                    </span>
-                    <span className="text-text-secondary">
-                      {installedInfo?.node_version ?? 'N/A'}
-                    </span>
-                  </div>
                   <div className="flex justify-between pb-2">
                     <span className="text-text-muted flex items-center gap-2">
                       <Database size={12} /> {t('settings.system.database')}
@@ -1121,6 +1182,9 @@ export default function SettingsPage() {
                   )}
                 </div>
               </section>
+
+              {/* Componentes necessários */}
+              <DependencySection />
 
               {/* Cache */}
               <section className="rounded-xl border border-border p-6 bg-bg-secondary">

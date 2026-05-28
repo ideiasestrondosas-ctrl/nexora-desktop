@@ -119,13 +119,11 @@ const SCREENSHOTS = {
   'pipeline-error': '/screenshots/pipeline-error.png',
   comparator: '/screenshots/comparator.png',
   'batch-submit': '/screenshots/batch-submit.png',
-  // v0.30.1 SVG placeholders
-  'settings-cache': '/screenshots/settings-cache.svg',
-  'settings-shortcuts': '/screenshots/settings-shortcuts.svg',
-  'cloud-upload': '/screenshots/cloud-upload.svg',
-  'cloud-gdrive-oauth': '/screenshots/cloud-gdrive-oauth.svg',
-  'cloud-s3': '/screenshots/cloud-s3.svg',
-  'cloud-icloud': '/screenshots/cloud-icloud.svg',
+  // v0.30.2 screenshots
+  'settings-cache': '/screenshots/settings-cache.png',
+  'cloud-gdrive-oauth': '/screenshots/cloud-gdrive-oauth.png',
+  'cloud-s3': '/screenshots/cloud-s3.png',
+  'cloud-icloud': '/screenshots/cloud-icloud.png',
 } as const;
 
 function ScreenCard({
@@ -758,8 +756,6 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.settings.shortcuts.title')}
                       icon={<Settings className="w-4 h-4" />}
-                      screenshot={SCREENSHOTS['settings-shortcuts']}
-                      onImageClick={() => setLightboxImage(SCREENSHOTS['settings-shortcuts'])}
                     >
                       <p>{t('help.screens.settings.shortcuts.desc')}</p>
                       <ul className="list-disc list-inside space-y-1 mt-2">
@@ -803,8 +799,6 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     <ScreenCard
                       title={t('help.screens.cloud.upload.title')}
                       icon={<Cloud className="w-4 h-4" />}
-                      screenshot={SCREENSHOTS['cloud-upload']}
-                      onImageClick={() => setLightboxImage(SCREENSHOTS['cloud-upload'])}
                       tips={[
                         t('help.screens.cloud.upload.tip1'),
                         t('help.screens.cloud.upload.tip2'),
