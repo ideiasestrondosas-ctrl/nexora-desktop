@@ -318,7 +318,10 @@ fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
     let engine_path = sidecar::resolve_engine_path(app);
     let engine_ok = engine_path.exists();
     if !engine_ok {
-        log::warn!("[startup] Nexora Engine não encontrado em {:?}", engine_path);
+        log::warn!(
+            "[startup] Nexora Engine não encontrado em {:?}",
+            engine_path
+        );
     } else {
         log::info!("[startup] Nexora Engine: OK ({:?})", engine_path);
     }

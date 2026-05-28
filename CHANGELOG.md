@@ -9,9 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.30.2-beta.1] - 2026-05-28
 
 ### Added
+
 - 2: Fix Nexora Desktop missing video tools and documentation
-
-
 
 ## [0.30.1] - 2026-05-28
 

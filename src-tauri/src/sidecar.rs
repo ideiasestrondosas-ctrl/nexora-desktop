@@ -40,7 +40,11 @@ pub fn resolve_engine_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
 
 /// Resolve o caminho absoluto de um binário media (ffmpeg ou ffprobe).
 pub fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> PathBuf {
-    let ext = if cfg!(target_os = "windows") { ".exe" } else { "" };
+    let ext = if cfg!(target_os = "windows") {
+        ".exe"
+    } else {
+        ""
+    };
 
     if let Ok(exe) = std::env::current_exe() {
         if let Some(exe_dir) = exe.parent() {
