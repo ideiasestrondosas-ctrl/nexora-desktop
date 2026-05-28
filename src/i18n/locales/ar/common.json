@@ -883,9 +883,9 @@
     "size": "الحجم"
   },
   "startup": {
-    "nodeMissing": "Video processing tools not found. Check the Help section to install requirements.",
     "ffmpegMissing": "Video conversion engine unavailable. Check the Help section to install requirements.",
-    "sidecarMissing": "Internal component missing. Reinstall the app or contact support."
+    "engineMissing": "Nexora Engine not found. Reinstall the app to restore video processing.",
+    "engineDetails": "View details"
   },
   "jobCard": {
     "cancel": "Cancel Job",

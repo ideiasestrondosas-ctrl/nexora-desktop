@@ -314,31 +314,16 @@ fn setup_macos_menu(app: &tauri::App) -> tauri::Result<()> {
 fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
     use std::process::Command;
 
-    // 1. Node.js
-    let node_ok = Command::new("node")
-        .arg("--version")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
-
-    if node_ok {
-        log::info!("[startup] Node.js: OK");
-    } else {
-        log::warn!("[startup] Node.js NÃO encontrado no PATH — o processamento de vídeos não vai funcionar. Instala Node.js 20+ em https://nodejs.org");
-    }
-
-    // 2. Engine binary
+    // 1. Nexora Engine
     let engine_path = sidecar::resolve_engine_path(app);
-    if engine_path.exists() {
-        log::info!("[startup] Engine: OK ({:?})", engine_path);
+    let engine_ok = engine_path.exists();
+    if !engine_ok {
+        log::warn!("[startup] Nexora Engine não encontrado em {:?}", engine_path);
     } else {
-        log::warn!(
-            "[startup] Engine binary NÃO encontrado em {:?} — executa 'npm run engine:build'",
-            engine_path
-        );
+        log::info!("[startup] Nexora Engine: OK ({:?})", engine_path);
     }
 
-    // 3. FFprobe
+    // 2. FFprobe
     let ffprobe_path = sidecar::resolve_media_binary_path(app, "ffprobe");
     let ffprobe_ok = if ffprobe_path.exists() {
         true
@@ -358,7 +343,7 @@ fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
         );
     }
 
-    // 4. FFmpeg
+    // 3. FFmpeg
     let ffmpeg_path = sidecar::resolve_media_binary_path(app, "ffmpeg");
     let ffmpeg_ok = if ffmpeg_path.exists() {
         true
