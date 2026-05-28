@@ -76,30 +76,39 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
 # ---------------------------------------------------------
 function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
     $headers   = @{ "Authorization" = "token $token"; "Accept" = "application/vnd.github+json" }
-    # Usa branch em vez de head_sha para apanhar sempre o run mais recente,
-    # mesmo após um push de correcção (fix do cargo fmt, lint, etc.)
-    $apiUrl    = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?branch=$branch&per_page=20"
     $targets   = @("CI — Verificacao de Qualidade", "Build Nexora Desktop")
     $startTime = Get-Date
+    # Janela de tempo: ignorar runs criados mais de 2 minutos antes de começarmos a vigiar.
+    # Evita ficar preso em runs históricos e falhados de commits anteriores.
+    $minCreatedAt = $startTime.AddMinutes(-2)
 
     Write-Host ""
     Write-Host "  [AGUARDAR] GitHub Actions — v$version  ·  branch: $branch  ·  Ctrl+C para sair" -ForegroundColor Cyan
 
     while ($true) {
-        $runs = @()
-        try {
-            $resp = Invoke-RestMethod -Uri $apiUrl -Headers $headers -Method Get -ErrorAction Stop
-            $runs = @($resp.workflow_runs | Where-Object { $targets -contains $_.name })
-        } catch {
-            Write-Warn "Erro ao consultar API GitHub: $($_.Exception.Message)"
+        $allRuns = @()
+        # Consultar múltiplos branches: main, dev, e a tag (cobrir todos os cenários)
+        $branches = @($branch, "dev", $version) | Select-Object -Unique
+        foreach ($b in $branches) {
+            try {
+                $url  = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?branch=$b&per_page=20"
+                $resp = Invoke-RestMethod -Uri $url -Headers $headers -Method Get -ErrorAction Stop
+                $allRuns += @($resp.workflow_runs | Where-Object { $targets -contains $_.name })
+            } catch {
+                # silencioso — branch pode não existir
+            }
         }
+
+        # Filtrar apenas runs relevantes: criados após $minCreatedAt
+        $runs = @($allRuns | Where-Object { [datetime]$_.created_at -ge $minCreatedAt } |
+                  Sort-Object { [datetime]$_.created_at } -Descending)
 
         $elapsed    = [math]::Round(((Get-Date) - $startTime).TotalSeconds)
         $elapsedStr = if ($elapsed -lt 60) { "${elapsed}s" } else { "$([math]::Floor($elapsed/60))m$($elapsed % 60)s" }
 
         if ($runs.Count -eq 0) {
             Write-Host "  A aguardar inicio dos Actions... (elapsed: $elapsedStr)" -ForegroundColor Gray
-            Start-Sleep -Seconds 30
+            Start-Sleep -Seconds 15
             continue
         }
 
@@ -111,8 +120,10 @@ function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
         $anyFailed = $false
 
         foreach ($wfName in $targets) {
-            # Pegar sempre o run MAIS RECENTE para este workflow (Sort por created_at desc)
-            $run = $runs | Where-Object { $_.name -eq $wfName } | Sort-Object { [datetime]$_.created_at } -Descending | Select-Object -First 1
+            # Pegar o run mais recente que passou OU o mais recente activo/falhado
+            $wfRuns = @($runs | Where-Object { $_.name -eq $wfName })
+            $successRun = $wfRuns | Where-Object { $_.conclusion -eq "success" } | Select-Object -First 1
+            $run = if ($successRun) { $successRun } else { $wfRuns | Select-Object -First 1 }
 
             if (-not $run) {
                 Write-Host ("  ⏳  " + $wfName.PadRight(42) + " em fila") -ForegroundColor Gray
@@ -122,27 +133,36 @@ function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
 
             $runSec = [math]::Round(((Get-Date) - [datetime]$run.created_at).TotalSeconds)
             $runStr = if ($runSec -lt 60) { "${runSec}s" } else { "$([math]::Floor($runSec/60))m$($runSec % 60)s" }
+            $branchLabel = " [$($run.head_branch)]"
 
             switch ($run.status) {
                 "queued" {
-                    Write-Host ("  ⏳  " + $wfName.PadRight(42) + " em fila        ($runStr)") -ForegroundColor Gray
+                    Write-Host ("  ⏳  " + $wfName.PadRight(42) + " em fila        ($runStr)$branchLabel") -ForegroundColor Gray
                     $allDone = $false
                 }
                 "in_progress" {
-                    Write-Host ("  ⏳  " + $wfName.PadRight(42) + " a correr       ($runStr)") -ForegroundColor Yellow
+                    Write-Host ("  ⏳  " + $wfName.PadRight(42) + " a correr       ($runStr)$branchLabel") -ForegroundColor Yellow
                     $allDone = $false
                 }
                 "completed" {
                     if ($run.conclusion -eq "success") {
-                        Write-Host ("  ✅  " + $wfName.PadRight(42) + " sucesso        ($runStr)") -ForegroundColor Green
+                        Write-Host ("  ✅  " + $wfName.PadRight(42) + " sucesso        ($runStr)$branchLabel") -ForegroundColor Green
                     } else {
                         $label = if ($run.conclusion) { $run.conclusion } else { "falhou" }
-                        Write-Host ("  ❌  " + $wfName.PadRight(42) + " $($label.PadRight(15)) ($runStr)") -ForegroundColor Red
-                        Write-Host "       $($run.html_url)" -ForegroundColor DarkRed
-                        Write-Host "       (a aguardar novo push para retry...)" -ForegroundColor DarkGray
-                        $anyFailed = $true
-                        # Não marca como allDone — mantém loop à espera de novo push
-                        $allDone = $false
+                        # Verificar se existe um run mais recente ou activo para o mesmo workflow
+                        $newerActive = $wfRuns | Where-Object {
+                            $_.status -in @("queued","in_progress") -or $_.conclusion -eq "success"
+                        } | Select-Object -First 1
+                        if ($newerActive -and $newerActive.databaseId -ne $run.databaseId) {
+                            # Há um run melhor — este será tratado na próxima iteração
+                            $allDone = $false
+                        } else {
+                            Write-Host ("  ❌  " + $wfName.PadRight(42) + " $($label.PadRight(15)) ($runStr)$branchLabel") -ForegroundColor Red
+                            Write-Host "       $($run.html_url)" -ForegroundColor DarkRed
+                            Write-Host "       (a aguardar correcção e novo push...)" -ForegroundColor DarkGray
+                            $anyFailed = $true
+                            $allDone = $false
+                        }
                     }
                 }
             }
@@ -154,14 +174,21 @@ function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
             return
         }
 
-        # Se só há falhas e nenhum workflow está em progresso, espera por novo push
-        $anyActive = $runs | Where-Object { $_.name -in $targets -and $_.status -in @("queued","in_progress") }
-        if ($anyFailed -and -not $anyActive) {
+        # Timeout: se passou mais de 45 minutos e ainda há falhas, perguntar se continua
+        if ($elapsed -gt 2700 -and $anyFailed -and -not ($runs | Where-Object { $_.status -in @("queued","in_progress") })) {
             Write-Host ""
-            Write-Host "  💡  Corrige os erros, faz push, e o monitor actualiza automaticamente." -ForegroundColor Yellow
+            Write-Warn "Actions a falhar há mais de 45 minutos. Continuar a aguardar? [S/N]"
+            $cont = Read-Host
+            if ($cont -notmatch '^[Ss]$') { return }
+            $startTime = Get-Date  # reset timer
         }
 
-        Start-Sleep -Seconds 30
+        if ($anyFailed -and -not ($runs | Where-Object { $_.status -in @("queued","in_progress") })) {
+            Write-Host ""
+            Write-Host "  💡  Corrige os erros, faz push para dev, e o monitor detecta automaticamente." -ForegroundColor Yellow
+        }
+
+        Start-Sleep -Seconds 20
     }
 }
 
