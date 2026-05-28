@@ -1,5 +1,6 @@
 import { execFile, spawn } from 'child_process';
 import { promisify } from 'util';
+import { existsSync } from 'fs';
 import { mkdtemp, rm, copyFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join, extname, basename } from 'path';
@@ -119,7 +120,6 @@ async function detectGPU(): Promise<GpuResult> {
   }
 
   if (process.platform === 'win32') {
-    const { existsSync } = await import('fs');
     if (existsSync('C:/Windows/System32/amfrt64.dll')) {
       return { vendor: 'amd', encoder: 'h264_amf' };
     }
@@ -142,7 +142,6 @@ async function detectHevcEncoder(): Promise<string> {
   }
 
   if (process.platform === 'win32') {
-    const { existsSync } = await import('fs');
     if (existsSync('C:/Windows/System32/amfrt64.dll')) return 'hevc_amf';
     if (
       existsSync('C:/Windows/System32/libmfxhw64.dll') ||

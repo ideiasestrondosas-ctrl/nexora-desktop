@@ -1,5 +1,5 @@
 import { copyFile, mkdir } from 'fs/promises';
-import { join, basename } from 'path';
+import { join, basename, resolve as resolvePath } from 'path';
 import type { JobContext } from '../orchestrator/NexoraDesktopOrchestrator';
 import { emit } from '../events';
 import type { ProgressCallback } from './types';
@@ -19,7 +19,6 @@ export class DeliveryWorker {
 
     // Evitar copyFile(src, src): o TranscodeWorker já escreveu o ficheiro para outputDir.
     // No Windows, copiar um ficheiro para si mesmo falha com EBUSY.
-    const { resolve: resolvePath } = await import('path');
     const srcNorm = resolvePath(source).toLowerCase();
     const dstNorm = resolvePath(destPath).toLowerCase();
     if (srcNorm !== dstNorm) {

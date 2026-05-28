@@ -4,6 +4,20 @@
     "desktopEdition": "Desktop Edition — Native Multiplatform",
     "version": "Versão"
   },
+  "update": {
+    "title": "Actualização Disponível",
+    "currentVersion": "Versão actual",
+    "newVersion": "Nova versão",
+    "whatsNew": "O que há de novo",
+    "updateNow": "Actualizar Agora",
+    "later": "Mais Tarde",
+    "downloading": "A transferir...",
+    "installing": "A instalar...",
+    "restarting": "A reiniciar...",
+    "downloadError": "Erro ao transferir",
+    "retry": "Tentar novamente",
+    "devModeRestart": "Instalado. Reinicia manualmente (modo desenvolvimento)."
+  },
   "nav": {
     "dashboard": "Dashboard",
     "library": "Biblioteca",

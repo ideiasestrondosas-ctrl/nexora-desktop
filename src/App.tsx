@@ -32,10 +32,13 @@ import { BatchSubmitModal } from '@/components/BatchSubmitModal';
 import { hasSupportedExtension } from '@/components/DropZone';
 import { resolveVideoPaths } from '@/lib/scan';
 
+import { check } from '@tauri-apps/plugin-updater';
+import type { Update } from '@tauri-apps/plugin-updater';
 import { useSettingsStore } from '@/store/settings';
 import { useCloudStore, type CloudProfile } from '@/store/cloud';
 import { useSystemHealth } from '@/store/systemHealth';
 import { SystemDiagnosticsModal } from '@/components/SystemDiagnosticsModal';
+import { UpdateModal } from '@/components/UpdateModal';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { useActionLog } from '@/hooks/useActionLog';
 import { cn } from '@/lib/utils';
@@ -64,6 +67,9 @@ function App() {
   const { setHealth, health } = useSystemHealth();
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
 
+  const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null);
+  const [updateOpen, setUpdateOpen] = useState(false);
+
   const theme = useSettingsStore((state) => state.theme);
   const defaultProfile = useSettingsStore((state) => state.defaultProfile ?? 'web-hd');
   const { logAction } = useActionLog();
@@ -73,6 +79,23 @@ function App() {
   useEffect(() => {
     invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
   }, [setCloudProfiles]);
+
+  // Verificação automática de actualizações no startup (apenas em produção)
+  useEffect(() => {
+    if (import.meta.env.DEV) return;
+    const timer = setTimeout(async () => {
+      try {
+        const update = await check();
+        if (update) {
+          setPendingUpdate(update);
+          setUpdateOpen(true);
+        }
+      } catch {
+        // falha silenciosa — não interromper o utilizador no startup
+      }
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Refs para aceder ao tab activo e à função t sem re-registar listeners
   const activeTabRef = useRef<Tab>(activeTab);
@@ -408,6 +431,13 @@ function App() {
       </main>
 
       <SystemDiagnosticsModal open={diagnosticsOpen} onOpenChange={setDiagnosticsOpen} />
+      {pendingUpdate && (
+        <UpdateModal
+          update={pendingUpdate}
+          open={updateOpen}
+          onClose={() => setUpdateOpen(false)}
+        />
+      )}
       <PlatformDebugBadge />
     </div>
   );

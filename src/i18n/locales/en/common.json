@@ -4,6 +4,20 @@
     "desktopEdition": "Desktop Edition — Native Multiplatform",
     "version": "Version"
   },
+  "update": {
+    "title": "Update Available",
+    "currentVersion": "Current version",
+    "newVersion": "New version",
+    "whatsNew": "What's new",
+    "updateNow": "Update Now",
+    "later": "Later",
+    "downloading": "Downloading...",
+    "installing": "Installing...",
+    "restarting": "Restarting...",
+    "downloadError": "Download error",
+    "retry": "Retry",
+    "devModeRestart": "Installed. Restart manually (dev mode)."
+  },
   "nav": {
     "dashboard": "Dashboard",
     "library": "Library",

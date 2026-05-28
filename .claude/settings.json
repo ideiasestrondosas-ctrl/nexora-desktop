@@ -19,5 +19,46 @@
   "base_project_access": "read-only",
   "enabledPlugins": {
     "claude-code-setup@claude-plugins-official": true
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -File C:\\dev\\nexora-desktop\\scripts\\hooks\\wip-user-prompt.ps1",
+            "shell": "powershell",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -File C:\\dev\\nexora-desktop\\scripts\\hooks\\wip-session-start.ps1",
+            "shell": "powershell",
+            "timeout": 10,
+            "statusMessage": "A carregar contexto WIP..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -File C:\\dev\\nexora-desktop\\scripts\\hooks\\wip-session-stop.ps1",
+            "shell": "powershell",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ]
   }
 }
