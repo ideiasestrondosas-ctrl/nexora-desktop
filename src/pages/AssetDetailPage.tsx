@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { invoke, convertFileSrc } from '@tauri-apps/api/core';
+import { invoke } from '@tauri-apps/api/core';
 import { openPath, revealItemInDir } from '@tauri-apps/plugin-opener';
 import { confirm } from '@tauri-apps/plugin-dialog';
 import {
@@ -33,6 +33,7 @@ import { VisualComparatorPlayer } from '@/components/VisualComparatorPlayer';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAssetsStore } from '@/store/assets';
 import { useJobsStore } from '@/store/jobs';
+import { useVideoSrc } from '@/hooks/useVideoSrc';
 
 interface Asset {
   id: string;
@@ -247,6 +248,18 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
     }
   };
 
+  const activeVideoPath =
+    !asset || !playerActive
+      ? null
+      : heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
+        ? (asset.output_path ?? jobs[0]?.output_path)!
+        : asset.path;
+  const {
+    src: videoSrc,
+    tooLarge: videoTooLarge,
+    onError: onVideoError,
+  } = useVideoSrc(activeVideoPath);
+
   const formatBytes = (bytes: number) => {
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -330,24 +343,36 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
           <div className="aspect-video bg-bg-primary rounded-2xl border border-border overflow-hidden group relative">
             {/* Player inline */}
             {playerActive ? (
-              <video
-                controls
-                autoPlay
-                className="w-full h-full object-contain bg-black"
-                src={convertFileSrc(
-                  heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
-                    ? (asset.output_path ?? jobs[0]?.output_path)!
-                    : asset.path,
-                )}
-                key={heroView + (asset.output_path ?? jobs[0]?.output_path ?? '')}
-                onError={() => {
-                  const p =
-                    heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
-                      ? (asset.output_path ?? jobs[0]?.output_path)!
-                      : asset.path;
-                  logActivity('video_load_error', 'attempt', `path: ${p.slice(-80)}`);
-                }}
-              />
+              videoTooLarge ? (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-black text-white">
+                  <Film size={32} className="opacity-40" />
+                  <p className="text-sm text-white/60">
+                    Ficheiro demasiado grande para reprodução in-app
+                  </p>
+                  <button
+                    onClick={() => openPath(activeVideoPath!).catch(() => {})}
+                    className="text-xs text-brand hover:underline flex items-center gap-1"
+                  >
+                    <Volume2 size={12} /> Abrir no player do sistema
+                  </button>
+                </div>
+              ) : (
+                <video
+                  controls
+                  autoPlay
+                  className="w-full h-full object-contain bg-black"
+                  src={videoSrc ?? undefined}
+                  key={heroView + (asset.output_path ?? jobs[0]?.output_path ?? '')}
+                  onError={() => {
+                    onVideoError();
+                    logActivity(
+                      'video_load_error',
+                      'attempt',
+                      `path: ${(activeVideoPath ?? '').slice(-80)}`,
+                    );
+                  }}
+                />
+              )
             ) : (
               <>
                 {/* Thumbnail */}

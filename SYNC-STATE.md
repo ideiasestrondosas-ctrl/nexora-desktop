@@ -5,10 +5,74 @@
 
 ---
 
-Actualizado: 2026-05-29 (20:30)
+Actualizado: 2026-05-30
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 38 — 4 Bugs UI/UX v0.30.5 — CONCLUIDO
+
+**Pedido:** Corrigir 4 bugs encontrados no Windows Sandbox com v0.30.5-beta.1.
+
+**Bugs e fixes:**
+
+1. **Update Modal em Definições instala sem confirmação** — `handleCheckUpdates` em SettingsPage chamava `update.downloadAndInstall()` directamente. Fix: mostrar `UpdateModal` (já existia) em vez de instalar.
+
+2. **Thumbnails não aparecem nas linhas do Dashboard** — DashboardPage usava `<img src={convertFileSrc(...)}>` sem fallback IPC. Fix: substituir por `<ThumbnailImg>` (componente já existia na Biblioteca).
+
+3. **Player de vídeo preto** — `convertFileSrc` (asset protocol) não serve ficheiros locais no Windows (scope mismatch, problema conhecido). Sem fallback. Fix: novo comando Rust `read_video_base64` (≤ 50 MB) + hook `useVideoSrc` com fallback IPC automático.
+
+4. **Comparador preto** — mesma causa do bug 3. Fix: `VisualComparatorPlayer` usa o mesmo hook `useVideoSrc` para ambos os vídeos.
+
+**Ficheiros alterados:**
+
+- `src-tauri/src/commands/assets.rs` — `read_video_base64` command
+- `src-tauri/src/lib.rs` — registar command
+- `src/hooks/useVideoSrc.ts` — novo hook com IPC fallback
+- `src/pages/SettingsPage.tsx` — Update Modal
+- `src/pages/DashboardPage.tsx` — ThumbnailImg
+- `src/pages/AssetDetailPage.tsx` — player inline
+- `src/components/VisualComparatorPlayer.tsx` — dois vídeos
+
+**Estado:** branch `dev`, pronto para CI. Requer build + instalação no Sandbox para validação.
+
+---
+
+### Sessao 37 — CI Fixes Recorrentes + lint-staged Fix Permanente — CONCLUIDO
+
+**Pedido:** Corrigir CI falhado em main por Prettier; investigar e corrigir causa raiz do problema recorrente.
+
+**Contexto:** Terceiro episódio do mesmo padrão — release bump pelo sync.ps1 cria commits sem Prettier aplicado a `src-tauri/tauri.conf.json` e `scripts/*.mjs`.
+
+**Causa raiz identificada:** O padrão `"*.{js,json,md}"` em lint-staged (package.json) usa glob de nível único (`*`), que só faz match de ficheiros na raiz do repositório. Ficheiros em subdirectorios (`src-tauri/`, `scripts/`) nunca eram processados.
+
+**Fix:** `"*.{js,json,md}"` → `"**/*.{js,mjs,cjs,json,md}"` — apanha JSON/MD/JS/MJS em qualquer subdirectório.
+
+**Commits:**
+
+- `41c35bc` — Prettier fix dos 5 ficheiros do release v0.30.5-beta.1 (sintoma)
+- `d3d5e95` — Fix lint-staged padrão alargado (causa raiz)
+
+**Estado:** `main` e `dev` em `365c5fd`. Fix permanente activo — próximos release bumps já não precisam de commit manual de Prettier.
+
+---
+
+## Estado das branches
+
+- `dev`: `365c5fd` — limpo, CI verde
+- `main`: `365c5fd` — paridade com dev
+- Release `v0.30.4-beta.1`: publicada ✅
+- Release `v0.30.5-beta.1`: draft (build a correr ou pendente)
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **lint-staged**: padrão agora `**/*.{js,mjs,cjs,json,md}` — cobre subdirectorios. Fix definitivo para o padrão recorrente de Prettier fail após release bumps.
+- **v0.30.5**: branch e release bump existem (`dd085f8`). Build CI não disparou ainda (só tag dispara build). Para publicar, criar tag `v0.30.5-beta.1` com `git tag v0.30.5-beta.1 && git push origin v0.30.5-beta.1`.
+- **Testar no Sandbox**: v0.30.5 contém os fixes de media (thumbnails, player, comparador), light mode fallback e UpdateModal. Instalar e verificar antes de publicar.
+
+---
 
 ### Sessao 36 — Media Loading, Light Mode Fallback & UpdateModal — v0.30.5 — CONCLUIDO
 

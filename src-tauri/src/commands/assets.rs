@@ -383,3 +383,23 @@ pub fn read_thumbnail_base64(path: String) -> Result<String, String> {
     let bytes = std::fs::read(&path).map_err(|e| format!("read_thumbnail_base64: {e}"))?;
     Ok(STANDARD.encode(bytes))
 }
+
+/// Lê um ficheiro de vídeo pequeno (<= 50 MB) e devolve como base64.
+/// Fallback quando o asset protocol não serve o ficheiro (Windows scope mismatch).
+/// Para ficheiros maiores retorna Err("FILE_TOO_LARGE:{bytes}").
+#[tauri::command]
+pub fn read_video_base64(path: String) -> Result<String, String> {
+    use base64::engine::general_purpose::STANDARD;
+    use base64::Engine;
+
+    let metadata =
+        std::fs::metadata(&path).map_err(|e| format!("read_video_base64: {e}"))?;
+
+    const MAX_BYTES: u64 = 50 * 1024 * 1024;
+    if metadata.len() > MAX_BYTES {
+        return Err(format!("FILE_TOO_LARGE:{}", metadata.len()));
+    }
+
+    let bytes = std::fs::read(&path).map_err(|e| format!("read_video_base64: {e}"))?;
+    Ok(STANDARD.encode(bytes))
+}
