@@ -258,7 +258,7 @@ function App() {
 
   return (
     <div className="flex h-screen bg-bg-primary text-text-primary overflow-hidden font-sans selection:bg-brand/30">
-      <Toaster position="bottom-right" richColors closeButton />
+      <Toaster position="bottom-right" richColors closeButton theme={theme} />
 
       {/* ── IngestProfileModal (fallback para extensões inválidas) ── */}
       <IngestProfileModal

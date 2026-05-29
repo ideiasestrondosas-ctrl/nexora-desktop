@@ -405,17 +405,17 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
             <div className="relative">
               <button
                 onClick={() => setCloudAddOpen(!cloudAddOpen)}
-                className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-white border border-gray-600 rounded px-3 py-1.5"
+                className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary border border-border rounded px-3 py-1.5"
               >
                 <Cloud size={14} /> Da Cloud
               </button>
               {cloudAddOpen && (
-                <div className="absolute right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl z-50 w-72">
-                  <p className="text-xs text-gray-400 mb-2">Perfil</p>
+                <div className="absolute right-0 top-full mt-1 bg-bg-secondary border border-border rounded-lg p-3 shadow-xl z-50 w-72">
+                  <p className="text-xs text-text-muted mb-2">Perfil</p>
                   <select
                     value={selectedCloudProfile ?? ''}
                     onChange={(e) => setSelectedCloudProfile(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-2"
+                    className="w-full bg-bg-primary border border-border rounded px-2 py-1.5 text-sm text-text-primary mb-2"
                   >
                     <option value="">Escolher perfil...</option>
                     {cloudProfiles.map((p) => (
@@ -424,21 +424,21 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-400 mb-1">Path remoto</p>
+                  <p className="text-xs text-text-muted mb-1">Path remoto</p>
                   <input
                     type="text"
                     value={cloudRemotePath}
                     onChange={(e) => setCloudRemotePath(e.target.value)}
                     placeholder="/pasta/ficheiro.mxf"
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-2"
+                    className="w-full bg-bg-primary border border-border rounded px-2 py-1.5 text-sm text-text-primary mb-2"
                   />
-                  <p className="text-xs text-gray-400 mb-1">Nome do asset</p>
+                  <p className="text-xs text-text-muted mb-1">Nome do asset</p>
                   <input
                     type="text"
                     value={cloudAssetName}
                     onChange={(e) => setCloudAssetName(e.target.value)}
                     placeholder="ficheiro.mxf"
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-3"
+                    className="w-full bg-bg-primary border border-border rounded px-2 py-1.5 text-sm text-text-primary mb-3"
                   />
                   <button
                     disabled={!selectedCloudProfile || !cloudRemotePath || !cloudAssetName}

@@ -25,17 +25,17 @@
     ],
     "security": {
       "csp": {
-        "default-src": "\u0027self\u0027",
-        "img-src": "\u0027self\u0027 asset: data: blob: https://asset.localhost",
-        "media-src": "\u0027self\u0027 asset: data: blob:",
-        "connect-src": "\u0027self\u0027 ipc: http://ipc.localhost",
-        "script-src": "\u0027self\u0027",
-        "style-src": "\u0027self\u0027 \u0027unsafe-inline\u0027",
-        "font-src": "\u0027self\u0027 data:"
+        "default-src": "'self'",
+        "img-src": "'self' asset: data: blob: https://asset.localhost",
+        "media-src": "'self' asset: https://asset.localhost data: blob:",
+        "connect-src": "'self' ipc: http://ipc.localhost",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "font-src": "'self' data:"
       },
       "assetProtocol": {
         "enable": true,
-        "scope": ["**"]
+        "scope": ["$HOME/**", "$TEMP/**"]
       }
     }
   },
