@@ -193,7 +193,6 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Assinatura de actualizações (tauri-plugin-updater)
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
@@ -214,3 +213,67 @@ jobs:
           releaseDraft: ${{ github.event.inputs.release_draft != 'false' }}
           prerelease: false
           args: ${{ matrix.args }}
+
+      # Guardar bundle de actualização assinado — o tauri-action nao gera latest.json
+      # com Tauri v2, por isso tratamos manualmente no job generate-updater-json.
+      - name: Save updater bundle and signature
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+            BUNDLE=$(find "src-tauri/target/release/bundle/nsis" -name "*.nsis.zip" | head -1)
+            PLATFORM="windows-x86_64"
+          elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
+            BUNDLE=$(find "src-tauri/target/universal-apple-darwin/release/bundle/macos" -name "*.app.tar.gz" | head -1)
+            PLATFORM="darwin-universal"
+            # O tauri-action re-empacota o .app, invalidando a assinatura original.
+            # Re-assinar o bundle re-empacotado com a mesma chave.
+            npx tauri signer sign "$BUNDLE"
+          else
+            BUNDLE=$(find "src-tauri/target/release/bundle/appimage" -name "*.AppImage.tar.gz" | head -1)
+            PLATFORM="linux-x86_64"
+          fi
+
+          mkdir -p updater-info
+          cat "${BUNDLE}.sig" > updater-info/sig.txt
+          echo "$(basename "$BUNDLE")" > updater-info/bundle-name.txt
+          echo "$PLATFORM" > updater-info/platform.txt
+
+          # Upload do bundle de actualização para a release
+          gh release upload "${{ github.ref_name }}" "$BUNDLE" --clobber
+
+      - name: Upload updater info
+        uses: actions/upload-artifact@v4
+        with:
+          name: updater-info-${{ matrix.platform }}
+          path: updater-info/
+
+  generate-updater-json:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download updater info from all platforms
+        uses: actions/download-artifact@v4
+        with:
+          pattern: updater-info-*
+          merge-multiple: false
+          path: updater-artifacts
+
+      - name: Generate and upload latest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/ci-generate-updater-json.mjs updater-artifacts
