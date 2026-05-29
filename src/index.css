@@ -217,6 +217,25 @@ html[data-platform='macos'] .flex.h-screen {
   background: transparent;
 }
 
+/* Fallback: Mica/Vibrancy não disponível (Sandbox, Windows 10, VMs) */
+/* Aplica fundo sólido para evitar que o HWND preto apareça */
+html[data-platform='windows'][data-mica='inactive'] body,
+html[data-platform='windows'][data-mica='inactive'] #root {
+  background-color: var(--color-bg-primary);
+}
+html[data-platform='windows'][data-mica='inactive'] main,
+html[data-platform='windows'][data-mica='inactive'] .flex.h-screen {
+  background-color: var(--color-bg-primary);
+}
+html[data-platform='macos'][data-mica='inactive'] body,
+html[data-platform='macos'][data-mica='inactive'] #root {
+  background-color: var(--color-bg-primary);
+}
+html[data-platform='macos'][data-mica='inactive'] main,
+html[data-platform='macos'][data-mica='inactive'] .flex.h-screen {
+  background-color: var(--color-bg-primary);
+}
+
 /* ── Glassmorphism surface — modais, popups, dropdowns ──────────────────── */
 html.dark[data-platform='windows'] .glass-surface,
 html.dark[data-platform='macos'] .glass-surface {

@@ -75,6 +75,16 @@ function App() {
   const { logAction } = useActionLog();
   const setCloudProfiles = useCloudStore((s) => s.setProfiles);
 
+  // Mica/Vibrancy status — aplica data-mica ao <html> para CSS fallback
+  useEffect(() => {
+    const unlisten = listen<boolean>('mica-status', (e) => {
+      document.documentElement.dataset.mica = e.payload ? 'active' : 'inactive';
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
   // Carrega perfis cloud do backend uma vez no arranque da app
   useEffect(() => {
     invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
