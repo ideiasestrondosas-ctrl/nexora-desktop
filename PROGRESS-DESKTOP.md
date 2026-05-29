@@ -98,7 +98,7 @@
 - [x] workers.test.ts (9 tests)
 - [x] package.json com todos os scripts
 - [x] README-DESKTOP.md
-- [x] Auto-updater configurado
+- [x] Auto-updater configurado e operacional (v0.30.3-beta.1)
 
 ### Fase 7 - Integracao e Validacao
 
@@ -108,6 +108,16 @@
 - [x] Build funciona para macOS (.dmg universal)
 - [x] Build funciona para Linux (.AppImage + .deb)
 - [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
+
+### Fase 17 - Auto-Updater + Hooks de Sessao v0.30.3-beta.1 (Sessao 32)
+
+- [x] Modal de actualizacao no startup (UpdateModal.tsx) — versao actual/nova + release notes + progresso
+- [x] Check automatico 4s apos startup (producao apenas, falha silenciosa)
+- [x] Signing keys Tauri configuradas no GitHub (TAURI_SIGNING_PRIVATE_KEY + \_PASSWORD)
+- [x] Job CI generate-updater-json — gera latest.json apos builds das 3 plataformas
+- [x] Re-assinar bundles sobreviventes com npx tauri signer sign (sem --private-key)
+- [x] Hooks Claude Code: SessionStart (WIP inject) + Stop (toast Windows debounced) + UserPromptSubmit
+- [x] v0.30.3-beta.1 publicada com latest.json operacional
 
 ### Fase 16 - Beta Fechada v0.30.0-beta.1 (Sessao 28)
 

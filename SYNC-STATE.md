@@ -5,10 +5,84 @@
 
 ---
 
-Actualizado: 2026-05-28 (23:45)
+Actualizado: 2026-05-29 (11:00)
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 32 — Auto-Updater Operacional + Hooks de Sessao + v0.30.3-beta.1 — CONCLUIDO
+
+**Pedido:** Corrigir erro do auto-updater (404 ao tentar encontrar `latest.json`); implementar modal de actualizacao no startup; configurar hooks de sessao para preservar contexto e notificacao Windows.
+
+**Diagnostico inicial:**
+
+- GitHub Secrets `TAURI_SIGNING_PRIVATE_KEY` e `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` nao existiam → Tauri Action nao assinava bundles → `latest.json` nunca gerado → 404
+
+**Implementacao:**
+
+1. **Signing keys configuradas:**
+   - Gerado par de chaves via `npx tauri signer generate --password "" --force`
+   - `TAURI_SIGNING_PRIVATE_KEY` e `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` definidos no GitHub
+
+2. **UpdateModal.tsx** — modal custom no startup (4s delay, producao apenas):
+   - Mostra versao actual → nova + release notes + barra de progresso de download
+   - Botoes "Actualizar Agora" / "Mais Tarde"
+   - `dialog: false` no `tauri.conf.json` (UI nativa desactivada)
+
+3. **latest.json — geracao manual via CI** (8 tentativas; bugs encontrados e resolvidos):
+   - `tauri-action@v0` nao gera `latest.json` com Tauri v2 → job `generate-updater-json`
+   - `tauri.conf.json` versao numerica `0.30.3` (MSI nao aceita semver pre-release)
+   - glob bash nao expande com ficheiros com espacos → caminho exacto construido
+   - `tauri-action` limpa `.sig` apos processar → re-assinar com `npx tauri signer sign`
+   - `--private-key /path/_temp/...` → CLI faz base64-decode do path → falha no `_` → sem flag
+   - Chave gerada nao-interactivamente com password desconhecida → regenerar com `--password ""`
+   - GitHub converte espacos para pontos em nomes de assets de release
+
+4. **Hooks de sessao Claude Code:**
+   - `SessionStart` → injeca `.wip-session.md` como contexto
+   - `Stop` → notificacao Windows toast com debounce 3 min (so notifica se utilizador estava ausente)
+   - `UserPromptSubmit` → regista timestamp do ultimo prompt para o debounce
+   - Scripts: `scripts/hooks/wip-session-{start,stop}.ps1`, `wip-user-prompt.ps1`
+   - `.wip-session.md` adicionado ao `.gitignore`
+
+5. **v0.30.3-beta.1 publicada:**
+   - `latest.json` com assinaturas das 3 plataformas
+   - 6 instaladores (Windows MSI+NSIS, macOS DMG+app.tar.gz, Linux AppImage+deb)
+   - `dev` e `main` em paridade em `3daed46`
+
+**Commits desta sessao (principais):**
+
+- `e3dffd0` feat(updater): auto-update modal on startup + signing keys + session hooks
+- `379782f` chore(release): bump para v0.30.3-beta.1
+- `425e630` fix(release): tauri.conf.json versao numerica 0.30.3
+- `c1d8960` fix(ci): gerar latest.json manualmente — tauri-action nao suporta Tauri v2
+- `623cdcc` fix(ci): usar bash glob em vez de find
+- `e490ca9` fix(ci): caminho exacto do bundle sem glob
+- `6bb6c0b` fix(ci): re-assinar bundles sobreviventes pos-tauri-action
+- `fc252bf` fix(ci): tauri signer sign sem --private-key
+- `3daed46` fix(updater): nova pubkey — chave regenerada com password vazia explicita
+
+**Estado:** `dev` = `main` = `3daed46`. Release `v0.30.3-beta.1` publicada como Latest.
+
+---
+
+## Estado das branches
+
+- `dev`: `3daed46` — limpo, CI verde
+- `main`: `3daed46` — paridade com dev
+- Tag `v0.30.3-beta.1`: `3daed46` — publicada, `latest.json` presente
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Auto-updater**: endpoint `releases/latest/download/latest.json` agora funcional. Modal aparece 4s apos startup (producao). Testar no Windows Sandbox: instalar versao anterior, verificar modal.
+- **Signing key**: `~/.tauri/nexora.key` (local). Gerada com `--password ""`. GitHub Secrets: `TAURI_SIGNING_PRIVATE_KEY` + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (vazia). Se chave perdida, regenerar com `npx tauri signer generate -w ~/.tauri/nexora.key --password "" --force` e actualizar secrets + pubkey em `tauri.conf.json`.
+- **CI latest.json**: gerado pelo job `generate-updater-json` em `.github/workflows/build.yml`. Re-assina os bundles sobreviventes com `npx tauri signer sign "$BUNDLE"` (sem `--private-key` — la CLI faz base64-decode do path e falha em `_`).
+- **Hooks de sessao**: activos em `.claude/settings.json`. `.wip-session.md` preserva contexto entre sessoes. Abrir `/hooks` no Claude Code para recarregar.
+- **Node.js 20 deprecated**: GitHub Actions vai forcar Node 24 em Junho 2026. Actualizar `actions/checkout@v5` e `actions/setup-node@v5` quando conveniente.
+
+---
 
 ### Sessao 31b — CI Fixes + Build v0.30.2-beta.1 + sync.ps1 v1.2.0 — CONCLUIDO
 
