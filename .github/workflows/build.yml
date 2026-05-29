@@ -223,19 +223,28 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          # Usar glob em vez de find — evita conflito com find.exe do Windows no PATH
+          # Construir caminho exacto sem glob (glob bash nao expande com ficheiros com espacos)
+          VER=$(node -p "require('./package.json').version" | sed 's/-.*//')
+          PROD="Nexora Desktop"
+
           if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
-            for f in "src-tauri/target/release/bundle/nsis/"*.nsis.zip; do BUNDLE="$f"; break; done
+            BUNDLE="src-tauri/target/release/bundle/nsis/${PROD}_${VER}_x64-setup.nsis.zip"
             PLATFORM="windows-x86_64"
           elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
-            for f in "src-tauri/target/universal-apple-darwin/release/bundle/macos/"*.app.tar.gz; do BUNDLE="$f"; break; done
+            BUNDLE="src-tauri/target/universal-apple-darwin/release/bundle/macos/${PROD}.app.tar.gz"
             PLATFORM="darwin-universal"
             # O tauri-action re-empacota o .app, invalidando a assinatura original.
             # Re-assinar o bundle re-empacotado com a mesma chave.
             npx tauri signer sign "$BUNDLE"
           else
-            for f in "src-tauri/target/release/bundle/appimage/"*.AppImage.tar.gz; do BUNDLE="$f"; break; done
+            BUNDLE="src-tauri/target/release/bundle/appimage/${PROD}_${VER}_amd64.AppImage.tar.gz"
             PLATFORM="linux-x86_64"
+          fi
+
+          if [ ! -f "$BUNDLE" ]; then
+            echo "ERRO: bundle nao encontrado: $BUNDLE"
+            ls "$(dirname "$BUNDLE")/" || true
+            exit 1
           fi
 
           mkdir -p updater-info
