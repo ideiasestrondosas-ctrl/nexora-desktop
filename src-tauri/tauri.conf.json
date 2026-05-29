@@ -59,7 +59,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEYyMkM4MzcwRkQzNzJGOQpSV1Q1Y3RNUE44Z2lEM2ltOHRTdW9wR21IRVdjVHl1Nm10OC9UUW1yN0lKY3ZKcmxiVGZ6LytLbwo=",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERCMjAwMUM0RjlGMEQ1QTkKUldTcDFmRDV4QUVnMjNkejRxWGlqeERvVkxOc1ArQ2NScmZyQzhoMkV2WS8xM1Yvc3FiT0lvejkK",
       "endpoints": [
         "https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releases/latest/download/latest.json"
       ],
