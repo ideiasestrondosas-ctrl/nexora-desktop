@@ -392,8 +392,7 @@ pub fn read_video_base64(path: String) -> Result<String, String> {
     use base64::engine::general_purpose::STANDARD;
     use base64::Engine;
 
-    let metadata =
-        std::fs::metadata(&path).map_err(|e| format!("read_video_base64: {e}"))?;
+    let metadata = std::fs::metadata(&path).map_err(|e| format!("read_video_base64: {e}"))?;
 
     const MAX_BYTES: u64 = 50 * 1024 * 1024;
     if metadata.len() > MAX_BYTES {

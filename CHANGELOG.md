@@ -9,9 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.30.6-beta.1] - 2026-05-30
 
 ### Added
+
 - 2: Titulo: 4 Bugs UI/UX Sandbox — Update Modal, Thumbnails, Player, Comparador
-
-
 
 ## [0.30.5-beta.1] - 2026-05-29
 
