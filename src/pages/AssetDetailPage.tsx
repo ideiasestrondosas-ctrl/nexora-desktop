@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { logActivity } from '@/lib/activityLog';
 import { MediaInfoPanel } from '@/components/MediaInfoPanel';
 import type { DetailedMediaInfo } from '@/components/MediaInfoPanel';
+import { ThumbnailImg } from '@/components/ThumbnailImg';
 import { VisualComparatorPlayer } from '@/components/VisualComparatorPlayer';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAssetsStore } from '@/store/assets';
@@ -339,20 +340,24 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                     : asset.path,
                 )}
                 key={heroView + (asset.output_path ?? jobs[0]?.output_path ?? '')}
+                onError={() => {
+                  const p =
+                    heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
+                      ? (asset.output_path ?? jobs[0]?.output_path)!
+                      : asset.path;
+                  logActivity('video_load_error', 'attempt', `path: ${p.slice(-80)}`);
+                }}
               />
             ) : (
               <>
                 {/* Thumbnail */}
                 {(heroView === 'orig' ? asset.thumbnail_path : asset.thumbnail_output_path) ? (
-                  <img
-                    src={convertFileSrc(
-                      heroView === 'orig' ? asset.thumbnail_path! : asset.thumbnail_output_path!,
-                    )}
+                  <ThumbnailImg
+                    path={
+                      heroView === 'orig' ? asset.thumbnail_path! : asset.thumbnail_output_path!
+                    }
                     alt={asset.filename}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">

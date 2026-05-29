@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { invoke, convertFileSrc } from '@tauri-apps/api/core';
+import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open, confirm } from '@tauri-apps/plugin-dialog';
 import { toast } from 'sonner';
@@ -20,6 +20,7 @@ import {
   Download,
   Cloud,
 } from 'lucide-react';
+import { ThumbnailImg } from '@/components/ThumbnailImg';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useJobsStore } from '@/store/jobs';
 import { useCloudStore } from '@/store/cloud';
@@ -519,16 +520,13 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                     </div>
 
                     {asset.thumbnail_path ? (
-                      <img
-                        src={convertFileSrc(asset.thumbnail_path)}
+                      <ThumbnailImg
+                        path={asset.thumbnail_path}
                         alt={asset.filename}
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
                       />
                     ) : (
-                      <Film size={32} className="text-gray-800" />
+                      <Film size={32} className="text-text-muted" />
                     )}
 
                     {/* BADGE DE STATUS */}

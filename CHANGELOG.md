@@ -9,9 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.30.4-beta.1] - 2026-05-29
 
 ### Added
+
 - 2: Testes Windows Sandbox + Bugs UI
-
-
 
 ## [0.30.3-beta.1] - 2026-05-29
 

@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { Play, Pause } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { logActivity } from '@/lib/activityLog';
 
 interface VisualComparatorPlayerProps {
   originalPath: string;
@@ -119,6 +120,9 @@ export function VisualComparatorPlayer({
           className="absolute inset-0 w-full h-full object-contain"
           preload="metadata"
           style={{ zIndex: 1 }}
+          onError={() =>
+            logActivity('comparator_load_error', 'attempt', `orig: ${originalPath.slice(-80)}`)
+          }
         />
 
         <video
@@ -131,6 +135,9 @@ export function VisualComparatorPlayer({
             zIndex: 2,
             clipPath: `inset(0 0 0 ${splitPct}%)`,
           }}
+          onError={() =>
+            logActivity('comparator_load_error', 'attempt', `proc: ${processedPath.slice(-80)}`)
+          }
         />
 
         <div
