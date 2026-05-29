@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// Gera latest.json para o tauri-plugin-updater a partir das assinaturas de cada plataforma.
-// Executado pelo job generate-updater-json após todos os builds terminarem.
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
@@ -19,6 +17,26 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const version = pkg.version.replace(/-.*$/, '');
 const baseUrl = `https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releases/download/${tag}`;
 
+/**
+ * Extrai a secção do CHANGELOG para a versão dada.
+ * Suporta formatos: "## [0.30.X..." (Keep a Changelog), "## v0.30.X...", ou "## 0.30.X...".
+ * Retorna null se a secção não for encontrada.
+ */
+function extractChangelogSection(changelogText, ver) {
+  const escaped = ver.replace(/\./g, '\\.');
+  const patterns = [
+    // Keep a Changelog format: ## [0.30.4-beta.1] - date
+    new RegExp('##\\\\s+\\\\[' + escaped + '[^\\\\]]*\\\\][^\\\\n]*\\\\n([\\\\s\\\\S]*?)(?=\\\\n##\\\\s|$)'),
+    // Plain format: ## v0.30.4 or ## 0.30.4
+    new RegExp('##\\\\s+v?' + escaped + '[^\\\\n]*\\\\n([\\\\s\\\\S]*?)(?=\\\\n##\\\\s|$)'),
+  ];
+  for (const pattern of patterns) {
+    const match = changelogText.match(pattern);
+    if (match?.[1]?.trim()) return match[1].trim();
+  }
+  return null;
+}
+
 const platforms = {};
 
 const dirs = readdirSync(artifactsDir).filter((d) => statSync(join(artifactsDir, d)).isDirectory());
@@ -33,7 +51,7 @@ for (const dir of dirs) {
   const platform = readFileSync(join(dirPath, 'platform.txt'), 'utf8').trim();
   const bundleName = readFileSync(join(dirPath, 'bundle-name.txt'), 'utf8').trim();
   const sig = readFileSync(join(dirPath, 'sig.txt'), 'utf8').trim();
-  // GitHub converte espacos para pontos em nomes de assets de release
+  // GitHub converte espaços para pontos em nomes de assets de release
   const encodedName = bundleName.replace(/ /g, '.');
 
   console.log(`  ${platform}: ${bundleName}`);
@@ -43,9 +61,24 @@ for (const dir of dirs) {
   };
 }
 
+// Extrair notas do CHANGELOG para esta versão
+let notes = 'Ver CHANGELOG.md para detalhes das alterações.';
+try {
+  const changelog = readFileSync('CHANGELOG.md', 'utf8');
+  const extracted = extractChangelogSection(changelog, version);
+  if (extracted) {
+    notes = extracted;
+    console.log(`\nExtracted CHANGELOG section for v${version} (${extracted.length} chars)`);
+  } else {
+    console.log(`\nNo CHANGELOG section found for v${version}, using default notes`);
+  }
+} catch (e) {
+  console.log(`\nCould not read CHANGELOG.md: ${e.message}`);
+}
+
 const latestJson = {
   version,
-  notes: 'See the CHANGELOG.md for details.',
+  notes,
   pub_date: new Date().toISOString(),
   platforms,
 };
