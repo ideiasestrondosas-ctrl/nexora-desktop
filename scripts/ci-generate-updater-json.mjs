@@ -33,7 +33,8 @@ for (const dir of dirs) {
   const platform = readFileSync(join(dirPath, 'platform.txt'), 'utf8').trim();
   const bundleName = readFileSync(join(dirPath, 'bundle-name.txt'), 'utf8').trim();
   const sig = readFileSync(join(dirPath, 'sig.txt'), 'utf8').trim();
-  const encodedName = bundleName.replace(/ /g, '%20');
+  // GitHub converte espacos para pontos em nomes de assets de release
+  const encodedName = bundleName.replace(/ /g, '.');
 
   console.log(`  ${platform}: ${bundleName}`);
   platforms[platform] = {

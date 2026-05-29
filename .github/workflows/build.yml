@@ -223,37 +223,45 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          # Construir caminho exacto sem glob (glob bash nao expande com ficheiros com espacos)
+          # O tauri-action limpa .sig/.tar.gz/.zip apos processar. Sobrevivem apenas os
+          # instaladores raw. Solucao: re-assinar com a mesma chave apos o tauri-action.
           VER=$(node -p "require('./package.json').version" | sed 's/-.*//')
           PROD="Nexora Desktop"
 
           if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
-            BUNDLE="src-tauri/target/release/bundle/nsis/${PROD}_${VER}_x64-setup.nsis.zip"
+            BUNDLE="src-tauri/target/release/bundle/nsis/${PROD}_${VER}_x64-setup.exe"
+            BUNDLE_RELEASE="${PROD}_${VER}_x64-setup.exe"
             PLATFORM="windows-x86_64"
           elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
             BUNDLE="src-tauri/target/universal-apple-darwin/release/bundle/macos/${PROD}.app.tar.gz"
+            BUNDLE_RELEASE="${PROD}_universal.app.tar.gz"
             PLATFORM="darwin-universal"
-            # O tauri-action re-empacota o .app, invalidando a assinatura original.
-            # Re-assinar o bundle re-empacotado com a mesma chave.
-            npx tauri signer sign "$BUNDLE"
           else
-            BUNDLE="src-tauri/target/release/bundle/appimage/${PROD}_${VER}_amd64.AppImage.tar.gz"
+            BUNDLE="src-tauri/target/release/bundle/appimage/${PROD}_${VER}_amd64.AppImage"
+            BUNDLE_RELEASE="${PROD}_${VER}_amd64.AppImage"
             PLATFORM="linux-x86_64"
           fi
 
           if [ ! -f "$BUNDLE" ]; then
             echo "ERRO: bundle nao encontrado: $BUNDLE"
-            ls "$(dirname "$BUNDLE")/" || true
+            ls "$(dirname "$BUNDLE")/" 2>/dev/null || true
             exit 1
           fi
 
+          # Escrever chave para temp e re-assinar o bundle que sobreviveu
+          node -e "require('fs').writeFileSync(process.env.RUNNER_TEMP + '/tauri-sign.key', process.env.TAURI_SIGNING_PRIVATE_KEY)"
+
+          SIGN_CMD=(npx tauri signer sign --private-key "$RUNNER_TEMP/tauri-sign.key")
+          [ -n "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" ] && SIGN_CMD+=(--password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD")
+          SIGN_CMD+=("$BUNDLE")
+          "${SIGN_CMD[@]}"
+
+          rm -f "$RUNNER_TEMP/tauri-sign.key"
+
           mkdir -p updater-info
           cat "${BUNDLE}.sig" > updater-info/sig.txt
-          echo "$(basename "$BUNDLE")" > updater-info/bundle-name.txt
+          echo "$BUNDLE_RELEASE" > updater-info/bundle-name.txt
           echo "$PLATFORM" > updater-info/platform.txt
-
-          # Upload do bundle de actualização para a release
-          gh release upload "${{ github.ref_name }}" "$BUNDLE" --clobber
 
       - name: Upload updater info
         uses: actions/upload-artifact@v4
