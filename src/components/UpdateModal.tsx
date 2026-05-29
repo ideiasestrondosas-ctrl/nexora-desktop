@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Download, RefreshCw, X } from 'lucide-react';
 import { relaunch } from '@tauri-apps/plugin-process';
@@ -21,18 +21,24 @@ export const UpdateModal: React.FC<Props> = ({ update, open, onClose }) => {
   const [downloaded, setDownloaded] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const isDev = import.meta.env.DEV;
+  // Ref para evitar stale closure no callback de downloadAndInstall
+  const totalSizeRef = useRef(0);
 
   const handleUpdate = async () => {
     setState('downloading');
     setProgress(0);
+    totalSizeRef.current = 0;
     try {
       await update.downloadAndInstall((event) => {
         if (event.event === 'Started') {
-          setTotalSize(event.data.contentLength ?? 0);
+          totalSizeRef.current = event.data.contentLength ?? 0;
+          setTotalSize(totalSizeRef.current);
         } else if (event.event === 'Progress') {
           setDownloaded((prev) => {
             const next = prev + (event.data.chunkLength ?? 0);
-            if (totalSize > 0) setProgress(Math.round((next / totalSize) * 100));
+            if (totalSizeRef.current > 0) {
+              setProgress(Math.round((next / totalSizeRef.current) * 100));
+            }
             return next;
           });
         } else if (event.event === 'Finished') {
@@ -127,7 +133,7 @@ export const UpdateModal: React.FC<Props> = ({ update, open, onClose }) => {
               </div>
               <div className="w-full bg-bg-secondary rounded-full h-1.5">
                 <div
-                  className="bg-blue-500 h-1.5 rounded-full transition-all duration-200"
+                  className="bg-blue-500 h-1.5 rounded-full transition-[width] duration-300 ease-out"
                   style={{ width: state === 'installing' ? '100%' : `${progress}%` }}
                 />
               </div>
