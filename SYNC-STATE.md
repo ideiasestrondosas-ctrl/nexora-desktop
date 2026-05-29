@@ -34,7 +34,26 @@ Agente: Claude Code (claude-sonnet-4-6)
 - `src/pages/AssetDetailPage.tsx` — player inline
 - `src/components/VisualComparatorPlayer.tsx` — dois vídeos
 
-**Estado:** branch `dev`, pronto para CI. Requer build + instalação no Sandbox para validação.
+**Commit:** `7bf8aed` — branch `dev`, limpo.
+
+---
+
+## Estado das branches
+
+- `dev`: `7bf8aed` — limpo, TypeScript OK, cargo check OK
+- `main`: `8152e4a` — 1 commit atrás de dev
+- Release `v0.30.5-beta.1`: publicada ✅ (bugs corrigidos em `7bf8aed` precisam de nova release)
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Próxima release:** bump para `v0.30.6-beta.1` (ou próximo número) + push tag → disparar CI → instalar no Sandbox
+- **Validar no Sandbox após build:** (1) Definições → Sobre → "Verificar actualização" mostra modal com confirmação antes de instalar; (2) Dashboard rows têm thumbnails; (3) player inline reproduz vídeo; (4) comparador mostra split-screen
+- **useVideoSrc hook** (`src/hooks/useVideoSrc.ts`): tenta `convertFileSrc` primeiro; em `onError` invoca `read_video_base64` (≤50 MB) via IPC. Para ficheiros maiores: mostra mensagem + botão "Abrir no player do sistema"
+- **read_video_base64** (`commands/assets.rs`): retorna `Err("FILE_TOO_LARGE:{bytes}")` se > 50 MB
+- **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 2 de Junho 2026
+- **tauri.conf.json version** DEVE ser numérica pura no bump
 
 ---
 
