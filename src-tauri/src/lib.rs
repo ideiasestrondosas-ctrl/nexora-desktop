@@ -164,6 +164,7 @@ pub fn run() {
             commands::assets::delete_asset,
             commands::assets::scan_directory,
             commands::assets::find_asset_by_path,
+            commands::assets::read_thumbnail_base64,
             commands::jobs::submit_job,
             commands::jobs::cancel_job,
             commands::jobs::get_job_status,

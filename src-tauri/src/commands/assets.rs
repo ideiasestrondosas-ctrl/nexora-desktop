@@ -372,3 +372,14 @@ pub fn find_asset_by_path(path: String, state: State<AppState>) -> Result<Option
         .map_err(|e| e.to_string())?;
     Ok(result)
 }
+
+/// Lê um ficheiro de thumbnail e devolve conteúdo como base64.
+/// Usado como fallback quando o asset protocol falha (scope/CSP).
+/// Só para ficheiros pequenos (thumbnails ~50KB) — não usar para vídeos.
+#[tauri::command]
+pub fn read_thumbnail_base64(path: String) -> Result<String, String> {
+    use base64::engine::general_purpose::STANDARD;
+    use base64::Engine;
+    let bytes = std::fs::read(&path).map_err(|e| format!("read_thumbnail_base64: {e}"))?;
+    Ok(STANDARD.encode(bytes))
+}
