@@ -9,9 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.30.5-beta.1] - 2026-05-29
 
 ### Added
+
 - 2: Fixing media loading, light mode backgrounds, and UpdateModal in Nexora Desktop
-
-
 
 ## [0.30.4-beta.1] - 2026-05-29
 
