@@ -26,7 +26,9 @@ function extractChangelogSection(changelogText, ver) {
   const escaped = ver.replace(/\./g, '\\.');
   const patterns = [
     // Keep a Changelog format: ## [0.30.4-beta.1] - date
-    new RegExp('##\\\\s+\\\\[' + escaped + '[^\\\\]]*\\\\][^\\\\n]*\\\\n([\\\\s\\\\S]*?)(?=\\\\n##\\\\s|$)'),
+    new RegExp(
+      '##\\\\s+\\\\[' + escaped + '[^\\\\]]*\\\\][^\\\\n]*\\\\n([\\\\s\\\\S]*?)(?=\\\\n##\\\\s|$)',
+    ),
     // Plain format: ## v0.30.4 or ## 0.30.4
     new RegExp('##\\\\s+v?' + escaped + '[^\\\\n]*\\\\n([\\\\s\\\\S]*?)(?=\\\\n##\\\\s|$)'),
   ];
