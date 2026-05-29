@@ -5,10 +5,120 @@
 
 ---
 
-Actualizado: 2026-05-29 (16:00)
+Actualizado: 2026-05-29 (20:30)
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 36 — Media Loading, Light Mode Fallback & UpdateModal — v0.30.5 — CONCLUIDO
+
+**Pedido:** Testar v0.30.4-beta.1 no Windows Sandbox e corrigir bugs restantes: thumbnails/player/comparador não carregam, fundo preto em light mode, UpdateModal com notas genéricas e barra de progresso estática.
+
+**Root causes identificados:**
+
+1. **Media não carrega** — `assetProtocol.scope: ["$HOME/**", "$TEMP/**"]` insuficiente; múltiplos patterns necessários + fallback IPC base64 para thumbnails como segurança adicional
+2. **Light mode fundo preto** — `body`/`#root`/`main` transparentes para Mica; no Sandbox/Windows 10, Mica falha silenciosamente e o HWND fica preto. Fix: detectar resultado do `apply_mica` em Rust e emitir evento; CSS aplica fundo sólido quando inactivo
+3. **UpdateModal notes** — `ci-generate-updater-json.mjs` hardcodava `notes: 'See the CHANGELOG.md for details.'`; stale closure em `totalSize` impedia barra de progredir
+
+**Implementação (9 tasks, subagent-driven development):**
+
+| Commit    | O que fez                                                                           |
+| --------- | ----------------------------------------------------------------------------------- |
+| `4b52c4a` | `assetProtocol.scope` alargado para 8 patterns + dep `base64 = "0.22"`              |
+| `deb2317` | Comando Rust `read_thumbnail_base64` (fallback IPC para thumbnails)                 |
+| `c5dabe3` | `ThumbnailImg` componente partilhado com fallback IPC on error                      |
+| `2b28f24` | `onError` logging em video player e comparador; `ThumbnailImg` em AssetDetailPage   |
+| `a304a38` | Fix stale closure em `ThumbnailImg` — `useRef` em vez de `failed` nas deps          |
+| `a74439b` | Rust: captura resultado `apply_mica`/`apply_vibrancy`, emite `mica-status`          |
+| `4841be6` | CSS fallback sólido quando `data-mica=inactive`; App.tsx ouve evento                |
+| `7e62e4b` | CI: parse de CHANGELOG.md para notas reais no `latest.json`                         |
+| `51fedd2` | `UpdateModal`: `totalSizeRef` fix stale closure + `transition-[width] duration-300` |
+| `4656f09` | `cargo fmt` (rustfmt reformatou vibrancy block)                                     |
+| `4fefc8a` | Merge `dev` → `main` — v0.30.5                                                      |
+
+**Ficheiros alterados (11):**
+
+- `src-tauri/Cargo.toml` — dep base64
+- `src-tauri/tauri.conf.json` — scope alargado
+- `src-tauri/src/commands/assets.rs` — `read_thumbnail_base64`
+- `src-tauri/src/lib.rs` — mica-status event emission
+- `src/components/ThumbnailImg.tsx` — novo componente
+- `src/components/UpdateModal.tsx` — fix stale closure + CSS
+- `src/components/VisualComparatorPlayer.tsx` — onError logging
+- `src/pages/LibraryPage.tsx` — usa ThumbnailImg
+- `src/pages/AssetDetailPage.tsx` — usa ThumbnailImg + onError video
+- `src/App.tsx` — mica-status listener
+- `src/index.css` — CSS fallback Mica inactive
+- `scripts/ci-generate-updater-json.mjs` — CHANGELOG parsing
+
+**Estado:** `main` e `dev` em `4fefc8a`. Pronto para nova release `v0.30.5-beta.1`.
+
+---
+
+## Estado das branches
+
+- `dev`: `4fefc8a` — limpo, CI verde
+- `main`: `4fefc8a` — paridade com dev
+- Release `v0.30.4-beta.1`: draft com 7 assets (publicar antes de criar v0.30.5)
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Testar no Sandbox:** fazer bump para `v0.30.5-beta.1`, build, instalar no Sandbox e verificar: thumbnails carregam, player funciona, comparador mostra vídeos, light mode sem fundo preto, UpdateModal com notas reais e barra animada.
+- **ThumbnailImg:** usa `convertFileSrc` primeiro; em `onError` invoca `read_thumbnail_base64` via IPC; usa `useRef(false)` para guard contra re-tentativas.
+- **Mica detection:** `data-mica=active|inactive` em `html`. CSS fallback com `var(--color-bg-primary)` quando inactivo — correcto em light (#fff) e dark (#0a0d14).
+- **CHANGELOG parsing:** regex procura `## v{ver}` ou `## {ver}` e extrai até próximo `##`. Fallback gracioso se secção não encontrada.
+- **URGENTE:** `actions/checkout@v5` e `actions/setup-node@v5` antes de 2 de Junho 2026 (Node 20 deprecated pelo GitHub).
+- **tauri.conf.json version** DEVE ser numérica pura (ex: `0.30.5`) no bump.
+
+---
+
+### Sessao 35 — CI Fixes v0.30.4-beta.1 + Build OK — CONCLUIDO
+
+**Pedido:** Verificar e corrigir erros no GitHub Actions para v0.30.4-beta.1.
+
+**Problemas encontrados e resolvidos:**
+
+1. **Prettier** — 4 ficheiros do release bump com formatacao incorrecta (`CHANGELOG.md`, `package.json`, `PROGRESS-DESKTOP.md`, `tauri.conf.json`). Fix: `npm run format` + commit `c238ed1`.
+
+2. **tauri.conf.json version `0.30.4-beta.1`** — devia ser `0.30.4` (numerica pura). O build script usa `sed 's/-.*//'` para derivar a versao do `package.json`, mas o `tauri.conf.json` controla o nome real dos instaladores. Com `0.30.4-beta.1`, o AppImage foi gerado como `Nexora Desktop_0.30.4-beta.1_amd64.AppImage` e o script procurava `0.30.4` — nao encontrou. Fix: `tauri.conf.json` version → `"0.30.4"`, commit `39c825c`.
+
+3. **Tag re-apontado** — tag `v0.30.4-beta.1` movido do commit errado para `39c825c` com `git tag -d` + `git push --delete` + novo tag.
+
+4. **Falhas de rede transientes** — `dtolnay/rust-toolchain` falhou a descarregar rustup nos runners Windows e Linux (curl para rustup.rs). Fix: `gh run rerun --failed`.
+
+5. **Assets duplicados na release** — primeira tentativa criou assets com versao `0.30.4-beta.1` no nome; segunda tentativa (correcta) criou `0.30.4`. Apagados 5 assets duplicados via API.
+
+**Commits desta sessao:**
+
+- `c238ed1` fix(ci): prettier — formatar ficheiros do release v0.30.4-beta.1
+- `39c825c` fix(release): tauri.conf.json versao numerica 0.30.4
+
+**Estado final:**
+
+- Release `v0.30.4-beta.1` em **draft** com 7 assets correctos: `latest.json` + 6 instaladores `0.30.4`
+- CI `dev` verde; `main` com falha Prettier do release bump anterior (resolver com merge dev→main)
+
+---
+
+## Estado das branches
+
+- `dev`: `39c825c` — limpo, CI verde
+- `main`: `1c6fb53` — atrás de dev (Prettier fail); mergiar antes de publicar a release
+- Tag `v0.30.4-beta.1`: `39c825c` — build concluido, draft criado com 7 assets
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Publicar release**: mergiar `dev` → `main` (resolve CI do main), depois publicar o draft `v0.30.4-beta.1` via sync.ps1 opcao 4 ou `gh release edit v0.30.4-beta.1 --draft=false`.
+- **tauri.conf.json version**: SEMPRE numerica pura (ex: `0.30.4`). O `package.json` pode ter `0.30.4-beta.1`. O sync script que faz o bump deve garantir isto — foi o erro desta sessao.
+- **Testar no Sandbox**: instalar `v0.30.4-beta.1` e verificar que thumbnails, play e comparador funcionam (fixes da sessao 34).
+- **Node.js 20 deprecated**: GitHub vai forcar Node 24 em 2 de Junho 2026. Actualizar `actions/checkout@v5` e `actions/setup-node@v5` com urgencia.
+- **windows-latest → windows-2025-vs2026**: migracao forcada em 15 de Junho 2026.
+
+---
 
 ### Sessao 34 — Testes Windows Sandbox + Bugs UI Producao — CONCLUIDO
 
