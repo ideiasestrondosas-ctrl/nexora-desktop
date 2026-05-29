@@ -248,15 +248,10 @@ jobs:
             exit 1
           fi
 
-          # Escrever chave para temp e re-assinar o bundle que sobreviveu
-          node -e "require('fs').writeFileSync(process.env.RUNNER_TEMP + '/tauri-sign.key', process.env.TAURI_SIGNING_PRIVATE_KEY)"
-
-          SIGN_CMD=(npx tauri signer sign --private-key "$RUNNER_TEMP/tauri-sign.key")
-          [ -n "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" ] && SIGN_CMD+=(--password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD")
-          SIGN_CMD+=("$BUNDLE")
-          "${SIGN_CMD[@]}"
-
-          rm -f "$RUNNER_TEMP/tauri-sign.key"
+          # Re-assinar o bundle. TAURI_SIGNING_PRIVATE_KEY e TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+          # estao no env desta step — tauri signer sign le-os automaticamente (igual ao cargo tauri build).
+          # NAO usar --private-key <path>: a CLI tenta base64-decode do path e falha em '_'.
+          npx tauri signer sign "$BUNDLE"
 
           mkdir -p updater-info
           cat "${BUNDLE}.sig" > updater-info/sig.txt
