@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { invoke, convertFileSrc } from '@tauri-apps/api/core';
 import { Film } from 'lucide-react';
 
@@ -13,16 +13,18 @@ export function ThumbnailImg({
 }) {
   const [src, setSrc] = useState<string>(() => convertFileSrc(path));
   const [failed, setFailed] = useState(false);
+  const attemptedRef = useRef(false);
 
   const handleError = useCallback(async () => {
-    if (failed) return;
+    if (attemptedRef.current) return;
+    attemptedRef.current = true;
     try {
       const b64 = await invoke<string>('read_thumbnail_base64', { path });
       setSrc(`data:image/jpeg;base64,${b64}`);
     } catch {
       setFailed(true);
     }
-  }, [path, failed]);
+  }, [path]);
 
   if (failed) return <Film size={32} className="text-text-muted" />;
   return <img src={src} alt={alt} className={className} onError={handleError} />;
