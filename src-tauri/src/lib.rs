@@ -69,13 +69,9 @@ pub fn run() {
                 }
                 #[cfg(target_os = "macos")]
                 {
-                    let vibrancy_ok = apply_vibrancy(
-                        &main_window,
-                        NSVisualEffectMaterial::HudWindow,
-                        None,
-                        None,
-                    )
-                    .is_ok();
+                    let vibrancy_ok =
+                        apply_vibrancy(&main_window, NSVisualEffectMaterial::HudWindow, None, None)
+                            .is_ok();
                     main_window.emit("mica-status", vibrancy_ok).ok();
                 }
             }
