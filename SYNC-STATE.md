@@ -5,10 +5,106 @@
 
 ---
 
-Actualizado: 2026-05-29 (11:00)
+Actualizado: 2026-05-29 (16:00)
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 34 — Testes Windows Sandbox + Bugs UI Producao — CONCLUIDO
+
+**Pedido:** Testar v0.30.3-beta.1 no Windows Sandbox e corrigir bugs encontrados.
+
+**Bugs identificados e corrigidos (commit `85d58a0`):**
+
+1. **Thumbnails não apareciam** — `assetProtocol.scope: ["**"]` não resolve caminhos absolutos Windows em Tauri 2.x. O glob `**` sem prefixo de drive não faz match de `C:\Users\...`. Fix: `scope: ["$HOME/**", "$TEMP/**"]`.
+
+2. **Play de vídeo não funcionava (original e processado)** — `media-src` CSP em falta de `https://asset.localhost`. Tauri 2.x no Windows serve assets locais via protocolo HTTPS interceptado (`https://asset.localhost`), não `asset://`. O browser bloqueava silenciosamente todos os elementos `<video>`. Fix: adicionar `https://asset.localhost` ao `media-src`.
+
+3. **Comparador (VisualComparatorPlayer) vazio** — mesmo root cause do bug 2: os dois `<video>` do comparador bloqueados pelo mesmo CSP.
+
+4. **Toast "Já tens a versão mais recente" invisível em dark mode** — `<Toaster>` sem `theme` prop usava o tema claro do Sonner (texto escuro) por cima do fundo escuro aplicado pelo `glass-surface` → invisível. Fix: `<Toaster theme={theme} />` usando o estado do settings store.
+
+5. **Dropdown "Da Cloud" com fundos escuros em light mode** — `LibraryPage.tsx` usava `bg-gray-800`, `bg-gray-700`, `text-gray-400` hardcoded. Fix: substituídos por `bg-bg-secondary`, `bg-bg-primary`, `text-text-muted`, `border-border`.
+
+**Commits:**
+
+- `85d58a0` fix(ui): thumbnails/video/toast em producao Windows
+
+**Estado:** `dev` em `85d58a0`. Fixes prontos para merge e nova release.
+
+**Nota:** `wix.version` em `tauri.conf.json` está em `0.30.2.1` para app `0.30.3`. Precisa de ser bumped para `0.30.3.0` na próxima release para que o MSI upgrade funcione correctamente.
+
+---
+
+## Estado das branches
+
+- `dev`: `85d58a0` — limpo, CI verde
+- `main`: `1c6fb53` — 1 commit atrás de dev (fixes acima por mergiar)
+- Tag `v0.30.3-beta.1`: `3daed46` — publicada, `latest.json` presente
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Build necessário para testar:** os 4 fixes de UI só entram em vigor num novo build instalado (não em dev mode). Fazer merge dev→main, tag v0.30.4 ou v0.30.3.1, push para CI.
+- **media-src + assetProtocol:** padrão correcto para Tauri 2.x Windows — `media-src` precisa de `https://asset.localhost`, scope precisa de `$HOME/**` e `$TEMP/**`.
+- **Toaster theme:** sempre passar `theme={theme}` ao Sonner Toaster quando o app tem dark mode custom (não `prefers-color-scheme`).
+- **wix.version:** bumpar para `0.30.3.0` na próxima release.
+
+---
+
+### Sessao 33 — Limpeza GitHub: Releases, Tags e Workflows — CONCLUIDO
+
+### Sessao 33 — Limpeza GitHub: Releases, Tags e Workflows — CONCLUIDO
+
+**Pedido:** Analisar GitHub Actions e releases para identificar o que vale a pena eliminar; apagar o que foi aprovado.
+
+**Analise efectuada:**
+
+- Inventario completo: 14 releases (11 publicadas + 3 drafts), 31 tags, 4 workflows activos
+- Nenhum workflow merece ser apagado (build, ci, test-karpathy, dependabot — todos correctos)
+- Identificados 7 releases para apagar e 22 tags orphans/obsoletos
+
+**Releases apagadas (7):**
+
+1. Draft `main` — tag acidental criado pelo `tauri-action` quando correu sem tag de versao; 6 assets, 0 downloads
+2. Draft `v0.24.0` — duplicado do release publicado; build incompleto, 2 assets
+3. Draft `v0.25.0` — nunca publicada, supersedida por v0.26.0, 6 assets, 0 downloads
+4. `v0.30.2-beta.1` — beta supersedida, sem `latest.json`, 0 downloads
+5. `v0.30.1-beta.1` — beta supersedida, sem `latest.json`, 0 downloads
+6. `v0.30.0-beta.1` — beta supersedida, sem `latest.json`, 0 downloads
+7. `v0.29.0-alpha.1` — alpha supersedida, sem `latest.json`, 0 downloads
+
+**Tags apagados (22):**
+
+- `pre-audit-v0.17.0` — nao semver, orphan de work-in-progress
+- `v0.29.0-alpha.1`, `v0.30.0-beta.1`, `v0.30.1-beta.1`, `v0.30.2-beta.1` — correspondentes aos releases apagados
+- `v0.1.1`, `v0.2.0`, `v0.3.0`, `v0.3.1`, `v0.3.2`, `v0.3.3`, `v0.4.0`, `v0.4.1`, `v0.5.0`, `v0.6.0`, `v0.7.0`, `v0.8.0`, `v0.9.0`, `v0.10.0`, `v0.11.0`, `v0.12.0`, `v0.13.0`, `v0.19.0` — tags pre-CI sem releases associadas
+
+**Estado final:**
+
+- 7 releases publicadas: `v0.21.0` → `v0.30.3-beta.1` (Latest)
+- 8 tags: `v0.21.0`, `v0.22.0`, `v0.24.0`, `v0.25.0`, `v0.26.0`, `v0.27.0`, `v0.28.0`, `v0.30.3-beta.1`
+- `latest.json` na `v0.30.3-beta.1` intacto — auto-updater nao afectado
+- Sem commits — operacoes remotas nao alteram ficheiros
+
+---
+
+## Estado das branches
+
+- `dev`: `1c6fb53` — limpo, CI verde
+- `main`: `1c6fb53` — paridade com dev
+- Tag `v0.30.3-beta.1`: `3daed46` — publicada, `latest.json` presente
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Auto-updater**: endpoint `releases/latest/download/latest.json` funcional. Modal aparece 4s apos startup (producao). Testar no Windows Sandbox: instalar versao anterior, verificar modal.
+- **Signing key**: `~/.tauri/nexora.key` (local). Gerada com `--password ""`. GitHub Secrets: `TAURI_SIGNING_PRIVATE_KEY` + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (vazia).
+- **Repositorio limpo**: 7 releases + 8 tags, tudo alinhado.
+
+---
 
 ### Sessao 32 — Auto-Updater Operacional + Hooks de Sessao + v0.30.3-beta.1 — CONCLUIDO
 
