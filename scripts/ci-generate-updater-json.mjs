@@ -21,9 +21,7 @@ const baseUrl = `https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releas
 
 const platforms = {};
 
-const dirs = readdirSync(artifactsDir).filter((d) =>
-  statSync(join(artifactsDir, d)).isDirectory(),
-);
+const dirs = readdirSync(artifactsDir).filter((d) => statSync(join(artifactsDir, d)).isDirectory());
 
 if (dirs.length === 0) {
   console.error('No updater artifact directories found in:', artifactsDir);

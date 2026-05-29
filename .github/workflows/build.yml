@@ -223,17 +223,18 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
+          # Usar glob em vez de find — evita conflito com find.exe do Windows no PATH
           if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
-            BUNDLE=$(find "src-tauri/target/release/bundle/nsis" -name "*.nsis.zip" | head -1)
+            for f in "src-tauri/target/release/bundle/nsis/"*.nsis.zip; do BUNDLE="$f"; break; done
             PLATFORM="windows-x86_64"
           elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
-            BUNDLE=$(find "src-tauri/target/universal-apple-darwin/release/bundle/macos" -name "*.app.tar.gz" | head -1)
+            for f in "src-tauri/target/universal-apple-darwin/release/bundle/macos/"*.app.tar.gz; do BUNDLE="$f"; break; done
             PLATFORM="darwin-universal"
             # O tauri-action re-empacota o .app, invalidando a assinatura original.
             # Re-assinar o bundle re-empacotado com a mesma chave.
             npx tauri signer sign "$BUNDLE"
           else
-            BUNDLE=$(find "src-tauri/target/release/bundle/appimage" -name "*.AppImage.tar.gz" | head -1)
+            for f in "src-tauri/target/release/bundle/appimage/"*.AppImage.tar.gz; do BUNDLE="$f"; break; done
             PLATFORM="linux-x86_64"
           fi
 
