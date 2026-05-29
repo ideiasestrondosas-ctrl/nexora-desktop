@@ -35,7 +35,16 @@
       },
       "assetProtocol": {
         "enable": true,
-        "scope": ["$HOME/**", "$TEMP/**"]
+        "scope": [
+          "**",
+          "$HOME/**",
+          "$TEMP/**",
+          "$APPDATA/**",
+          "$LOCALAPPDATA/**",
+          "$VIDEO/**",
+          "$DESKTOP/**",
+          "$DOWNLOAD/**"
+        ]
       }
     }
   },
