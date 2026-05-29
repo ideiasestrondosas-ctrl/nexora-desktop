@@ -70,7 +70,7 @@
       "eslint --max-warnings 0 --fix",
       "prettier --write"
     ],
-    "*.{js,json,md}": [
+    "**/*.{js,mjs,cjs,json,md}": [
       "prettier --write"
     ]
   },
