@@ -58,14 +58,26 @@ pub fn run() {
 
             tray::setup(app)?;
 
-            // Efeitos de janela nativos — silencia erro se não suportado (Windows 10, VMs, etc.)
+            // Efeitos de janela nativos — emite mica-status para o frontend saber se está activo
             #[cfg(any(target_os = "windows", target_os = "macos"))]
             {
                 let main_window = app.get_webview_window("main").unwrap();
                 #[cfg(target_os = "windows")]
-                apply_mica(&main_window, Some(true)).ok();
+                {
+                    let mica_ok = apply_mica(&main_window, Some(true)).is_ok();
+                    main_window.emit("mica-status", mica_ok).ok();
+                }
                 #[cfg(target_os = "macos")]
-                apply_vibrancy(&main_window, NSVisualEffectMaterial::HudWindow, None, None).ok();
+                {
+                    let vibrancy_ok = apply_vibrancy(
+                        &main_window,
+                        NSVisualEffectMaterial::HudWindow,
+                        None,
+                        None,
+                    )
+                    .is_ok();
+                    main_window.emit("mica-status", vibrancy_ok).ok();
+                }
             }
 
             // Menu nativo da barra de menus — apenas macOS.
