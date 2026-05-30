@@ -82,7 +82,9 @@ function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
     $startTime = Get-Date
     # Janela de tempo: ignorar runs criados mais de 2 minutos antes de começarmos a vigiar.
     # Evita ficar preso em runs históricos e falhados de commits anteriores.
-    $minCreatedAt = $startTime.AddMinutes(-2)
+    $minCreatedAt        = $startTime.AddMinutes(-2)
+    $ciPassedAt          = $null
+    $BUILD_STALL_TIMEOUT = 300   # 5 minutos — sair se CI verde e Build não aparece
 
     Write-Host ""
     Write-Host "  [AGUARDAR] GitHub Actions — v$version  ·  branch: $branch  ·  Ctrl+C para sair" -ForegroundColor Cyan
@@ -167,6 +169,25 @@ function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
                         }
                     }
                 }
+            }
+        }
+
+        # Detecção de stall: CI verde mas Build não aparece na janela de tempo
+        $ciPassed  = [bool]($runs | Where-Object { $_.name -eq "CI — Verificacao de Qualidade" -and $_.conclusion -eq "success" })
+        $buildDone = [bool]($runs | Where-Object { $_.name -eq "Build Nexora Desktop" -and $_.status -eq "completed" -and $_.conclusion -eq "success" })
+
+        if ($ciPassed -and -not $ciPassedAt) { $ciPassedAt = Get-Date }
+
+        if ($ciPassedAt -and -not $buildDone) {
+            $stallSec = [math]::Round(((Get-Date) - $ciPassedAt).TotalSeconds)
+            if ($stallSec -gt $BUILD_STALL_TIMEOUT) {
+                Write-Host ""
+                Write-Host ("  ⚠  CI passou mas Build nao detectado ha " + [math]::Round($stallSec / 60) + "min.") -ForegroundColor Yellow
+                Write-Host "     O Build pode ter corrido antes da janela de monitorizacao." -ForegroundColor DarkGray
+                Write-Host "     Verifica: https://github.com/$REPO_OWNER/$REPO_NAME/actions" -ForegroundColor DarkCyan
+                Write-Host ""
+                Write-Success "CI passou. A assumir Build OK — release v$version concluida."
+                return
             }
         }
 
