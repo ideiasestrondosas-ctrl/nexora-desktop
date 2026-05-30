@@ -1956,7 +1956,7 @@ if (-not $SkipRelease -and -not $promoteExisting) {
         if (Test-Path "src-tauri\tauri.conf.json") {
             $tauriConf = Get-Content "src-tauri\tauri.conf.json" -Raw | ConvertFrom-Json
             if ($tauriConf.PSObject.Properties["version"]) {
-                $tauriConf.version = $newVersion
+                $tauriConf.version = ($newVersion -split '-')[0]
             }
             # WiX exige versao puramente numerica (M.m.p.build); mapear pre-release para 4o componente
             $wixVer = Get-WixVersion $newVersion
@@ -2078,6 +2078,17 @@ if (-not $SkipRelease -and -not $promoteExisting) {
             $filesToAdd += "release-notes-v$newVersion.md"
             $filesToAdd += "SYNC-STATE.md"
             $filesToAdd += "src\lib\version.ts"
+        }
+        # Formatar ficheiros antes do commit — evita prettier fail no CI
+        $existingFiles = $filesToAdd | Where-Object { Test-Path $_ }
+        if ($existingFiles.Count -gt 0) {
+            Write-Info "A formatar $($existingFiles.Count) ficheiro(s) com Prettier..."
+            $npmArgs = @("run", "format", "--") + $existingFiles
+            $proc = Start-Process "npm" -ArgumentList $npmArgs `
+                -WorkingDirectory $WORKSPACE -NoNewWindow -PassThru -Wait
+            if ($proc.ExitCode -ne 0) {
+                Write-Warn "Prettier terminou com exit code $($proc.ExitCode) — continuar de qualquer forma"
+            }
         }
         git add $filesToAdd
         git commit -m "chore(release): v$newVersion" --no-verify
