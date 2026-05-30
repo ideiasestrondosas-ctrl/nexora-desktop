@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { convertFileSrc } from '@tauri-apps/api/core';
 import { Play, Pause } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { logActivity } from '@/lib/activityLog';
+import { useVideoSrc } from '@/hooks/useVideoSrc';
 
 interface VisualComparatorPlayerProps {
   originalPath: string;
@@ -23,8 +23,8 @@ export function VisualComparatorPlayer({
   const [duration, setDuration] = useState(0);
   const isDragging = useRef(false);
 
-  const leftSrc = convertFileSrc(originalPath);
-  const rightSrc = convertFileSrc(processedPath);
+  const { src: leftSrc, onError: onLeftError } = useVideoSrc(originalPath);
+  const { src: rightSrc, onError: onRightError } = useVideoSrc(processedPath);
 
   useEffect(() => {
     const left = leftRef.current;
@@ -116,18 +116,19 @@ export function VisualComparatorPlayer({
       >
         <video
           ref={leftRef}
-          src={leftSrc}
+          src={leftSrc ?? undefined}
           className="absolute inset-0 w-full h-full object-contain"
           preload="metadata"
           style={{ zIndex: 1 }}
-          onError={() =>
-            logActivity('comparator_load_error', 'attempt', `orig: ${originalPath.slice(-80)}`)
-          }
+          onError={() => {
+            onLeftError();
+            logActivity('comparator_load_error', 'attempt', `orig: ${originalPath.slice(-80)}`);
+          }}
         />
 
         <video
           ref={rightRef}
-          src={rightSrc}
+          src={rightSrc ?? undefined}
           className="absolute inset-0 w-full h-full object-contain"
           preload="metadata"
           muted
@@ -135,9 +136,10 @@ export function VisualComparatorPlayer({
             zIndex: 2,
             clipPath: `inset(0 0 0 ${splitPct}%)`,
           }}
-          onError={() =>
-            logActivity('comparator_load_error', 'attempt', `proc: ${processedPath.slice(-80)}`)
-          }
+          onError={() => {
+            onRightError();
+            logActivity('comparator_load_error', 'attempt', `proc: ${processedPath.slice(-80)}`);
+          }}
         />
 
         <div

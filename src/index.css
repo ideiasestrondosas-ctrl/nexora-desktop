@@ -164,101 +164,83 @@ body {
     color 0.3s ease;
 }
 
-/* ── Phase B: Transparent window for Mica/Vibrancy ──────────────────────── */
-[data-platform='windows'] body,
-[data-platform='macos'] body {
+/* ── Phase B: Mica/Vibrancy — só transparente quando activo ─────────────── */
+/* Por omissão (data-mica indefinido ou inactive) o body usa fundo sólido    */
+/* via var(--color-bg-primary). Transparência APENAS quando Mica confirmado. */
+
+html[data-platform='windows'][data-mica='active'] body,
+html[data-platform='macos'][data-mica='active'] body {
   background: transparent;
 }
 
-[data-platform='windows'] #root,
-[data-platform='macos'] #root {
+html[data-platform='windows'][data-mica='active'] #root,
+html[data-platform='macos'][data-mica='active'] #root {
   background: transparent;
 }
 
-/* ── Phase B: Glassmorphism containers ──────────────────────────────────── */
+html[data-platform='windows'][data-mica='active'] main,
+html[data-platform='macos'][data-mica='active'] main {
+  background: transparent;
+}
+
+html[data-platform='windows'][data-mica='active'] .flex.h-screen,
+html[data-platform='macos'][data-mica='active'] .flex.h-screen {
+  background: transparent;
+}
+
+/* ── Glassmorphism — sidebar e topbar (só com Mica/Vibrancy activo) ──────── */
 
 /* Sidebar — dark */
-html.dark[data-platform='windows'] aside,
-html.dark[data-platform='macos'] aside {
+html.dark[data-platform='windows'][data-mica='active'] aside,
+html.dark[data-platform='macos'][data-mica='active'] aside {
   background: rgba(10, 13, 20, 0.6);
   backdrop-filter: blur(20px) saturate(1.4);
 }
 
 /* Sidebar — light */
-html:not(.dark)[data-platform='windows'] aside,
-html:not(.dark)[data-platform='macos'] aside {
+html:not(.dark)[data-platform='windows'][data-mica='active'] aside,
+html:not(.dark)[data-platform='macos'][data-mica='active'] aside {
   background: rgba(248, 250, 252, 0.72);
   backdrop-filter: blur(20px) saturate(1.2);
 }
 
 /* TopBar — dark */
-html.dark[data-platform='windows'] [data-topbar],
-html.dark[data-platform='macos'] [data-topbar] {
+html.dark[data-platform='windows'][data-mica='active'] [data-topbar],
+html.dark[data-platform='macos'][data-mica='active'] [data-topbar] {
   background: rgba(10, 13, 20, 0.7);
   backdrop-filter: blur(20px);
 }
 
 /* TopBar — light */
-html:not(.dark)[data-platform='windows'] [data-topbar],
-html:not(.dark)[data-platform='macos'] [data-topbar] {
+html:not(.dark)[data-platform='windows'][data-mica='active'] [data-topbar],
+html:not(.dark)[data-platform='macos'][data-mica='active'] [data-topbar] {
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(20px);
 }
 
-/* Main content area — sempre transparente para deixar Mica/Vibrancy mostrar */
-html[data-platform='windows'] main,
-html[data-platform='macos'] main {
-  background: transparent;
-}
-
-/* Root shell — transparente */
-html[data-platform='windows'] .flex.h-screen,
-html[data-platform='macos'] .flex.h-screen {
-  background: transparent;
-}
-
-/* Fallback: Mica/Vibrancy não disponível (Sandbox, Windows 10, VMs) */
-/* Aplica fundo sólido para evitar que o HWND preto apareça */
-html[data-platform='windows'][data-mica='inactive'] body,
-html[data-platform='windows'][data-mica='inactive'] #root {
-  background-color: var(--color-bg-primary);
-}
-html[data-platform='windows'][data-mica='inactive'] main,
-html[data-platform='windows'][data-mica='inactive'] .flex.h-screen {
-  background-color: var(--color-bg-primary);
-}
-html[data-platform='macos'][data-mica='inactive'] body,
-html[data-platform='macos'][data-mica='inactive'] #root {
-  background-color: var(--color-bg-primary);
-}
-html[data-platform='macos'][data-mica='inactive'] main,
-html[data-platform='macos'][data-mica='inactive'] .flex.h-screen {
-  background-color: var(--color-bg-primary);
-}
-
 /* ── Glassmorphism surface — modais, popups, dropdowns ──────────────────── */
-html.dark[data-platform='windows'] .glass-surface,
-html.dark[data-platform='macos'] .glass-surface {
+html.dark[data-platform='windows'][data-mica='active'] .glass-surface,
+html.dark[data-platform='macos'][data-mica='active'] .glass-surface {
   background: rgba(14, 18, 28, 0.78);
   backdrop-filter: blur(24px) saturate(1.4);
   border-color: rgba(255, 255, 255, 0.08);
 }
-html:not(.dark)[data-platform='windows'] .glass-surface,
-html:not(.dark)[data-platform='macos'] .glass-surface {
+html:not(.dark)[data-platform='windows'][data-mica='active'] .glass-surface,
+html:not(.dark)[data-platform='macos'][data-mica='active'] .glass-surface {
   background: rgba(248, 250, 252, 0.84);
   backdrop-filter: blur(24px) saturate(1.2);
   border-color: rgba(0, 0, 0, 0.06);
 }
 
 /* Sonner toasts — inline styles exigem !important */
-html.dark[data-platform='windows'] [data-sonner-toast],
-html.dark[data-platform='macos'] [data-sonner-toast] {
+html.dark[data-platform='windows'][data-mica='active'] [data-sonner-toast],
+html.dark[data-platform='macos'][data-mica='active'] [data-sonner-toast] {
   background: rgba(14, 18, 28, 0.88) !important;
   backdrop-filter: blur(20px) saturate(1.4) !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
-html:not(.dark)[data-platform='windows'] [data-sonner-toast],
-html:not(.dark)[data-platform='macos'] [data-sonner-toast] {
+html:not(.dark)[data-platform='windows'][data-mica='active'] [data-sonner-toast],
+html:not(.dark)[data-platform='macos'][data-mica='active'] [data-sonner-toast] {
   background: rgba(255, 255, 255, 0.86) !important;
   backdrop-filter: blur(20px) saturate(1.2) !important;
   border-color: rgba(0, 0, 0, 0.07) !important;

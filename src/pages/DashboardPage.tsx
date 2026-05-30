@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invoke, convertFileSrc } from '@tauri-apps/api/core';
+import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { logActivity } from '@/lib/activityLog';
 import { Archive, Activity, Gauge, Clock, Loader2, Film, ChevronRight, Upload } from 'lucide-react';
+import { ThumbnailImg } from '@/components/ThumbnailImg';
 import {
   BarChart,
   Bar,
@@ -273,13 +274,10 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
                 >
                   <div className="w-10 h-10 bg-bg-primary rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                     {assetMap[job.asset_id]?.thumbnail_path ? (
-                      <img
-                        src={convertFileSrc(assetMap[job.asset_id].thumbnail_path!)}
+                      <ThumbnailImg
+                        path={assetMap[job.asset_id].thumbnail_path!}
                         alt=""
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = 'none';
-                        }}
                       />
                     ) : (
                       <Film size={18} className="text-text-muted" />

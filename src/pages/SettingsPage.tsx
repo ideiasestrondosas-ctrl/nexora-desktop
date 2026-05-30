@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
-import { check } from '@tauri-apps/plugin-updater';
+import { check, type Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { exit } from '@tauri-apps/plugin-process';
 import { APP_VERSION, VERSION_HISTORY } from '@/lib/version';
@@ -38,6 +38,7 @@ import {
 import { CloudProfileModal } from '@/components/CloudProfileModal';
 import { STORAGE_KEY as ONBOARDING_STORAGE_KEY } from '@/components/OnboardingModal';
 import { CloudFileBrowserModal } from '@/components/CloudFileBrowserModal';
+import { UpdateModal } from '@/components/UpdateModal';
 import { useCloudStore, CloudProfile, PROVIDER_LABELS } from '@/store/cloud';
 import { useSystemHealth } from '@/store/systemHealth';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -248,6 +249,8 @@ export default function SettingsPage() {
   const [changelog, setChangelog] = useState<string>('');
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [isDev, setIsDev] = useState(false);
+  const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null);
+  const [manualUpdateOpen, setManualUpdateOpen] = useState(false);
   const [tempInfo, setTempInfo] = useState<TempInfo | null>(null);
   const [clearingTranscode, setClearingTranscode] = useState(false);
   const [clearingThumbs, setClearingThumbs] = useState(false);
@@ -492,8 +495,8 @@ export default function SettingsPage() {
     try {
       const update = await check();
       if (update) {
-        toast.success(t('settings.advanced.updateAvailable', { version: update.version }));
-        await update.downloadAndInstall();
+        setPendingUpdate(update);
+        setManualUpdateOpen(true);
       } else {
         toast(t('settings.advanced.latestVersion'), { icon: '✅' });
       }
@@ -1464,7 +1467,7 @@ export default function SettingsPage() {
         <div className="space-y-6">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-300">Perfis de Cloud</h3>
+              <h3 className="text-sm font-medium text-text-secondary">Perfis de Cloud</h3>
               <button
                 onClick={() => {
                   setEditingProfile(null);
@@ -1477,7 +1480,7 @@ export default function SettingsPage() {
             </div>
 
             {cloudProfiles.length === 0 ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-text-muted">
                 Nenhum perfil configurado. Clique em &quot;+ Novo Perfil&quot; para começar.
               </p>
             ) : (
@@ -1485,11 +1488,11 @@ export default function SettingsPage() {
                 {cloudProfiles.map((profile) => (
                   <div
                     key={profile.id}
-                    className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 border border-gray-700"
+                    className="flex items-center justify-between bg-bg-secondary rounded-lg px-4 py-3 border border-border"
                   >
                     <div>
                       <p className="text-sm text-white font-medium">{profile.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-text-muted mt-0.5">
                         {PROVIDER_LABELS[profile.provider]}
                         {profile.config.host ? ` · ${String(profile.config.host)}` : ''}
                         {profile.config.bucket ? ` · ${String(profile.config.bucket)}` : ''}
@@ -1508,10 +1511,10 @@ export default function SettingsPage() {
                             : 'Navegar ficheiros'
                         }
                         className={cn(
-                          'flex items-center gap-1.5 text-xs border border-gray-600 rounded px-2 py-1 transition-colors',
+                          'flex items-center gap-1.5 text-xs border border-border rounded px-2 py-1 transition-colors',
                           profile.provider === 'icloud'
-                            ? 'text-gray-600 cursor-not-allowed opacity-40'
-                            : 'text-gray-400 hover:text-white',
+                            ? 'text-text-muted cursor-not-allowed opacity-40'
+                            : 'text-text-muted hover:text-text-primary',
                         )}
                       >
                         <FolderOpen size={12} />
@@ -1522,7 +1525,7 @@ export default function SettingsPage() {
                           setEditingProfile(profile);
                           setCloudModalOpen(true);
                         }}
-                        className="text-xs text-gray-400 hover:text-white border border-gray-600 rounded px-2 py-1"
+                        className="text-xs text-text-muted hover:text-text-primary border border-border rounded px-2 py-1"
                       >
                         Editar
                       </button>
@@ -1537,7 +1540,7 @@ export default function SettingsPage() {
                           removeCloudProfile(profile.id);
                           toast.success('Perfil apagado');
                         }}
-                        className="text-xs text-red-400 hover:text-red-300 border border-gray-600 rounded px-2 py-1"
+                        className="text-xs text-red-400 hover:text-red-300 border border-border rounded px-2 py-1"
                       >
                         Apagar
                       </button>
@@ -1834,6 +1837,13 @@ export default function SettingsPage() {
             </div>
           </section>
         </div>
+      )}
+      {pendingUpdate && (
+        <UpdateModal
+          update={pendingUpdate}
+          open={manualUpdateOpen}
+          onClose={() => setManualUpdateOpen(false)}
+        />
       )}
     </div>
   );

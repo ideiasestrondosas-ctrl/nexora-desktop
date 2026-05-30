@@ -76,7 +76,7 @@ export default function LogsPage() {
   const getLevelColor = (level: string) => {
     switch (level) {
       case 'debug':
-        return 'bg-gray-800 text-text-secondary';
+        return 'bg-bg-secondary text-text-secondary';
       case 'info':
         return 'bg-blue-900/50 text-blue-300';
       case 'warn':
@@ -84,7 +84,7 @@ export default function LogsPage() {
       case 'error':
         return 'bg-red-900/50 text-red-300';
       default:
-        return 'bg-gray-800 text-text-secondary';
+        return 'bg-bg-secondary text-text-secondary';
     }
   };
 

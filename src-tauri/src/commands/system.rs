@@ -30,15 +30,15 @@ pub struct InstalledInfo {
 
 #[tauri::command]
 pub fn get_installed_info(app: tauri::AppHandle) -> InstalledInfo {
-    let ffmpeg_version = Command::new("ffmpeg")
-        .arg("-version")
+    let mut cmd = Command::new("ffmpeg");
+    let ffmpeg_version = super::no_window(cmd.arg("-version"))
         .output()
         .ok()
         .and_then(|o| String::from_utf8(o.stdout).ok())
         .and_then(|s| s.lines().next().map(|l| l.trim().to_string()));
 
-    let node_version = Command::new("node")
-        .arg("--version")
+    let mut cmd = Command::new("node");
+    let node_version = super::no_window(cmd.arg("--version"))
         .output()
         .ok()
         .and_then(|o| String::from_utf8(o.stdout).ok())
@@ -77,7 +77,11 @@ pub struct DiskSpace {
 #[tauri::command]
 pub fn detect_gpu() -> GpuInfo {
     // NVENC (NVIDIA) — todas as plataformas
-    if Command::new("nvidia-smi").output().is_ok() {
+    let nvidia_ok = {
+        let mut cmd = Command::new("nvidia-smi");
+        super::no_window(&mut cmd).output().is_ok()
+    };
+    if nvidia_ok {
         return GpuInfo {
             vendor: "nvidia".to_string(),
             encoder: "h264_nvenc".to_string(),
@@ -294,16 +298,16 @@ pub struct FfmpegInfo {
 pub fn get_ffmpeg_info(app: tauri::AppHandle) -> Result<FfmpegInfo, String> {
     let ffmpeg_path = resolve_media_binary_path(&app, "ffmpeg");
 
-    let version = Command::new(&ffmpeg_path)
-        .arg("-version")
+    let mut cmd = Command::new(&ffmpeg_path);
+    let version = super::no_window(cmd.arg("-version"))
         .output()
         .ok()
         .and_then(|o| String::from_utf8(o.stdout).ok())
         .and_then(|s| s.lines().next().map(|l| l.trim().to_string()))
         .unwrap_or_else(|| "Desconhecido".to_string());
 
-    let has_libvmaf = Command::new(&ffmpeg_path)
-        .args(["-filters"])
+    let mut cmd = Command::new(&ffmpeg_path);
+    let has_libvmaf = super::no_window(cmd.args(["-filters"]))
         .output()
         .ok()
         .and_then(|o| String::from_utf8(o.stdout).ok())

@@ -5,10 +5,132 @@
 
 ---
 
-Actualizado: 2026-05-29 (20:30)
+Actualizado: 2026-05-30
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 39 — Console Flash + Tema Claro Completo — CONCLUIDO ✅
+
+**Pedido:** (1) Janelas de consola a piscar ao navegar para Definicoes no Sandbox. (2) Tema claro incompleto — fundo preto, nav ilegivel, componentes cloud com cores escuras fixas.
+
+**Bug 1 — Janelas de consola (Rust):**
+
+Causa: `std::process::Command::new()` sem `CREATE_NO_WINDOW` nos comandos de diagnostico.
+Fix: `no_window()` utilitario em `commands/mod.rs`, aplicado a 5 call sites em `system.rs`, `assets.rs` e `lib.rs`.
+
+**Bug 2 — Tema claro (Frontend):**
+
+- CSS: `[data-platform='windows'] body { background: transparent }` (incondicional) causava fundo preto antes do evento `mica-status` (~100-500ms). Fix: transparencia so com `[data-mica='active']`.
+- Nav: `text-text-muted` (#94a3b8, contraste 2.4:1) → `text-text-secondary` (#475569, contraste 5.4:1).
+- 6 componentes com gray hardcoded substituidos por tokens de tema.
+
+**Commits:**
+
+- `791b845` — no_window() Rust (system.rs, assets.rs, lib.rs)
+- `6cd6e26` — CSS inversion + nav contraste
+- `a2f7622` — SettingsPage Cloud tab + CloudProfileModal + CloudDestinationPicker
+- `477916e` — AssetDetailPage + ProfilesPage + LogsPage
+
+**Verificacao:** 48/48 testes ✅ · typecheck ✅ · cargo check ✅
+
+---
+
+## Estado das branches
+
+- `dev`: `477916e` — 4 commits prontos, aguarda release v0.30.7-beta.1
+- `main`: `d2c676f` — atrás de dev
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **no_window()**: `commands/mod.rs`. Qualquer novo Command::new() de diagnostico deve usar `super::no_window()` (submodulo) ou `crate::commands::no_window()` (lib.rs).
+- **CSS mica**: Transparencia so com `[data-mica='active']`. NAO reverter.
+- **Tokens tema**: usar `bg-bg-secondary`, `text-text-muted`, `border-border`. NAO usar gray-\* hardcoded.
+- **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 16 de Junho 2026.
+- **Bug recorrente sync.ps1:** tauri.conf.json versao numerica pura (ex: `0.30.7`).
+
+---
+
+### Sessao 38 — 4 Bugs UI/UX + CI Fixes v0.30.6-beta.1 — CONCLUIDO ✅
+
+**Pedido:** Corrigir 4 bugs encontrados no Windows Sandbox com v0.30.5-beta.1.
+
+**Bugs e fixes:**
+
+1. **Update Modal instala sem confirmação** — `handleCheckUpdates` chamava `downloadAndInstall()` directamente. Fix: mostrar `UpdateModal` em vez de instalar.
+2. **Thumbnails em falta no Dashboard** — `<img convertFileSrc>` sem fallback IPC. Fix: `<ThumbnailImg>`.
+3. **Player vídeo preto** — asset protocol não serve ficheiros locais no Windows. Fix: hook `useVideoSrc` com fallback IPC `read_video_base64` (≤50 MB).
+4. **Comparador preto** — mesma causa. Fix: `VisualComparatorPlayer` usa o mesmo hook.
+
+**CI fixes adicionais (bugs recorrentes):**
+
+- `fd3146e` — cargo fmt (assets.rs linha 392) + prettier (release bump)
+- `ce27a22` — tauri.conf.json versão numérica `0.30.6` (sync.ps1 bumpa para `0.30.6-beta.1`, tauri-action não suporta semver com sufixo)
+- `946ff8e` — PROGRESS-DESKTOP.md: 101 MB → 12 KB (UTF-8 multi-encode da Fase 8)
+
+**Commits principais:**
+
+- `7bf8aed` — 4 bugs UI/UX
+- `ce27a22` — último commit estável (HEAD de dev e tag v0.30.6-beta.1)
+
+**Build:** ✅ CI verde, Build verde, `v0.30.6-beta.1` publicada e validada pelo utilizador.
+
+---
+
+## Estado das branches
+
+- `dev`: `ce27a22` — limpo, CI verde, Build verde
+- `main`: `8152e4a` — atrás de dev (mergiaria depois de validação completa no Sandbox)
+- Release `v0.30.6-beta.1`: publicada ✅ — instalada e testada no Windows Sandbox
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **Bug recorrente do sync.ps1:** após cada release bump, verificar se `tauri.conf.json` tem versão numérica pura (ex: `0.30.6`) e NÃO semver com sufixo (ex: `0.30.6-beta.1`). O `tauri-action@v0` falha com "Signature not found" quando há sufixo. Fix: editar + commit + retag.
+- **useVideoSrc hook** (`src/hooks/useVideoSrc.ts`): tenta `convertFileSrc` primeiro; em `onError` invoca `read_video_base64` (≤50 MB) via IPC. Para ficheiros maiores: mensagem + botão "Abrir no player do sistema".
+- **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 16 de Junho 2026 (Node 20 deprecated; windows-latest → windows-2025 a 15 de Junho).
+- **PROGRESS-DESKTOP.md:** reposto limpo a 12 KB. Evitar caracteres especiais Unicode (→, ≤, —) no ficheiro — causam multi-encode em algumas ferramentas.
+
+---
+
+### Sessao 37 — CI Fixes Recorrentes + lint-staged Fix Permanente — CONCLUIDO
+
+**Pedido:** Corrigir CI falhado em main por Prettier; investigar e corrigir causa raiz do problema recorrente.
+
+**Contexto:** Terceiro episódio do mesmo padrão — release bump pelo sync.ps1 cria commits sem Prettier aplicado a `src-tauri/tauri.conf.json` e `scripts/*.mjs`.
+
+**Causa raiz identificada:** O padrão `"*.{js,json,md}"` em lint-staged (package.json) usa glob de nível único (`*`), que só faz match de ficheiros na raiz do repositório. Ficheiros em subdirectorios (`src-tauri/`, `scripts/`) nunca eram processados.
+
+**Fix:** `"*.{js,json,md}"` → `"**/*.{js,mjs,cjs,json,md}"` — apanha JSON/MD/JS/MJS em qualquer subdirectório.
+
+**Commits:**
+
+- `41c35bc` — Prettier fix dos 5 ficheiros do release v0.30.5-beta.1 (sintoma)
+- `d3d5e95` — Fix lint-staged padrão alargado (causa raiz)
+
+**Estado:** `main` e `dev` em `365c5fd`. Fix permanente activo — próximos release bumps já não precisam de commit manual de Prettier.
+
+---
+
+## Estado das branches
+
+- `dev`: `365c5fd` — limpo, CI verde
+- `main`: `365c5fd` — paridade com dev
+- Release `v0.30.4-beta.1`: publicada ✅
+- Release `v0.30.5-beta.1`: draft (build a correr ou pendente)
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **lint-staged**: padrão agora `**/*.{js,mjs,cjs,json,md}` — cobre subdirectorios. Fix definitivo para o padrão recorrente de Prettier fail após release bumps.
+- **v0.30.5**: branch e release bump existem (`dd085f8`). Build CI não disparou ainda (só tag dispara build). Para publicar, criar tag `v0.30.5-beta.1` com `git tag v0.30.5-beta.1 && git push origin v0.30.5-beta.1`.
+- **Testar no Sandbox**: v0.30.5 contém os fixes de media (thumbnails, player, comparador), light mode fallback e UpdateModal. Instalar e verificar antes de publicar.
+
+---
 
 ### Sessao 36 — Media Loading, Light Mode Fallback & UpdateModal — v0.30.5 — CONCLUIDO
 

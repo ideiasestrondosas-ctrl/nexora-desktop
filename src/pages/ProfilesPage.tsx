@@ -413,7 +413,7 @@ export default function ProfilesPage() {
                 </div>
               </div>
               {selectedProfile.is_system ? (
-                <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-gray-800 text-text-secondary px-3 py-1 rounded-full">
+                <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-bg-secondary text-text-secondary px-3 py-1 rounded-full">
                   <Lock size={10} /> {t('profiles.predefinedLabel')}
                 </span>
               ) : (

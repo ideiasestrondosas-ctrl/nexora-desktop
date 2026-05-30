@@ -188,18 +188,18 @@ pub fn ingest_asset(
 /// Executa ffprobe e retorna o JSON completo como Value
 fn run_ffprobe(app: &tauri::AppHandle, path: &str) -> Result<serde_json::Value, String> {
     let ffprobe = crate::sidecar::resolve_media_binary_path(app, "ffprobe");
-    let output = std::process::Command::new(&ffprobe)
-        .args([
-            "-v",
-            "quiet",
-            "-print_format",
-            "json",
-            "-show_streams",
-            "-show_format",
-            path,
-        ])
-        .output()
-        .map_err(|e| e.to_string())?;
+    let mut cmd = std::process::Command::new(&ffprobe);
+    let output = crate::commands::no_window(cmd.args([
+        "-v",
+        "quiet",
+        "-print_format",
+        "json",
+        "-show_streams",
+        "-show_format",
+        path,
+    ]))
+    .output()
+    .map_err(|e| e.to_string())?;
 
     if !output.status.success() {
         return Err(format!("ffprobe exit code: {:?}", output.status.code()));
@@ -381,5 +381,24 @@ pub fn read_thumbnail_base64(path: String) -> Result<String, String> {
     use base64::engine::general_purpose::STANDARD;
     use base64::Engine;
     let bytes = std::fs::read(&path).map_err(|e| format!("read_thumbnail_base64: {e}"))?;
+    Ok(STANDARD.encode(bytes))
+}
+
+/// Lê um ficheiro de vídeo pequeno (<= 50 MB) e devolve como base64.
+/// Fallback quando o asset protocol não serve o ficheiro (Windows scope mismatch).
+/// Para ficheiros maiores retorna Err("FILE_TOO_LARGE:{bytes}").
+#[tauri::command]
+pub fn read_video_base64(path: String) -> Result<String, String> {
+    use base64::engine::general_purpose::STANDARD;
+    use base64::Engine;
+
+    let metadata = std::fs::metadata(&path).map_err(|e| format!("read_video_base64: {e}"))?;
+
+    const MAX_BYTES: u64 = 50 * 1024 * 1024;
+    if metadata.len() > MAX_BYTES {
+        return Err(format!("FILE_TOO_LARGE:{}", metadata.len()));
+    }
+
+    let bytes = std::fs::read(&path).map_err(|e| format!("read_video_base64: {e}"))?;
     Ok(STANDARD.encode(bytes))
 }
