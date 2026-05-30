@@ -938,7 +938,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                                 className={`w-5 h-5 rounded-full border flex items-center justify-center ${
                                   isDone
                                     ? 'bg-green-500 border-green-500 text-white'
-                                    : 'border-gray-700 text-gray-700'
+                                    : 'border-border text-text-muted'
                                 }`}
                               >
                                 {isDone ? (
@@ -950,7 +950,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                             </div>
                             {idx < PIPELINE_STEPS.length - 1 && (
                               <div
-                                className={`flex-1 h-px mx-[-2px] ${isDone ? 'bg-green-500' : 'bg-gray-800'}`}
+                                className={`flex-1 h-px mx-[-2px] ${isDone ? 'bg-green-500' : 'bg-border'}`}
                               ></div>
                             )}
                           </React.Fragment>
@@ -989,7 +989,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                         </div>
                       </div>
                       <div>
-                        <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        <div className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1">
                           VMAF
                         </div>
                         <div className="text-xs text-green-500 font-bold">
@@ -1029,7 +1029,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
 
             {cloudDestinations.length > 0 && (
               <div className="mt-4">
-                <h3 className="text-xs text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+                <h3 className="text-xs text-text-muted uppercase tracking-wide mb-2 flex items-center gap-1">
                   <Cloud size={12} /> Envios Cloud
                 </h3>
                 <div className="space-y-2">
@@ -1038,7 +1038,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                     return (
                       <div
                         key={dest.profileId}
-                        className="flex items-center justify-between bg-gray-800/50 rounded px-3 py-2 text-sm"
+                        className="flex items-center justify-between bg-bg-secondary/50 rounded px-3 py-2 text-sm"
                       >
                         <div className="flex items-center gap-2">
                           {dest.status === 'uploaded' && (
@@ -1050,7 +1050,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                           {(dest.status === 'pending' || dest.status === 'uploading') && (
                             <Clock size={14} className="text-yellow-400" />
                           )}
-                          <span className="text-gray-200">{dest.profileName}</span>
+                          <span className="text-text-secondary">{dest.profileName}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           {dest.status === 'failed' && (
@@ -1062,7 +1062,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                             </span>
                           )}
                           {dest.status === 'uploaded' && dest.uploadedAt && (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-text-muted">
                               {new Date(dest.uploadedAt).toLocaleTimeString('pt-PT')}
                             </span>
                           )}
@@ -1080,7 +1080,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                                   toast.error(String(e));
                                 }
                               }}
-                              className="flex items-center gap-1 text-xs text-gray-400 hover:text-white"
+                              className="flex items-center gap-1 text-xs text-text-muted hover:text-text-primary"
                             >
                               <RotateCcw size={12} /> Retentar
                             </button>
