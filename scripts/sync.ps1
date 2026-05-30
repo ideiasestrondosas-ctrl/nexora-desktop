@@ -2101,14 +2101,14 @@ if (-not $SkipRelease -and -not $promoteExisting) {
             $filesToAdd += "src\lib\version.ts"
         }
         # Formatar ficheiros antes do commit — evita prettier fail no CI
+        # Nota: npm e um .cmd no Windows, por isso usar o call operator & em vez de Start-Process
         $existingFiles = $filesToAdd | Where-Object { Test-Path $_ }
         if ($existingFiles.Count -gt 0) {
             Write-Info "A formatar $($existingFiles.Count) ficheiro(s) com Prettier..."
             $npmArgs = @("run", "format", "--") + $existingFiles
-            $proc = Start-Process "npm" -ArgumentList $npmArgs `
-                -WorkingDirectory $WORKSPACE -NoNewWindow -PassThru -Wait
-            if ($proc.ExitCode -ne 0) {
-                Write-Warn "Prettier terminou com exit code $($proc.ExitCode) — continuar de qualquer forma"
+            & npm $npmArgs
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warn "Prettier terminou com exit code $LASTEXITCODE — continuar de qualquer forma"
             }
         }
         git add $filesToAdd
