@@ -188,18 +188,18 @@ pub fn ingest_asset(
 /// Executa ffprobe e retorna o JSON completo como Value
 fn run_ffprobe(app: &tauri::AppHandle, path: &str) -> Result<serde_json::Value, String> {
     let ffprobe = crate::sidecar::resolve_media_binary_path(app, "ffprobe");
-    let output = std::process::Command::new(&ffprobe)
-        .args([
-            "-v",
-            "quiet",
-            "-print_format",
-            "json",
-            "-show_streams",
-            "-show_format",
-            path,
-        ])
-        .output()
-        .map_err(|e| e.to_string())?;
+    let mut cmd = std::process::Command::new(&ffprobe);
+    let output = crate::commands::no_window(cmd.args([
+        "-v",
+        "quiet",
+        "-print_format",
+        "json",
+        "-show_streams",
+        "-show_format",
+        path,
+    ]))
+    .output()
+    .map_err(|e| e.to_string())?;
 
     if !output.status.success() {
         return Err(format!("ffprobe exit code: {:?}", output.status.code()));
