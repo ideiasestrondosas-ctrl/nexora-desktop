@@ -10,6 +10,49 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 39 — Console Flash + Tema Claro Completo — CONCLUIDO ✅
+
+**Pedido:** (1) Janelas de consola a piscar ao navegar para Definicoes no Sandbox. (2) Tema claro incompleto — fundo preto, nav ilegivel, componentes cloud com cores escuras fixas.
+
+**Bug 1 — Janelas de consola (Rust):**
+
+Causa: `std::process::Command::new()` sem `CREATE_NO_WINDOW` nos comandos de diagnostico.
+Fix: `no_window()` utilitario em `commands/mod.rs`, aplicado a 5 call sites em `system.rs`, `assets.rs` e `lib.rs`.
+
+**Bug 2 — Tema claro (Frontend):**
+
+- CSS: `[data-platform='windows'] body { background: transparent }` (incondicional) causava fundo preto antes do evento `mica-status` (~100-500ms). Fix: transparencia so com `[data-mica='active']`.
+- Nav: `text-text-muted` (#94a3b8, contraste 2.4:1) → `text-text-secondary` (#475569, contraste 5.4:1).
+- 6 componentes com gray hardcoded substituidos por tokens de tema.
+
+**Commits:**
+
+- `791b845` — no_window() Rust (system.rs, assets.rs, lib.rs)
+- `6cd6e26` — CSS inversion + nav contraste
+- `a2f7622` — SettingsPage Cloud tab + CloudProfileModal + CloudDestinationPicker
+- `477916e` — AssetDetailPage + ProfilesPage + LogsPage
+
+**Verificacao:** 48/48 testes ✅ · typecheck ✅ · cargo check ✅
+
+---
+
+## Estado das branches
+
+- `dev`: `477916e` — 4 commits prontos, aguarda release v0.30.7-beta.1
+- `main`: `d2c676f` — atrás de dev
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **no_window()**: `commands/mod.rs`. Qualquer novo Command::new() de diagnostico deve usar `super::no_window()` (submodulo) ou `crate::commands::no_window()` (lib.rs).
+- **CSS mica**: Transparencia so com `[data-mica='active']`. NAO reverter.
+- **Tokens tema**: usar `bg-bg-secondary`, `text-text-muted`, `border-border`. NAO usar gray-\* hardcoded.
+- **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 16 de Junho 2026.
+- **Bug recorrente sync.ps1:** tauri.conf.json versao numerica pura (ex: `0.30.7`).
+
+---
+
 ### Sessao 38 — 4 Bugs UI/UX + CI Fixes v0.30.6-beta.1 — CONCLUIDO ✅
 
 **Pedido:** Corrigir 4 bugs encontrados no Windows Sandbox com v0.30.5-beta.1.
