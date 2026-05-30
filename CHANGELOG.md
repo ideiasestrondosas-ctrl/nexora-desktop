@@ -9,9 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.30.7-beta.1] - 2026-05-30
 
 ### Added
+
 - 2: Console Flash + Tema Claro Completo
-
-
 
 ## [0.30.6-beta.1] - 2026-05-30
 
