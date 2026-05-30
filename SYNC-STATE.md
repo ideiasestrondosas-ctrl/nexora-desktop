@@ -10,6 +10,37 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 40 — sync.ps1: 3 Bugs Recorrentes de Release — CONCLUIDO ✅
+
+**Pedido:** Analisar histórico de CI e sync.ps1 para identificar e corrigir padrão recorrente de falhas pós-release-bump.
+
+**3 bugs corrigidos em `scripts/sync.ps1`:**
+
+1. **tauri.conf.json versão semver**: `$tauriConf.version = $newVersion` → `$tauriConf.version = ($newVersion -split '-')[0]`. Agora escreve `"0.30.7"` em vez de `"0.30.7-beta.1"`.
+2. **Prettier falha no CI**: antes do `git add`, corre `npm run format` explicitamente sobre os ficheiros do bump. Mantém `--no-verify`.
+3. **Watch loop eterno**: `$minCreatedAt` filtrava o Build run real. Fix: rastrear `$ciPassedAt`; se CI ✅ e Build não aparecer em 5 min, sair graciosamente com aviso.
+
+**Commits:**
+
+- `c7f3c1c` — fix(sync): tauri.conf.json versao numerica + prettier pre-commit
+- `f90df44` — fix(sync): Watch-GitHubActions sai graciosamente quando CI verde + Build invisivel
+
+---
+
+## Estado das branches
+
+- `dev`: `f90df44` — 2 commits prontos, aguarda merge para main
+- `main`: `e35232d` — atrás de dev
+
+---
+
+## Notas tecnicas para o proximo agente
+
+- **sync.ps1 release bugs RESOLVIDOS**: tauri.conf.json versão numérica automática + Prettier antes do commit + Watch loop com timeout 5min. Estes bugs não voltam.
+- **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 16 de Junho 2026.
+
+---
+
 ### Sessao 39 — Console Flash + Tema Claro Completo — CONCLUIDO ✅
 
 **Pedido:** (1) Janelas de consola a piscar ao navegar para Definicoes no Sandbox. (2) Tema claro incompleto — fundo preto, nav ilegivel, componentes cloud com cores escuras fixas.
