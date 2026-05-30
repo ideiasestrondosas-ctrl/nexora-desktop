@@ -329,7 +329,7 @@ function App() {
                   'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative',
                   isActive
                     ? 'bg-brand/10 text-text-primary font-bold'
-                    : 'text-text-muted hover:text-text-secondary hover:bg-bg-hover',
+                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover',
                 )}
               >
                 <div className="relative">
