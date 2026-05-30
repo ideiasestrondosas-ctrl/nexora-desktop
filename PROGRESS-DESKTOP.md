@@ -109,7 +109,7 @@
 - [x] Build funciona para Linux (.AppImage + .deb)
 - [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
 
-### Fase 19 - Bugs UI/UX Sandbox v0.30.5 (Sessao 38)
+### Fase 19 - Bugs UI/UX Sandbox v0.30.6-beta.1 (Sessao 38) — VALIDADO
 
 - [x] Bug 1: “Verificar actualizacao” em Definicoes abre UpdateModal (confirmacao antes de instalar)
 - [x] Bug 2: Thumbnails nas linhas do Dashboard usam ThumbnailImg com fallback IPC
@@ -117,7 +117,9 @@
 - [x] Bug 4: Comparador (VisualComparatorPlayer) usa mesmo hook para ambos os videos
 - [x] Novo hook: `src/hooks/useVideoSrc.ts` -- gestao de src com fallback automatico quando asset protocol falha
 - [x] Novo comando Rust: `read_video_base64` em `commands/assets.rs` -- ficheiros <=50 MB, erro FILE_TOO_LARGE acima
-- [x] commit `7bf8aed` -- TypeScript OK, cargo check OK, lint OK
+- [x] CI fix: tauri.conf.json versao numerica (bug recorrente do sync.ps1)
+- [x] Fix: PROGRESS-DESKTOP.md corrompido 101MB -> 12KB
+- [x] Validado pelo utilizador no Windows Sandbox -- v0.30.6-beta.1
 
 ---
 

@@ -10,50 +10,46 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
-### Sessao 38 — 4 Bugs UI/UX v0.30.5 — CONCLUIDO
+### Sessao 38 — 4 Bugs UI/UX + CI Fixes v0.30.6-beta.1 — CONCLUIDO ✅
 
 **Pedido:** Corrigir 4 bugs encontrados no Windows Sandbox com v0.30.5-beta.1.
 
 **Bugs e fixes:**
 
-1. **Update Modal em Definições instala sem confirmação** — `handleCheckUpdates` em SettingsPage chamava `update.downloadAndInstall()` directamente. Fix: mostrar `UpdateModal` (já existia) em vez de instalar.
+1. **Update Modal instala sem confirmação** — `handleCheckUpdates` chamava `downloadAndInstall()` directamente. Fix: mostrar `UpdateModal` em vez de instalar.
+2. **Thumbnails em falta no Dashboard** — `<img convertFileSrc>` sem fallback IPC. Fix: `<ThumbnailImg>`.
+3. **Player vídeo preto** — asset protocol não serve ficheiros locais no Windows. Fix: hook `useVideoSrc` com fallback IPC `read_video_base64` (≤50 MB).
+4. **Comparador preto** — mesma causa. Fix: `VisualComparatorPlayer` usa o mesmo hook.
 
-2. **Thumbnails não aparecem nas linhas do Dashboard** — DashboardPage usava `<img src={convertFileSrc(...)}>` sem fallback IPC. Fix: substituir por `<ThumbnailImg>` (componente já existia na Biblioteca).
+**CI fixes adicionais (bugs recorrentes):**
 
-3. **Player de vídeo preto** — `convertFileSrc` (asset protocol) não serve ficheiros locais no Windows (scope mismatch, problema conhecido). Sem fallback. Fix: novo comando Rust `read_video_base64` (≤ 50 MB) + hook `useVideoSrc` com fallback IPC automático.
+- `fd3146e` — cargo fmt (assets.rs linha 392) + prettier (release bump)
+- `ce27a22` — tauri.conf.json versão numérica `0.30.6` (sync.ps1 bumpa para `0.30.6-beta.1`, tauri-action não suporta semver com sufixo)
+- `946ff8e` — PROGRESS-DESKTOP.md: 101 MB → 12 KB (UTF-8 multi-encode da Fase 8)
 
-4. **Comparador preto** — mesma causa do bug 3. Fix: `VisualComparatorPlayer` usa o mesmo hook `useVideoSrc` para ambos os vídeos.
+**Commits principais:**
 
-**Ficheiros alterados:**
+- `7bf8aed` — 4 bugs UI/UX
+- `ce27a22` — último commit estável (HEAD de dev e tag v0.30.6-beta.1)
 
-- `src-tauri/src/commands/assets.rs` — `read_video_base64` command
-- `src-tauri/src/lib.rs` — registar command
-- `src/hooks/useVideoSrc.ts` — novo hook com IPC fallback
-- `src/pages/SettingsPage.tsx` — Update Modal
-- `src/pages/DashboardPage.tsx` — ThumbnailImg
-- `src/pages/AssetDetailPage.tsx` — player inline
-- `src/components/VisualComparatorPlayer.tsx` — dois vídeos
-
-**Commit:** `7bf8aed` — branch `dev`, limpo.
+**Build:** ✅ CI verde, Build verde, `v0.30.6-beta.1` publicada e validada pelo utilizador.
 
 ---
 
 ## Estado das branches
 
-- `dev`: `7bf8aed` — limpo, TypeScript OK, cargo check OK
-- `main`: `8152e4a` — 1 commit atrás de dev
-- Release `v0.30.5-beta.1`: publicada ✅ (bugs corrigidos em `7bf8aed` precisam de nova release)
+- `dev`: `ce27a22` — limpo, CI verde, Build verde
+- `main`: `8152e4a` — atrás de dev (mergiaria depois de validação completa no Sandbox)
+- Release `v0.30.6-beta.1`: publicada ✅ — instalada e testada no Windows Sandbox
 
 ---
 
 ## Notas tecnicas para o proximo agente
 
-- **Próxima release:** bump para `v0.30.6-beta.1` (ou próximo número) + push tag → disparar CI → instalar no Sandbox
-- **Validar no Sandbox após build:** (1) Definições → Sobre → "Verificar actualização" mostra modal com confirmação antes de instalar; (2) Dashboard rows têm thumbnails; (3) player inline reproduz vídeo; (4) comparador mostra split-screen
-- **useVideoSrc hook** (`src/hooks/useVideoSrc.ts`): tenta `convertFileSrc` primeiro; em `onError` invoca `read_video_base64` (≤50 MB) via IPC. Para ficheiros maiores: mostra mensagem + botão "Abrir no player do sistema"
-- **read_video_base64** (`commands/assets.rs`): retorna `Err("FILE_TOO_LARGE:{bytes}")` se > 50 MB
-- **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 2 de Junho 2026
-- **tauri.conf.json version** DEVE ser numérica pura no bump
+- **Bug recorrente do sync.ps1:** após cada release bump, verificar se `tauri.conf.json` tem versão numérica pura (ex: `0.30.6`) e NÃO semver com sufixo (ex: `0.30.6-beta.1`). O `tauri-action@v0` falha com "Signature not found" quando há sufixo. Fix: editar + commit + retag.
+- **useVideoSrc hook** (`src/hooks/useVideoSrc.ts`): tenta `convertFileSrc` primeiro; em `onError` invoca `read_video_base64` (≤50 MB) via IPC. Para ficheiros maiores: mensagem + botão "Abrir no player do sistema".
+- **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 16 de Junho 2026 (Node 20 deprecated; windows-latest → windows-2025 a 15 de Junho).
+- **PROGRESS-DESKTOP.md:** reposto limpo a 12 KB. Evitar caracteres especiais Unicode (→, ≤, —) no ficheiro — causam multi-encode em algumas ferramentas.
 
 ---
 
