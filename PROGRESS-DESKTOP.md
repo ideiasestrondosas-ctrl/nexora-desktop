@@ -12,19 +12,19 @@
 
 ## Identidade
 
-| Campo                  | Valor                                                                                                 |
-| ---------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Nome**               | Nexora Media Processing - Desktop Nativo                                                              |
-| **Versao** | 0.30.8-beta.1 |
-| **IDE**                | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT)                                         |
-| **Stack Shell**        | Tauri 2.x (Rust)                                                                                      |
-| **Stack Frontend**     | React 19 + TypeScript + Tailwind CSS + Zustand                                                        |
+| Campo                  | Valor                                                                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Nome**               | Nexora Media Processing - Desktop Nativo                                                                                                          |
+| **Versao**             | 0.30.8-beta.1                                                                                                                                     |
+| **IDE**                | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT)                                                                                     |
+| **Stack Shell**        | Tauri 2.x (Rust)                                                                                                                                  |
+| **Stack Frontend**     | React 19 + TypeScript + Tailwind CSS + Zustand                                                                                                    |
 | **Stack Sidecar**      | Nexora Engine (pkg SEA ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Node.js 22 bundled, sem dep. no sistema) |
-| **Base de dados**      | SQLite via better-sqlite3                                                                             |
-| **Media tools**        | FFmpeg / FFprobe / BS1770GAIN                                                                         |
-| **Build**              | GitHub Actions (Tauri Action)                                                                         |
-| **Plataformas alvo**   | Windows x64 / macOS Universal (Intel+ARM) / Linux x64                                                 |
-| **Relacao com Server** | Modulo separado, mesma base de qualidade e standards                                                  |
+| **Base de dados**      | SQLite via better-sqlite3                                                                                                                         |
+| **Media tools**        | FFmpeg / FFprobe / BS1770GAIN                                                                                                                     |
+| **Build**              | GitHub Actions (Tauri Action)                                                                                                                     |
+| **Plataformas alvo**   | Windows x64 / macOS Universal (Intel+ARM) / Linux x64                                                                                             |
+| **Relacao com Server** | Modulo separado, mesma base de qualidade e standards                                                                                              |
 
 ---
 

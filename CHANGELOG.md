@@ -9,9 +9,8 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 ## [0.30.8-beta.1] - 2026-05-30
 
 ### Added
+
 - docs(session): fechar sessao 40 -- sync.ps1 bugs corrigidos
-
-
 
 ## [0.30.7-beta.1] - 2026-05-30
 
