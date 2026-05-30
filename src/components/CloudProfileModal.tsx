@@ -192,10 +192,10 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 glass-surface border border-border rounded-xl p-6 w-full max-w-md z-50 shadow-xl">
           <div className="flex items-center justify-between mb-4">
-            <Dialog.Title className="text-white font-semibold">
+            <Dialog.Title className="text-text-primary font-semibold">
               {editing ? 'Editar Perfil' : 'Novo Perfil Cloud'}
             </Dialog.Title>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <button onClick={onClose} className="text-text-muted hover:text-text-primary">
               <X size={18} />
             </button>
           </div>
@@ -203,11 +203,11 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
           <div className="space-y-3">
             {!editing && (
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Tipo</label>
+                <label className="text-xs text-text-muted block mb-1">Tipo</label>
                 <select
                   value={provider}
                   onChange={(e) => setProvider(e.target.value as CloudProviderType)}
-                  className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm"
+                  className="w-full bg-bg-secondary border border-border rounded px-3 py-2 text-text-primary text-sm"
                 >
                   {(Object.keys(PROVIDER_LABELS) as CloudProviderType[]).map((k) => (
                     <option key={k} value={k}>
@@ -219,19 +219,19 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
             )}
 
             <div>
-              <label className="text-xs text-gray-400 block mb-1">Nome</label>
+              <label className="text-xs text-text-muted block mb-1">Nome</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="ex: FTP cliente X"
-                className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm"
+                className="w-full bg-bg-secondary border border-border rounded px-3 py-2 text-text-primary text-sm"
               />
             </div>
 
             {providerFields.map((f) => (
               <div key={f.key}>
-                <label className="text-xs text-gray-400 block mb-1">{f.label}</label>
+                <label className="text-xs text-text-muted block mb-1">{f.label}</label>
                 {f.type === 'checkbox' ? (
                   <input
                     type="checkbox"
@@ -248,15 +248,15 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
                     onChange={(e) =>
                       setField(f.key, f.type === 'number' ? Number(e.target.value) : e.target.value)
                     }
-                    className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm"
+                    className="w-full bg-bg-secondary border border-border rounded px-3 py-2 text-text-primary text-sm"
                   />
                 )}
               </div>
             ))}
 
             {provider === 'gdrive' && (
-              <div className="bg-gray-800/50 rounded p-3 text-sm mt-2">
-                <p className="text-gray-400 mb-2 text-xs">
+              <div className="bg-bg-secondary/50 rounded p-3 text-sm mt-2">
+                <p className="text-text-muted mb-2 text-xs">
                   Requer Client ID e Secret registados em console.cloud.google.com.
                 </p>
                 <button
@@ -268,9 +268,9 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
                   {gdrivePolling ? 'A aguardar autorização...' : 'Autenticar com Google'}
                 </button>
                 {gdriveAuthUrl && (
-                  <div className="mt-2 text-xs text-gray-300 space-y-2">
+                  <div className="mt-2 text-xs text-text-secondary space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-400">Abra:</span>
+                      <span className="text-text-muted">Abra:</span>
                       <button
                         type="button"
                         onClick={() => openUrl(gdriveAuthUrl)}
@@ -281,13 +281,15 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
                       </button>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-400">Código:</span>
-                      <strong className="text-white tracking-widest">{gdriveUserCode}</strong>
+                      <span className="text-text-muted">Código:</span>
+                      <strong className="text-text-primary tracking-widest">
+                        {gdriveUserCode}
+                      </strong>
                       <button
                         type="button"
                         onClick={() => navigator.clipboard.writeText(gdriveUserCode)}
                         title="Copiar código"
-                        className="text-gray-400 hover:text-white transition-colors"
+                        className="text-text-muted hover:text-text-primary transition-colors"
                       >
                         <Copy size={12} />
                       </button>
@@ -302,7 +304,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
             <button
               onClick={handleTest}
               disabled={testing}
-              className="flex items-center gap-2 text-sm text-gray-300 hover:text-white border border-gray-600 rounded px-3 py-1.5"
+              className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary border border-border rounded px-3 py-1.5"
             >
               {testing ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -314,7 +316,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
             <div className="flex gap-2">
               <button
                 onClick={onClose}
-                className="text-sm text-gray-400 hover:text-white px-3 py-1.5"
+                className="text-sm text-text-muted hover:text-text-primary px-3 py-1.5"
               >
                 Cancelar
               </button>
