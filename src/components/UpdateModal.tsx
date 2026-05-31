@@ -1,9 +1,12 @@
 import React, { useState, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Download, RefreshCw, X } from 'lucide-react';
+import { Download, ExternalLink, RefreshCw, X } from 'lucide-react';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import type { Update } from '@tauri-apps/plugin-updater';
+
+const RELEASES_URL = 'https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releases/latest';
 
 interface Props {
   update: Update;
@@ -115,6 +118,12 @@ export const UpdateModal: React.FC<Props> = ({ update, open, onClose }) => {
               <div className="text-sm text-text-secondary bg-bg-secondary border border-border rounded-lg p-3 max-h-40 overflow-y-auto whitespace-pre-wrap leading-relaxed">
                 {update.body}
               </div>
+              <button
+                onClick={() => openUrl(RELEASES_URL).catch(console.error)}
+                className="mt-2 flex items-center gap-1 text-xs text-brand hover:underline"
+              >
+                <ExternalLink size={11} /> {t('update.viewFullRelease')}
+              </button>
             </div>
           )}
 

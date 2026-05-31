@@ -16,7 +16,8 @@
     "restarting": "Restarting...",
     "downloadError": "Download error",
     "retry": "Retry",
-    "devModeRestart": "Installed. Restart manually (dev mode)."
+    "devModeRestart": "Installed. Restart manually (dev mode).",
+    "viewFullRelease": "View full release notes"
   },
   "nav": {
     "dashboard": "Dashboard",

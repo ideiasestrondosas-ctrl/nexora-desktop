@@ -16,7 +16,8 @@
     "restarting": "A reiniciar...",
     "downloadError": "Erro ao transferir",
     "retry": "Tentar novamente",
-    "devModeRestart": "Instalado. Reinicia manualmente (modo desenvolvimento)."
+    "devModeRestart": "Instalado. Reinicia manualmente (modo desenvolvimento).",
+    "viewFullRelease": "Ver release notes completas"
   },
   "nav": {
     "dashboard": "Dashboard",
