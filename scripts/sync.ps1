@@ -2149,6 +2149,55 @@ if (-not $syncUncommitted -and -not $syncInUnpushed) {
 }
 
 # ---------------------------------------------------------
+# VERIFICACOES PRE-PUSH (TypeScript + Rust)
+# ---------------------------------------------------------
+Write-Step "Verificacoes pre-push..."
+
+Write-Host "  [1/3] TypeScript check (tsc --noEmit)..." -NoNewline -ForegroundColor Gray
+$tscResult = & npm run typecheck 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host " FALHOU" -ForegroundColor Red
+    Write-Err "TypeScript check falhou. Corrige os erros antes de fazer push:"
+    $tscResult | Where-Object { $_ -match "error TS|SyntaxError" } | ForEach-Object {
+        Write-Host "  $_" -ForegroundColor Red
+    }
+    Pop-Location; exit 1
+}
+Write-Host " OK" -ForegroundColor Green
+
+Write-Host "  [2/3] Rust format check (cargo fmt --check)..." -NoNewline -ForegroundColor Gray
+$prevDir = Get-Location
+Set-Location (Join-Path $WORKSPACE "src-tauri")
+$fmtResult = & cargo fmt --check 2>&1
+$fmtExit = $LASTEXITCODE
+Set-Location $prevDir
+if ($fmtExit -ne 0) {
+    Write-Host " FALHOU" -ForegroundColor Red
+    Write-Err "cargo fmt --check falhou. Corre 'cargo fmt' em src-tauri/ e commita antes de fazer push:"
+    $fmtResult | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+    Pop-Location; exit 1
+}
+Write-Host " OK" -ForegroundColor Green
+
+Write-Host "  [3/3] Rust compile check (cargo check)..." -NoNewline -ForegroundColor Gray
+$prevDir = Get-Location
+Set-Location (Join-Path $WORKSPACE "src-tauri")
+$checkResult = & cargo check 2>&1
+$checkExit = $LASTEXITCODE
+Set-Location $prevDir
+if ($checkExit -ne 0) {
+    Write-Host " FALHOU" -ForegroundColor Red
+    Write-Err "cargo check falhou. Corrige os erros de compilacao Rust antes de fazer push:"
+    $checkResult | Where-Object { $_ -match "^error" } | ForEach-Object {
+        Write-Host "  $_" -ForegroundColor Red
+    }
+    Pop-Location; exit 1
+}
+Write-Host " OK" -ForegroundColor Green
+
+Write-Success "Todas as verificacoes passaram — a fazer push..."
+
+# ---------------------------------------------------------
 # PUSH PARA O GITHUB
 # ---------------------------------------------------------
 Write-Step "Enviando para o GitHub..."
