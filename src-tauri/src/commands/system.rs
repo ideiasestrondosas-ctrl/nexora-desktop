@@ -827,3 +827,59 @@ pub fn set_queue_concurrency(_max: u32) -> Result<(), String> {
     // Esta função serve de hook para futura integração com AppState em memória.
     Ok(())
 }
+
+/// Cria um atalho no Desktop do Windows (.lnk via PowerShell WScript.Shell)
+#[tauri::command]
+pub fn create_windows_shortcut() -> Result<(), String> {
+    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    let exe_str = exe.to_string_lossy();
+    let script = format!(
+        r#"$shell = New-Object -ComObject WScript.Shell; $s = $shell.CreateShortcut([System.IO.Path]::Combine([System.Environment]::GetFolderPath('Desktop'), 'Nexora Desktop.lnk')); $s.TargetPath = '{}'; $s.Save()"#,
+        exe_str.replace('\'', "''")
+    );
+    let status = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+        .status()
+        .map_err(|e| e.to_string())?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err("PowerShell CreateShortcut falhou".to_string())
+    }
+}
+
+/// Cria um ficheiro .desktop no Desktop do Linux
+#[tauri::command]
+pub fn create_desktop_shortcut() -> Result<(), String> {
+    let home = std::env::var("HOME").map_err(|e| e.to_string())?;
+    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    let content = format!(
+        "[Desktop Entry]\nName=Nexora Desktop\nExec={}\nIcon=nexora-desktop\nType=Application\nCategories=AudioVideo;Video;\nTerminal=false\n",
+        exe.display()
+    );
+    let path = format!("{}/Desktop/Nexora Desktop.desktop", home);
+    std::fs::write(&path, &content).map_err(|e| e.to_string())?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755))
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// Cria um Alias macOS no Desktop via Finder AppleScript
+#[tauri::command]
+pub fn create_macos_alias() -> Result<(), String> {
+    let script =
+        r#"tell application "Finder" to make alias file to POSIX file "/Applications/Nexora Desktop.app" at desktop"#;
+    let status = std::process::Command::new("osascript")
+        .args(["-e", script])
+        .status()
+        .map_err(|e| e.to_string())?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err("osascript falhou -- verifica que a app esta em /Applications".to_string())
+    }
+}
