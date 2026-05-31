@@ -871,8 +871,7 @@ pub fn create_desktop_shortcut() -> Result<(), String> {
 /// Cria um Alias macOS no Desktop via Finder AppleScript
 #[tauri::command]
 pub fn create_macos_alias() -> Result<(), String> {
-    let script =
-        r#"tell application "Finder" to make alias file to POSIX file "/Applications/Nexora Desktop.app" at desktop"#;
+    let script = r#"tell application "Finder" to make alias file to POSIX file "/Applications/Nexora Desktop.app" at desktop"#;
     let status = std::process::Command::new("osascript")
         .args(["-e", script])
         .status()
