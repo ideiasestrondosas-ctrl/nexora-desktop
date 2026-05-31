@@ -31,8 +31,9 @@ import type { DetailedMediaInfo } from '@/components/MediaInfoPanel';
 import { ThumbnailImg } from '@/components/ThumbnailImg';
 import { VisualComparatorPlayer } from '@/components/VisualComparatorPlayer';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { useShallow } from 'zustand/react/shallow';
 import { useAssetsStore } from '@/store/assets';
-import { useJobsStore } from '@/store/jobs';
+import { useJobsStore, type Job } from '@/store/jobs';
 import { useVideoSrc } from '@/hooks/useVideoSrc';
 import { PIPELINE_STEPS, PIPELINE_PHASES, getStepIndex } from '@/lib/pipeline';
 
@@ -81,7 +82,7 @@ interface AssetDetailPageProps {
 export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: AssetDetailPageProps) {
   const [asset, setAsset] = useState<Asset | null>(null);
   // Substituição: jobs derivados do store global (reactivo a eventos sidecar)
-  const jobs = useJobsStore((s) => s.jobs.filter((j) => j.asset_id === assetId));
+  const jobs = useJobsStore(useShallow((s) => s.jobs.filter((j) => j.asset_id === assetId)));
   const [loading, setLoading] = useState(true);
   const [activeDetailTab, setActiveDetailTab] = useState<
     'qc' | 'metadata' | 'media' | 'history' | 'comparator'
@@ -108,6 +109,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
 
   const removeAsset = useAssetsStore((s) => s.removeAsset);
   const removeJobsByAsset = useJobsStore((s) => s.removeJobsByAsset);
+  const setJobs = useJobsStore((s) => s.setJobs);
 
   const fetchData = useCallback(async () => {
     try {
@@ -179,6 +181,10 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
       await invoke('submit_job', { assetId, profile, priority: 0 });
       toast.success(t('assetDetail.reprocessQueued', 'Job adicionado à fila'));
       fetchData();
+      // Refresh store para mostrar novo job imediatamente
+      invoke<Job[]>('list_jobs')
+        .then(setJobs)
+        .catch(() => {});
     } catch (e: unknown) {
       console.error('Failed to submit job:', e);
       toast.error(t('common.error', 'Ocorreu um erro'));
