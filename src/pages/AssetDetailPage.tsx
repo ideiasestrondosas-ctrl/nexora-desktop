@@ -57,22 +57,6 @@ interface Asset {
   metadata: Record<string, unknown> | null;
 }
 
-interface Job {
-  id: string;
-  asset_id: string;
-  profile: string;
-  status: string;
-  progress: number;
-  step: string | null;
-  error: string | null;
-  created_at: string;
-  started_at: string | null;
-  finished_at: string | null;
-  vmaf_score: number | null;
-  lufs: number | null;
-  output_path: string | null;
-}
-
 interface CloudDestination {
   profileId: string;
   profileName: string;
@@ -96,7 +80,8 @@ interface AssetDetailPageProps {
 
 export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: AssetDetailPageProps) {
   const [asset, setAsset] = useState<Asset | null>(null);
-  const [jobs, setJobs] = useState<Job[]>([]);
+  // Substituição: jobs derivados do store global (reactivo a eventos sidecar)
+  const jobs = useJobsStore((s) => s.jobs.filter((j) => j.asset_id === assetId));
   const [loading, setLoading] = useState(true);
   const [activeDetailTab, setActiveDetailTab] = useState<
     'qc' | 'metadata' | 'media' | 'history' | 'comparator'
@@ -126,13 +111,11 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
 
   const fetchData = useCallback(async () => {
     try {
-      const [assetData, jobsData, profilesData] = await Promise.all([
+      const [assetData, profilesData] = await Promise.all([
         invoke<Asset | null>('get_asset', { id: assetId }), // P6: backend retorna Option<Asset>; P11: param name é 'id'
-        invoke<Job[]>('list_jobs', { assetId }),
         invoke<Profile[]>('list_profiles'),
       ]);
       if (assetData) setAsset(assetData); // P6: verificar null
-      setJobs(jobsData);
       setProfiles(profilesData);
     } catch (error) {
       console.error('Failed to fetch asset detail:', error);
@@ -144,6 +127,17 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Re-fetch asset metadata quando o estado dos jobs deste asset muda
+  // (actualiza VMAF, output_path, codec info sem sair da página)
+  useEffect(() => {
+    if (jobs.length === 0) return;
+    invoke<Asset | null>('get_asset', { id: assetId })
+      .then((a) => {
+        if (a) setAsset(a);
+      })
+      .catch(() => {});
+  }, [jobs, assetId]);
 
   useEffect(() => {
     const doneJob = jobs.find((j) => j.asset_id === assetId && j.status === 'done');
