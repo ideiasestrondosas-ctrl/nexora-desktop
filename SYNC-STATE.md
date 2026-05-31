@@ -10,6 +10,39 @@ Agente: Claude Code (claude-haiku-4-5)
 
 ## O que foi feito
 
+### Sessao 43 — UI/UX v0.31.0 — 5 Fixes Light Mode + Pipeline Histórico + Versão Sidebar — CONCLUIDO
+
+**Agente:** Claude Code (claude-haiku-4-5)  
+**Data:** 2026-05-31
+
+**Resumo:** 5 melhorias UI/UX
+
+**Implementação (5 commits):**
+
+1. **feat(lib):** novo ficheiro `src/lib/pipeline.ts` com constantes `PIPELINE_STEPS`, `PIPELINE_PHASES` e função `getStepIndex()` partilhada
+2. **fix(queue):** importar `pipeline.ts`, aplicar `bg-bg-tertiary` em modo claro para cards e ícone Film
+3. **fix(help-modal):** melhorar contraste bordas sidebar inactivo + tips em modo claro
+4. **fix(asset-detail):** URL overlay `text-white`, path `text-secondary`, pipeline fases com progresso para jobs activos
+5. **fix(app):** versão completa no sidebar usando `APP_VERSION` (inclui sufixo beta)
+
+**Ficheiros alterados:**
+
+- `src/lib/pipeline.ts` — novo
+- `src/pages/QueuePage.tsx`
+- `src/components/HelpModal.tsx`
+- `src/pages/AssetDetailPage.tsx`
+- `src/App.tsx`
+
+**Verificação:**
+
+- `npm run typecheck` ✓ (sem erros)
+- `cargo fmt --check` ✓ (sem formatação necessária)
+- Git log: 5 commits prontos (c6faddf..3f00711)
+
+**Estado:** Branch `dev` em `c6faddf` — limpo, CI verde. Pronto para merge/release v0.31.0.
+
+---
+
 ### Sessao 42 — Release v0.30.9-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-haiku-4-5)  

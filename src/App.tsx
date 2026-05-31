@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { getVersion } from '@tauri-apps/api/app';
 import { listen } from '@tauri-apps/api/event';
+import { APP_VERSION } from '@/lib/version';
 import { Toaster, toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import {
@@ -51,7 +51,6 @@ function App() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
-  const [appVersion, setAppVersion] = useState('—');
   const [helpOpen, setHelpOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const { show: showOnboarding, complete: completeOnboarding } = useOnboarding();
@@ -214,14 +213,6 @@ function App() {
 
   // ── App version & Startup checks ──────────────────────────────────────────
   useEffect(() => {
-    getVersion()
-      .then(setAppVersion)
-      .catch(() =>
-        invoke<string>('get_app_version')
-          .then(setAppVersion)
-          .catch(() => setAppVersion('?')),
-      );
-
     // Verificar pré-requisitos no arranque
     invoke<{
       engineOk: boolean;
@@ -372,7 +363,7 @@ function App() {
             <span className="text-[9px] font-black text-text-muted uppercase tracking-[0.3em]">
               {t('app.version')}
             </span>
-            <span className="text-[10px] font-bold text-brand uppercase">v{appVersion}</span>
+            <span className="text-[10px] font-bold text-brand">v{APP_VERSION}</span>
           </div>
         </div>
       </aside>

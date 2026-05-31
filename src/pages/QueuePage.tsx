@@ -20,6 +20,7 @@ import {
   ThumbsDown,
 } from 'lucide-react';
 import PipelineSummary from '@/components/PipelineSummary';
+import { PIPELINE_STEPS, PIPELINE_PHASES, getStepIndex } from '@/lib/pipeline';
 
 interface Job {
   id: string;
@@ -53,23 +54,6 @@ interface QueueStats {
   quarantined: number;
   rejectedToday: number;
 }
-
-const PIPELINE_STEPS = [
-  { key: 'ingest' },
-  { key: 'qc-pre' },
-  { key: 'transcode' },
-  { key: 'audio' },
-  { key: 'proxy' },
-  { key: 'thumbnail' },
-  { key: 'qc-post' },
-  { key: 'delivery' },
-];
-
-const PIPELINE_PHASES = [
-  { labelKey: 'queue.phaseAnalyse', steps: ['ingest', 'qc-pre'] },
-  { labelKey: 'queue.phaseConvert', steps: ['transcode', 'audio', 'proxy', 'thumbnail'] },
-  { labelKey: 'queue.phaseVerify', steps: ['qc-post', 'delivery'] },
-];
 
 export default function QueuePage({
   onSelectAsset,
@@ -201,11 +185,6 @@ export default function QueuePage({
     ['done', 'error', 'cancelled', 'qc_rejected'].includes(j.status),
   );
 
-  const getStepIndex = (stepKey: string | null) => {
-    if (!stepKey) return -1;
-    return PIPELINE_STEPS.findIndex((s) => s.key === stepKey);
-  };
-
   const formatTime = (isoString: string | null) => {
     if (!isoString) return '--:--';
     const date = new Date(isoString);
@@ -312,7 +291,7 @@ export default function QueuePage({
                   </button>
 
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-bg-primary rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-bg-tertiary dark:bg-bg-primary rounded-lg flex items-center justify-center">
                       <Film className="text-text-muted" />
                     </div>
                     <div>
@@ -355,7 +334,7 @@ export default function QueuePage({
                                   ? 'border-green-500/40 bg-green-500/5'
                                   : isActive
                                     ? 'border-brand/60 bg-brand/5'
-                                    : 'border-border bg-bg-primary'
+                                    : 'border-border bg-bg-tertiary dark:bg-bg-primary'
                               }`}
                             >
                               <div className="flex items-center gap-2">
