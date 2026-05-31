@@ -109,6 +109,26 @@
 - [x] Build funciona para Linux (.AppImage + .deb)
 - [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
 
+### Fase 22b - Fix Dropdown Perfil Transparente (Sessao 44b) -- CONCLUIDO
+
+**Objectivo:** Corrigir dropdown de seleccao de perfil ilegivel em modo claro e escuro.
+
+**Implementacao:**
+
+- [x] fix(modals): dropdown perfil `glass-surface` -> `bg-bg-primary` em IngestProfileModal (linha 346)
+- [x] fix(modals): ProfileDropdown `glass-surface` -> `bg-bg-primary` em BatchSubmitModal (linha 134)
+
+**Ficheiros alterados (2):**
+
+- `src/components/IngestProfileModal.tsx`
+- `src/components/BatchSubmitModal.tsx`
+
+**Verificacao:** tsc OK
+
+**Estado:** Branch dev em 5dcc548. Todos os glass-surface de modais e dropdowns substituidos.
+
+---
+
 ### Fase 22 - 6 Fixes + Real-Time UI (Sessao 44) -- CONCLUIDO
 
 **Objectivo:** Corrigir bugs de UI/UX, corrigir engine SEA, e implementar actualizacoes em tempo real.

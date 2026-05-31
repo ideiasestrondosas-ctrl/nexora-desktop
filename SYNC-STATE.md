@@ -10,6 +10,33 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 44b — Fix dropdown perfil transparente — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-05-31
+
+**Resumo:** Fix adicional — dropdown de selecao de perfil ilegivel em ambos os temas
+
+**Problema:** Os dropdowns internos de perfil em IngestProfileModal e BatchSubmitModal
+usavam `glass-surface` (transparente sem Mica). Ficavam invisiveis/ilegivel em dev mode,
+Windows 10 e Linux. Foram mantidos na sessao anterior por engano.
+
+**Fix:**
+
+- `src/components/IngestProfileModal.tsx` linha 346: dropdown `glass-surface` -> `bg-bg-primary`
+- `src/components/BatchSubmitModal.tsx` linha 134: ProfileDropdown `glass-surface` -> `bg-bg-primary`
+
+**Commit:** `5dcc548`
+
+**Nota sobre reboot em dev mode:** O Vite fez hot-reload automatico ao detectar nova
+dependencia `zustand/react/shallow`. Comportamento normal -- acontece uma vez por sessao
+de dev. O job de processamento continuou no backend sem interrupcao.
+
+**Estado:** Branch `dev` em `5dcc548`. Todos os `glass-surface` dos modais substituidos
+por `bg-bg-primary`. Pronto para merge/release.
+
+---
+
 ### Sessao 44 — 6 Fixes + Real-Time UI — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)
