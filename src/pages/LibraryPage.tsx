@@ -538,7 +538,7 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                             ? 'bg-brand text-white animate-pulse'
                             : asset.status === 'error'
                               ? 'bg-red-500 text-white'
-                              : 'bg-gray-700 text-text-secondary'
+                              : 'bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-gray-300'
                       }`}
                     >
                       {asset.status === 'processing'
@@ -558,7 +558,7 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                     )}
 
                     {/* ACÇÕES OVERLAY */}
-                    <div className="absolute inset-0 bg-bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                       <button
                         onClick={() => onSelectAsset?.(asset.id)}
                         title={t('queue.viewAsset')}
@@ -605,7 +605,7 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                     >
                       {asset.filename}
                     </h3>
-                    <div className="flex items-center justify-between text-[11px] font-bold text-text-muted uppercase tracking-tighter">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-text-secondary uppercase tracking-tighter">
                       <span>{formatBytes(asset.size_bytes)}</span>
                       <span>{formatDuration(asset.duration_secs)}</span>
                       <span className="text-text-muted">{asset.video_codec ?? '—'}</span>
@@ -681,7 +681,7 @@ export default function LibraryPage({ onImportRequest, onSelectAsset }: LibraryP
                             ? 'text-brand'
                             : asset.status === 'error'
                               ? 'text-red-500'
-                              : 'text-text-muted'
+                              : 'text-slate-500 dark:text-text-muted'
                       }`}
                     >
                       {asset.status}
