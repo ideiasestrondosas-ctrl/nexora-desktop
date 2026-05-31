@@ -10,11 +10,11 @@ export interface VersionEntry {
   description: string;
 }
 
-
+export const VERSION_HISTORY: VersionEntry[] = [
   {
     version: '0.30.11-beta.1',
     description:
-      'v0.30.11-beta.1.',
+      'v0.30.11-beta.1: i18n pipeline steps com hifem, HelpModal/IngestModal/BatchModal bg solido, engine SEA pkg --no-bytecode, QueuePill TopBar tempo real, AssetDetailPage reactivo via useJobsStore, dropdown perfil legivel.',
   },
   {
     version: '0.30.9-beta.1',
@@ -137,6 +137,7 @@ export interface VersionEntry {
   },
   {
     version: '0.10.0',
-    description: 'ProtÃƒÂ³tipo inicial: shell Tauri, esqueleto React, estrutura de projecto desktop.',
+    description:
+      'ProtÃƒÂ³tipo inicial: shell Tauri, esqueleto React, estrutura de projecto desktop.',
   },
 ];

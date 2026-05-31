@@ -807,7 +807,7 @@ function Update-VersionTs($version, $categorized) {
 
     # Procurar inicio do array VERSION_HISTORY
     $pattern = '(export const VERSION_HISTORY: VersionEntry\[\] = \[)'
-    $content = $content -replace $pattern, "$1`n$newEntry"
+    $content = $content -replace $pattern, ('$1' + "`n" + $newEntry)
 
     $utf8NoBom = New-Object System.Text.UTF8Encoding $false
     [System.IO.File]::WriteAllText($versionPath, $content, $utf8NoBom)
