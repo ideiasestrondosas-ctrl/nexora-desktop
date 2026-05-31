@@ -34,6 +34,7 @@ import {
   Info,
   AlertCircle,
   Cloud,
+  CheckCircle,
 } from 'lucide-react';
 import { CloudProfileModal } from '@/components/CloudProfileModal';
 import { STORAGE_KEY as ONBOARDING_STORAGE_KEY } from '@/components/OnboardingModal';
@@ -248,6 +249,7 @@ export default function SettingsPage() {
   const [ffmpegInfo, setFfmpegInfo] = useState<FfmpegInfo | null>(null);
   const [changelog, setChangelog] = useState<string>('');
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [checkResult, setCheckResult] = useState<'up_to_date' | null>(null);
   const [isDev, setIsDev] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null);
   const [manualUpdateOpen, setManualUpdateOpen] = useState(false);
@@ -498,7 +500,9 @@ export default function SettingsPage() {
         setPendingUpdate(update);
         setManualUpdateOpen(true);
       } else {
-        toast(t('settings.advanced.latestVersion'), { icon: '✅' });
+        toast.success(t('settings.about.latestVersion'), { duration: 5000 });
+        setCheckResult('up_to_date');
+        setTimeout(() => setCheckResult(null), 6000);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -1799,7 +1803,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 mt-6">
+            <div className="flex flex-wrap items-center gap-3 mt-6">
               <button
                 onClick={handleCheckUpdates}
                 disabled={checkingUpdate}
@@ -1808,6 +1812,11 @@ export default function SettingsPage() {
                 <RefreshCw size={14} className={checkingUpdate ? 'animate-spin' : ''} />{' '}
                 {t('settings.about.checkUpdates')}
               </button>
+              {checkResult === 'up_to_date' && (
+                <span className="text-xs text-green-500 flex items-center gap-1 animate-in fade-in duration-300">
+                  <CheckCircle size={12} /> {t('settings.about.latestVersion')}
+                </span>
+              )}
               <button
                 onClick={handleOpenDataDir}
                 className="px-4 py-2 bg-surface hover:bg-surface-hover text-text-primary text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
