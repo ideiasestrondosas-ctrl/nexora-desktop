@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 import { useGPU } from '@/hooks/useGPU';
 import { useDiskSpace } from '@/hooks/useDiskSpace';
-import { LogOut, Cpu, MemoryStick, HardDrive, Monitor, HelpCircle, Bug } from 'lucide-react';
+import { LogOut, Cpu, MemoryStick, HardDrive, Monitor, HelpCircle, Bug, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useJobsStore } from '@/store/jobs';
 
@@ -79,6 +79,7 @@ function CircularGauge({
 }
 
 function QueuePill() {
+  const { t } = useTranslation();
   const jobs = useJobsStore((s) => s.jobs);
   const active = jobs.filter((j) => j.status === 'processing' || j.status === 'queued').length;
   const done = jobs.filter((j) => j.status === 'done').length;
@@ -94,14 +95,19 @@ function QueuePill() {
         }
       />
       {isActive ? (
-        <span className="text-blue-400 font-semibold">{active} em curso</span>
+        <span className="text-blue-400 font-semibold">
+          {t('topbar.queueActive', { count: active })}
+        </span>
       ) : (
-        <span className="text-text-muted font-medium">Pronto</span>
+        <span className="text-text-muted font-medium">{t('topbar.queueIdle')}</span>
       )}
       {done > 0 && (
         <>
           <span className="text-text-muted/40">·</span>
-          <span className="text-green-500 font-semibold">{done} ✓</span>
+          <span className="text-green-500 font-semibold flex items-center gap-0.5">
+            {done}
+            <Check size={10} strokeWidth={2.5} />
+          </span>
         </>
       )}
     </div>

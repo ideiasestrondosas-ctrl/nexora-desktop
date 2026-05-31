@@ -40,7 +40,9 @@
     "gpu": "GPU",
     "disk": "Disk",
     "exit": "Exit",
-    "help": "Help"
+    "help": "Help",
+    "queueActive": "{{count}} processing",
+    "queueIdle": "Ready"
   },
   "help": {
     "title": "User Manual",

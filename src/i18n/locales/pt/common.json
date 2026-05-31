@@ -40,7 +40,9 @@
     "gpu": "GPU",
     "disk": "Disco",
     "exit": "Sair do programa",
-    "bugReport": "Reportar Problema"
+    "bugReport": "Reportar Problema",
+    "queueActive": "{{count}} em curso",
+    "queueIdle": "Pronto"
   },
   "help": {
     "title": "Manual do Utilizador",
