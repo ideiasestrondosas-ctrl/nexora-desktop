@@ -15,7 +15,7 @@
 | Campo                  | Valor                                                                                                                                             |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Nome**               | Nexora Media Processing - Desktop Nativo                                                                                                          |
-| **Versao**             | 0.30.8-beta.1                                                                                                                                     |
+| **Versao**             | 0.30.9-beta.1                                                                                                                                     |
 | **IDE**                | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT)                                                                                     |
 | **Stack Shell**        | Tauri 2.x (Rust)                                                                                                                                  |
 | **Stack Frontend**     | React 19 + TypeScript + Tailwind CSS + Zustand                                                                                                    |
@@ -108,6 +108,40 @@
 - [x] Build funciona para macOS (.dmg universal)
 - [x] Build funciona para Linux (.AppImage + .deb)
 - [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
+
+### Fase 20 - 7 Fixes UI/UX v0.30.9-beta.1 (Sessao 41) — EM DEV
+
+**Objectivo:** Implementar 7 melhorias de UI/UX e novos comandos Rust para shortcuts de desktop.
+
+**Implementacao:**
+
+- [x] fix(changelog): limpar mojibake UTF-8 em CHANGELOG.md
+- [x] fix(ci): corrigir regex overly-escaped em extractChangelogSection (ci-generate-updater-json.mjs)
+- [x] feat(update-modal): adicionar link 'Ver release notes completas' com redirecionamento GitHub
+- [x] fix(help-modal): melhorar contraste bordas e sidebar em modo claro e escuro
+- [x] fix(library): hover overlay escuro + badges de status visiveis em light mode
+- [x] feat(settings): badge 'ja actualizado' inline com auto-dismiss 6s no botao Check Updates
+- [x] feat(settings): novo botao 'Criar atalho no desktop' com UI adaptativa por plataforma
+- [x] feat(rust): 3 novos comandos: create_windows_shortcut, create_desktop_shortcut, create_macos_alias
+
+**Ficheiros alterados (11):**
+
+- `CHANGELOG.md` — UTF-8 corrompido limpo
+- `scripts/ci-generate-updater-json.mjs` — regex fix para extractChangelogSection
+- `src/components/UpdateModal.tsx` — novo link para release notes
+- `src/components/HelpModal.tsx` — CSS contraste melhorado
+- `src/pages/LibraryPage.tsx` — overlay + badges fixes
+- `src/pages/SettingsPage.tsx` — badge e botao de atalhos
+- `src-tauri/src/commands/mod.rs` — 3 novos comandos
+- `src-tauri/src/commands/system.rs` — implementacao dos comandos
+- `src-tauri/src/lib.rs` — registro dos comandos
+- `src/hooks/usePlatform.ts` — helpers para UI adaptativa
+
+**Verificacao:** tsc OK · eslint OK · cargo check OK · testes 48/48 OK
+
+**Estado:** dev em 3c9fa41, 8 commits, pronto para merge e release v0.30.9-beta.1.
+
+---
 
 ### Fase 19 - Bugs UI/UX Sandbox v0.30.6-beta.1 (Sessao 38) Ã¢â‚¬â€ VALIDADO
 

@@ -5,38 +5,56 @@
 
 ---
 
-Actualizado: 2026-05-30
-Agente: Claude Code (claude-sonnet-4-6)
+Actualizado: 2026-05-31
+Agente: Claude Code (claude-haiku-4-5)
 
 ## O que foi feito
 
-### Sessao 40 — sync.ps1: 3 Bugs Recorrentes de Release — CONCLUIDO ✅
+### Sessao 41 — 7 Fixes UI/UX v0.30.9-beta.1 — CONCLUIDO ✅
 
-**Pedido:** Analisar histórico de CI e sync.ps1 para identificar e corrigir padrão recorrente de falhas pós-release-bump.
+**Pedido:** Implementar 7 melhorias de UI/UX conforme plano aprovado. Fixes no changelog encoding, help modal contraste, library overlay, update modal, settings badges e shortcuts de desktop.
 
-**3 bugs corrigidos em `scripts/sync.ps1`:**
+**7 Fixes implementados:**
 
-1. **tauri.conf.json versão semver**: `$tauriConf.version = $newVersion` → `$tauriConf.version = ($newVersion -split '-')[0]`. Agora escreve `"0.30.7"` em vez de `"0.30.7-beta.1"`.
-2. **Prettier falha no CI**: antes do `git add`, corre `npm run format` explicitamente sobre os ficheiros do bump. Mantém `--no-verify`.
-3. **Watch loop eterno**: `$minCreatedAt` filtrava o Build run real. Fix: rastrear `$ciPassedAt`; se CI ✅ e Build não aparecer em 5 min, sair graciosamente com aviso.
+1. **fix(changelog): limpar mojibake UTF-8** — caracteres garbled em CHANGELOG.md corrigidos para UTF-8 válido
+2. **fix(ci): regex overly-escaped** — `extractChangelogSection` em `ci-generate-updater-json.mjs` corrigida para notes do latest.json populadas
+3. **feat(update-modal): link 'Ver release notes completas'** — modal de actualização com link para release notes no GitHub
+4. **fix(help-modal): contraste bordas sidebar** — modo claro e escuro com cores melhoradas para legibilidade
+5. **fix(library): hover overlay escuro + badges** — status badges visíveis com overlay correcto em light mode
+6. **feat(settings): badge 'ja actualizado' inline** — badge inline com auto-dismiss 6s no botão Check Updates
+7. **feat(settings): botão 'Criar atalho no desktop'** — novo botão com 3 comandos Rust (Windows/macOS/Linux) + UI adaptativa
+8. **feat(rust): commands para shortcuts** — `create_windows_shortcut`, `create_desktop_shortcut`, `create_macos_alias`
 
-**Commits:**
+**Commits (8):**
 
-- `c7f3c1c` — fix(sync): tauri.conf.json versao numerica + prettier pre-commit
-- `f90df44` — fix(sync): Watch-GitHubActions sai graciosamente quando CI verde + Build invisivel
+- `c3968ad` fix(changelog): limpar mojibake UTF-8
+- `8029960` fix(ci): corrigir regex overly-escaped em extractChangelogSection
+- `71366ff` feat(update-modal): adicionar link 'Ver release notes completas'
+- `d4d42bb` fix(help-modal): melhorar contraste bordas e sidebar
+- `53e4998` fix(library): hover overlay escuro + badges de status visiveis
+- `31572f0` feat(settings): badge 'ja actualizado' inline com auto-dismiss 6s
+- `c66f81e` feat(rust): commands create_windows_shortcut, create_desktop_shortcut, create_macos_alias
+- `3c9fa41` feat(settings): botao 'Criar atalho no desktop' adaptativo por plataforma
+
+**Estado:** `dev` em `3c9fa41`, 8 commits à frente de `main`. Próxima versão: `v0.30.9-beta.1`.
+
+**Verificação:** tsc ✅ · eslint ✅ · cargo check ✅ · 48/48 testes ✅
 
 ---
 
 ## Estado das branches
 
-- `dev`: `f90df44` — 2 commits prontos, aguarda merge para main
-- `main`: `e35232d` — atrás de dev
+- `dev`: `3c9fa41` — limpo, CI verde, 8 commits prontos
+- `main`: atrás de dev (pendente release v0.30.9-beta.1)
 
 ---
 
-## Notas tecnicas para o proximo agente
+## Notas técnicas para o próximo agente
 
-- **sync.ps1 release bugs RESOLVIDOS**: tauri.conf.json versão numérica automática + Prettier antes do commit + Watch loop com timeout 5min. Estes bugs não voltam.
+- **v0.30.9-beta.1**: próxima release; versão em dev: 0.30.9
+- **Shortcuts de desktop**: 3 novos comandos Rust; UI adaptativa com `usePlatform()` hook
+- **Mojibake UTF-8**: CHANGELOG.md limpo — caracteres especiais agora válidos
+- **Release notes link**: update modal com link externo para release notes no GitHub
 - **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 16 de Junho 2026.
 
 ---
