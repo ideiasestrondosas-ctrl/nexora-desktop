@@ -6,9 +6,51 @@
 ---
 
 Actualizado: 2026-05-31
-Agente: Claude Code (claude-haiku-4-5)
+Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 44 — 6 Fixes + Real-Time UI — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-05-31
+
+**Resumo:** 3 bugs corrigidos + engine fix + 3 features real-time UI
+
+**Implementacao (8 commits):**
+
+1. **fix(i18n+help-modal):** chaves `pipeline.qc-pre/Desc` e `qc-post/Desc` adicionadas a EN+PT (codigo usava hifem, JSON tinha camelCase); HelpModal `glass-surface` -> `bg-bg-primary`
+2. **fix(engine):** `pkg --no-bytecode --public` resolve "A dynamic import callback was not specified" no Node 22 SEA; logging `[DIAG] step=X:start` adicionado ao orchestrator
+3. **feat(topbar):** `QueuePill` -- dot azul pulsante quando activo, cinzento idle; i18n EN+PT; Check icon
+4. **feat(asset-detail):** `useJobStatus()` montado globalmente em `App.tsx` (store estava sempre vazio -- hook nunca montado); `useState<Job[]>` -> `useJobsStore + useShallow`; `useEffect` re-fetch metadata; `handleReprocess` faz seed imediato
+5. **fix(modals):** `IngestProfileModal` e `BatchSubmitModal` container raiz `glass-surface` -> `bg-bg-primary`
+
+**Ficheiros alterados:**
+
+- `src/i18n/locales/en/common.json` + `pt/common.json` -- chaves pipeline + topbar.queueActive/Idle
+- `src/components/HelpModal.tsx` -- bg-bg-primary
+- `sidecar/orchestrator/NexoraDesktopOrchestrator.ts` -- logging diag
+- `package.json` -- engine:build:\* com --no-bytecode --public
+- `src/components/TopBar.tsx` -- QueuePill
+- `src/App.tsx` -- useJobStatus() montado
+- `src/pages/AssetDetailPage.tsx` -- useJobsStore + useShallow + useEffect metadata + handleReprocess seed
+- `src/components/IngestProfileModal.tsx` + `BatchSubmitModal.tsx` -- bg-bg-primary
+
+**Verificacao:**
+
+- `npm run typecheck` OK
+- nexora-engine.exe reconstruido com --no-bytecode --public (testado com ficheiro real: processa correctamente)
+
+**Estado:** Branch `dev` em `6b10cc7` -- pronto para merge/release.
+
+**Notas para proximo agente:**
+
+- **nexora-engine:** sempre usar `npm run engine:build:win` (ja com --no-bytecode --public). Copiar para `src-tauri/target/debug/nexora-engine.exe` apos build.
+- **useJobStatus:** montado em App.tsx -- nao duplicar em outras paginas.
+- **glass-surface vs bg-bg-primary:** modais raiz usam `bg-bg-primary`; overlays/dropdowns pequenos podem usar `glass-surface`.
+- **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 16 de Junho 2026.
+
+---
 
 ### Sessao 43 — UI/UX v0.31.0 — 5 Fixes Light Mode + Pipeline Histórico + Versão Sidebar — CONCLUIDO
 
