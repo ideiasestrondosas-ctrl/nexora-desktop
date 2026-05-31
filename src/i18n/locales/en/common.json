@@ -697,6 +697,8 @@
     "ingestDesc": "Asset inserted into DB with metadata",
     "qcPre": "Pre-QC",
     "qcPreDesc": "File validated (size, duration, codec)",
+    "qc-pre": "Pre-QC",
+    "qc-preDesc": "File validated (size, duration, codec)",
     "transcode": "Transcode",
     "transcodeDesc": "Broadcast-hd completed with bundled FFmpeg",
     "audio": "Audio",
@@ -707,6 +709,8 @@
     "thumbnailDesc": "Frame at 5s in 640px",
     "qcPost": "Post-QC",
     "qcPostDesc": "Output SHA-256 verified + VMAF",
+    "qc-post": "Post-QC",
+    "qc-postDesc": "Output SHA-256 verified + VMAF",
     "delivery": "Delivery",
     "deliveryDesc": "Files moved to output folder"
   },

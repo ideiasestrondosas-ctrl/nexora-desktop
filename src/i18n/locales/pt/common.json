@@ -850,6 +850,8 @@
     "ingestDesc": "Asset inserido na BD com metadados",
     "qcPre": "QC Pré",
     "qcPreDesc": "Ficheiro validado (tamanho, duração, codec)",
+    "qc-pre": "QC Pré",
+    "qc-preDesc": "Ficheiro validado (tamanho, duração, codec)",
     "transcode": "Transcode",
     "transcodeDesc": "Broadcast-hd concluído com FFmpeg bundled",
     "audio": "Áudio",
@@ -860,6 +862,8 @@
     "thumbnailDesc": "Frame aos 5s em 640px",
     "qcPost": "QC Pós",
     "qcPostDesc": "SHA-256 do output verificado + VMAF",
+    "qc-post": "QC Pós",
+    "qc-postDesc": "SHA-256 do output verificado + VMAF",
     "delivery": "Delivery",
     "deliveryDesc": "Ficheiros movidos para pasta de saída"
   },
