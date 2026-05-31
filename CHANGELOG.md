@@ -6,6 +6,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.30.10-beta.1] - 2026-05-31
+
+### Added
+
+- docs(session): sessao 44b -- fix dropdown transparente + actualizar SYNC-STATE e PROGRESS
+
 ## [0.30.9-beta.1] - 2026-05-31
 
 ### Added
@@ -34,7 +40,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Other
 
-- 2: Implementámos os 7 fixes UI/UX v0.30.9 no branch dev (contraste HelpModal, badges biblioteca, overlay hover, badge já
+- 2: ImplementÃ¡mos os 7 fixes UI/UX v0.30.9 no branch dev (contraste HelpModal, badges biblioteca, overlay hover, badge jÃ¡
 
 ## [0.30.8-beta.1] - 2026-05-30
 
@@ -52,7 +58,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- 2: Titulo: 4 Bugs UI/UX Sandbox â€“Â Update Modal, Thumbnails, Player, Comparador
+- 2: Titulo: 4 Bugs UI/UX Sandbox Ã¢â‚¬â€œÃ‚Â Update Modal, Thumbnails, Player, Comparador
 
 ## [0.30.5-beta.1] - 2026-05-29
 
