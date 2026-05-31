@@ -131,7 +131,7 @@ function ProfileDropdown({
               onClick={() => setOpen(false)}
             />
             <div
-              className="glass-surface border border-border rounded-xl shadow-2xl max-h-56 overflow-y-auto"
+              className="bg-bg-primary border border-border rounded-xl shadow-2xl max-h-56 overflow-y-auto"
               style={{ ...menuStyle, pointerEvents: 'auto' }}
             >
               {profiles.map((p) => (
