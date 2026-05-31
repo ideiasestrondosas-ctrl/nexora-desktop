@@ -730,11 +730,11 @@ function Update-SyncState($version, $agentInfo, $categorized, $filesChanged, $se
 
 **Resumo:** $(if ($totalItems -gt 0) { "$totalItems itens" } else { "Release v$version" })
 
-$(if ($categorized.Added.Count -gt 0) { "**Novas funcionalidades:**`n" + ($categorized.Added | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
-$(if ($categorized.Fixed.Count -gt 0) { "**Correcoes:**`n" + ($categorized.Fixed | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
-$(if ($categorized.Changed.Count -gt 0) { "**Alteracoes:**`n" + ($categorized.Changed | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
-$(if ($categorized.Infra.Count -gt 0) { "**Infraestrutura:**`n" + ($categorized.Infra | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
-$(if ($categorized.Docs.Count -gt 0) { "**Documentacao:**`n" + ($categorized.Docs | ForEach-Object { "- $_" } | Join-String "`n") + "`n`n" })
+$(if ($categorized.Added.Count -gt 0) { "**Novas funcionalidades:**`n" + (($categorized.Added | ForEach-Object { "- $_" }) -join "`n") + "`n`n" })
+$(if ($categorized.Fixed.Count -gt 0) { "**Correcoes:**`n" + (($categorized.Fixed | ForEach-Object { "- $_" }) -join "`n") + "`n`n" })
+$(if ($categorized.Changed.Count -gt 0) { "**Alteracoes:**`n" + (($categorized.Changed | ForEach-Object { "- $_" }) -join "`n") + "`n`n" })
+$(if ($categorized.Infra.Count -gt 0) { "**Infraestrutura:**`n" + (($categorized.Infra | ForEach-Object { "- $_" }) -join "`n") + "`n`n" })
+$(if ($categorized.Docs.Count -gt 0) { "**Documentacao:**`n" + (($categorized.Docs | ForEach-Object { "- $_" }) -join "`n") + "`n`n" })
 $(if ($filesChanged.Count -gt 0) { "**Ficheiros alterados:** $(($filesChanged | Select-Object -First 10) -join ', ')$(if ($filesChanged.Count -gt 10) { " e mais $($filesChanged.Count - 10)" })`n`n" })
 $(if ($sessionInfo.NotesNextAgent) { "**Notas para o proximo agente:**`n$($sessionInfo.NotesNextAgent)`n`n" })
 ---

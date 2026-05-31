@@ -1,7 +1,7 @@
 /**
- * VersÃ£o Ãºnica da aplicaÃ§Ã£o Nexora Desktop.
- * Actualizar aqui em cada release â€” propaga automaticamente
- * para todos os sÃ­tios que mostram a versÃ£o.
+ * Versão única da aplicação Nexora Desktop.
+ * Actualizar aqui em cada release — propaga automaticamente
+ * para todos os sítios que mostram a versão.
  */
 export const APP_VERSION = '0.30.9-beta.1';
 
@@ -10,11 +10,11 @@ export interface VersionEntry {
   description: string;
 }
 
-
+export const VERSION_HISTORY: VersionEntry[] = [
   {
     version: '0.30.9-beta.1',
     description:
-      'v0.30.9-beta.1: botao 'Criar atalho no desktop' adaptativo por plataforma, commands create_windows_shortcut, create_desktop_shortcut, create_macos_alias, hover overlay escuro em modo claro + badges....',
+      'v0.30.9-beta.1: 7 fixes UI/UX — HelpModal contraste claro/escuro, library badges modo claro, hover overlay escuro, badge verificacao versao inline, link release notes, atalho desktop Windows/Linux/macOS, CHANGELOG encoding.',
   },
   {
     version: '0.30.3-beta.1',
