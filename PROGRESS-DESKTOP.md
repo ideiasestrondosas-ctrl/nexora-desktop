@@ -109,6 +109,36 @@
 - [x] Build funciona para Linux (.AppImage + .deb)
 - [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
 
+### Fase 22 - 6 Fixes + Real-Time UI (Sessao 44) -- CONCLUIDO
+
+**Objectivo:** Corrigir bugs de UI/UX, corrigir engine SEA, e implementar actualizacoes em tempo real.
+
+**Implementacao:**
+
+- [x] fix(i18n): chaves `pipeline.qc-pre/Desc` e `qc-post/Desc` adicionadas a EN+PT (codigo usava hifem, JSON tinha camelCase)
+- [x] fix(help-modal): `glass-surface` -> `bg-bg-primary` no container raiz (transparente sem Mica)
+- [x] fix(engine): `pkg --no-bytecode --public` -- resolve "A dynamic import callback" no Node 22 SEA; logging `[DIAG] step=X:start` no orchestrator
+- [x] feat(topbar): `QueuePill` -- dot azul pulsante activo/cinzento idle + contagens i18n + Check icon
+- [x] feat(asset-detail): `useJobStatus()` montado em App.tsx; `useJobsStore + useShallow` substituiu `useState<Job[]>`; `useEffect` re-fetch metadata; seed apos reprocess
+- [x] fix(modals): `IngestProfileModal` + `BatchSubmitModal` container raiz `glass-surface` -> `bg-bg-primary`
+
+**Ficheiros alterados (8):**
+
+- `src/i18n/locales/en/common.json` + `pt/common.json` -- chaves pipeline + topbar queue
+- `src/components/HelpModal.tsx` -- bg-bg-primary
+- `src/components/TopBar.tsx` -- QueuePill
+- `src/App.tsx` -- useJobStatus() montado globalmente
+- `src/pages/AssetDetailPage.tsx` -- useJobsStore + useShallow + useEffect metadata
+- `src/components/IngestProfileModal.tsx` + `BatchSubmitModal.tsx` -- bg-bg-primary
+- `sidecar/orchestrator/NexoraDesktopOrchestrator.ts` -- logging diag
+- `package.json` -- engine:build:\* com --no-bytecode --public
+
+**Verificacao:** tsc OK . nexora-engine testado com ficheiro real (processa correctamente)
+
+**Estado:** Branch dev em 6b10cc7. Pronto para merge/release.
+
+---
+
 ### Fase 21 - 5 Fixes UI/UX v0.31.0-beta.1 (Sessao 43) -- CONCLUIDO
 
 **Objectivo:** 5 melhorias visuais modo claro + pipeline com progresso em tempo real + versao completa no sidebar.
