@@ -15,7 +15,7 @@
 | Campo                  | Valor                                                                                                                                                                                                                                                 |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Nome**               | Nexora Media Processing - Desktop Nativo                                                                                                                                                                                                              |
-| **Versao**             | 0.30.9-beta.1                                                                                                                                                                                                                                         |
+| **Versao**             | 0.31.0-beta.1                                                                                                                                                                                                                                         |
 | **IDE**                | Google Antigravity (fork VS Code com Gemini, Claude, ChatGPT)                                                                                                                                                                                         |
 | **Stack Shell**        | Tauri 2.x (Rust)                                                                                                                                                                                                                                      |
 | **Stack Frontend**     | React 19 + TypeScript + Tailwind CSS + Zustand                                                                                                                                                                                                        |
@@ -109,7 +109,34 @@
 - [x] Build funciona para Linux (.AppImage + .deb)
 - [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
 
-### Fase 20 - 7 Fixes UI/UX v0.30.9-beta.1 (Sessao 41) â€” EM DEV
+### Fase 21 - 5 Fixes UI/UX v0.31.0-beta.1 (Sessao 43) -- CONCLUIDO
+
+**Objectivo:** 5 melhorias visuais modo claro + pipeline com progresso em tempo real + versao completa no sidebar.
+
+**Implementacao:**
+
+- [x] feat(lib): novo src/lib/pipeline.ts -- PIPELINE_STEPS, PIPELINE_PHASES, getStepIndex partilhados
+- [x] fix(queue): importar pipeline.ts + bg-bg-tertiary em cards inactivos e icone Film (modo claro)
+- [x] fix(help-modal): sidebar inactivo text-text-secondary + ChevronRight /80 + tips label (modo claro)
+- [x] fix(asset-detail): URL overlay text-white/90, path text-secondary, pipeline fases com progresso para jobs activos
+- [x] fix(app): versao completa v0.31.0-beta.1 no sidebar usando APP_VERSION
+
+**Ficheiros alterados (6):**
+
+- `src/lib/pipeline.ts` -- novo ficheiro partilhado
+- `src/pages/QueuePage.tsx` -- import pipeline.ts + light mode
+- `src/components/HelpModal.tsx` -- contraste sidebar e tips
+- `src/pages/AssetDetailPage.tsx` -- URL + path + pipeline fases
+- `src/App.tsx` -- APP_VERSION no sidebar
+- `SYNC-STATE.md` -- sessao 43
+
+**Verificacao:** tsc OK . cargo fmt OK
+
+**Estado:** Mergeado para main. Pronto para release v0.31.0-beta.1.
+
+---
+
+### Fase 20 - 7 Fixes UI/UX v0.30.9-beta.1 (Sessao 41) -- CONCLUIDO
 
 **Objectivo:** Implementar 7 melhorias de UI/UX e novos comandos Rust para shortcuts de desktop.
 
