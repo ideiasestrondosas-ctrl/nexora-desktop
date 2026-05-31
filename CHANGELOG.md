@@ -6,6 +6,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.30.11-beta.1] - 2026-05-31
+
+### Other
+
+- 2: 7 Fixes UI/UX + Engine SEA Fix + Real-Time UI
+
 ## [0.30.10-beta.1] - 2026-05-31
 
 ### Added
@@ -40,7 +46,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Other
 
-- 2: ImplementÃ¡mos os 7 fixes UI/UX v0.30.9 no branch dev (contraste HelpModal, badges biblioteca, overlay hover, badge jÃ¡
+- 2: ImplementÃƒÂ¡mos os 7 fixes UI/UX v0.30.9 no branch dev (contraste HelpModal, badges biblioteca, overlay hover, badge jÃƒÂ¡
 
 ## [0.30.8-beta.1] - 2026-05-30
 
@@ -58,7 +64,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- 2: Titulo: 4 Bugs UI/UX Sandbox Ã¢â‚¬â€œÃ‚Â Update Modal, Thumbnails, Player, Comparador
+- 2: Titulo: 4 Bugs UI/UX Sandbox ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â Update Modal, Thumbnails, Player, Comparador
 
 ## [0.30.5-beta.1] - 2026-05-29
 
