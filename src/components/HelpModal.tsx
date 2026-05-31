@@ -142,7 +142,7 @@ function ScreenCard({
   onImageClick?: () => void;
 }) {
   return (
-    <div className="bg-bg-secondary/80 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden">
+    <div className="bg-bg-secondary rounded-xl border border-border overflow-hidden">
       {screenshot && (
         <div
           className="w-full h-40 bg-bg-tertiary border-b border-border/50 overflow-hidden cursor-pointer group relative"
@@ -363,9 +363,9 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
             }
           }}
         >
-          <div className="glass-surface rounded-xl border border-border/50 shadow-2xl w-full max-w-5xl h-[85vh] min-h-[600px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="glass-surface rounded-xl border border-border shadow-2xl w-full max-w-5xl h-[85vh] min-h-[600px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-gradient-to-r from-brand/5 to-transparent shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-gradient-to-r from-brand/5 to-transparent shrink-0">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="p-2 bg-brand/10 rounded-xl shrink-0">
                   <HelpCircle className="w-5 h-5 text-brand" />
@@ -404,7 +404,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
             {/* Main layout: sidebar + content */}
             <div className="flex flex-1 overflow-hidden">
               {/* Sidebar */}
-              <div className="w-48 shrink-0 border-r border-border/50 bg-bg-secondary/50 flex flex-col overflow-y-auto h-full">
+              <div className="w-48 shrink-0 border-r border-border bg-bg-secondary flex flex-col overflow-y-auto h-full">
                 {visibleTabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -412,7 +412,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                     className={cn(
                       'flex items-center gap-2 px-4 py-3 text-xs font-semibold transition-all text-left',
                       activeTab === tab.id
-                        ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                        ? 'bg-brand/15 text-brand border-l-2 border-brand'
                         : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary border-l-2 border-transparent',
                     )}
                   >
