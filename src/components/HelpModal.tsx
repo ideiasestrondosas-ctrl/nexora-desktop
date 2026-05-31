@@ -173,13 +173,13 @@ function ScreenCard({
         <div className="text-xs text-text-secondary leading-relaxed space-y-1.5">{children}</div>
         {tips && tips.length > 0 && (
           <div className="pt-2 border-t border-border/50">
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-1.5">
+            <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-1.5">
               Tips
             </p>
             <ul className="space-y-1">
               {tips.map((tip, i) => (
                 <li key={i} className="flex items-start gap-1.5 text-[11px] text-text-muted">
-                  <ChevronRight className="w-3 h-3 shrink-0 mt-0.5 text-brand/60" />
+                  <ChevronRight className="w-3 h-3 shrink-0 mt-0.5 text-brand/80" />
                   {tip}
                 </li>
               ))}
@@ -413,7 +413,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       'flex items-center gap-2 px-4 py-3 text-xs font-semibold transition-all text-left',
                       activeTab === tab.id
                         ? 'bg-brand/15 text-brand border-l-2 border-brand'
-                        : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary border-l-2 border-transparent',
+                        : 'text-text-secondary hover:bg-bg-hover hover:text-text-primary border-l-2 border-transparent',
                     )}
                   >
                     {tab.icon}
