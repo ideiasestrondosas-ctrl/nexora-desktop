@@ -4,6 +4,7 @@ import { listen } from '@tauri-apps/api/event';
 import { open, confirm } from '@tauri-apps/plugin-dialog';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { platform } from '@tauri-apps/plugin-os';
 import { useSettingsStore } from '@/store/settings';
 import { useGPU } from '@/hooks/useGPU';
 import { check, type Update } from '@tauri-apps/plugin-updater';
@@ -259,6 +260,7 @@ export default function SettingsPage() {
   const [logInfo, setLogInfo] = useState<LogStorageInfo | null>(null);
   const [logInfoLoading, setLogInfoLoading] = useState(false);
   const [watchFolders, setWatchFolders] = useState<WatchFolder[]>([]);
+  const [currentPlatform, setCurrentPlatform] = useState<string>('');
   const [telemetryEnabled, setTelemetryEnabled] = useState(false);
   const [telemetryEvents, setTelemetryEvents] = useState<
     Array<{ id: string; eventType: string; payloadJson?: string; createdAt: string }>
@@ -273,6 +275,10 @@ export default function SettingsPage() {
   const [cloudModalOpen, setCloudModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<CloudProfile | null>(null);
   const [browseProfile, setBrowseProfile] = useState<CloudProfile | null>(null);
+
+  useEffect(() => {
+    setCurrentPlatform(platform());
+  }, []);
 
   useEffect(() => {
     invoke<CloudProfile[]>('get_cloud_profiles').then(setCloudProfiles).catch(console.error);
@@ -485,6 +491,21 @@ export default function SettingsPage() {
       await invoke('open_data_dir');
     } catch {
       toast.error(t('settings.toasts.openDataDirError'));
+    }
+  };
+
+  const handleCreateShortcut = async () => {
+    try {
+      if (currentPlatform === 'windows') {
+        await invoke('create_windows_shortcut');
+      } else if (currentPlatform === 'linux') {
+        await invoke('create_desktop_shortcut');
+      } else if (currentPlatform === 'macos') {
+        await invoke('create_macos_alias');
+      }
+      toast.success(t('settings.about.shortcutCreated'));
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -1823,6 +1844,19 @@ export default function SettingsPage() {
               >
                 <ExternalLink size={14} /> {t('settings.about.openData')}
               </button>
+              {(currentPlatform === 'windows' ||
+                currentPlatform === 'linux' ||
+                currentPlatform === 'macos') && (
+                <button
+                  onClick={handleCreateShortcut}
+                  className="px-4 py-2 bg-surface hover:bg-surface-hover text-text-primary text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <ExternalLink size={14} />{' '}
+                  {currentPlatform === 'macos'
+                    ? t('settings.about.createAlias')
+                    : t('settings.about.createShortcut')}
+                </button>
+              )}
             </div>
           </section>
 
