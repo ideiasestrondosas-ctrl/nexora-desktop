@@ -34,6 +34,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAssetsStore } from '@/store/assets';
 import { useJobsStore } from '@/store/jobs';
 import { useVideoSrc } from '@/hooks/useVideoSrc';
+import { PIPELINE_STEPS, PIPELINE_PHASES, getStepIndex } from '@/lib/pipeline';
 
 interface Asset {
   id: string;
@@ -92,17 +93,6 @@ interface AssetDetailPageProps {
   onBack: () => void;
   onSelectAsset?: (id: string) => void;
 }
-
-const PIPELINE_STEPS = [
-  { key: 'ingest', short: 'IN' },
-  { key: 'qc-pre', short: 'QC' },
-  { key: 'transcode', short: 'TR' },
-  { key: 'audio', short: 'AU' },
-  { key: 'proxy', short: 'PX' },
-  { key: 'thumbnail', short: 'TH' },
-  { key: 'qc-post', short: 'QP' },
-  { key: 'delivery', short: 'DL' },
-];
 
 export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: AssetDetailPageProps) {
   const [asset, setAsset] = useState<Asset | null>(null);
@@ -404,7 +394,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
             )}
 
             <div className="absolute bottom-3 left-3 right-3 bg-black/60 backdrop-blur-md p-2 rounded-lg border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <p className="text-[10px] font-mono text-text-secondary truncate">
+              <p className="text-[10px] font-mono text-white/90 truncate">
                 {heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
                   ? (asset.output_path ?? jobs[0]?.output_path)
                   : asset.path}
@@ -413,7 +403,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
           </div>
 
           {/* Path do ficheiro activo */}
-          <div className="flex items-start gap-2 text-[10px] text-text-muted font-mono leading-relaxed">
+          <div className="flex items-start gap-2 text-[10px] text-text-secondary font-mono leading-relaxed">
             <FolderOpen size={12} className="mt-0.5 shrink-0" />
             <span className="break-all">
               {heroView === 'out' && (asset.output_path ?? jobs[0]?.output_path)
@@ -927,36 +917,145 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                       </button>
                     </div>
 
-                    {/* MINI PIPELINE */}
-                    <div className="flex items-center justify-between mb-6 px-2 opacity-60">
-                      {PIPELINE_STEPS.map((step, idx) => {
-                        const isDone = job.status === 'done';
-                        return (
-                          <React.Fragment key={step.key}>
-                            <div className="flex flex-col items-center gap-1">
-                              <div
-                                className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                                  isDone
-                                    ? 'bg-green-500 border-green-500 text-white'
-                                    : 'border-border text-text-muted'
-                                }`}
-                              >
-                                {isDone ? (
-                                  <CheckCircle2 size={10} />
-                                ) : (
-                                  <span className="text-[8px] font-bold">{step.short}</span>
+                    {/* PIPELINE — fases com progresso para jobs activos, steps para jobs concluídos */}
+                    {job.status === 'processing' ? (
+                      <div className="mb-4">
+                        {/* FASES COMPACTAS */}
+                        <div className="flex items-stretch gap-2 mb-3">
+                          {PIPELINE_PHASES.map((phase, phaseIdx) => {
+                            const stepIndices = phase.steps.map((s) => getStepIndex(s));
+                            const phaseMin = Math.min(...stepIndices);
+                            const phaseMax = Math.max(...stepIndices);
+                            const currentIdx = getStepIndex(job.step);
+                            const isDone = currentIdx > phaseMax;
+                            const isActive = currentIdx >= phaseMin && currentIdx <= phaseMax;
+                            return (
+                              <React.Fragment key={phase.labelKey}>
+                                <div
+                                  className={`flex-1 rounded-xl border p-2 flex flex-col gap-1.5 transition-all ${
+                                    isDone
+                                      ? 'border-green-500/40 bg-green-500/5'
+                                      : isActive
+                                        ? 'border-brand/60 bg-brand/5'
+                                        : 'border-border bg-bg-tertiary dark:bg-bg-primary'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-1.5">
+                                    <div
+                                      className={`w-3 h-3 rounded-full shrink-0 flex items-center justify-center ${
+                                        isDone
+                                          ? 'bg-green-500'
+                                          : isActive
+                                            ? 'bg-brand'
+                                            : 'bg-surface'
+                                      }`}
+                                    >
+                                      {isDone && <CheckCircle2 size={8} className="text-white" />}
+                                      {isActive && (
+                                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                      )}
+                                    </div>
+                                    <span
+                                      className={`text-[9px] font-black uppercase tracking-widest ${
+                                        isDone
+                                          ? 'text-green-500'
+                                          : isActive
+                                            ? 'text-brand'
+                                            : 'text-text-muted'
+                                      }`}
+                                    >
+                                      {t(phase.labelKey)}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-1 flex-wrap">
+                                    {phase.steps.map((stepKey) => {
+                                      const idx = getStepIndex(stepKey);
+                                      const currentIdx = getStepIndex(job.step);
+                                      const stepDone = idx < currentIdx;
+                                      const stepActive = idx === currentIdx;
+                                      return (
+                                        <span
+                                          key={stepKey}
+                                          className={`px-1 py-0.5 rounded text-[8px] font-bold uppercase ${
+                                            stepDone
+                                              ? 'bg-green-500/20 text-green-500'
+                                              : stepActive
+                                                ? 'bg-brand/20 text-brand'
+                                                : 'bg-surface text-text-muted'
+                                          }`}
+                                        >
+                                          {t(`pipeline.${stepKey}`, stepKey)}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                                {phaseIdx < PIPELINE_PHASES.length - 1 && (
+                                  <div className="flex items-center mt-1">
+                                    <div
+                                      className={`w-4 h-0.5 ${
+                                        getStepIndex(job.step) >
+                                        Math.max(...phase.steps.map((s) => getStepIndex(s)))
+                                          ? 'bg-green-500'
+                                          : 'bg-surface'
+                                      }`}
+                                    />
+                                  </div>
                                 )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </div>
+                        {/* BARRA DE PROGRESSO DO STEP ACTIVO */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-brand">
+                              {job.step ?? '…'} — {(job.progress * 100).toFixed(0)}%
+                            </span>
+                            <span className="text-[10px] text-text-muted">
+                              {t('queue.step', { step: job.step ?? '…' })}
+                            </span>
+                          </div>
+                          <div className="w-full h-1.5 bg-surface rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-brand transition-all duration-500"
+                              style={{ width: `${(job.progress * 100).toFixed(0)}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Jobs concluídos/erro — mini pipeline com steps */
+                      <div className="flex items-center justify-between mb-6 px-2 opacity-60">
+                        {PIPELINE_STEPS.map((step, idx) => {
+                          const isDone = job.status === 'done';
+                          return (
+                            <React.Fragment key={step.key}>
+                              <div className="flex flex-col items-center gap-1">
+                                <div
+                                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                                    isDone
+                                      ? 'bg-green-500 border-green-500 text-white'
+                                      : 'border-border text-text-muted'
+                                  }`}
+                                >
+                                  {isDone ? (
+                                    <CheckCircle2 size={10} />
+                                  ) : (
+                                    <span className="text-[8px] font-bold">{step.short}</span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                            {idx < PIPELINE_STEPS.length - 1 && (
-                              <div
-                                className={`flex-1 h-px mx-[-2px] ${isDone ? 'bg-green-500' : 'bg-border'}`}
-                              ></div>
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
-                    </div>
+                              {idx < PIPELINE_STEPS.length - 1 && (
+                                <div
+                                  className={`flex-1 h-px mx-[-2px] ${isDone ? 'bg-green-500' : 'bg-border'}`}
+                                />
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-4 gap-4 text-center">
                       <div>
