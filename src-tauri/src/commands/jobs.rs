@@ -348,3 +348,124 @@ pub fn list_jobs(asset_id: Option<String>, state: State<AppState>) -> Result<Vec
         ),
     }
 }
+
+const PHASE_ORDER: &[&str] = &[
+    "ingest", "qc-pre", "transcode", "audio", "proxy",
+    "thumbnail", "qc-post", "delivery",
+];
+
+#[derive(serde::Serialize, Clone)]
+pub struct PhaseEtaItem {
+    pub phase: String,
+    pub estimated_ms: Option<i64>,
+}
+
+#[derive(serde::Serialize)]
+pub struct PhaseEtaResponse {
+    pub has_data: bool,
+    pub current_phase: String,
+    pub current_phase_eta_ms: Option<i64>,
+    pub remaining_phases: Vec<PhaseEtaItem>,
+    pub total_remaining_ms: Option<i64>,
+}
+
+#[tauri::command]
+pub fn get_phase_eta(
+    job_id: String,
+    state: State<AppState>,
+) -> Result<Option<PhaseEtaResponse>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+
+    // Obter step actual + dimensões do asset
+    let row: Option<(String, Option<i64>, Option<i64>, Option<f64>)> = db
+        .query_row(
+            "SELECT j.step, a.width, a.height, a.duration_secs
+             FROM jobs j LEFT JOIN assets a ON j.asset_id = a.id
+             WHERE j.id = ?1 AND j.status = 'processing'",
+            [&job_id],
+            |r| {
+                Ok((
+                    r.get::<_, String>(0).unwrap_or_default(),
+                    r.get::<_, Option<i64>>(1)?,
+                    r.get::<_, Option<i64>>(2)?,
+                    r.get::<_, Option<f64>>(3)?,
+                ))
+            },
+        )
+        .ok();
+
+    let (current_step, width, height, duration_secs) = match row {
+        Some(r) => r,
+        None => return Ok(None),
+    };
+
+    let current_idx = PHASE_ORDER
+        .iter()
+        .position(|&p| p == current_step.as_str())
+        .unwrap_or(0);
+
+    let mut has_data = false;
+    let mut items: Vec<PhaseEtaItem> = Vec::new();
+
+    for &phase in &PHASE_ORDER[current_idx..] {
+        let avg_ms: Option<i64> = match (width, height) {
+            (Some(w), Some(h)) => {
+                // Tentar com tolerância de duração (±30%)
+                let with_dur = if let Some(dur) = duration_secs {
+                    db.query_row(
+                        "SELECT CAST(AVG(elapsed_ms) AS INTEGER) FROM phase_durations
+                         WHERE phase = ?1 AND width = ?2 AND height = ?3
+                           AND ABS(asset_duration_secs - ?4) / (?4 + 0.001) < 0.3",
+                        rusqlite::params![phase, w, h, dur],
+                        |r| r.get::<_, Option<i64>>(0),
+                    )
+                    .ok()
+                    .flatten()
+                } else {
+                    None
+                };
+                // Fallback: só resolução
+                with_dur.or_else(|| {
+                    db.query_row(
+                        "SELECT CAST(AVG(elapsed_ms) AS INTEGER) FROM phase_durations
+                         WHERE phase = ?1 AND width = ?2 AND height = ?3",
+                        rusqlite::params![phase, w, h],
+                        |r| r.get::<_, Option<i64>>(0),
+                    )
+                    .ok()
+                    .flatten()
+                })
+            }
+            _ => None,
+        };
+
+        if avg_ms.is_some() {
+            has_data = true;
+        }
+        items.push(PhaseEtaItem {
+            phase: phase.to_string(),
+            estimated_ms: avg_ms,
+        });
+    }
+
+    let current_phase_eta_ms = items.first().and_then(|i| i.estimated_ms);
+    let remaining_phases = if items.len() > 1 {
+        items[1..].to_vec()
+    } else {
+        vec![]
+    };
+    let total_remaining_ms: Option<i64> = if has_data {
+        let sum: i64 = items.iter().filter_map(|i| i.estimated_ms).sum();
+        if sum > 0 { Some(sum) } else { None }
+    } else {
+        None
+    };
+
+    Ok(Some(PhaseEtaResponse {
+        has_data,
+        current_phase: current_step,
+        current_phase_eta_ms,
+        remaining_phases,
+        total_remaining_ms,
+    }))
+}

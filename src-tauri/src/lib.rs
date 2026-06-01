@@ -183,6 +183,7 @@ pub fn run() {
             commands::jobs::retry_job,
             commands::jobs::approve_job,
             commands::jobs::reject_job,
+            commands::jobs::get_phase_eta,
             commands::settings::get_settings,
             commands::settings::update_settings,
             commands::system::detect_gpu,
