@@ -358,6 +358,23 @@ function nxVerifyEnvironment {
     } else {
         nxOk "Sidecar Node.js presente"
     }
+
+    # Verificar Engine — sincronizar sidecar/bin/ -> src-tauri/binaries/ se necessario
+    $engineSrc = Join-Path $ProjectRoot "sidecar\bin\nexora-engine.exe"
+    $engineDst = Join-Path $ProjectRoot "src-tauri\binaries\nexora-engine-x86_64-pc-windows-msvc.exe"
+    if (Test-Path $engineSrc) {
+        $srcDate  = (Get-Item $engineSrc).LastWriteTime
+        $dstDate  = if (Test-Path $engineDst) { (Get-Item $engineDst).LastWriteTime } else { [DateTime]::MinValue }
+        if ($srcDate -gt $dstDate) {
+            nxWarn "Engine desactualizado. A sincronizar sidecar/bin/ -> src-tauri/binaries/..."
+            Copy-Item -LiteralPath $engineSrc -Destination $engineDst -Force
+            nxOk "Engine sincronizado (sidecar/bin/ -> src-tauri/binaries/)"
+        } else {
+            nxOk "Nexora Engine sincronizado"
+        }
+    } else {
+        nxWarn "sidecar/bin/nexora-engine.exe nao existe -- corre: npm run engine:build:win"
+    }
 }
 
 function nxClean {

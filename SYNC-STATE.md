@@ -10,6 +10,32 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 47 -- Fix Engine Binary Sync -- CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-01
+
+**Resumo:** Correcao da regressao recorrente "A dynamic import callback was not specified" causada pelo nexora-engine.exe desactualizado em src-tauri/binaries/.
+
+**Causa raiz:** sidecar/bin/nexora-engine.exe (31 Mai, fix com --no-bytecode --public) nunca foi propagado para src-tauri/binaries/ nem target/debug/ -- cada cargo build restaurava o binario antigo (28 Mai).
+
+**Implementacao (2 commits de fix + 2 de docs):**
+
+1. **fix(engine):** package.json -- engine:build:win/mac/linux/all com node copyFileSync automatico para src-tauri/binaries/ apos cada build
+2. **fix(dev):** scripts/06-run-dev.ps1 -- nxVerifyEnvironment detecta e sincroniza engine se desactualizado
+3. **Binarios copiados localmente** (gitignored): sidecar/bin/ -> src-tauri/binaries/ e target/debug/
+
+**Commits:**
+
+- `0ce9c18` -- docs(spec): engine binary sync
+- `8262fa7` -- docs(plan): engine binary sync
+- `e4f3aa0` -- fix(engine): auto-copy nexora-engine.exe para src-tauri/binaries/ apos build
+- `0a0ab0f` -- fix(dev): sincronizar nexora-engine automaticamente em nxVerifyEnvironment
+
+**Estado:** Branch `dev` em `0a0ab0f`. 4 commits a frente de `main`. Por mergear/PR.
+
+---
+
 ### Sessao 46 -- Feature ETA por Fase -- CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)

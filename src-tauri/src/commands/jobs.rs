@@ -350,8 +350,14 @@ pub fn list_jobs(asset_id: Option<String>, state: State<AppState>) -> Result<Vec
 }
 
 const PHASE_ORDER: &[&str] = &[
-    "ingest", "qc-pre", "transcode", "audio", "proxy",
-    "thumbnail", "qc-post", "delivery",
+    "ingest",
+    "qc-pre",
+    "transcode",
+    "audio",
+    "proxy",
+    "thumbnail",
+    "qc-post",
+    "delivery",
 ];
 
 #[derive(serde::Serialize, Clone)]
@@ -369,6 +375,7 @@ pub struct PhaseEtaResponse {
     pub total_remaining_ms: Option<i64>,
 }
 
+#[allow(clippy::type_complexity)]
 #[tauri::command]
 pub fn get_phase_eta(
     job_id: String,
@@ -456,7 +463,11 @@ pub fn get_phase_eta(
     };
     let total_remaining_ms: Option<i64> = if has_data {
         let sum: i64 = items.iter().filter_map(|i| i.estimated_ms).sum();
-        if sum > 0 { Some(sum) } else { None }
+        if sum > 0 {
+            Some(sum)
+        } else {
+            None
+        }
     } else {
         None
     };

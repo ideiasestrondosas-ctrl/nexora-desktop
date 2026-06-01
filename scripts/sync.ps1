@@ -2178,7 +2178,7 @@ if (-not $syncUncommitted -and -not $syncInUnpushed) {
 # ---------------------------------------------------------
 Write-Step "Verificacoes pre-push..."
 
-Write-Host "  [1/3] TypeScript check (tsc --noEmit)..." -NoNewline -ForegroundColor Gray
+Write-Host "  [1/4] TypeScript check (tsc --noEmit)..." -NoNewline -ForegroundColor Gray
 $tscResult = & npm run typecheck 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host " FALHOU" -ForegroundColor Red
@@ -2190,7 +2190,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host " OK" -ForegroundColor Green
 
-Write-Host "  [2/3] Rust format check (cargo fmt --check)..." -NoNewline -ForegroundColor Gray
+Write-Host "  [2/4] Rust format check (cargo fmt --check)..." -NoNewline -ForegroundColor Gray
 $prevDir = Get-Location
 Set-Location (Join-Path $WORKSPACE "src-tauri")
 $fmtResult = & cargo fmt --check 2>&1
@@ -2204,7 +2204,7 @@ if ($fmtExit -ne 0) {
 }
 Write-Host " OK" -ForegroundColor Green
 
-Write-Host "  [3/3] Rust compile check (cargo check)..." -NoNewline -ForegroundColor Gray
+Write-Host "  [3/4] Rust compile check (cargo check)..." -NoNewline -ForegroundColor Gray
 $prevDir = Get-Location
 Set-Location (Join-Path $WORKSPACE "src-tauri")
 $checkResult = & cargo check 2>&1
@@ -2214,6 +2214,22 @@ if ($checkExit -ne 0) {
     Write-Host " FALHOU" -ForegroundColor Red
     Write-Err "cargo check falhou. Corrige os erros de compilacao Rust antes de fazer push:"
     $checkResult | Where-Object { $_ -match "^error" } | ForEach-Object {
+        Write-Host "  $_" -ForegroundColor Red
+    }
+    Pop-Location; exit 1
+}
+Write-Host " OK" -ForegroundColor Green
+
+Write-Host "  [4/4] Rust clippy check (cargo clippy -- -D warnings)..." -NoNewline -ForegroundColor Gray
+$prevDir = Get-Location
+Set-Location (Join-Path $WORKSPACE "src-tauri")
+$clippyResult = & cargo clippy -- -D warnings 2>&1
+$clippyExit = $LASTEXITCODE
+Set-Location $prevDir
+if ($clippyExit -ne 0) {
+    Write-Host " FALHOU" -ForegroundColor Red
+    Write-Err "cargo clippy falhou. Corrige os avisos Rust antes de fazer push:"
+    $clippyResult | Where-Object { $_ -match "^error" } | ForEach-Object {
         Write-Host "  $_" -ForegroundColor Red
     }
     Pop-Location; exit 1

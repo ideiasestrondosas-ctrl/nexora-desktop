@@ -415,23 +415,34 @@ fn run_job<R: Runtime>(
                                                     .phase_start_times
                                                     .lock()
                                                     .unwrap_or_else(|e| e.into_inner());
-                                                if let Some((prev_step, start_time)) = phase_times.get(&job_id_owned) {
+                                                if let Some((prev_step, start_time)) =
+                                                    phase_times.get(&job_id_owned)
+                                                {
                                                     if prev_step.as_str() != step {
                                                         let prev = prev_step.clone();
-                                                        let elapsed = start_time.elapsed().as_millis() as i64;
-                                                        phase_times.insert(job_id_owned.clone(), (step.to_string(), now_instant));
+                                                        let elapsed =
+                                                            start_time.elapsed().as_millis() as i64;
+                                                        phase_times.insert(
+                                                            job_id_owned.clone(),
+                                                            (step.to_string(), now_instant),
+                                                        );
                                                         Some((prev, elapsed))
                                                     } else {
                                                         None
                                                     }
                                                 } else {
-                                                    phase_times.insert(job_id_owned.clone(), (step.to_string(), now_instant));
+                                                    phase_times.insert(
+                                                        job_id_owned.clone(),
+                                                        (step.to_string(), now_instant),
+                                                    );
                                                     None
                                                 }
                                             }; // lock phase_start_times liberado aqui
 
                                             if let Ok(db) = state.db.lock() {
-                                                if let Some((prev_step, elapsed_ms)) = &phase_changed {
+                                                if let Some((prev_step, elapsed_ms)) =
+                                                    &phase_changed
+                                                {
                                                     let _ = db.execute(
                                                         "INSERT INTO phase_durations (phase, width, height, asset_duration_secs, elapsed_ms)
                                                          SELECT ?1, a.width, a.height, a.duration_secs, ?2
