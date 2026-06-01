@@ -375,6 +375,7 @@ pub struct PhaseEtaResponse {
     pub total_remaining_ms: Option<i64>,
 }
 
+#[allow(clippy::type_complexity)]
 #[tauri::command]
 pub fn get_phase_eta(
     job_id: String,
