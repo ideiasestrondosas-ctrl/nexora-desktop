@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
 import { logActivity } from '@/lib/activityLog';
+import { useJobsStore } from '@/store/jobs';
 import { Archive, Activity, Gauge, Clock, Loader2, Film, ChevronRight, Upload } from 'lucide-react';
 import { ThumbnailImg } from '@/components/ThumbnailImg';
 import {
@@ -28,31 +28,6 @@ interface AppStats {
   activeJobs: number;
   diskFreeBytes: number | null;
   diskTotalBytes: number | null;
-}
-
-interface Job {
-  id: string;
-  asset_id: string;
-  profile: string;
-  status:
-    | 'queued'
-    | 'processing'
-    | 'done'
-    | 'error'
-    | 'cancelled'
-    | 'qc_quarantined'
-    | 'qc_rejected';
-  priority: number;
-  progress: number;
-  step: string | null;
-  error: string | null;
-  created_at: string;
-  updated_at: string;
-  started_at: string | null;
-  finished_at: string | null;
-  vmaf_score: number | null;
-  lufs: number | null;
-  output_path: string | null;
 }
 
 interface AssetInfo {
@@ -82,7 +57,7 @@ function CompactEta({ jobId }: { jobId: string }) {
 export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPageProps) {
   const { t, i18n } = useTranslation();
   const [stats, setStats] = useState<AppStats | null>(null);
-  const [allJobs, setAllJobs] = useState<Job[]>([]);
+  const allJobs = useJobsStore((s) => s.jobs);
   const [assetMap, setAssetMap] = useState<AssetMap>({});
   const [loading, setLoading] = useState(true);
   const metrics = useSystemMetrics();
@@ -90,15 +65,13 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
 
   const fetchData = useCallback(async () => {
     try {
-      const [statsData, jobsData, assetsData] = await Promise.all([
+      const [statsData, assetsData] = await Promise.all([
         invoke<AppStats>('get_stats'),
-        invoke<Job[]>('list_jobs'),
         invoke<{ id: string; filename: string; thumbnail_path: string | null }[]>(
           'list_assets_slim',
         ),
       ]);
       setStats(statsData);
-      setAllJobs(jobsData);
       const map: AssetMap = {};
       for (const a of assetsData) {
         map[a.id] = { filename: a.filename, thumbnail_path: a.thumbnail_path };
@@ -116,16 +89,6 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
     // Fallback polling a 30s; actualizações em tempo real via evento sidecar:event
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
-  }, [fetchData]);
-
-  // Actualizar em tempo real quando o sidecar emite eventos de job
-  useEffect(() => {
-    const unlisten = listen('sidecar:event', () => {
-      fetchData();
-    });
-    return () => {
-      unlisten.then((fn) => fn());
-    };
   }, [fetchData]);
 
   // Manter histórico de 60 amostras (1 min a 1 sample/2s)
