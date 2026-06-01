@@ -85,7 +85,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: windows-latest
+          - platform: windows-2025
             label: Windows
             rust-targets: x86_64-pc-windows-msvc
 
@@ -135,7 +135,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p src-tauri/binaries sidecar/bin
-          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+          if [[ "${{ matrix.platform }}" == "windows-2025" ]]; then
             touch src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe
             touch src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe
             touch src-tauri/binaries/nexora-engine-x86_64-pc-windows-msvc.exe
@@ -166,7 +166,7 @@ jobs:
       - name: Build Nexora Engine (SEA)
         shell: bash
         run: |
-          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+          if [[ "${{ matrix.platform }}" == "windows-2025" ]]; then
             npm run engine:build:win
           elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
             npm run engine:build:mac
@@ -177,7 +177,7 @@ jobs:
       - name: Stage engine binary
         shell: bash
         run: |
-          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+          if [[ "${{ matrix.platform }}" == "windows-2025" ]]; then
             cp sidecar/bin/nexora-engine.exe \
                src-tauri/binaries/nexora-engine-x86_64-pc-windows-msvc.exe
           elif [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
@@ -228,7 +228,7 @@ jobs:
           VER=$(node -p "require('./package.json').version" | sed 's/-.*//')
           PROD="Nexora Desktop"
 
-          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+          if [[ "${{ matrix.platform }}" == "windows-2025" ]]; then
             BUNDLE="src-tauri/target/release/bundle/nsis/${PROD}_${VER}_x64-setup.exe"
             BUNDLE_RELEASE="${PROD}_${VER}_x64-setup.exe"
             PLATFORM="windows-x86_64"

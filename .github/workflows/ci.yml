@@ -42,7 +42,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: windows-latest
+          - platform: windows-2025
             label: Windows
           - platform: macos-latest
             label: macOS
@@ -79,7 +79,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p src-tauri/binaries
-          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+          if [[ "${{ matrix.platform }}" == "windows-2025" ]]; then
             touch src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe
             touch src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe
             touch src-tauri/binaries/nexora-engine-x86_64-pc-windows-msvc.exe
