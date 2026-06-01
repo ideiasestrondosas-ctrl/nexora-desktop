@@ -16,11 +16,42 @@ import { pipeline } from 'stream/promises';
 import { get } from 'https';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
 import { copyFile, unlink, rm } from 'fs/promises';
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
+
+// Smoke-test: um binário media só é válido se `-version` sair com código 0.
+// Apanha tanto stubs de 1 byte como builds SHARED sem as DLLs ao lado.
+async function smokeTestBinary(binPath) {
+  try {
+    await execFileAsync(binPath, ['-version'], { timeout: 15_000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Valida uma lista de binários produzidos; lança erro claro se algum não executar.
+// Só executa quando o alvo é a plataforma/arquitectura nativa do host.
+async function assertBinariesRunnable(paths) {
+  const isNativeTarget = argPlatform === process.platform && argArch === process.arch;
+  if (!isNativeTarget) {
+    console.log(`  (smoke-test ignorado — alvo ${argPlatform}-${argArch} não é nativo do host)`);
+    return;
+  }
+  for (const p of paths) {
+    if (!existsSync(p) || !(await smokeTestBinary(p))) {
+      throw new Error(
+        `Binário inválido (não executa '-version'): ${p}\n` +
+          `  Verifica que o build é STATIC (autossuficiente), não SHARED (precisa de av*.dll).`,
+      );
+    }
+    console.log(`  ✓ smoke-test OK: ${p.split(/[/\\]/).pop()}`);
+  }
+}
 
 // ── Argumentos opcionais ─────────────────────────────────────────────────────
 
@@ -323,6 +354,9 @@ async function main() {
       if (evermeetPath) await unlink(evermeetPath).catch(() => {});
     }
 
+    // Validar que os binários produzidos realmente executam
+    await assertBinariesRunnable(tools.map((t) => join(outDir, `${t}-universal-apple-darwin`)));
+
     console.log('\nConcluído.\n');
     return;
   }
@@ -392,6 +426,11 @@ async function main() {
 
   await unlink(archivePath).catch(() => {});
   await rm(extractDir, { recursive: true, force: true }).catch(() => {});
+
+  // Validar que os binários produzidos realmente executam
+  await assertBinariesRunnable(
+    bins.map((bin) => join(outDir, bin.replace(/\.exe$/, '') + `-${triple}${ext}`)),
+  );
 
   console.log('\nConcluído.\n');
 }

@@ -325,10 +325,21 @@ fn setup_macos_menu(app: &tauri::App) -> tauri::Result<()> {
     Ok(())
 }
 
+/// Valida um binário media (ffmpeg/ffprobe) executando `-version`.
+/// Um binário válido sai com código 0. Apanha tanto stubs de 1 byte (não executam)
+/// como builds SHARED sem as DLLs ao lado (falham a carregar com STATUS_DLL_NOT_FOUND).
+fn media_binary_ok<R: tauri::Runtime>(app: &tauri::AppHandle<R>, name: &str) -> bool {
+    use std::process::Command;
+    let path = sidecar::resolve_media_binary_path(app, name);
+    let mut cmd = Command::new(&path);
+    crate::commands::no_window(cmd.arg("-version"))
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
 /// Verifica os pré-requisitos do sistema no arranque e loga o resultado.
 fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
-    use std::process::Command;
-
     // 1. Nexora Engine
     let engine_path = sidecar::resolve_engine_path(app);
     let engine_ok = engine_path.exists();
@@ -341,70 +352,35 @@ fn startup_checks<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
         log::info!("[startup] Nexora Engine: OK ({:?})", engine_path);
     }
 
-    // 2. FFprobe
-    let ffprobe_path = sidecar::resolve_media_binary_path(app, "ffprobe");
-    let ffprobe_ok = if ffprobe_path.exists() {
-        true
-    } else {
-        let mut cmd = Command::new("ffprobe");
-        crate::commands::no_window(cmd.arg("-version"))
-            .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false)
-    };
-
-    if ffprobe_ok {
+    // 2. FFprobe — validar por execução, não por presença
+    if media_binary_ok(app, "ffprobe") {
         log::info!("[startup] FFprobe: OK");
     } else {
         log::warn!(
-            "[startup] FFprobe NÃO encontrado — instala FFmpeg (inclui ffprobe) e adiciona ao PATH"
+            "[startup] FFprobe NÃO executa — binário em falta, stub ou shared sem DLLs. Corre: npm run download:binaries"
         );
     }
 
-    // 3. FFmpeg
-    let ffmpeg_path = sidecar::resolve_media_binary_path(app, "ffmpeg");
-    let ffmpeg_ok = if ffmpeg_path.exists() {
-        true
-    } else {
-        let mut cmd = Command::new("ffmpeg");
-        crate::commands::no_window(cmd.arg("-version"))
-            .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false)
-    };
-
-    if ffmpeg_ok {
+    // 3. FFmpeg — validar por execução, não por presença
+    if media_binary_ok(app, "ffmpeg") {
         log::info!("[startup] FFmpeg: OK");
     } else {
-        log::warn!("[startup] FFmpeg NÃO encontrado — o processamento de vídeos vai falhar");
+        log::warn!(
+            "[startup] FFmpeg NÃO executa — binário em falta, stub ou shared sem DLLs. Corre: npm run download:binaries"
+        );
     }
 }
 
 /// Retorna o estado dos pré-requisitos para o frontend mostrar alertas.
 #[tauri::command]
 fn get_startup_status(app: tauri::AppHandle) -> serde_json::Value {
-    use std::process::Command;
-
     let engine_path = sidecar::resolve_engine_path(&app);
     let engine_ok = engine_path.exists();
 
-    let ffprobe_path = sidecar::resolve_media_binary_path(&app, "ffprobe");
-    let ffprobe_ok = ffprobe_path.exists() || {
-        let mut cmd = Command::new("ffprobe");
-        crate::commands::no_window(cmd.arg("-version"))
-            .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false)
-    };
-
-    let ffmpeg_path = sidecar::resolve_media_binary_path(&app, "ffmpeg");
-    let ffmpeg_ok = ffmpeg_path.exists() || {
-        let mut cmd = Command::new("ffmpeg");
-        crate::commands::no_window(cmd.arg("-version"))
-            .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false)
-    };
+    // FFprobe/FFmpeg validados por execução (`-version`), não por presença —
+    // apanha stubs de 1 byte e builds shared sem DLLs.
+    let ffprobe_ok = media_binary_ok(&app, "ffprobe");
+    let ffmpeg_ok = media_binary_ok(&app, "ffmpeg");
 
     serde_json::json!({
         "engineOk": engine_ok,
