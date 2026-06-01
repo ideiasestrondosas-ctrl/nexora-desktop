@@ -6,6 +6,31 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import type { Update } from '@tauri-apps/plugin-updater';
 
+function renderNotes(body: string): React.ReactNode {
+  return body.split('\n').map((line, i) => {
+    if (/^#{2,3}\s/.test(line)) {
+      return (
+        <p key={i} className="font-semibold text-text-primary mt-2 first:mt-0">
+          {line.replace(/^#{2,3}\s+/, '')}
+        </p>
+      );
+    }
+    if (line.startsWith('- ')) {
+      return (
+        <li key={i} className="ml-4 list-disc text-text-secondary">
+          {line.slice(2)}
+        </li>
+      );
+    }
+    if (line.trim() === '') return null;
+    return (
+      <p key={i} className="text-text-secondary">
+        {line}
+      </p>
+    );
+  });
+}
+
 const RELEASES_URL = 'https://github.com/ideiasestrondosas-ctrl/nexora-desktop/releases/latest';
 
 interface Props {
@@ -70,7 +95,7 @@ export const UpdateModal: React.FC<Props> = ({ update, open, onClose }) => {
     <Dialog.Root open={open} onOpenChange={(o) => !o && state === 'idle' && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-bg-primary border border-border rounded-xl shadow-2xl w-[480px] max-w-[90vw] p-6 focus:outline-none">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-bg-primary border border-border rounded-xl shadow-2xl w-[560px] max-w-[90vw] p-6 focus:outline-none">
           {/* Header */}
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center gap-3">
@@ -115,8 +140,8 @@ export const UpdateModal: React.FC<Props> = ({ update, open, onClose }) => {
               <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">
                 {t('update.whatsNew')}
               </p>
-              <div className="text-sm text-text-secondary bg-bg-secondary border border-border rounded-lg p-3 max-h-40 overflow-y-auto whitespace-pre-wrap leading-relaxed">
-                {update.body}
+              <div className="text-sm bg-bg-secondary border border-border rounded-lg p-3 max-h-64 overflow-y-auto leading-relaxed space-y-1">
+                {renderNotes(update.body)}
               </div>
               <button
                 onClick={() => openUrl(RELEASES_URL).catch(console.error)}
