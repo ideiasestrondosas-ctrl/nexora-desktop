@@ -109,6 +109,25 @@
 - [x] Build funciona para Linux (.AppImage + .deb)
 - [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
 
+### Fase 23 - Release v0.30.11-beta.1 + Fix sync.ps1 (Sessao 45) -- CONCLUIDO
+
+**Objectivo:** Publicar release v0.30.11-beta.1 e corrigir bug recorrente do sync.ps1.
+
+**Implementacao:**
+
+- [x] chore(release): bump para v0.30.11-beta.1 via sync.ps1
+- [x] fix(version): VERSION_HISTORY restaurada em src/lib/version.ts (declaracao em falta apos bump)
+- [x] fix(sync): scripts/sync.ps1 linha 810 -- backreference $1 corrigida (single-quoted)
+- [x] fix(ci): tag recriada no commit correcto; build relancado
+
+**Ficheiros alterados (2):** `src/lib/version.ts`, `scripts/sync.ps1`
+
+**Build:** Quality Gate OK + Windows OK + macOS OK + Linux OK + updater-json OK
+
+**Estado:** Draft release GitHub com 6 instaladores. Publicar com sync.ps1 opcao 4.
+
+---
+
 ### Fase 22b - Fix Dropdown Perfil Transparente (Sessao 44b) -- CONCLUIDO
 
 **Objectivo:** Corrigir dropdown de seleccao de perfil ilegivel em modo claro e escuro.
