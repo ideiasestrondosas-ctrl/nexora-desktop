@@ -47,10 +47,26 @@ const TARGET_MAP = {
 const BTBN = 'https://github.com/BtbN/FFmpeg-Builds/releases/latest/download';
 
 const BTBN_BUNDLES = {
-  'win32-x64': { file: 'ffmpeg-master-latest-win64-gpl.zip', type: 'zip' },
-  'win32-arm64': { file: 'ffmpeg-master-latest-win32-gpl.zip', type: 'zip' },
-  'linux-x64': { file: 'ffmpeg-master-latest-linux64-gpl.tar.xz', type: 'tar' },
-  'linux-arm64': { file: 'ffmpeg-master-latest-linuxarm64-gpl.tar.xz', type: 'tar' },
+  'win32-x64': {
+    file: 'ffmpeg-master-latest-win64-gpl.zip',
+    pattern: /ffmpeg-master-latest-win64-gpl.*\.zip$/,
+    type: 'zip',
+  },
+  'win32-arm64': {
+    file: 'ffmpeg-master-latest-win32-gpl.zip',
+    pattern: /ffmpeg-master-latest-win32-gpl.*\.zip$/,
+    type: 'zip',
+  },
+  'linux-x64': {
+    file: 'ffmpeg-master-latest-linux64-gpl.tar.xz',
+    pattern: /ffmpeg-master-latest-linux64-gpl.*\.tar\.xz$/,
+    type: 'tar',
+  },
+  'linux-arm64': {
+    file: 'ffmpeg-master-latest-linuxarm64-gpl.tar.xz',
+    pattern: /ffmpeg-master-latest-linuxarm64-gpl.*\.tar\.xz$/,
+    type: 'tar',
+  },
 };
 
 // evermeet.cx — binários estáticos macOS por arquitectura
@@ -81,6 +97,47 @@ function httpGet(url) {
       resolve(res);
     }).on('error', reject);
   });
+}
+
+async function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    get(
+      url,
+      { headers: { 'User-Agent': 'nexora-desktop-build', Accept: 'application/json' } },
+      (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          fetchJson(res.headers.location).then(resolve).catch(reject);
+          return;
+        }
+        if (res.statusCode !== 200) {
+          reject(new Error(`HTTP ${res.statusCode} para ${url}`));
+          return;
+        }
+        let body = '';
+        res.on('data', (chunk) => (body += chunk));
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(body));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      },
+    ).on('error', reject);
+  });
+}
+
+async function getBtbNAssetUrl(filePattern) {
+  try {
+    const release = await fetchJson(
+      'https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest',
+    );
+    const asset = (release.assets ?? []).find((a) => filePattern.test(a.name));
+    return asset?.browser_download_url ?? null;
+  } catch (e) {
+    console.warn(`  ⚠ API GitHub falhou (${e.message}), a usar URL estático`);
+    return null;
+  }
 }
 
 async function downloadTo(url, dest) {
@@ -294,10 +351,9 @@ async function main() {
   const archivePath = `${tmpBase}.${bundle.type === 'zip' ? 'zip' : 'tar.xz'}`;
   const extractDir = `${tmpBase}-out`;
 
-  const urls = [
-    `${BTBN}/${bundle.file}`,
-    `https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/${bundle.file}`,
-  ];
+  // Tentar API GitHub primeiro para obter URL real do asset
+  const apiUrl = await getBtbNAssetUrl(bundle.pattern);
+  const urls = [apiUrl, `${BTBN}/${bundle.file}`].filter(Boolean);
 
   let lastError;
   let success = false;
@@ -313,7 +369,8 @@ async function main() {
   }
 
   if (!success) {
-    throw lastError;
+    console.error(`\nErro fatal: ${lastError.message}`);
+    process.exit(1);
   }
   if (bundle.type === 'zip') {
     await extractZip(archivePath, extractDir);
