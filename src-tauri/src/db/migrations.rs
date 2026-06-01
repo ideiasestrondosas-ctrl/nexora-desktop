@@ -10,6 +10,7 @@ pub fn run(conn: &Connection) -> Result<()> {
     migrate_cloud_v1(conn)?;
     migrate_watch_folders_v1(conn)?;
     migrate_telemetry_v1(conn)?;
+    migrate_phase_durations_v1(conn)?;
     Ok(())
 }
 
@@ -148,6 +149,23 @@ fn migrate_telemetry_v1(conn: &Connection) -> Result<()> {
             created_at   TEXT NOT NULL
         );
         "#,
+    )?;
+    Ok(())
+}
+
+fn migrate_phase_durations_v1(conn: &Connection) -> Result<()> {
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS phase_durations (
+            id          INTEGER PRIMARY KEY,
+            phase       TEXT    NOT NULL,
+            width       INTEGER NOT NULL,
+            height      INTEGER NOT NULL,
+            asset_duration_secs REAL,
+            elapsed_ms  INTEGER NOT NULL,
+            created_at  TEXT    DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_phase_durations_lookup
+            ON phase_durations (phase, width, height);",
     )?;
     Ok(())
 }
