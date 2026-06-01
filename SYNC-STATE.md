@@ -10,6 +10,32 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 52 — QueuePage Store Migration + FFmpeg Dev Fix — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-01
+
+**Resumo:** QueuePage ("menu Fila") migrado para useJobsStore partilhado — jobs submetidos via BatchSubmitModal agora aparecem imediatamente na Fila. Fix ao script de download FFmpeg em dev mode (API GitHub para resolver URL real do asset BtbN).
+
+**Commits (branch dev @ 6cb866a):**
+
+- `34952ca` feat(store): add filename field to Job interface
+- `d12f802` fix(queue): migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+- `76d8f34` fix(scripts): use GitHub API to resolve BtbN FFmpeg asset URL
+- `6cb866a` fix(store): job:quarantined event sets qc_quarantined status (not cancelled)
+
+**Ficheiros alterados:** src/store/jobs.ts, src/pages/QueuePage.tsx, src/components/PipelineSummary.tsx, src/hooks/useJobStatus.ts, scripts/download-media-binaries.js
+
+**Notas para o proximo agente:**
+
+- **QueuePage**: nao faz mais invoke('list_jobs') proprio -- usa useJobsStore. NAO reverter.
+- **QueuePage**: nao tem mais listener sidecar:event -- useJobStatus em App.tsx ja trata.
+- **useJobStatus**: `job:quarantined` agora emite `qc_quarantined` (estava errado: `cancelled`).
+- **FFmpeg download**: usa GitHub API primeiro, fallback URL estatico. As 2 URLs anteriores eram identicas (bug).
+- **Proximo passo**: merge dev→main + release v0.31.4-beta.1 (ou manter em dev para mais fixes).
+
+---
+
 ### Sessao 51 — Release v0.31.3-beta.1 — Bug Fixes & Platform Polish — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
