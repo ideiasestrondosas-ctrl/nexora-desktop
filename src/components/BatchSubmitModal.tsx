@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { estimateProcessingTime } from '@/lib/estimate';
 import { useCloudStore } from '@/store/cloud';
+import { useJobsStore, type Job as StoreJob } from '@/store/jobs';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -259,12 +260,13 @@ export function BatchSubmitModal({
       try {
         const cloudIds = perFileOverrides[row.path] ?? globalCloudIds;
         const asset = await invoke<{ id: string }>('ingest_asset', { path: row.path });
-        await invoke('submit_job', {
+        const job = await invoke<StoreJob>('submit_job', {
           assetId: asset.id,
           profile: row.profileId,
           priority: 0,
           cloudProfileIds: cloudIds,
         });
+        useJobsStore.getState().addJob(job);
         setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'done' } : r)));
         successCount++;
       } catch (err: unknown) {

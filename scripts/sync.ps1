@@ -27,6 +27,19 @@ function Write-Warn($msg)    { Write-Host "[WARN]  $msg" -ForegroundColor Yellow
 function Write-Err($msg)     { Write-Host "[ERROR] $msg" -ForegroundColor Red }
 function Write-Info($msg)    { Write-Host "        $msg" -ForegroundColor Gray }
 
+# Smoke-test: um binario media so e valido se `-version` sair com codigo 0.
+# Apanha stubs de 1 byte E builds SHARED sem as DLLs ao lado.
+function Test-MediaBinaryRuns {
+    param([string]$Path)
+    if (-not (Test-Path -LiteralPath $Path)) { return $false }
+    try {
+        & $Path -version *> $null
+        return ($LASTEXITCODE -eq 0)
+    } catch {
+        return $false
+    }
+}
+
 # ---------------------------------------------------------
 # FUNCAO: Merge dev -> main (reutilizavel)
 # ---------------------------------------------------------
@@ -1546,6 +1559,28 @@ if (-not $status -and -not $unpushed) {
 # GUARDIA: placeholders + ficheiros grandes
 # ---------------------------------------------------------
 Write-Step "Verificando placeholders e ficheiros grandes..."
+
+# 0. Canary: smoke-test dos binarios media locais antes do release.
+#    So testa binarios reais (>1KB) da plataforma nativa (Windows host -> binarios win).
+#    Os placeholders (1 byte) sao ignorados; o CI descarrega os binarios static no build.
+#    Apanha cedo uma regressao em download-media-binaries.js (ex: build shared sem DLLs).
+if ($env:OS -eq 'Windows_NT') {
+    $nativeMediaBins = @(
+        "src-tauri\binaries\ffmpeg-x86_64-pc-windows-msvc.exe",
+        "src-tauri\binaries\ffprobe-x86_64-pc-windows-msvc.exe"
+    )
+    foreach ($binRel in $nativeMediaBins) {
+        $binFull = Join-Path $WORKSPACE $binRel
+        if ((Test-Path $binFull) -and ((Get-Item $binFull).Length -gt 1024)) {
+            if (Test-MediaBinaryRuns $binFull) {
+                Write-Success "Smoke-test OK: $binRel executa -version"
+            } else {
+                Write-Warn "Binario media local NAO executa: $binRel (stub/shared sem DLLs?)."
+                Write-Info "O CI descarrega static no build, mas verifica scripts\download-media-binaries.js."
+            }
+        }
+    }
+}
 
 # 1. Restaurar placeholders de binarios FFmpeg/FFprobe substituidos por binarios reais
 $restoredCount = 0

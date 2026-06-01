@@ -38,6 +38,11 @@ pub fn resolve_engine_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
     PathBuf::from(name)
 }
 
+/// Verifica que o ficheiro existe e tem tamanho > 4 KiB (rejeita stubs de 1 byte do Tauri).
+fn is_real_binary(path: &std::path::Path) -> bool {
+    path.metadata().map(|m| m.len() > 4096).unwrap_or(false)
+}
+
 /// Resolve o caminho absoluto de um binário media (ffmpeg ou ffprobe).
 pub fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> PathBuf {
     let ext = if cfg!(target_os = "windows") {
@@ -45,19 +50,46 @@ pub fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> 
     } else {
         ""
     };
+    let bin_name = format!("{}{}", name, ext);
 
+    // 1. Ao lado do executável (produção: Tauri copia binários reais aqui)
     if let Ok(exe) = std::env::current_exe() {
         if let Some(exe_dir) = exe.parent() {
-            let candidate = exe_dir.join(format!("{}{}", name, ext));
-            if candidate.exists() {
+            let candidate = exe_dir.join(&bin_name);
+            if is_real_binary(&candidate) {
                 return candidate;
+            }
+
+            // 2. src-tauri/binaries/ com nome triple (dev: stubs em target/debug/ têm 1 byte)
+            // Sobe: debug/ → target/ → src-tauri/ → raiz do projecto
+            if let Some(project_root) = exe_dir
+                .parent()
+                .and_then(|p| p.parent())
+                .and_then(|p| p.parent())
+            {
+                let binaries_dir = project_root.join("src-tauri").join("binaries");
+                if let Ok(entries) = std::fs::read_dir(&binaries_dir) {
+                    for entry in entries.flatten() {
+                        let fname = entry.file_name();
+                        let fname_str = fname.to_string_lossy();
+                        if fname_str.starts_with(&format!("{}-", name))
+                            && fname_str.ends_with(ext)
+                        {
+                            let candidate = entry.path();
+                            if is_real_binary(&candidate) {
+                                return candidate;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
+    // 3. resource_dir do Tauri (produção: bundle do instalador)
     if let Ok(resource_dir) = app.path().resource_dir() {
-        let candidate = resource_dir.join(format!("{}{}", name, ext));
-        if candidate.exists() {
+        let candidate = resource_dir.join(&bin_name);
+        if is_real_binary(&candidate) {
             return candidate;
         }
     }

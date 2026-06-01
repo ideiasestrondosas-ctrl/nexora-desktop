@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
 import { toast } from 'sonner';
+import { useJobsStore, type Job } from '@/store/jobs';
 import { logActivity } from '@/lib/activityLog';
 import { usePhaseEta } from '@/hooks/usePhaseEta';
 import { formatEtaMs } from '@/lib/eta';
@@ -23,30 +23,6 @@ import {
 } from 'lucide-react';
 import PipelineSummary from '@/components/PipelineSummary';
 import { PIPELINE_STEPS, PIPELINE_PHASES, getStepIndex } from '@/lib/pipeline';
-
-interface Job {
-  id: string;
-  asset_id: string;
-  profile: string;
-  status:
-    | 'queued'
-    | 'processing'
-    | 'done'
-    | 'error'
-    | 'cancelled'
-    | 'qc_quarantined'
-    | 'qc_rejected';
-  progress: number;
-  step: string | null;
-  error: string | null;
-  created_at: string;
-  started_at: string | null;
-  finished_at: string | null;
-  vmaf_score: number | null;
-  lufs: number | null;
-  output_path: string | null;
-  filename: string | null;
-}
 
 interface QueueStats {
   queued: number;
@@ -98,7 +74,7 @@ export default function QueuePage({
   onSelectAsset?: (assetId: string) => void;
 }) {
   const { t, i18n } = useTranslation();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const allJobs = useJobsStore((s) => s.jobs);
   const [stats, setStats] = useState<QueueStats>({
     queued: 0,
     processing: 0,
@@ -112,35 +88,22 @@ export default function QueuePage({
   >([]);
   const [reprocessPopover, setReprocessPopover] = useState<string | null>(null); // job.id
   const [popoverPos, setPopoverPos] = useState<{ top: number; right: number } | null>(null);
-  const fetchData = useCallback(async () => {
+  const fetchStats = useCallback(async () => {
     try {
-      const [jobsData, statsData, profilesData] = await Promise.all([
-        invoke<Job[]>('list_jobs'),
+      const [statsData, profilesData] = await Promise.all([
         invoke<QueueStats>('get_queue_stats'),
         invoke<{ id: string; name: string; label_friendly: string | null }[]>('list_profiles'),
       ]);
-      setJobs(jobsData);
       setStats(statsData);
       setAvailableProfiles(profilesData);
     } catch (error) {
-      console.error('Failed to fetch queue data:', error);
+      console.error('Failed to fetch queue stats:', error);
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
-
-  useEffect(() => {
-    const unlisten = listen('sidecar:event', () => {
-      fetchData();
-    });
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  }, [fetchData]);
+    fetchStats();
+  }, [fetchStats]);
 
   const handleCancel = async (jobId: string) => {
     try {
@@ -148,7 +111,8 @@ export default function QueuePage({
       if (!ok) {
         toast.warning(t('queue.cannotCancelState'));
       }
-      fetchData();
+      invoke<Job[]>('list_jobs').then(useJobsStore.getState().setJobs).catch(console.error);
+      fetchStats();
     } catch (error) {
       console.error('Failed to cancel job:', error);
     }
@@ -162,7 +126,8 @@ export default function QueuePage({
       } else {
         toast.success(t('queue.retryQueued'));
       }
-      fetchData();
+      invoke<Job[]>('list_jobs').then(useJobsStore.getState().setJobs).catch(console.error);
+      fetchStats();
     } catch (error) {
       console.error('Failed to retry job:', error);
     }
@@ -173,7 +138,8 @@ export default function QueuePage({
     try {
       await invoke('submit_job', { assetId, profile, priority: 0 });
       toast.success(t('queue.retryQueued'));
-      fetchData();
+      invoke<Job[]>('list_jobs').then(useJobsStore.getState().setJobs).catch(console.error);
+      fetchStats();
     } catch (error) {
       console.error('Failed to reprocess:', error);
       toast.error(t('common.error', 'Ocorreu um erro'));
@@ -200,7 +166,8 @@ export default function QueuePage({
   const handleApprove = async (jobId: string) => {
     try {
       await invoke('approve_job', { id: jobId });
-      fetchData();
+      invoke<Job[]>('list_jobs').then(useJobsStore.getState().setJobs).catch(console.error);
+      fetchStats();
     } catch (error) {
       console.error('Failed to approve job:', error);
     }
@@ -209,16 +176,17 @@ export default function QueuePage({
   const handleReject = async (jobId: string) => {
     try {
       await invoke('reject_job', { id: jobId, reason: t('queue.rejectedManual') });
-      fetchData();
+      invoke<Job[]>('list_jobs').then(useJobsStore.getState().setJobs).catch(console.error);
+      fetchStats();
     } catch (error) {
       console.error('Failed to reject job:', error);
     }
   };
 
-  const processingJobs = jobs.filter((j) => j.status === 'processing');
-  const queuedJobs = jobs.filter((j) => j.status === 'queued');
-  const quarantinedJobs = jobs.filter((j) => j.status === 'qc_quarantined');
-  const finishedJobs = jobs.filter((j) =>
+  const processingJobs = allJobs.filter((j) => j.status === 'processing');
+  const queuedJobs = allJobs.filter((j) => j.status === 'queued');
+  const quarantinedJobs = allJobs.filter((j) => j.status === 'qc_quarantined');
+  const finishedJobs = allJobs.filter((j) =>
     ['done', 'error', 'cancelled', 'qc_rejected'].includes(j.status),
   );
 
@@ -238,7 +206,7 @@ export default function QueuePage({
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* RESUMO DO PIPELINE */}
-      <PipelineSummary jobs={jobs} onSelectAsset={onSelectAsset} />
+      <PipelineSummary jobs={allJobs} onSelectAsset={onSelectAsset} />
 
       {/* Quarentena badge se houver */}
       {stats.quarantined > 0 && (

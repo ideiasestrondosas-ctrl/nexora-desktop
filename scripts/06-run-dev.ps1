@@ -330,6 +330,19 @@ function nxRunDeletionWorkflow {
 
 # ── Accoes ─────────────────────────────────────────────────────────────────────
 
+# Smoke-test: um binario media so e valido se `-version` sair com codigo 0.
+# Apanha stubs de 1 byte E builds SHARED sem as DLLs ao lado.
+function nxTestMediaBinary {
+    param([string]$Path)
+    if (-not (Test-Path -LiteralPath $Path)) { return $false }
+    try {
+        & $Path -version *> $null
+        return ($LASTEXITCODE -eq 0)
+    } catch {
+        return $false
+    }
+}
+
 function nxVerifyEnvironment {
     nxStep "Verificar Dependencias e Ambiente"
 
@@ -341,13 +354,19 @@ function nxVerifyEnvironment {
         nxOk "node_modules presente"
     }
 
-    # Verificar FFmpeg
-    $ffmpegBin = Join-Path $ProjectRoot "src-tauri\binaries\ffmpeg-x86_64-pc-windows-msvc.exe"
-    if (-not (Test-Path $ffmpegBin) -or (Get-Item $ffmpegBin).Length -lt 100KB) {
-        nxWarn "Binario FFmpeg para Windows ausente ou corrompido. A descarregar..."
+    # Verificar binarios media — validar por EXECUCAO (ffmpeg E ffprobe), nao por tamanho
+    $ffmpegBin  = Join-Path $ProjectRoot "src-tauri\binaries\ffmpeg-x86_64-pc-windows-msvc.exe"
+    $ffprobeBin = Join-Path $ProjectRoot "src-tauri\binaries\ffprobe-x86_64-pc-windows-msvc.exe"
+    if (-not (nxTestMediaBinary $ffmpegBin) -or -not (nxTestMediaBinary $ffprobeBin)) {
+        nxWarn "Binarios de media ausentes, stub ou shared sem DLLs. A descarregar (static)..."
         npm run download:binaries
+        if (-not (nxTestMediaBinary $ffmpegBin) -or -not (nxTestMediaBinary $ffprobeBin)) {
+            nxFail "FFmpeg/FFprobe continuam a nao executar apos download. O processamento de video vai falhar. Verifica scripts\download-media-binaries.js (build tem de ser STATIC)."
+            throw "Binarios de media invalidos"
+        }
+        nxOk "Binarios de media descarregados e validados (executam -version)"
     } else {
-        nxOk "Binarios de media (FFmpeg) presentes"
+        nxOk "Binarios de media (FFmpeg + FFprobe) executam OK"
     }
 
     # Verificar Sidecar

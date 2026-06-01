@@ -4,7 +4,14 @@ export interface Job {
   id: string;
   asset_id: string;
   profile: string;
-  status: 'queued' | 'processing' | 'done' | 'error' | 'cancelled';
+  status:
+    | 'queued'
+    | 'processing'
+    | 'done'
+    | 'error'
+    | 'cancelled'
+    | 'qc_quarantined'
+    | 'qc_rejected';
   priority: number;
   progress: number;
   step: string | null;
@@ -16,6 +23,7 @@ export interface Job {
   output_path: string | null;
   vmaf_score: number | null;
   lufs: number | null;
+  filename?: string | null;
 }
 
 interface JobsState {
