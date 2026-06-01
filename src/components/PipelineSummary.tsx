@@ -7,7 +7,7 @@ interface Job {
   id: string;
   asset_id: string;
   profile: string;
-  filename: string | null;
+  filename?: string | null;
   status: string;
   step: string | null;
   progress: number;
