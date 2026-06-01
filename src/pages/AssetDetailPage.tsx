@@ -36,6 +36,50 @@ import { useAssetsStore } from '@/store/assets';
 import { useJobsStore, type Job } from '@/store/jobs';
 import { useVideoSrc } from '@/hooks/useVideoSrc';
 import { PIPELINE_STEPS, PIPELINE_PHASES, getStepIndex } from '@/lib/pipeline';
+import { usePhaseEta } from '@/hooks/usePhaseEta';
+import { formatEtaMs } from '@/lib/eta';
+
+function DetailedEta({ jobId, currentPhase }: { jobId: string; currentPhase: string | null }) {
+  const { t } = useTranslation();
+  const eta = usePhaseEta(jobId, true);
+
+  if (!eta.hasData && eta.currentPhaseEtaMs == null && eta.totalRemainingMs == null) {
+    return <div className="text-xs text-text-muted mt-2 italic">{t('queue.etaCalc')}</div>;
+  }
+
+  const remainingLabel = eta.remainingPhases
+    .filter((p) => p.estimated_ms != null)
+    .map((p) => t(`pipeline.${p.phase}`, p.phase))
+    .join(' + ');
+
+  const remainingMs = eta.remainingPhases.reduce((sum, p) => sum + (p.estimated_ms ?? 0), 0);
+
+  return (
+    <div className="mt-2 border-t border-border/50 pt-2 space-y-1">
+      {eta.currentPhaseEtaMs != null && (
+        <div className="flex justify-between text-xs">
+          <span className="text-blue-400 font-medium">
+            {currentPhase ? t(`pipeline.${currentPhase}`, currentPhase) : ''}{' '}
+            <span className="text-text-muted">(activo)</span>
+          </span>
+          <span className="text-cyan-400 font-semibold">~{formatEtaMs(eta.currentPhaseEtaMs)}</span>
+        </div>
+      )}
+      {remainingLabel && remainingMs > 0 && (
+        <div className="flex justify-between text-[11px] text-text-muted">
+          <span>{remainingLabel}</span>
+          <span>~{formatEtaMs(remainingMs)}</span>
+        </div>
+      )}
+      {eta.totalRemainingMs != null && (
+        <div className="flex justify-between text-xs border-t border-border/30 pt-1 mt-1">
+          <span className="text-text-secondary font-semibold">Total estimado</span>
+          <span className="text-cyan-400 font-bold">~{formatEtaMs(eta.totalRemainingMs)}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface Asset {
   id: string;
@@ -1023,6 +1067,7 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
                             />
                           </div>
                         </div>
+                        <DetailedEta jobId={job.id} currentPhase={job.step} />
                       </div>
                     ) : (
                       /* Jobs concluídos/erro — mini pipeline com steps */

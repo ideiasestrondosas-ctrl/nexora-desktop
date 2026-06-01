@@ -1,6 +1,7 @@
 use rusqlite::Connection;
 use std::collections::HashMap;
 use std::sync::{atomic::AtomicBool, Arc, Mutex};
+use std::time::Instant;
 
 pub enum WatchCmd {
     Add { id: String, path: String },
@@ -15,6 +16,7 @@ pub struct AppState {
     pub active_pids: Mutex<HashMap<String, u32>>,
     pub watcher_tx: Mutex<Option<std::sync::mpsc::Sender<WatchCmd>>>,
     pub shutdown: Arc<AtomicBool>,
+    pub phase_start_times: Mutex<HashMap<String, (String, Instant)>>, // job_id -> (step, start)
 }
 
 impl AppState {
@@ -25,6 +27,7 @@ impl AppState {
             active_pids: Mutex::new(HashMap::new()),
             watcher_tx: Mutex::new(None),
             shutdown: Arc::new(AtomicBool::new(false)),
+            phase_start_times: Mutex::new(HashMap::new()),
         }
     }
 }

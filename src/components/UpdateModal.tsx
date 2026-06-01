@@ -70,7 +70,7 @@ export const UpdateModal: React.FC<Props> = ({ update, open, onClose }) => {
     <Dialog.Root open={open} onOpenChange={(o) => !o && state === 'idle' && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 glass-surface border border-border rounded-xl shadow-2xl w-[480px] max-w-[90vw] p-6 focus:outline-none">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-bg-primary border border-border rounded-xl shadow-2xl w-[480px] max-w-[90vw] p-6 focus:outline-none">
           {/* Header */}
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center gap-3">

@@ -17,6 +17,8 @@ import {
   Area,
 } from 'recharts';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
+import { usePhaseEta } from '@/hooks/usePhaseEta';
+import { formatEtaMs } from '@/lib/eta';
 
 // Backend retorna camelCase via serde(rename_all = "camelCase")
 interface AppStats {
@@ -65,6 +67,16 @@ interface AssetMap {
 interface DashboardPageProps {
   onNavigate: (page: string) => void;
   onSelectAsset: (id: string) => void;
+}
+
+function CompactEta({ jobId }: { jobId: string }) {
+  const eta = usePhaseEta(jobId, true);
+  if (!eta.hasData || eta.totalRemainingMs == null) return null;
+  return (
+    <span className="text-[9px] text-cyan-400 font-semibold ml-1">
+      ~{formatEtaMs(eta.totalRemainingMs)}
+    </span>
+  );
 }
 
 export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPageProps) {
@@ -317,15 +329,20 @@ export default function DashboardPage({ onNavigate, onSelectAsset }: DashboardPa
                               : 'text-text-muted'
                       }`}
                     >
-                      {job.status === 'processing'
-                        ? `${t('dashboard.processing')} ${Math.round(job.progress * 100)}%`
-                        : job.status === 'done'
-                          ? t('dashboard.completed')
-                          : job.status === 'error'
-                            ? t('dashboard.error')
-                            : job.status === 'cancelled'
-                              ? t('dashboard.cancelled')
-                              : job.status.toUpperCase()}
+                      {job.status === 'processing' ? (
+                        <>
+                          {`${t('dashboard.processing')} ${Math.round(job.progress * 100)}%`}
+                          <CompactEta jobId={job.id} />
+                        </>
+                      ) : job.status === 'done' ? (
+                        t('dashboard.completed')
+                      ) : job.status === 'error' ? (
+                        t('dashboard.error')
+                      ) : job.status === 'cancelled' ? (
+                        t('dashboard.cancelled')
+                      ) : (
+                        job.status.toUpperCase()
+                      )}
                     </div>
                     {job.vmaf_score != null && (
                       <div className={`text-xs font-black ${getVmafColor(job.vmaf_score)}`}>

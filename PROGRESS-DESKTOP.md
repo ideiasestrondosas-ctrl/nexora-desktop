@@ -109,6 +109,34 @@
 - [x] Build funciona para Linux (.AppImage + .deb)
 - [x] GitHub Release criado com artefactos das 3 plataformas (v0.29.0-alpha.1)
 
+### Fase 24 - Feature ETA por Fase (Sessao 46) -- CONCLUIDO
+
+**Objectivo:** Mostrar ETA de processamento estimado por fase, baseado em historico de duraccoes anteriores.
+
+**Implementacao:**
+
+- [x] feat(db): tabela `phase_durations` (asset_resolution, phase_name, duration_ms, recorded_at) + indice
+- [x] feat(rust): deteccao de transicoes de fase em `AppState.phase_start_times` + gravacao em BD
+- [x] feat(rust): comando IPC `get_phase_eta` -- mediana das ultimas 5 duraccoes por resolucao+fase
+- [x] feat(frontend): hook `usePhaseEta` + utilitario `formatEtaMs` + i18n EN/PT
+- [x] feat(queue): ETA total + badges de fases restantes na QueuePage
+- [x] feat(dashboard): ETA compacto no card de job activo da DashboardPage
+- [x] feat(asset-detail): ETA detalhado por fase no tab Historico da AssetDetailPage
+
+**Ficheiros alterados (7):**
+
+- `src-tauri/src/db.rs` -- schema phase_durations
+- `src-tauri/src/commands/queue.rs` -- phase_start_times + gravacao duraccoes
+- `src-tauri/src/commands/eta.rs` -- get_phase_eta command
+- `src/hooks/usePhaseEta.ts` -- hook novo
+- `src/lib/eta.ts` -- formatEtaMs utilitario
+- `src/i18n/locales/en/common.json` + `pt/common.json` -- chaves eta.\*
+- `src/pages/QueuePage.tsx`, `DashboardPage.tsx`, `AssetDetailPage.tsx` -- UI
+
+**Estado:** 7 commits em `dev`. Pronto para proxima release.
+
+---
+
 ### Fase 23 - Release v0.30.11-beta.1 + Fix sync.ps1 (Sessao 45) -- CONCLUIDO
 
 **Objectivo:** Publicar release v0.30.11-beta.1 e corrigir bug recorrente do sync.ps1.

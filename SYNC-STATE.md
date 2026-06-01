@@ -10,6 +10,47 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 46 -- Feature ETA por Fase -- CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-01
+
+**Resumo:** Sistema de ETA de processamento por fase implementado de raiz (Rust + Frontend)
+
+**Implementacao (7 commits):**
+
+1. **feat(db):** tabela `phase_durations` com indice `(asset_resolution, phase_name)` para lookup historico de duracao por fase
+2. **feat(queue):** deteccao de transicoes de fase no Rust (`AppState.phase_start_times`) -- grava duracao em `phase_durations` ao completar cada fase
+3. **feat(rust):** comando IPC `get_phase_eta` -- consulta historico por resolucao+fase, devolve mediana das ultimas 5 duraccoes
+4. **feat(frontend):** hook `usePhaseEta` + utilitario `formatEtaMs` + chaves i18n EN/PT (`eta.calculating`, `eta.minutes`, `eta.seconds`)
+5. **feat(queue):** QueuePage com ETA total abaixo da barra de progresso + badges das fases restantes
+6. **feat(dashboard):** DashboardPage com ETA compacto no card de job activo
+7. **feat(asset-detail):** AssetDetailPage com ETA detalhado por fase no tab Historico
+
+**Commits:**
+
+- `d5269a3` -- feat(db): tabela phase_durations para historico de duracao por fase
+- `f108406` -- feat(queue): detectar transicoes de fase e gravar duracao em phase_durations
+- `152a7a0` -- feat(rust): comando get_phase_eta -- consulta historico de duracao por fase
+- `8ce295c` -- feat(frontend): hook usePhaseEta + utilitario formatEtaMs + i18n keys
+- `0dd927c` -- feat(queue): ETA por fase abaixo da barra de progresso
+- `1d888d0` -- feat(dashboard): ETA compacto no card de job activo
+- `9889edc` -- feat(asset-detail): ETA detalhado por fase no tab Historico
+
+**Estado:** Branch `dev` em `9889edc`. 9 commits a frente de `main` (ETA + fix update-modal + spec doc). Pronto para release.
+
+**Nota de uso:** Primeiros jobs mostram "A calcular..." enquanto historico e construido. A partir do segundo job com a mesma resolucao, ETA fica disponivel.
+
+**Notas para o proximo agente:**
+
+- **phase_durations:** tabela SQLite com `(id, asset_resolution, phase_name, duration_ms, recorded_at)`. Indice em `(asset_resolution, phase_name)`.
+- **get_phase_eta IPC:** recebe `{ jobId, phase }`, devolve `{ etaMs: number | null }`. Mediana das ultimas 5 duraccoes para a resolucao do asset.
+- **usePhaseEta hook:** `src/hooks/usePhaseEta.ts` -- polling a cada 10s durante job activo.
+- **formatEtaMs:** `src/lib/eta.ts` -- formata ms para "~Xmin" ou "~Xs"; null devolve chave i18n `eta.calculating`.
+- **URGENTE:** `actions/checkout@v5` + `actions/setup-node@v5` antes de 16 de Junho 2026.
+
+---
+
 ### Sessao 45 -- Release v0.30.11-beta.1 + Fix sync.ps1 regex -- CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)

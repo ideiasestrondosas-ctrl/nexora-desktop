@@ -5,6 +5,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { toast } from 'sonner';
 import { logActivity } from '@/lib/activityLog';
+import { usePhaseEta } from '@/hooks/usePhaseEta';
+import { formatEtaMs } from '@/lib/eta';
 import {
   X,
   CheckCircle2,
@@ -53,6 +55,41 @@ interface QueueStats {
   errorToday: number;
   quarantined: number;
   rejectedToday: number;
+}
+
+function JobEta({ jobId, isProcessing }: { jobId: string; isProcessing: boolean }) {
+  const { t } = useTranslation();
+  const eta = usePhaseEta(jobId, isProcessing);
+
+  if (!isProcessing) return null;
+
+  return (
+    <div className="mt-1.5 space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-text-muted uppercase tracking-wide font-semibold">
+          ETA
+        </span>
+        <span className="text-xs font-semibold text-cyan-400">
+          {eta.hasData && eta.totalRemainingMs != null
+            ? t('queue.etaActive', { time: formatEtaMs(eta.totalRemainingMs) })
+            : t('queue.etaCalc')}
+        </span>
+      </div>
+      {eta.hasData && eta.remainingPhases.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {eta.remainingPhases.slice(0, 4).map((p) => (
+            <span
+              key={p.phase}
+              className="text-[10px] bg-bg-secondary border border-border rounded-full px-2 py-0.5 text-text-muted"
+            >
+              {t(`pipeline.${p.phase}`, p.phase)}
+              {p.estimated_ms != null ? ` ~${formatEtaMs(p.estimated_ms)}` : ''}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function QueuePage({
@@ -415,6 +452,8 @@ export default function QueuePage({
                         style={{ width: `${job.progress * 100}%` }}
                       ></div>
                     </div>
+                    {/* ETA por fase */}
+                    <JobEta jobId={job.id} isProcessing={job.status === 'processing'} />
                   </div>
 
                   <div className="mt-4 flex items-center gap-6 text-[11px] font-bold text-text-muted uppercase tracking-widest">
