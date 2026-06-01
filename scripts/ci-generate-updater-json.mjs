@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
 
@@ -61,7 +61,7 @@ for (const dir of dirs) {
   };
 }
 
-// Extrair notas do CHANGELOG para esta versão
+// Extrair notas: prioridade 1 CHANGELOG, prioridade 2 release-notes-v{tag}.md
 let notes = 'Ver CHANGELOG.md para detalhes das alterações.';
 try {
   const changelog = readFileSync('CHANGELOG.md', 'utf8');
@@ -70,10 +70,21 @@ try {
     notes = extracted.length > 500 ? extracted.substring(0, 497) + '...' : extracted;
     console.log(`\nExtracted CHANGELOG section for v${version} (${notes.length} chars)`);
   } else {
-    console.log(`\nNo CHANGELOG section found for v${version}, using default notes`);
+    console.log(`\nNo CHANGELOG section found for v${version}, trying release-notes file...`);
+    const releaseNotesPath = `release-notes-v${tag}.md`;
+    if (existsSync(releaseNotesPath)) {
+      const releaseNotes = readFileSync(releaseNotesPath, 'utf8');
+      const mainContent = releaseNotes.split('\n---\n')[0].trim();
+      if (mainContent) {
+        notes = mainContent.length > 500 ? mainContent.substring(0, 497) + '...' : mainContent;
+        console.log(`\nUsed release-notes-v${tag}.md (${notes.length} chars)`);
+      }
+    } else {
+      console.log(`\nrelease-notes-v${tag}.md not found, using default notes`);
+    }
   }
 } catch (e) {
-  console.log(`\nCould not read CHANGELOG.md: ${e.message}`);
+  console.log(`\nCould not read notes: ${e.message}`);
 }
 
 const latestJson = {

@@ -8,6 +8,20 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [0.31.2-beta.1] - 2026-06-01
 
+### Added
+
+- opcao 6 pipeline completo automatico + aviso actions deprecadas (v1.3.0)
+
+### Fixed
+
+- windows-latest -> windows-2025 (redireccao forcada 15 Jun 2026)
+- actualizar GitHub Actions v4->v5 (Node.js 24, deadline 16 Jun 2026)
+
+### Infrastructure
+
+- 2: Corrigir falhas de CI (clippy + Actions deprecadas + runner obsoleto)
+- chore(release): v0.31.2-beta.1
+
 ## [0.31.1-beta.1] - 2026-06-01
 
 ### Added
