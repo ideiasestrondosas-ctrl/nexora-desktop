@@ -48,7 +48,7 @@ export function useJobStatus(fallbackIntervalMs: number = 30_000) {
             updateJob(ev.jobId, { status: 'error', error: ev.error ?? null });
             break;
           case 'job:quarantined':
-            updateJob(ev.jobId, { status: 'cancelled' });
+            updateJob(ev.jobId, { status: 'qc_quarantined' });
             break;
           case 'job:started':
             updateJob(ev.jobId, { status: 'processing', progress: 0 });
