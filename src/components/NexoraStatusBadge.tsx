@@ -1,7 +1,15 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-type Status = 'pending' | 'queued' | 'processing' | 'done' | 'error' | 'cancelled';
+type Status =
+  | 'pending'
+  | 'queued'
+  | 'processing'
+  | 'done'
+  | 'error'
+  | 'cancelled'
+  | 'qc_quarantined'
+  | 'qc_rejected';
 
 interface StatusBadgeProps {
   status: Status;
@@ -14,6 +22,8 @@ const statusColors: Record<Status, string> = {
   done: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
   error: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
   cancelled: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
+  qc_quarantined: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100',
+  qc_rejected: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
 };
 
 export const NexoraStatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
