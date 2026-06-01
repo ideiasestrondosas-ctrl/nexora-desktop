@@ -534,17 +534,42 @@ function Get-AgentInfo {
 # ---------------------------------------------------------
 # FUNCAO: Listar commits desde a ultima tag
 # ---------------------------------------------------------
+# MIN_USEFUL_COMMITS: se o range actual tiver menos commits uteis do que este
+# valor, incluir tambem os commits da tag anterior (evita release-notes vazias
+# quando um bump de release e feito logo a seguir ao anterior).
+$MIN_USEFUL_COMMITS = 5
+
 function Get-CommitsSinceLastTag {
     $lastTag = git describe --tags --abbrev=0 2>$null
+
     if (-not $lastTag) {
         Write-Warn "Nenhuma tag encontrada. A usar todos os commits do branch."
-        $commits = git log --pretty=format:"%h|%s" --no-merges
+        $rawLines = git log --pretty=format:"%h|%s" --no-merges
     } else {
-        $commits = git log "${lastTag}..HEAD" --pretty=format:"%h|%s" --no-merges
+        $rawLines = git log "${lastTag}..HEAD" --pretty=format:"%h|%s" --no-merges
+    }
+
+    # Contar commits uteis (excluir bumps de release e docs puros)
+    $usefulCount = ($rawLines -split "`n") | Where-Object {
+        $_ -match '^\S' -and
+        $_ -notmatch '\|chore\(release\):' -and
+        $_ -notmatch '\|docs\(session\):' -and
+        $_ -notmatch '\|docs\(progress\):' -and
+        $_ -notmatch '\|\d+:' # commit messages gerados pelo sync.ps1
+    } | Measure-Object | Select-Object -ExpandProperty Count
+
+    # Se poucos commits uteis, incluir tambem o range da tag anterior
+    if ($lastTag -and $usefulCount -lt $MIN_USEFUL_COMMITS) {
+        $prevTag = git describe --tags --abbrev=0 "${lastTag}^" 2>$null
+        if ($prevTag) {
+            Write-Host "  [INFO] Poucos commits uteis ($usefulCount) desde $lastTag -- a incluir range $prevTag..$lastTag" -ForegroundColor DarkCyan
+            $extraLines = git log "${prevTag}..${lastTag}" --pretty=format:"%h|%s" --no-merges
+            $rawLines = ($rawLines, $extraLines) -join "`n"
+        }
     }
 
     $commitList = @()
-    foreach ($line in $commits -split "`n") {
+    foreach ($line in $rawLines -split "`n") {
         if ($line -match '^([^|]+)\|(.+)$') {
             $commitList += @{
                 Hash    = $matches[1].Trim()
