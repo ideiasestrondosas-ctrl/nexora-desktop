@@ -10,6 +10,37 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 53 — Fix spawn UNKNOWN ffprobe/ffmpeg em dev — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-01
+
+**Resumo:** Processamento de video falhava no QC Pre ("ficheiro sem stream de video") porque o ffprobe nao corria. Dois root causes independentes resolvidos via systematic-debugging. Pipeline verificado end-to-end (job passa e completa).
+
+**Root cause 1 — resolucao de path (commit 226147a):**
+`resolve_media_binary_path` (src-tauri/src/sidecar.rs) usava `.exists()`, que aceitava os stubs Tauri de 1 byte em `target/debug/ffprobe.exe`. O sidecar (PKG) rejeitava-os via `isRealBinary` e caia em plain `"ffprobe"` → `spawn UNKNOWN`. Fix: helper `is_real_binary()` (size > 4096) em todos os checks + 2o candidato que escaneia `src-tauri/binaries/ffprobe-*.exe` (binarios reais em dev).
+
+**Root cause 2 — binarios partidos (shared sem DLLs):**
+Apos o fix 1, o path resolvia certo mas ffprobe saia com `0xC0000135` (STATUS_DLL_NOT_FOUND). Os binarios em `src-tauri/binaries/` eram um build SHARED (533KB/227KB) sem as `av*.dll` ao lado — restos de setup anterior. Fix: `npm run download:binaries` substituiu-os por STATIC (~194 MB, autossuficientes).
+
+**Commits (branch dev @ 226147a):**
+
+- `226147a` fix(sidecar): rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+
+**Ficheiros alterados:** src-tauri/src/sidecar.rs (binarios media substituidos mas src-tauri/binaries/ esta gitignored — nao commitados)
+
+**Verificacao:** `ffprobe -version` exit 0; probe do video real → h264 1024x576 exit 0; teste manual no app: job submetido passou QC Pre e completou o pipeline.
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). Se aparecer `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515`: correr `npm run download:binaries`. Build shared (~227KB-533KB) sem DLLs nao corre.
+- **resolve_media_binary_path** usa `is_real_binary()` (size > 4096), NAO `.exists()`. Os stubs Tauri em `target/debug/` tem 1 byte. NAO reverter para `.exists()`.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK com binarios partidos.
+- **startup_checks** em lib.rs ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar problema dos binarios bundled (da "FFprobe: OK" mesmo com stub). Nao foi alterado nesta sessao (fora de escopo).
+- **Proximo passo**: merge dev→main + release (ou manter em dev para mais fixes).
+
+---
+
 ### Sessao 52 — QueuePage Store Migration + FFmpeg Dev Fix — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)

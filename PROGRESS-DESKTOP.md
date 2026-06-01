@@ -210,6 +210,40 @@
 
 ---
 
+### Fase 28 - QueuePage Store + Fix Pipeline ffprobe/ffmpeg (Sessoes 52-53) -- CONCLUIDO
+
+**Objectivo:** Migrar QueuePage para o store partilhado e corrigir falha de processamento de video (QC Pre falhava porque ffprobe/ffmpeg nao corriam).
+
+**Implementacao (Sessao 52):**
+
+- [x] feat(store): campo `filename` adicionado ao interface `Job`
+- [x] fix(queue): `QueuePage` migrado para `useJobsStore` -- jobs visiveis imediatamente apos submit (sem invoke proprio nem listener `sidecar:event` duplicado)
+- [x] fix(store): evento `job:quarantined` emite `qc_quarantined` (estava errado: `cancelled`)
+- [x] fix(scripts): `download-media-binaries.js` usa GitHub API para resolver URL real do asset BtbN
+
+**Implementacao (Sessao 53) -- fix pipeline via systematic-debugging:**
+
+- [x] fix(sidecar): `resolve_media_binary_path` usa `is_real_binary()` (size > 4096) em vez de `.exists()` -- rejeita stubs Tauri de 1 byte em `target/debug/`
+- [x] fix(sidecar): 2o candidato escaneia `src-tauri/binaries/ffprobe-*.exe` (binarios reais em dev)
+- [x] fix(binaries): `npm run download:binaries` -- substituidos binarios SHARED partidos (sem `av*.dll`, exit `0xC0000135`) por STATIC autossuficientes (~194 MB)
+- [x] Verificado end-to-end: job submetido passa QC Pre e completa o pipeline
+
+**Ficheiros alterados:**
+
+- `src/store/jobs.ts` -- campo `filename`
+- `src/pages/QueuePage.tsx` -- useJobsStore
+- `src/components/PipelineSummary.tsx` -- alinhamento de tipos `filename`
+- `src/hooks/useJobStatus.ts` -- `qc_quarantined`
+- `scripts/download-media-binaries.js` -- GitHub API para URL BtbN
+- `src-tauri/src/sidecar.rs` -- `is_real_binary()` + scan de `binaries/`
+- (binarios media substituidos mas `src-tauri/binaries/` esta gitignored -- nao commitados)
+
+**Estado:** Pipeline funcional end-to-end. `dev` @ `226147a`, por mergear em `main`.
+
+**Armadilha conhecida:** binarios media TEM de ser STATIC (~194 MB). `spawn UNKNOWN` ou exit `0xC0000135` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+
+---
+
 ### Fase 23 - Release v0.30.11-beta.1 + Fix sync.ps1 (Sessao 45) -- CONCLUIDO
 
 **Objectivo:** Publicar release v0.30.11-beta.1 e corrigir bug recorrente do sync.ps1.
