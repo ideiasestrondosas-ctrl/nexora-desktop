@@ -130,6 +130,16 @@ No final da sessao:
 
 ---
 
+## Regras de Trabalho (Sempre Activas)
+
+### Regra 2 — Nunca Refazer Trabalho Concluído
+
+- Itens marcados `[x]` em `PROGRESS-DESKTOP.md` estão **concluídos e imutáveis** salvo instrução explícita do utilizador.
+- Antes de implementar qualquer coisa, verificar se já existe em `[x]`. Se existir, parar e perguntar.
+- "Já está feito" é informação suficiente — não re-implementar "de forma melhor" sem pedido explícito.
+
+---
+
 ## Karpathy Guidelines — Regras de Comportamento (Sempre Activas)
 
 ### 1. Pensar Antes de Codificar
