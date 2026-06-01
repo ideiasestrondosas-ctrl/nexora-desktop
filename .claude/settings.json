@@ -28,8 +28,7 @@
             "type": "command",
             "command": "pwsh -File C:\\dev\\nexora-desktop\\scripts\\hooks\\wip-user-prompt.ps1",
             "shell": "powershell",
-            "timeout": 5,
-            "async": true
+            "timeout": 8
           }
         ]
       }
