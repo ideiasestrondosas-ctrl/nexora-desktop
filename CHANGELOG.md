@@ -6,6 +6,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.31.0-beta.1] - 2026-06-01
+
+### Added
+
+- chore(session): actualizar SYNC-STATE + PROGRESS (sessao 47)
+
 ## [0.30.11-beta.1] - 2026-05-31
 
 ### Other
@@ -46,7 +52,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Other
 
-- 2: ImplementÃƒÂ¡mos os 7 fixes UI/UX v0.30.9 no branch dev (contraste HelpModal, badges biblioteca, overlay hover, badge jÃƒÂ¡
+- 2: ImplementÃƒÆ’Ã‚Â¡mos os 7 fixes UI/UX v0.30.9 no branch dev (contraste HelpModal, badges biblioteca, overlay hover, badge jÃƒÆ’Ã‚Â¡
 
 ## [0.30.8-beta.1] - 2026-05-30
 
@@ -64,7 +70,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- 2: Titulo: 4 Bugs UI/UX Sandbox ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â Update Modal, Thumbnails, Player, Comparador
+- 2: Titulo: 4 Bugs UI/UX Sandbox ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Update Modal, Thumbnails, Player, Comparador
 
 ## [0.30.5-beta.1] - 2026-05-29
 
