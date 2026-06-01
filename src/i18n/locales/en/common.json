@@ -394,7 +394,10 @@
     "pipeline": {
       "expandTooltip": "Click to see files",
       "noFilesForStatus": "No files for this status"
-    }
+    },
+    "etaCalc": "Calculating...",
+    "etaActive": "~{{time}} remaining",
+    "etaTotal": "~{{time}} total"
   },
   "profiles": {
     "create": "Create",

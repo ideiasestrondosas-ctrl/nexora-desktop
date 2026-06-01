@@ -524,7 +524,10 @@
     "pipeline": {
       "expandTooltip": "Clique para ver ficheiros",
       "noFilesForStatus": "Sem ficheiros para este estado"
-    }
+    },
+    "etaCalc": "A calcular...",
+    "etaActive": "~{{time}} restante",
+    "etaTotal": "~{{time}} total"
   },
   "profiles": {
     "create": "Criar",
