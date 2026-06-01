@@ -208,7 +208,7 @@ export function IngestProfileModal({
         <Dialog.Content
           className={cn(
             'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
-            'w-full max-w-lg glass-surface border border-border rounded-2xl shadow-2xl',
+            'w-full max-w-lg bg-bg-primary border border-border rounded-2xl shadow-2xl',
             'flex flex-col max-h-[90vh] overflow-hidden',
             'animate-in fade-in zoom-in-95 duration-200',
           )}
@@ -343,7 +343,7 @@ export function IngestProfileModal({
                       className="fixed inset-0 z-10"
                       onClick={() => setProfileDropdownOpen(false)}
                     />
-                    <div className="absolute top-full left-0 right-0 mt-2 glass-surface border border-border rounded-xl shadow-2xl z-20 max-h-56 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-bg-primary border border-border rounded-xl shadow-2xl z-20 max-h-56 overflow-y-auto">
                       {/* Predefinidos */}
                       <div className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-text-muted">
                         {t('profiles.predefined')}

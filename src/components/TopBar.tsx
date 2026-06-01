@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useSystemMetrics } from '@/hooks/useSystemMetrics';
 import { useGPU } from '@/hooks/useGPU';
 import { useDiskSpace } from '@/hooks/useDiskSpace';
-import { LogOut, Cpu, MemoryStick, HardDrive, Monitor, HelpCircle, Bug } from 'lucide-react';
+import { LogOut, Cpu, MemoryStick, HardDrive, Monitor, HelpCircle, Bug, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useJobsStore } from '@/store/jobs';
 
 export interface ScreenInfo {
   name: string;
@@ -77,6 +78,42 @@ function CircularGauge({
   );
 }
 
+function QueuePill() {
+  const { t } = useTranslation();
+  const jobs = useJobsStore((s) => s.jobs);
+  const active = jobs.filter((j) => j.status === 'processing' || j.status === 'queued').length;
+  const done = jobs.filter((j) => j.status === 'done').length;
+  const isActive = active > 0;
+
+  return (
+    <div className="hidden md:flex items-center gap-1.5 bg-bg-secondary border border-border rounded-full px-3 py-1 text-xs select-none mr-3">
+      <span
+        className={
+          isActive
+            ? 'inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse'
+            : 'inline-block w-2 h-2 rounded-full bg-text-muted/40'
+        }
+      />
+      {isActive ? (
+        <span className="text-blue-400 font-semibold">
+          {t('topbar.queueActive', { count: active })}
+        </span>
+      ) : (
+        <span className="text-text-muted font-medium">{t('topbar.queueIdle')}</span>
+      )}
+      {done > 0 && (
+        <>
+          <span className="text-text-muted/40">·</span>
+          <span className="text-green-500 font-semibold flex items-center gap-0.5">
+            {done}
+            <Check size={10} strokeWidth={2.5} />
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
 interface TopBarProps {
   activeTab: string;
   onHelpOpen?: () => void;
@@ -140,6 +177,9 @@ export default function TopBar({ activeTab, onHelpOpen, onBugReport }: TopBarPro
           colorClass="text-yellow-500"
         />
       </div>
+
+      {/* Queue Pill — indicador de fila em tempo real */}
+      <QueuePill />
 
       {/* Botão Report Bug */}
       {onBugReport && (

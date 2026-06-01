@@ -31,8 +31,9 @@ import type { DetailedMediaInfo } from '@/components/MediaInfoPanel';
 import { ThumbnailImg } from '@/components/ThumbnailImg';
 import { VisualComparatorPlayer } from '@/components/VisualComparatorPlayer';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { useShallow } from 'zustand/react/shallow';
 import { useAssetsStore } from '@/store/assets';
-import { useJobsStore } from '@/store/jobs';
+import { useJobsStore, type Job } from '@/store/jobs';
 import { useVideoSrc } from '@/hooks/useVideoSrc';
 import { PIPELINE_STEPS, PIPELINE_PHASES, getStepIndex } from '@/lib/pipeline';
 
@@ -55,22 +56,6 @@ interface Asset {
   output_metadata: Record<string, unknown> | null;
   output_path: string | null;
   metadata: Record<string, unknown> | null;
-}
-
-interface Job {
-  id: string;
-  asset_id: string;
-  profile: string;
-  status: string;
-  progress: number;
-  step: string | null;
-  error: string | null;
-  created_at: string;
-  started_at: string | null;
-  finished_at: string | null;
-  vmaf_score: number | null;
-  lufs: number | null;
-  output_path: string | null;
 }
 
 interface CloudDestination {
@@ -96,7 +81,8 @@ interface AssetDetailPageProps {
 
 export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: AssetDetailPageProps) {
   const [asset, setAsset] = useState<Asset | null>(null);
-  const [jobs, setJobs] = useState<Job[]>([]);
+  // Substituição: jobs derivados do store global (reactivo a eventos sidecar)
+  const jobs = useJobsStore(useShallow((s) => s.jobs.filter((j) => j.asset_id === assetId)));
   const [loading, setLoading] = useState(true);
   const [activeDetailTab, setActiveDetailTab] = useState<
     'qc' | 'metadata' | 'media' | 'history' | 'comparator'
@@ -123,16 +109,15 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
 
   const removeAsset = useAssetsStore((s) => s.removeAsset);
   const removeJobsByAsset = useJobsStore((s) => s.removeJobsByAsset);
+  const setJobs = useJobsStore((s) => s.setJobs);
 
   const fetchData = useCallback(async () => {
     try {
-      const [assetData, jobsData, profilesData] = await Promise.all([
+      const [assetData, profilesData] = await Promise.all([
         invoke<Asset | null>('get_asset', { id: assetId }), // P6: backend retorna Option<Asset>; P11: param name é 'id'
-        invoke<Job[]>('list_jobs', { assetId }),
         invoke<Profile[]>('list_profiles'),
       ]);
       if (assetData) setAsset(assetData); // P6: verificar null
-      setJobs(jobsData);
       setProfiles(profilesData);
     } catch (error) {
       console.error('Failed to fetch asset detail:', error);
@@ -144,6 +129,17 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Re-fetch asset metadata quando o estado dos jobs deste asset muda
+  // (actualiza VMAF, output_path, codec info sem sair da página)
+  useEffect(() => {
+    if (jobs.length === 0) return;
+    invoke<Asset | null>('get_asset', { id: assetId })
+      .then((a) => {
+        if (a) setAsset(a);
+      })
+      .catch(() => {});
+  }, [jobs, assetId]);
 
   useEffect(() => {
     const doneJob = jobs.find((j) => j.asset_id === assetId && j.status === 'done');
@@ -185,6 +181,10 @@ export default function AssetDetailPage({ assetId, onBack, onSelectAsset }: Asse
       await invoke('submit_job', { assetId, profile, priority: 0 });
       toast.success(t('assetDetail.reprocessQueued', 'Job adicionado à fila'));
       fetchData();
+      // Refresh store para mostrar novo job imediatamente
+      invoke<Job[]>('list_jobs')
+        .then(setJobs)
+        .catch(() => {});
     } catch (e: unknown) {
       console.error('Failed to submit job:', e);
       toast.error(t('common.error', 'Ocorreu um erro'));

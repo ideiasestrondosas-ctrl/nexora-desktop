@@ -41,6 +41,7 @@ import { SystemDiagnosticsModal } from '@/components/SystemDiagnosticsModal';
 import { UpdateModal } from '@/components/UpdateModal';
 import { useLanguageSync } from '@/i18n/useLanguageSync';
 import { useActionLog } from '@/hooks/useActionLog';
+import { useJobStatus } from '@/hooks/useJobStatus';
 import { cn } from '@/lib/utils';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -48,6 +49,7 @@ type Tab = 'dashboard' | 'library' | 'queue' | 'profiles' | 'settings' | 'logs' 
 
 function App() {
   useLanguageSync();
+  useJobStatus(); // Popula useJobsStore com todos os jobs e escuta eventos sidecar
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);

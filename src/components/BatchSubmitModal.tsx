@@ -131,7 +131,7 @@ function ProfileDropdown({
               onClick={() => setOpen(false)}
             />
             <div
-              className="glass-surface border border-border rounded-xl shadow-2xl max-h-56 overflow-y-auto"
+              className="bg-bg-primary border border-border rounded-xl shadow-2xl max-h-56 overflow-y-auto"
               style={{ ...menuStyle, pointerEvents: 'auto' }}
             >
               {profiles.map((p) => (
@@ -294,7 +294,7 @@ export function BatchSubmitModal({
         <Dialog.Content
           className={cn(
             'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
-            'w-full max-w-2xl glass-surface border border-border rounded-2xl shadow-2xl',
+            'w-full max-w-2xl bg-bg-primary border border-border rounded-2xl shadow-2xl',
             'flex flex-col max-h-[85vh] overflow-hidden',
             'animate-in fade-in zoom-in-95 duration-200',
           )}

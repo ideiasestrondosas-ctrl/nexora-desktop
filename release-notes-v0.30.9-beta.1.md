@@ -1,6 +1,6 @@
 ## Resumo
 
-Release v0.30.9-beta.1 — 12 alteracoes.
+Release v0.30.9-beta.1 — 17 alteracoes.
 
 ## Novas Funcionalidades
 
@@ -11,6 +11,9 @@ Release v0.30.9-beta.1 — 12 alteracoes.
 
 ## Correccoes
 
+- verificacoes pre-push -- tsc + cargo fmt + cargo check antes de git push
+- cargo fmt -- create_macos_alias let script numa linha so
+- version.ts -- declaracao VERSION_HISTORY em falta + aspas + sync.ps1 Join-String -> -join
 - hover overlay escuro em modo claro + badges de status visiveis
 - melhorar contraste bordas e sidebar em modo claro e escuro
 - corrigir regex overly-escaped em extractChangelogSection -- notes do latest.json agora populadas
@@ -18,14 +21,12 @@ Release v0.30.9-beta.1 — 12 alteracoes.
 
 ## Infraestrutura e Documentacao
 
+- v0.30.9-beta.1
+- commitar plugin-os install + normalizar line endings docs sessao 40
 - fechar sessao 41 -- 7 fixes UI/UX v0.30.9
 - plano de implementacao 7 fixes UI/UX v0.30.9
 - 7 melhorias UI/UX v0.30.9 -- HelpModal, badges, shortcuts, update modal, encoding
-- commitar plugin-os install + normalizar line endings docs sessao 40
-
-## :warning: Breaking Changes
-
-- `get_startup_status` IPC command: campos `nodeOk` e `sidecarOk` removidos, `engineOk` adicionado. Qualquer frontend que lesse `status.nodeOk` ou `status.sidecarOk` deixa de funcionar — mas nao existia outro consumer alem de `App.tsx` que ja foi actualizado.
+- 2: Implementámos os 7 fixes UI/UX v0.30.9 no branch dev (contraste HelpModal, badges biblioteca, overlay hover, badge já
 
 ---
 

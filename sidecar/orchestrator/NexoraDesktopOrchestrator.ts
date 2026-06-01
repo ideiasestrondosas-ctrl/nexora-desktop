@@ -62,12 +62,22 @@ export class NexoraDesktopOrchestrator {
       });
     };
 
+    const logStep = (step: string) =>
+      emit({
+        type: 'log',
+        level: 'DEBUG',
+        source: 'orchestrator',
+        message: `[DIAG] step=${step}`,
+      });
+
     try {
       // Passo 0 — Ingest
+      logStep('ingest:start');
       await new IngestWorker().run(ctx);
       stepProgress(0, 1);
 
       // Passo 1 — QC Pre
+      logStep('qc-pre:start');
       const qcResult = await new QCPreWorker().run(ctx);
       if (qcResult === 'QUARANTINE') {
         emit({ type: 'job:quarantined', jobId: ctx.jobId, assetId: ctx.assetId });
@@ -79,9 +89,11 @@ export class NexoraDesktopOrchestrator {
       stepProgress(1, 1);
 
       // Passo 2 — Transcode
+      logStep('transcode:start');
       await new TranscodeWorker().run(ctx, (p) => stepProgress(2, p));
 
       // Passo 3 — Audio (não-crítico: pode falhar em ficheiros sem áudio ou com codec incomum)
+      logStep('audio:start');
       try {
         await new AudioWorker().run(ctx, (p) => stepProgress(3, p));
       } catch (err: unknown) {
@@ -91,6 +103,7 @@ export class NexoraDesktopOrchestrator {
       }
 
       // Passo 4 — Proxy (não-crítico)
+      logStep('proxy:start');
       try {
         await new ProxyWorker().run(ctx, (p) => stepProgress(4, p));
       } catch (err: unknown) {
@@ -100,6 +113,7 @@ export class NexoraDesktopOrchestrator {
       }
 
       // Passo 5 — Thumbnail (não-crítico)
+      logStep('thumbnail:start');
       try {
         await new ThumbnailWorker().run(ctx, (p) => stepProgress(5, p));
       } catch (err: unknown) {
@@ -109,6 +123,7 @@ export class NexoraDesktopOrchestrator {
       }
 
       // Passo 6 — QC Post (não-crítico: VMAF pode não estar disponível)
+      logStep('qc-post:start');
       try {
         await new QCPostWorker().run(ctx, (p) => stepProgress(6, p));
       } catch (err: unknown) {
@@ -118,6 +133,7 @@ export class NexoraDesktopOrchestrator {
       }
 
       // Passo 7 — Delivery
+      logStep('delivery:start');
       await new DeliveryWorker().run(ctx, (p) => stepProgress(7, p));
 
       emit({
@@ -132,6 +148,13 @@ export class NexoraDesktopOrchestrator {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
+      const stack = err instanceof Error ? (err.stack ?? '') : '';
+      emit({
+        type: 'log',
+        level: 'ERROR',
+        source: 'orchestrator',
+        message: `[DIAG] STACK: ${stack || message}`,
+      });
       emit({ type: 'job:failed', jobId: ctx.jobId, error: message });
       throw err;
     }
