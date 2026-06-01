@@ -1,6 +1,6 @@
 ## Resumo
 
-Release v0.31.3-beta.1 — 8 alteracoes.
+Release v0.31.3-beta.1 — 10 alteracoes.
 
 ## Correccoes
 
@@ -12,9 +12,11 @@ Release v0.31.3-beta.1 — 8 alteracoes.
 
 ## Infraestrutura e Documentacao
 
+- v0.31.3-beta.1
 - actualizar SYNC-STATE sessao 50 -- 3 bugfixes UI/pipeline/dashboard
 - implementation plan update modal + pipeline notes + dashboard jobs
 - design update modal + pipeline notes + dashboard jobs
+- 2: 3 Bugfixes UI/Pipeline/Dashboard
 
 ---
 

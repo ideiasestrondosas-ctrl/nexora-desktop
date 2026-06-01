@@ -1,4 +1,4 @@
-# Estado de Sincronizacao - Nexora Desktop
+﻿# Estado de Sincronizacao - Nexora Desktop
 
 > Handoff entre Claude Code e Google Antigravity.
 > Actualizar no FIM de cada sessao. Lido no INICIO de cada sessao.
@@ -10,22 +10,14 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
-### Sessao 51 — Release v0.31.3-beta.1 — CONCLUIDO
+### Sessao 51 — Release v0.31.3-beta.1 — Bug Fixes & Platform Polish — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01
 
-**Resumo:** 5 itens
+**Resumo:** Release v0.31.3-beta.1 publicada (Latest). Empacota os 3 bugfixes da Sessao 50: Dashboard jobs imediatos apos batch submit, UpdateModal alargado com Markdown correcto, Pipeline auto-updater com fallback para release-notes.
 
-**Correcoes:**
-
-- read jobs from useJobsStore instead of duplicate invoke
-- add submitted job to useJobsStore so dashboard updates immediately
-- read release-notes file as fallback for latest.json notes + fill CHANGELOG v0.31.2
-- update modal wider + markdown rendering for release notes
-- add qc_quarantined and qc_rejected to Job status union
-
-**Ficheiros alterados:** release-notes-v0.31.2-beta.1.md, src-tauri/Cargo.lock
+**Ficheiros alterados:** package.json, src-tauri/Cargo.toml, src-tauri/tauri.conf.json, src/lib/version.ts, CHANGELOG.md, release-notes-v0.31.3-beta.1.md, SYNC-STATE.md
 
 **Notas para o proximo agente:**
 
@@ -39,7 +31,7 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
-### Sessao 50 â€” 3 Bugfixes UI/Pipeline/Dashboard â€” CONCLUIDO
+### Sessao 50 — 3 Bugfixes UI/Pipeline/Dashboard — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)
 **Data:** 2026-06-01
@@ -63,7 +55,7 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ---
 
-### Sessao 49 â€” Release v0.31.2-beta.1 â€” CONCLUIDO
+### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01
@@ -936,7 +928,7 @@ Actualizado: 2026-06-01
 
 ---
 
-### Sessao 49 â€” Release v0.31.2-beta.1 â€” CONCLUIDO
+### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01
@@ -1455,7 +1447,7 @@ Actualizado: 2026-06-01
 
 ---
 
-### Sessao 49 â€” Release v0.31.2-beta.1 â€” CONCLUIDO
+### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01
@@ -1591,7 +1583,7 @@ Actualizado: 2026-06-01
 
 ---
 
-### Sessao 49 â€” Release v0.31.2-beta.1 â€” CONCLUIDO
+### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01
@@ -1747,7 +1739,7 @@ Actualizado: 2026-06-01
 
 ---
 
-### Sessao 49 â€” Release v0.31.2-beta.1 â€” CONCLUIDO
+### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01
@@ -1942,7 +1934,7 @@ Actualizado: 2026-06-01
 
 ---
 
-### Sessao 49 â€” Release v0.31.2-beta.1 â€” CONCLUIDO
+### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01
@@ -2075,7 +2067,7 @@ Actualizado: 2026-06-01
 
 ---
 
-### Sessao 49 â€” Release v0.31.2-beta.1 â€” CONCLUIDO
+### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01
@@ -2204,7 +2196,7 @@ Actualizado: 2026-06-01
 
 ---
 
-### Sessao 49 â€” Release v0.31.2-beta.1 â€” CONCLUIDO
+### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01
@@ -2338,7 +2330,7 @@ Actualizado: 2026-06-01
 
 ---
 
-### Sessao 49 â€” Release v0.31.2-beta.1 â€” CONCLUIDO
+### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
 **Data:** 2026-06-01

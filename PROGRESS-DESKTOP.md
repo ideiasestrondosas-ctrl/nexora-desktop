@@ -184,6 +184,32 @@
 
 ---
 
+### Fase 27 - 3 Bugfixes Dashboard/UpdateModal/Pipeline + Release v0.31.3-beta.1 (Sessoes 50-51) -- CONCLUIDO
+
+**Objectivo:** Corrigir 3 bugs de UI/pipeline descobertos na sessao 49 e publicar release v0.31.3-beta.1.
+
+**Implementacao:**
+
+- [x] fix(store): `Job.status` union + `qc_quarantined` + `qc_rejected` (`NexoraStatusBadge` actualizado)
+- [x] fix(batch): `BatchSubmitModal` captura retorno `submit_job` + `useJobsStore.getState().addJob(job)` -- dashboard actualiza imediatamente
+- [x] fix(dashboard): `DashboardPage` le jobs de `useJobsStore`; removido `invoke('list_jobs')` proprio e listener `sidecar:event` duplicado
+- [x] fix(ui): `UpdateModal` 560px + `renderNotes()` markdown inline (headers/listas/paragrafos)
+- [x] fix(ci): `ci-generate-updater-json.mjs` fallback para `release-notes-v{tag}.md` quando CHANGELOG vazio; CHANGELOG v0.31.2 preenchido
+- [x] chore(release): v0.31.3-beta.1 publicada -- Latest no GitHub
+
+**Ficheiros alterados:**
+
+- `src/store/jobs.ts` -- status union + QC states
+- `src/components/BatchSubmitModal.tsx` -- addJob apos submit
+- `src/pages/DashboardPage.tsx` -- useJobsStore, sem invoke directo
+- `src/components/UpdateModal.tsx` -- 560px + renderNotes()
+- `src/components/NexoraStatusBadge.tsx` -- QC states
+- `scripts/ci-generate-updater-json.mjs` -- fallback release-notes
+
+**Estado:** CI verde. Release v0.31.3-beta.1 Latest no GitHub. `dev` por mergear em `main`.
+
+---
+
 ### Fase 23 - Release v0.30.11-beta.1 + Fix sync.ps1 (Sessao 45) -- CONCLUIDO
 
 **Objectivo:** Publicar release v0.30.11-beta.1 e corrigir bug recorrente do sync.ps1.
