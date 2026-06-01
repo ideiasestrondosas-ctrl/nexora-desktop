@@ -3,6 +3,7 @@
     [switch]$SkipRelease,
     [switch]$Release,
     [switch]$PublishDraft,
+    [switch]$FullRelease,
     [switch]$Help
 )
 
@@ -11,7 +12,8 @@
 # 1.1.0  menu resequenciado (0=Sair last, 4=PublishDraft); Invoke-PublishDraft aguarda CI antes de publicar
 # 1.2.0  Watch-GitHubActions: monitoriza main+dev+tag simultaneamente, ignora runs historicos (minCreatedAt),
 #         mostra label de branch, timeout 45min com prompt, poll 20s, nao fica preso em runs antigos
-$SYNC_VERSION = "1.2.0"
+# 1.3.0  FullRelease (opcao 6): pipeline 1->4 automatico com monitorizacao CI por fases; aviso actions deprecadas
+$SYNC_VERSION = "1.3.0"
 
 # Configuracoes de codificacao para o terminal — UTF-8 em todo o pipeline
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -1394,6 +1396,24 @@ if (-not $SkipRelease -and -not $Release -and -not $PublishDraft -and -not $Mess
         Write-Host "  Estado:  Workspace limpo" -ForegroundColor Green
     }
     Write-Host ""
+    # Aviso de GitHub Actions deprecadas
+    $deprecatedActions = @()
+    $workflowFiles = Get-ChildItem ".github/workflows/*.yml" -ErrorAction SilentlyContinue
+    foreach ($wf in $workflowFiles) {
+        $content = Get-Content $wf.FullName -Raw -ErrorAction SilentlyContinue
+        if ($content -match 'actions/checkout@v4|actions/setup-node@v4') {
+            $deprecatedActions += $wf.Name
+        }
+    }
+    if ($deprecatedActions.Count -gt 0) {
+        Write-Host ""
+        Write-Host "  ⚠  URGENTE: GitHub Actions com Node.js 20 deprecadas (forcado Node.js 24 a 16 Jun 2026)" -ForegroundColor Yellow
+        Write-Host "     Workflows afectados: $($deprecatedActions -join ', ')" -ForegroundColor Yellow
+        Write-Host "     Actualizar: actions/checkout@v4->v5  actions/setup-node@v4->v5" -ForegroundColor Yellow
+        Write-Host "     (Decisao e tua — esta apenas informacao)" -ForegroundColor DarkGray
+        Write-Host ""
+    }
+
     Write-Host "  O que queres fazer?" -ForegroundColor White
     Write-Host ""
     Write-Host "  1) Guardar trabalho do dia                     (commit + bump versao + push dev)" -ForegroundColor Cyan
@@ -1401,16 +1421,18 @@ if (-not $SkipRelease -and -not $Release -and -not $PublishDraft -and -not $Mess
     Write-Host "  3) Versao pronta para lancamento               (commit + bump + push dev + merge main + GitHub Release)" -ForegroundColor Green
     Write-Host "  4) Publicar release existente                  (aguarda CI + publica draft como Latest)" -ForegroundColor Magenta
     Write-Host "  5) Ver estado actual                           (git status + ultimos commits)" -ForegroundColor Gray
+    Write-Host "  6) Pipeline completo automatico                (3 + aguarda CI + publica — sem interrupcoes)" -ForegroundColor DarkGreen
     Write-Host "  0) Sair" -ForegroundColor Gray
     Write-Host ""
 
-    $choice = Read-Host "  Opcao [0-5]"
+    $choice = Read-Host "  Opcao [0-6]"
 
     switch ($choice) {
         "1" { <# modo normal -- continua o script #> }
         "2" { $SkipRelease = $true }
         "3" { $Release = $true }
         "4" { $PublishDraft = $true }
+        "6" { $FullRelease = $true; $Release = $true }
         "5" {
             Write-Host ""
             Write-Host "  -- Ficheiros modificados --" -ForegroundColor White
@@ -1809,6 +1831,7 @@ if ($Release -and -not $status) {
 # GESTAO DE VERSAO (SemVer) - Tauri: sincroniza 3 ficheiros
 # ---------------------------------------------------------
 if (-not $SkipRelease -and -not $promoteExisting) {
+    if ($FullRelease) { Write-Host "  [FASE 2/7] Commit + bump de versao..." -ForegroundColor DarkGreen }
     Write-Step "Iniciando processo de versionamento (Tauri)..."
 
     # 1. Ler versao actual a partir de package.json (ou Cargo.toml se package.json ausente)
@@ -2176,6 +2199,7 @@ if (-not $syncUncommitted -and -not $syncInUnpushed) {
 # ---------------------------------------------------------
 # VERIFICACOES PRE-PUSH (TypeScript + Rust)
 # ---------------------------------------------------------
+if ($FullRelease) { Write-Host "  [FASE 1/7] Verificacoes pre-push..." -ForegroundColor DarkGreen }
 Write-Step "Verificacoes pre-push..."
 
 Write-Host "  [1/4] TypeScript check (tsc --noEmit)..." -NoNewline -ForegroundColor Gray
@@ -2241,6 +2265,7 @@ Write-Success "Todas as verificacoes passaram — a fazer push..."
 # ---------------------------------------------------------
 # PUSH PARA O GITHUB
 # ---------------------------------------------------------
+if ($FullRelease) { Write-Host "  [FASE 3/7] Push para dev..." -ForegroundColor DarkGreen }
 Write-Step "Enviando para o GitHub..."
 
 if ($script:GITHUB_TOKEN) {
@@ -2257,16 +2282,23 @@ if ($LASTEXITCODE -eq 0) {
 
     # ---------------------------------------------------------
     # MERGE PARA MAIN (apenas com -Release)
+    if ($FullRelease) { Write-Host "  [FASE 4/7] Merge para main..." -ForegroundColor DarkGreen }
     # ---------------------------------------------------------
     if ($Release) {
         $devBranch = $branch
         $mergeOk   = Invoke-MergeToMain $newVersion $devBranch $authenticatedUrl
         if ($mergeOk -and $script:GITHUB_TOKEN) {
             Write-Host ""
-            $watchAns = Read-Host "  Queres aguardar pelos GitHub Actions? [S/N] (Padrao: N)"
-            if ($watchAns -match '^[Ss]$') {
+            if ($FullRelease) {
+                Write-Host "  [FASE 5/7] A monitorizar CI em main automaticamente..." -ForegroundColor DarkGreen
                 $mainSha = git rev-parse main 2>$null
                 Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN "main"
+            } else {
+                $watchAns = Read-Host "  Queres aguardar pelos GitHub Actions? [S/N] (Padrao: N)"
+                if ($watchAns -match '^[Ss]$') {
+                    $mainSha = git rev-parse main 2>$null
+                    Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN "main"
+                }
             }
         }
     }
@@ -2368,6 +2400,119 @@ if ($LASTEXITCODE -eq 0) {
     }
 } else {
     Write-Err "Falha ao enviar para o GitHub."
+}
+
+# ---------------------------------------------------------
+# PIPELINE COMPLETO: aguardar build CI + publicar (opcao 6)
+# ---------------------------------------------------------
+if ($FullRelease -and $script:GITHUB_TOKEN) {
+    Write-Host ""
+    Write-Host "  [FASE 6/7] A aguardar Build Nexora Desktop no GitHub Actions..." -ForegroundColor DarkGreen
+
+    $latestTag  = git describe --tags --abbrev=0 2>$null
+    $tagCommit  = git rev-list -n 1 $latestTag 2>$null
+    $ciHeaders  = @{ "Authorization" = "token $script:GITHUB_TOKEN"; "Accept" = "application/vnd.github+json" }
+    $buildStart = Get-Date
+    $buildDone  = $false
+
+    while (-not $buildDone) {
+        try {
+            $runsResp = Invoke-RestMethod `
+                -Uri     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/runs?per_page=30" `
+                -Method  Get `
+                -Headers $ciHeaders `
+                -ErrorAction Stop
+            $buildRun = @($runsResp.workflow_runs |
+                Where-Object { $_.name -eq "Build Nexora Desktop" -and $_.head_sha -eq $tagCommit }) |
+                Select-Object -First 1
+        } catch {
+            Write-Warn "Nao foi possivel verificar Build CI: $($_.Exception.Message)"
+            break
+        }
+
+        if (-not $buildRun) {
+            $elapsed = [math]::Round(((Get-Date) - $buildStart).TotalSeconds)
+            if ($elapsed -gt 120) {
+                Write-Warn "Build CI nao detectado apos 2min. A continuar para publicacao..."
+                break
+            }
+            Write-Host ("  ⏳  Build Nexora Desktop   aguardando trigger...") -ForegroundColor Gray
+            Start-Sleep -Seconds 20
+            continue
+        }
+
+        if ($buildRun.status -eq "completed") {
+            if ($buildRun.conclusion -eq "success") {
+                Write-Host "  ✅  Build Nexora Desktop   concluido com sucesso." -ForegroundColor Green
+            } else {
+                Write-Host "  ❌  Build Nexora Desktop   terminou com '$($buildRun.conclusion)'." -ForegroundColor Red
+                $cont = Read-Host "  Continuar para publicacao na mesma? [S/N]"
+                if ($cont -notmatch '^[Ss]$') { Pop-Location; exit 1 }
+            }
+            $buildDone = $true
+        } else {
+            $elapsed = [math]::Round(((Get-Date) - $buildStart).TotalSeconds)
+            $elStr   = if ($elapsed -lt 60) { "${elapsed}s" } else { "$([math]::Floor($elapsed/60))m$($elapsed % 60)s" }
+            Write-Host ("  ⏳  Build Nexora Desktop   $($buildRun.status.PadRight(12)) (elapsed: $elStr)") -ForegroundColor Yellow
+            Start-Sleep -Seconds 30
+        }
+    }
+
+    Write-Host ""
+    Write-Host "  [FASE 7/7] A publicar release $latestTag..." -ForegroundColor DarkGreen
+
+    # Encontrar o draft com assets criado pelo CI
+    $allReleases = @()
+    try {
+        $allReleases = Invoke-RestMethod `
+            -Uri     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases?per_page=20" `
+            -Method  Get `
+            -Headers $ciHeaders
+    } catch {
+        Write-Warn "Nao foi possivel listar releases: $_"
+        Pop-Location; exit 1
+    }
+
+    $draftRelease     = $allReleases | Where-Object { $_.tag_name -eq $latestTag -and $_.draft -eq $true  } | Select-Object -First 1
+    $publishedRelease = $allReleases | Where-Object { $_.tag_name -eq $latestTag -and $_.draft -eq $false } | Select-Object -First 1
+    $targetRelease    = if ($draftRelease) { $draftRelease } else { $publishedRelease }
+
+    if (-not $targetRelease) {
+        Write-Warn "Nenhum release encontrado para $latestTag. Usa opcao 4 manualmente."
+        Pop-Location; exit 1
+    }
+
+    $version          = $latestTag -replace '^v', ''
+    $changelogSection = Parse-ChangelogSection $version
+    $releaseTitle     = "v$version — $(Get-ReleaseTitle $version $changelogSection)"
+    $releaseBodyText  = Build-ReleaseBody $version ""
+
+    try {
+        $payload      = @{
+            name        = $releaseTitle
+            body        = $releaseBodyText
+            draft       = $false
+            prerelease  = $false
+            make_latest = "true"
+        } | ConvertTo-Json
+        $payloadBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
+        Invoke-RestMethod `
+            -Uri     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/$($targetRelease.id)" `
+            -Method  Patch `
+            -Headers $ciHeaders `
+            -Body    $payloadBytes `
+            -ContentType "application/json; charset=utf-8" > $null
+        Write-Host ""
+        Write-Success "Pipeline completo! Release $latestTag publicada como Latest."
+        Write-Info "https://github.com/$REPO_OWNER/$REPO_NAME/releases/tag/$latestTag"
+    } catch {
+        $stream = $_.Exception.Response.GetResponseStream()
+        if ($stream) {
+            Write-Warn "Erro ao publicar: $((New-Object System.IO.StreamReader($stream)).ReadToEnd())"
+        } else {
+            Write-Warn "Erro ao publicar: $_"
+        }
+    }
 }
 
 Pop-Location
