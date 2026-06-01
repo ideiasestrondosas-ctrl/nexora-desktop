@@ -23,6 +23,7 @@ export interface Job {
   output_path: string | null;
   vmaf_score: number | null;
   lufs: number | null;
+  filename?: string | null;
 }
 
 interface JobsState {
