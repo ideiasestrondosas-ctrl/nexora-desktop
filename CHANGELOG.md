@@ -6,6 +6,12 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.31.1-beta.1] - 2026-06-01
+
+### Added
+
+- fix(rust): cargo fmt -- jobs.rs e queue.rs
+
 ## [0.31.0-beta.1] - 2026-06-01
 
 ### Added
@@ -52,7 +58,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Other
 
-- 2: ImplementÃƒÆ’Ã‚Â¡mos os 7 fixes UI/UX v0.30.9 no branch dev (contraste HelpModal, badges biblioteca, overlay hover, badge jÃƒÆ’Ã‚Â¡
+- 2: ImplementÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡mos os 7 fixes UI/UX v0.30.9 no branch dev (contraste HelpModal, badges biblioteca, overlay hover, badge jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡
 
 ## [0.30.8-beta.1] - 2026-05-30
 
@@ -70,7 +76,7 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- 2: Titulo: 4 Bugs UI/UX Sandbox ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Update Modal, Thumbnails, Player, Comparador
+- 2: Titulo: 4 Bugs UI/UX Sandbox ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Update Modal, Thumbnails, Player, Comparador
 
 ## [0.30.5-beta.1] - 2026-05-29
 
