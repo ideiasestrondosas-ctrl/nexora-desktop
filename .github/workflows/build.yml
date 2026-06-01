@@ -20,9 +20,9 @@ jobs:
     name: Quality Gate
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
@@ -102,9 +102,9 @@ jobs:
     name: Build — ${{ matrix.label }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
@@ -259,7 +259,7 @@ jobs:
           echo "$PLATFORM" > updater-info/platform.txt
 
       - name: Upload updater info
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: updater-info-${{ matrix.platform }}
           path: updater-info/
@@ -272,14 +272,14 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
 
       - name: Download updater info from all platforms
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: updater-info-*
           merge-multiple: false
