@@ -402,16 +402,47 @@ fn run_job<R: Runtime>(
                                         let _ = app_handle.emit("sidecar:event", &json);
                                     }
                                     "job:progress" => {
+                                        let state = app_handle.state::<AppState>();
                                         if let (Some(progress), Some(step)) = (
                                             json.get("progress").and_then(|v| v.as_f64()),
                                             json.get("step").and_then(|v| v.as_str()),
                                         ) {
-                                            if let Ok(db) = app_handle.state::<AppState>().db.lock()
-                                            {
-                                                let now = chrono::Utc::now().to_rfc3339();
+                                            let now_instant = std::time::Instant::now();
+
+                                            // Detectar transição de fase — libertar lock antes de aceder à DB
+                                            let phase_changed: Option<(String, i64)> = {
+                                                let mut phase_times = state
+                                                    .phase_start_times
+                                                    .lock()
+                                                    .unwrap_or_else(|e| e.into_inner());
+                                                if let Some((prev_step, start_time)) = phase_times.get(&job_id_owned) {
+                                                    if prev_step.as_str() != step {
+                                                        let prev = prev_step.clone();
+                                                        let elapsed = start_time.elapsed().as_millis() as i64;
+                                                        phase_times.insert(job_id_owned.clone(), (step.to_string(), now_instant));
+                                                        Some((prev, elapsed))
+                                                    } else {
+                                                        None
+                                                    }
+                                                } else {
+                                                    phase_times.insert(job_id_owned.clone(), (step.to_string(), now_instant));
+                                                    None
+                                                }
+                                            }; // lock phase_start_times liberado aqui
+
+                                            if let Ok(db) = state.db.lock() {
+                                                if let Some((prev_step, elapsed_ms)) = &phase_changed {
+                                                    let _ = db.execute(
+                                                        "INSERT INTO phase_durations (phase, width, height, asset_duration_secs, elapsed_ms)
+                                                         SELECT ?1, a.width, a.height, a.duration_secs, ?2
+                                                         FROM jobs j JOIN assets a ON j.asset_id = a.id WHERE j.id = ?3",
+                                                        rusqlite::params![prev_step, elapsed_ms, &job_id_owned],
+                                                    );
+                                                }
+                                                let now_str = chrono::Utc::now().to_rfc3339();
                                                 let _ = db.execute(
                                                     "UPDATE jobs SET progress = ?, step = ?, updated_at = ? WHERE id = ?",
-                                                    [&progress.to_string(), step, &now, &job_id_owned],
+                                                    [&progress.to_string(), step, &now_str, &job_id_owned],
                                                 );
                                             }
                                         }
@@ -436,6 +467,15 @@ fn run_job<R: Runtime>(
                                                 "UPDATE jobs SET status = 'done', progress = 1.0, finished_at = ?, updated_at = ?, output_path = ?, vmaf_score = ?, lufs = ? WHERE id = ?",
                                                 [&now, &now, output_path.unwrap_or(""), &vmaf_score.map(|v| v.to_string()).unwrap_or_default(), &lufs.map(|v| v.to_string()).unwrap_or_default(), &job_id_owned],
                                             );
+                                        }
+                                        // Limpar cache de fase (evitar memory leak)
+                                        {
+                                            let completed_state = app_handle.state::<AppState>();
+                                            let mut phase_times = completed_state
+                                                .phase_start_times
+                                                .lock()
+                                                .unwrap_or_else(|e| e.into_inner());
+                                            phase_times.remove(&job_id_owned);
                                         }
                                         let _ = app_handle.emit("sidecar:event", &json);
                                         // Disparar upload para destinos cloud configurados
@@ -467,6 +507,15 @@ fn run_job<R: Runtime>(
                                                 "UPDATE jobs SET status = 'error', finished_at = ?, updated_at = ?, error = ? WHERE id = ?",
                                                 [&now, &now, &error[..200.min(error.len())], &job_id_owned],
                                             );
+                                        }
+                                        // Limpar cache de fase (evitar memory leak)
+                                        {
+                                            let failed_state = app_handle.state::<AppState>();
+                                            let mut phase_times = failed_state
+                                                .phase_start_times
+                                                .lock()
+                                                .unwrap_or_else(|e| e.into_inner());
+                                            phase_times.remove(&job_id_owned);
                                         }
                                         let _ = app_handle.emit("sidecar:event", &json);
                                     }
