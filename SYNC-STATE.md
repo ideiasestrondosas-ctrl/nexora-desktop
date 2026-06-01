@@ -10,6 +10,30 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 50 — 3 Bugfixes UI/Pipeline/Dashboard — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-01
+
+**Resumo:** 3 bugfixes implementados via subagent-driven development. Build verde (655KB / 201KB gzip).
+
+**Correcoes (5 commits, branch dev @ c3e7785):**
+
+- fix(store): Job.status union + qc_quarantined + qc_rejected (NexoraStatusBadge tambem actualizado)
+- fix(ui): UpdateModal 560px + notas max-h-64 + renderNotes() markdown inline
+- fix(ci): ci-generate-updater-json.mjs fallback para release-notes-v{tag}.md; CHANGELOG v0.31.2 preenchido
+- fix(batch): BatchSubmitModal captura retorno submit_job + useJobsStore.getState().addJob(job)
+- fix(dashboard): DashboardPage le jobs de useJobsStore; removido invoke('list_jobs') e sidecar:event duplicado
+
+**Notas para o proximo agente:**
+
+- **Dashboard**: nao faz mais invoke('list_jobs') proprio -- usa useJobsStore. NAO reverter.
+- **BatchSubmitModal**: useJobsStore.getState() dentro de callback (correcto -- nao e hook React).
+- **latest.json notes**: prioridade 1 CHANGELOG, prioridade 2 release-notes-v{tag}.md.
+- **Proximo passo**: sync.ps1 opcao 6 para release v0.31.3-beta.1.
+
+---
+
 ### Sessao 49 — Release v0.31.2-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  
