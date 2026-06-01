@@ -10,6 +10,45 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 48 -- CI Fixes + sync.ps1 v1.3.0 + Release v0.31.1-beta.1 -- CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-01
+
+**Resumo:** Release v0.31.1-beta.1 publicada (Latest, 7 assets). Correcoes de Rust (clippy + fmt), novo pipeline automatico no sync.ps1 (opcao 6), e actualizacao completa do CI para GitHub Actions v5 + windows-2025.
+
+**Implementacao (8 commits):**
+
+1. **fix(rust):** `cargo fmt` em `jobs.rs` e `queue.rs` (linhas longas reformatadas)
+2. **fix(rust):** `#[allow(clippy::type_complexity)]` em `get_phase_eta` (`jobs.rs`) -- tuple de 4 campos; `cargo clippy` adicionado ao check pre-push em `sync.ps1`
+3. **chore(release):** bumps v0.31.0-beta.1 e v0.31.1-beta.1 (v0.31.0 tinha build falhado por clippy; retag para HEAD resolveu)
+4. **feat(sync):** `sync.ps1` v1.3.0 -- nova opcao 6 (pipeline 1->4 automatico com monitorizacao CI por fases 1/7 a 7/7); aviso no menu quando workflows tem actions com Node.js 20 deprecated
+5. **fix(ci):** `actions/checkout`, `setup-node`, `upload-artifact`, `download-artifact`: todos `@v4` -> `@v5` (deadline Node.js 24: 16 Jun 2026)
+6. **fix(ci):** `windows-latest` -> `windows-2025` (redireccao forcada a partir de 15 Jun 2026); aplicado a matrix runner e todas as condicionais bash
+
+**Commits:**
+
+- `9d43018` -- fix(rust): cargo fmt -- jobs.rs e queue.rs
+- `37b4a78` -- chore(release): v0.31.0-beta.1
+- `563bc46` -- chore(release): v0.31.1-beta.1
+- `fbf5ee6` -- fix(rust): allow clippy::type_complexity em get_phase_eta; sync.ps1 adiciona clippy ao pre-push
+- `a194414` -- feat: 7 Fixes UI/UX + Engine SEA Fix + Real-Time UI (Cargo.lock)
+- `30abd6d` -- feat(sync): opcao 6 pipeline completo automatico + aviso actions deprecadas (v1.3.0)
+- `cf3a20e` -- fix(ci): actualizar GitHub Actions v4->v5 (Node.js 24, deadline 16 Jun 2026)
+- `ee997f1` -- fix(ci): windows-latest -> windows-2025 (redireccao forcada 15 Jun 2026)
+
+**Estado:** Branch `dev` em `ee997f1`. CI verde em todas as plataformas. Release `v0.31.1-beta.1` publicada como Latest (7 assets).
+
+**Notas para o proximo agente:**
+
+- **sync.ps1 opcao 6:** pipeline completo 1->4 automatico. Usar para proximas releases.
+- **main por mergear:** `dev` esta 9+ commits a frente de `main`. Usar sync.ps1 opcao 3 ou 6.
+- **cargo clippy:** adicionado ao pre-push [4/4]. Falha de clippy bloqueia push.
+- **Engine rebuild:** `npm run engine:build:win` (copia automatica para binaries/ incluida).
+- **windows-2025 aviso:** "requests are being redirected to windows-2025-vs2026 by June 15" -- so informativo.
+
+---
+
 ### Sessao 47 -- Fix Engine Binary Sync -- CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)

@@ -158,6 +158,32 @@
 
 ---
 
+### Fase 26 - CI Fixes + sync.ps1 v1.3.0 + Release v0.31.1-beta.1 (Sessao 48) -- CONCLUIDO
+
+**Objectivo:** Corrigir falhas de CI (clippy + Actions deprecadas + runner obsoleto), publicar release v0.31.1-beta.1, e melhorar sync.ps1 com pipeline automatico.
+
+**Implementacao:**
+
+- [x] fix(rust): `#[allow(clippy::type_complexity)]` em `get_phase_eta` (jobs.rs) -- tuple de 4 campos
+- [x] fix(rust): `cargo fmt` em jobs.rs e queue.rs (linhas longas)
+- [x] fix(ci): `actions/checkout`, `setup-node`, `upload-artifact`, `download-artifact` todos `@v4` -> `@v5`
+- [x] fix(ci): `windows-latest` -> `windows-2025` em matrix runner e condicionais bash
+- [x] feat(sync): sync.ps1 v1.3.0 -- opcao 6 (pipeline 1->4 automatico com monitorizacao CI por fases)
+- [x] feat(sync): aviso no menu quando workflows tem actions com Node.js 20 deprecated
+- [x] feat(sync): check `cargo clippy` adicionado ao pre-push [4/4]
+- [x] chore(release): v0.31.1-beta.1 publicada -- 7 assets, Latest no GitHub
+
+**Ficheiros alterados:**
+
+- `src-tauri/src/commands/jobs.rs` -- clippy allow
+- `src-tauri/src/commands/queue.rs` -- cargo fmt
+- `scripts/sync.ps1` -- v1.3.0
+- `.github/workflows/build.yml`, `ci.yml` -- Actions v5 + windows-2025
+
+**Estado:** CI verde todas as plataformas. Release v0.31.1-beta.1 Latest. `dev` por mergear em `main`.
+
+---
+
 ### Fase 23 - Release v0.30.11-beta.1 + Fix sync.ps1 (Sessao 45) -- CONCLUIDO
 
 **Objectivo:** Publicar release v0.30.11-beta.1 e corrigir bug recorrente do sync.ps1.
