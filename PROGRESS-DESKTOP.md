@@ -137,6 +137,27 @@
 
 ---
 
+### Fase 25 - Fix Engine Binary Sync (Sessao 47) -- CONCLUIDO
+
+**Objectivo:** Corrigir regressao recorrente "A dynamic import callback was not specified" e prevenir que volte a acontecer.
+
+**Causa raiz:** nexora-engine.exe em src-tauri/binaries/ estava desactualizado (28 Mai, sem --no-bytecode --public). O Tauri copia de binaries/ para target/debug/ em cada cargo build, sempre restaurando a versao antiga.
+
+**Implementacao:**
+
+- [x] fix: copiar sidecar/bin/nexora-engine.exe (31 Mai, corrigido) para src-tauri/binaries/ e target/debug/ (local, gitignored)
+- [x] fix(engine): package.json -- engine:build:win/mac/linux/all com copyFileSync automatico para src-tauri/binaries/
+- [x] fix(dev): scripts/06-run-dev.ps1 -- nxVerifyEnvironment detecta e sincroniza engine se desactualizado
+
+**Ficheiros alterados (2):**
+
+- `package.json` -- cópia automática em todos os engine:build:\* scripts
+- `scripts/06-run-dev.ps1` -- bloco de sync em nxVerifyEnvironment
+
+**Estado:** 4 commits em `dev`. Testes 48/48 OK. Por mergear/PR.
+
+---
+
 ### Fase 23 - Release v0.30.11-beta.1 + Fix sync.ps1 (Sessao 45) -- CONCLUIDO
 
 **Objectivo:** Publicar release v0.30.11-beta.1 e corrigir bug recorrente do sync.ps1.
