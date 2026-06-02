@@ -31,7 +31,7 @@ num_cpus = "1"
 sysinfo = { version = "0.32", default-features = false, features = ["system", "network"] }
 tokio = { version = "1", features = ["time", "sync", "rt", "io-util", "net", "macros"] }
 walkdir = "2"
-zip = "2"
+zip = "4"
 base64 = "0.22"
 reqwest = { version = "0.12", features = ["multipart", "json"] }
 suppaftp = { version = "6", features = ["async", "native-tls"] }
