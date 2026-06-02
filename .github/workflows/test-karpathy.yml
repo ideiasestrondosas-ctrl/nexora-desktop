@@ -7,6 +7,10 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+# Least-privilege: apenas checkout + execucao de um script de validacao.
+permissions:
+  contents: read
+
 jobs:
   test-karpathy:
     name: Validate Karpathy Guidelines Integration
