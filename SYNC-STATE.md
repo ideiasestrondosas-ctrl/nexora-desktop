@@ -6,9 +6,37 @@
 ---
 
 Actualizado: 2026-06-02
-Agente: Claude Code (claude-opus-4-8)
+Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 63 — Release v0.32.0-beta.1 + Fixes sync.ps1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-02
+
+**Resumo:** Diagnosticado e corrigido o problema da tag v0.32.0-beta.1 em falta no
+GitHub (Build nunca disparava). Corrigidos 3 bugs no sync.ps1 (v1.4.0→v1.4.2).
+Checksums media-binaries.lock.json actualizados (BtbN). Release publicada como
+Latest com 7 artefactos. PAT revogado e git credential migrado para gh CLI.
+
+**Fixes sync.ps1:**
+
+- v1.4.0: opcao 4 "Ignorar versao" em Release mode cria tag se nao existir
+- v1.4.1: fallback GITHUB_TOKEN via `gh auth token` (PAT em .env opcional)
+- v1.4.2: Invoke-PublishDraft detecta Build runs em branches de tag (fix filtro)
+
+**Release v0.32.0-beta.1:**
+
+- Tag: c13414c (main) · 7 artefactos: EXE, MSI, DMG, DEB, AppImage, tar.gz, latest.json
+- Publicada: 2026-06-02 17:45 UTC · Latest
+
+**Pendente proximo agente:**
+
+- Teste manual SFTP end-to-end (1a ligacao fingerprint / repeticao / mismatch MITM)
+- media-binaries.lock.json macOS (requer --write-lock em maquina macOS)
+
+---
 
 ### Sessao 62 — Auditoria de seguranca defensiva + correccoes (0.32.0-beta.1) — CONCLUIDO
 
