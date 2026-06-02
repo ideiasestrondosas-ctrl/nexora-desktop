@@ -2,6 +2,7 @@ pub mod credentials;
 pub mod ftp;
 pub mod gdrive;
 pub mod icloud;
+pub mod oauth;
 pub mod provider;
 pub mod retry;
 pub mod s3;
