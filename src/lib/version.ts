@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.31.6-beta.1';
+export const APP_VERSION: string = __APP_VERSION__;
 
 export interface VersionEntry {
   version: string;

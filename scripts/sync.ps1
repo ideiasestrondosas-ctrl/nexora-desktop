@@ -841,8 +841,7 @@ function Update-VersionTs($version, $categorized) {
         return
     }
 
-    # Atualizar APP_VERSION
-    $content = $content -replace "APP_VERSION\s*=\s*'[^']+'", "APP_VERSION = '$version'"
+    # APP_VERSION e agora injectado pelo Vite via __APP_VERSION__ (package.json) — nao alterar aqui
 
     # Adicionar nova entrada no topo do array
     $newEntry = @"
