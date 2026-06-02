@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { logActivity } from '@/lib/activityLog';
+import { APP_VERSION } from '@/lib/version';
 import ptGuide from '../../docs/BETA_TESTING_GUIDE.pt.md?raw';
 import enGuide from '../../docs/BETA_TESTING_GUIDE.en.md?raw';
 
@@ -291,11 +292,10 @@ function BetaGuidePanel() {
     <div className="flex flex-col h-full -m-6">
       <div className="flex items-center justify-between px-4 py-2 border-b border-border/50 bg-bg-tertiary/50 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-brand bg-brand/10 px-2 py-0.5 rounded font-mono uppercase tracking-wider">
-            DEV ONLY
-          </span>
           <span className="text-[11px] text-text-muted">
-            {isPt ? 'Guia de Testes Beta — v0.30.0-beta.1' : 'Beta Testing Guide — v0.30.0-beta.1'}
+            {isPt
+              ? `Guia de Testes Beta — v${APP_VERSION}`
+              : `Beta Testing Guide — v${APP_VERSION}`}
           </span>
         </div>
         <button
@@ -321,7 +321,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const { t } = useTranslation();
 
-  const visibleTabs = import.meta.env.DEV ? [...SCREEN_TABS, ...DEV_TABS] : SCREEN_TABS;
+  const visibleTabs = [...SCREEN_TABS, ...DEV_TABS];
 
   const GUIDE_URL =
     'https://github.com/ideiasestrondosas-ctrl/nexora-desktop/blob/main/docs/USER_MANUAL.md';

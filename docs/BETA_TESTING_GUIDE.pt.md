@@ -1,7 +1,7 @@
 # Nexora Desktop — Guia de Testes Beta
 
-**Versão:** v0.30.0-beta.1  
-**Data:** Maio 2026  
+**Versão:** v0.31.5-beta.1  
+**Data:** Junho 2026  
 **Aplicação:** Nexora Desktop — Processamento de Média Nativo
 
 ---
@@ -40,6 +40,7 @@
    - [T19 — Atalhos de Teclado](#t19--atalhos-de-teclado)
    - [T20 — Temas Visuais](#t20--temas-visuais)
    - [T21 — Idiomas](#t21--idiomas)
+   - [T22 — Funcionalidades desde v0.30.11](#t22--funcionalidades-introduzidas-desde-v03011)
 5. [Glossário](#5-glossário)
 6. [Contactos e Suporte](#6-contactos-e-suporte)
 
@@ -151,6 +152,8 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 - Versões para macOS e Linux não estão disponíveis nesta beta
 - O Google Drive e Dropbox precisam de configuração OAuth — erro de credenciais é esperado se não configurares
 - Há um atraso de 3 segundos nas Pastas Monitorizadas antes de detectar ficheiros novos — é intencional
+- O VMAF pode demorar 2–3× o tempo do vídeo em ficheiros com mais de 10 minutos — é normal
+- O botão "Criar atalho no desktop" só aparece em Windows (macOS e Linux: o botão não está visível)
 
 ---
 
@@ -298,6 +301,25 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 - Clicar no item leva-te à página de detalhe desse ficheiro.
 
 **Se não funcionar:** Reporta com título "Trabalhos recentes não aparecem no Dashboard".
+
+---
+
+#### T02-05 — QueuePill: Indicador de Fila em Tempo Real
+
+**Precisas de:** Um trabalho em processamento (T04-01 passou).
+
+**Passos:**
+
+1. Com um trabalho a processar, observa a **barra de topo** (a barra horizontal acima do conteúdo principal).
+2. À direita das métricas circulares (CPU, RAM, GPU, Disco), procura uma pílula/badge pequena.
+
+**O que deve acontecer:**
+
+- Enquanto há trabalhos em curso: a pílula mostra um dot **azul pulsante** e texto como "1 em curso".
+- Quando todos os trabalhos terminam: o dot fica cinzento e o texto muda para "Inactivo".
+- Aparece um número verde com ✓ ao lado, indicando quantos trabalhos foram concluídos nesta sessão.
+
+**Se não funcionar:** Reporta com título "QueuePill não aparece ou não actualiza na barra de topo".
 
 ---
 
@@ -902,6 +924,25 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 ---
 
+#### T08-03 — Modal de Diagnóstico do Sistema
+
+**Passos:**
+
+1. Observa o ícone de **Definições** no menu da esquerda.
+2. Se houver um ponto **amarelo** no canto do ícone, clica em Definições.
+3. Verifica se aparece um banner de aviso no topo da página de Definições.
+4. Se aparecer, clica em **Ver detalhes** (ou equivalente).
+
+**O que deve acontecer:**
+
+- Abre um modal com o estado de três componentes: **FFmpeg**, **FFprobe**, e **Engine**.
+- Em instalação normal, os três devem aparecer com estado **verde** (OK).
+- Se algum aparecer a vermelho, o modal indica o problema e sugere como resolver.
+
+**Nota:** Em instalação correcta, o ponto amarelo não deve aparecer na sidebar. Reporta se aparecer sem motivo aparente com título "Badge de aviso em Definições sem motivo aparente".
+
+---
+
 ### T09 — Definições › Logs
 
 > **Objetivo:** Verificar as opções de registo (logs) de actividade.  
@@ -1197,6 +1238,24 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 ---
 
+#### T14-03 — Atalho no Desktop e Badge "Já Actualizado"
+
+**Passos:**
+
+1. Em Definições › Sobre, procura o botão **"Criar atalho no desktop"** (apenas visível em Windows).
+2. Clica no botão.
+3. Minimiza a app e verifica o Ambiente de Trabalho.
+4. Volta à app e clica em **"Verificar Actualizações"** quando já tens a versão mais recente instalada.
+
+**O que deve acontecer:**
+
+- Um atalho do Nexora Desktop aparece no Ambiente de Trabalho do Windows.
+- Ao verificar actualizações com a versão mais recente já instalada, aparece um badge **"Já actualizado ✓"** inline a verde, que desaparece automaticamente ao fim de cerca de 6 segundos.
+
+**Se não funcionar:** Reporta com título "Botão 'Criar atalho no desktop' não funciona" ou "Badge 'já actualizado' não aparece".
+
+---
+
 ### T15 — Detalhe de Ficheiro
 
 > **Objetivo:** Verificar a página de detalhe de um ficheiro com os seus metadados e histórico de trabalhos.
@@ -1236,6 +1295,26 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 - O trabalho é adicionado à fila (podes verificar em Fila).
 - A página de detalhe mostra o novo trabalho no histórico com estado "Em fila" ou "A processar".
+
+---
+
+#### T15-03 — Página de Detalhe Actualiza em Tempo Real
+
+**Precisas de:** Um ficheiro importado com um trabalho recentemente submetido (T04-01 passou).
+
+**Passos:**
+
+1. Abre a página de detalhe de um ficheiro que acabaste de submeter para processamento (T15-01).
+2. Permanece nessa página sem navegar para outro ecrã.
+3. Aguarda que o processamento avance.
+
+**O que deve acontecer:**
+
+- O estado do trabalho no histórico muda de **"Em fila"** → **"A processar"** → **"Concluído"** sem precisares de recarregar a página ou navegar.
+- Quando o trabalho termina, o score **VMAF**, o codec de output e o caminho do ficheiro processado aparecem automaticamente na página.
+- Não precisas de voltar à Biblioteca e reabrir o ficheiro para ver os resultados actualizados.
+
+**Se não funcionar:** Reporta com título "Detalhe de ficheiro não actualiza em tempo real durante processamento".
 
 ---
 
@@ -1362,7 +1441,7 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 **O que deve acontecer:**
 
 - Abre uma janela grande com um menu lateral à esquerda e conteúdo à direita.
-- O menu lateral tem 11 separadores (Introdução, Dashboard, Biblioteca, Detalhe, Importar, Fila, Perfis, Definições, Cloud, Comparador, Logs).
+- O menu lateral tem 12 separadores (Introdução, Dashboard, Biblioteca, Detalhe, Importar, Fila, Perfis, Definições, Cloud, Comparador, Logs, Guia Beta).
 
 ---
 
@@ -1541,6 +1620,104 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 ---
 
+### T22 — Funcionalidades Introduzidas desde v0.30.11
+
+> **Nota:** Esta secção testa funcionalidades adicionadas nas versões v0.30.11 a v0.31.5. São complementares aos testes anteriores — se já fizeste T02 a T21, estes testes focam-se nos detalhes específicos das novas versões.
+
+---
+
+#### T22-01 — QueuePill: Comportamento em Todos os Estados
+
+> **Objectivo:** Verificar todos os estados do indicador de fila na barra de topo.
+
+**Passos:**
+
+1. Com a app sem trabalhos em curso, observa a barra de topo.
+2. Submete um trabalho (ver T04-01).
+3. Observa a pílula durante o processamento.
+4. Aguarda que o trabalho conclua.
+5. Submete mais um trabalho e cancela-o imediatamente (ver T04-03).
+
+**O que deve acontecer:**
+
+- Estado **inactivo** (sem trabalhos): pílula cinzenta com texto "Inactivo", sem número de trabalhos.
+- Estado **activo** (a processar): dot azul pulsante, número de trabalhos em curso visível.
+- Estado **com concluídos**: número verde com ✓ aparece e acumula a cada trabalho terminado.
+- Trabalho **cancelado** não incrementa o contador verde de concluídos.
+
+**Se não funcionar:** Reporta com título "QueuePill — comportamento incorrecto em estado [X]".
+
+---
+
+#### T22-02 — AssetDetailPage: Actualização Reactiva Completa
+
+> **Objectivo:** Confirmar todos os campos que actualizam em tempo real durante o processamento.
+
+**Precisas de:** Um ficheiro importado na Biblioteca.
+
+**Passos:**
+
+1. Abre a página de detalhe de um ficheiro (T15-01).
+2. Clica em **Processar** e selecciona o perfil **web-hd**.
+3. Permanece na página de detalhe sem navegar.
+4. Observa os seguintes campos durante e após o processamento:
+   - Estado do trabalho na secção de histórico
+   - Score VMAF (aparece após conclusão)
+   - Codec e resolução do ficheiro de saída
+   - Caminho do ficheiro processado
+
+**O que deve acontecer:**
+
+- Todos os campos acima actualizam sem recarregar a página ou navegar para outro ecrã.
+- O VMAF aparece com a pontuação e a cor correspondente (verde ≥ 85, amarelo 70–84, vermelho < 70).
+
+**Se não funcionar:** Reporta com título "AssetDetailPage — campo [X] não actualiza em tempo real".
+
+---
+
+#### T22-03 — Estados QC: Quarentena e Rejeição
+
+> **Objectivo:** Verificar os estados específicos de controlo de qualidade no histórico da Fila.
+
+> _Este teste pode não ocorrer com todos os ficheiros — a quarentena acontece quando a app detecta um possível problema de qualidade. Podes tentar com vídeos de baixa qualidade ou muito comprimidos._
+
+**Se vires a secção "QUARENTENA" na Fila:**
+
+**Passos:**
+
+1. Na Fila, observa a secção de quarentena (fundo laranja/amarelo).
+2. Clica no ícone de **polegar para baixo** (rejeitar) junto a um ficheiro em quarentena.
+3. Verifica o estado final do ficheiro no histórico de trabalhos.
+
+**O que deve acontecer:**
+
+- Após rejeitar: o estado muda para **"Rejeitado"** (vermelho) no histórico.
+- O ficheiro rejeitado não volta a "Concluído" nem a "Em fila".
+- O estado persiste após navegar para outro ecrã e regressar à Fila.
+
+**Se não funcionar:** Reporta com título "Estado 'Rejeitado' não aparece correctamente no histórico".
+
+---
+
+#### T22-04 — Nome do Ficheiro Visível na Fila
+
+> **Objectivo:** Confirmar que o nome do ficheiro aparece correctamente durante o processamento.
+
+**Passos:**
+
+1. Submete um trabalho (T04-01).
+2. Navega imediatamente para **Fila**.
+3. Observa o trabalho na secção "Em Processamento".
+
+**O que deve acontecer:**
+
+- O **nome do ficheiro** (ex: `video_teste.mp4`) aparece visivelmente junto ao perfil seleccionado e à barra de progresso.
+- Não aparece um ID genérico (ex: um UUID como `a3f8b2c1-...`) nem um campo em branco.
+
+**Se não funcionar:** Reporta com título "Nome do ficheiro não aparece na Fila durante processamento".
+
+---
+
 ## 5. Glossário
 
 Termos técnicos explicados de forma simples:
@@ -1577,8 +1754,8 @@ Termos técnicos explicados de forma simples:
 - Manual do utilizador: `docs/USER_MANUAL.md` (na pasta da app)
 - Guia visual: `docs/SCREEN_GUIDE.md`
 
-**Versão testada:** v0.30.0-beta.1  
-**Última actualização deste guia:** Maio 2026
+**Versão testada:** v0.31.5-beta.1  
+**Última actualização deste guia:** Junho 2026
 
 ---
 
