@@ -23,21 +23,26 @@ Agente: Claude Code (claude-sonnet-4-6)
 **Root cause 2 — binarios partidos (shared sem DLLs):**
 Apos o fix 1, o path resolvia certo mas ffprobe saia com `0xC0000135` (STATUS_DLL_NOT_FOUND). Os binarios em `src-tauri/binaries/` eram um build SHARED (533KB/227KB) sem as `av*.dll` ao lado — restos de setup anterior. Fix: `npm run download:binaries` substituiu-os por STATIC (~194 MB, autossuficientes).
 
-**Commits (branch dev @ 226147a):**
+**Validacao definitiva em 4 niveis (commit c6c7bd6):** principio unico — binario media valido SE E SO SE `-version` sai com codigo 0 (apanha stub de 1 byte E shared sem DLLs). Substituidos checks de presenca/tamanho por execucao em: `download-media-binaries.js` (smoke-test apos producao, throw), `lib.rs::media_binary_ok` (startup_checks + get_startup_status — agora reporta a verdade ao frontend, sem fallback PATH), `06-run-dev.ps1::nxTestMediaBinary` (ffmpeg+ffprobe, auto-download+revalida), `sync.ps1::Test-MediaBinaryRuns` (canary pre-release).
+
+**Commits (branch dev @ c6c7bd6):**
 
 - `226147a` fix(sidecar): rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- `8fa5b07` docs(session): actualizar estado sessao 53
+- `c6c7bd6` fix(validation): validar binarios media por execucao em todos os niveis
 
-**Ficheiros alterados:** src-tauri/src/sidecar.rs (binarios media substituidos mas src-tauri/binaries/ esta gitignored — nao commitados)
+**Ficheiros alterados:** src-tauri/src/sidecar.rs, src-tauri/src/lib.rs, scripts/download-media-binaries.js, scripts/06-run-dev.ps1, scripts/sync.ps1 (binarios media gitignored — nao commitados)
 
-**Verificacao:** `ffprobe -version` exit 0; probe do video real → h264 1024x576 exit 0; teste manual no app: job submetido passou QC Pre e completou o pipeline.
+**Merge dev->main (LOCAL, sem push):** `main` @ `3951ed7` (Merge branch 'dev'), 28 commits a frente de origin/main, merge limpo (ort, 0 conflitos), 48/48 testes. `dev` @ `c6c7bd6` intacto.
+
+**Verificacao:** `ffprobe -version` exit 0; probe real -> h264 1024x576; job no app passou QC Pre e completou; 48/48 testes; cargo check 0 erros; scripts PS parseiam.
 
 **Notas para o proximo agente:**
 
-- **Binarios media TEM de ser STATIC** (~194 MB cada). Se aparecer `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515`: correr `npm run download:binaries`. Build shared (~227KB-533KB) sem DLLs nao corre.
-- **resolve_media_binary_path** usa `is_real_binary()` (size > 4096), NAO `.exists()`. Os stubs Tauri em `target/debug/` tem 1 byte. NAO reverter para `.exists()`.
-- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK com binarios partidos.
-- **startup_checks** em lib.rs ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar problema dos binarios bundled (da "FFprobe: OK" mesmo com stub). Nao foi alterado nesta sessao (fora de escopo).
-- **Proximo passo**: merge dev→main + release (ou manter em dev para mais fixes).
+- **Binario media valido <=> `-version` exit 0.** NUNCA validar por `.exists()`/tamanho. Implementado nos 4 sitios acima — NAO reverter.
+- **Binarios media TEM de ser STATIC** (~194 MB). `spawn UNKNOWN`/`0xC0000135`/`3221225781`/`-1073741515` => `npm run download:binaries`.
+- **resolve_media_binary_path** usa `is_real_binary()` (size > 4096) + scan de `src-tauri/binaries/`. Stubs Tauri em `target/debug/` tem 1 byte.
+- **PROXIMO PASSO**: `git push origin main` (28 commits por publicar) OU `sync.ps1` para release completo. `origin/dev` tambem atrasado (~20 commits).
 
 ---
 

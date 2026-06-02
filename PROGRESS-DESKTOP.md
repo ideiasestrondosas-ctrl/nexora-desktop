@@ -238,9 +238,20 @@
 - `src-tauri/src/sidecar.rs` -- `is_real_binary()` + scan de `binaries/`
 - (binarios media substituidos mas `src-tauri/binaries/` esta gitignored -- nao commitados)
 
-**Estado:** Pipeline funcional end-to-end. `dev` @ `226147a`, por mergear em `main`.
+**Implementacao (Sessao 53b) -- validacao definitiva em 4 niveis:**
 
-**Armadilha conhecida:** binarios media TEM de ser STATIC (~194 MB). `spawn UNKNOWN` ou exit `0xC0000135` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- [x] Principio unico: binario media valido SE E SO SE `-version` sai com codigo 0 (apanha stub E shared sem DLLs)
+- [x] `download-media-binaries.js`: `assertBinariesRunnable()` smoke-test apos producao -- throw se nao executar (keystone, protege CI)
+- [x] `lib.rs`: `media_binary_ok()` executa o binario; `startup_checks` + `get_startup_status` reportam a verdade ao frontend (sem fallback PATH que mascarava)
+- [x] `06-run-dev.ps1`: `nxTestMediaBinary` valida ffmpeg E ffprobe por execucao + auto-download + revalida + falha clara
+- [x] `sync.ps1`: `Test-MediaBinaryRuns` canary pre-release
+- [x] Merge dev->main LOCAL: `main` @ `3951ed7`, 28 commits a frente de origin/main, limpo (ort), 48/48 testes
+
+**Ficheiros (Sessao 53b):** scripts/download-media-binaries.js, src-tauri/src/lib.rs, scripts/06-run-dev.ps1, scripts/sync.ps1
+
+**Estado:** Pipeline funcional end-to-end + validacao robusta nos 4 niveis. `dev` @ `c6c7bd6`. `main` mergeado LOCALMENTE (`3951ed7`), por fazer push (28 commits) ou release via sync.ps1.
+
+**Armadilha conhecida:** binario media valido <=> `-version` exit 0. NUNCA validar por `.exists()`/tamanho. STATIC (~194 MB) obrigatorio; `spawn UNKNOWN`/`0xC0000135` = stub ou shared sem DLLs -> `npm run download:binaries`.
 
 ---
 
