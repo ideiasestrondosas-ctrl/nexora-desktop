@@ -1620,6 +1620,104 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 ---
 
+### T22 — Funcionalidades Introduzidas desde v0.30.11
+
+> **Nota:** Esta secção testa funcionalidades adicionadas nas versões v0.30.11 a v0.31.5. São complementares aos testes anteriores — se já fizeste T02 a T21, estes testes focam-se nos detalhes específicos das novas versões.
+
+---
+
+#### T22-01 — QueuePill: Comportamento em Todos os Estados
+
+> **Objectivo:** Verificar todos os estados do indicador de fila na barra de topo.
+
+**Passos:**
+
+1. Com a app sem trabalhos em curso, observa a barra de topo.
+2. Submete um trabalho (ver T04-01).
+3. Observa a pílula durante o processamento.
+4. Aguarda que o trabalho conclua.
+5. Submete mais um trabalho e cancela-o imediatamente (ver T04-03).
+
+**O que deve acontecer:**
+
+- Estado **inactivo** (sem trabalhos): pílula cinzenta com texto "Inactivo", sem número de trabalhos.
+- Estado **activo** (a processar): dot azul pulsante, número de trabalhos em curso visível.
+- Estado **com concluídos**: número verde com ✓ aparece e acumula a cada trabalho terminado.
+- Trabalho **cancelado** não incrementa o contador verde de concluídos.
+
+**Se não funcionar:** Reporta com título "QueuePill — comportamento incorrecto em estado [X]".
+
+---
+
+#### T22-02 — AssetDetailPage: Actualização Reactiva Completa
+
+> **Objectivo:** Confirmar todos os campos que actualizam em tempo real durante o processamento.
+
+**Precisas de:** Um ficheiro importado na Biblioteca.
+
+**Passos:**
+
+1. Abre a página de detalhe de um ficheiro (T15-01).
+2. Clica em **Processar** e selecciona o perfil **web-hd**.
+3. Permanece na página de detalhe sem navegar.
+4. Observa os seguintes campos durante e após o processamento:
+   - Estado do trabalho na secção de histórico
+   - Score VMAF (aparece após conclusão)
+   - Codec e resolução do ficheiro de saída
+   - Caminho do ficheiro processado
+
+**O que deve acontecer:**
+
+- Todos os campos acima actualizam sem recarregar a página ou navegar para outro ecrã.
+- O VMAF aparece com a pontuação e a cor correspondente (verde ≥ 85, amarelo 70–84, vermelho < 70).
+
+**Se não funcionar:** Reporta com título "AssetDetailPage — campo [X] não actualiza em tempo real".
+
+---
+
+#### T22-03 — Estados QC: Quarentena e Rejeição
+
+> **Objectivo:** Verificar os estados específicos de controlo de qualidade no histórico da Fila.
+
+> _Este teste pode não ocorrer com todos os ficheiros — a quarentena acontece quando a app detecta um possível problema de qualidade. Podes tentar com vídeos de baixa qualidade ou muito comprimidos._
+
+**Se vires a secção "QUARENTENA" na Fila:**
+
+**Passos:**
+
+1. Na Fila, observa a secção de quarentena (fundo laranja/amarelo).
+2. Clica no ícone de **polegar para baixo** (rejeitar) junto a um ficheiro em quarentena.
+3. Verifica o estado final do ficheiro no histórico de trabalhos.
+
+**O que deve acontecer:**
+
+- Após rejeitar: o estado muda para **"Rejeitado"** (vermelho) no histórico.
+- O ficheiro rejeitado não volta a "Concluído" nem a "Em fila".
+- O estado persiste após navegar para outro ecrã e regressar à Fila.
+
+**Se não funcionar:** Reporta com título "Estado 'Rejeitado' não aparece correctamente no histórico".
+
+---
+
+#### T22-04 — Nome do Ficheiro Visível na Fila
+
+> **Objectivo:** Confirmar que o nome do ficheiro aparece correctamente durante o processamento.
+
+**Passos:**
+
+1. Submete um trabalho (T04-01).
+2. Navega imediatamente para **Fila**.
+3. Observa o trabalho na secção "Em Processamento".
+
+**O que deve acontecer:**
+
+- O **nome do ficheiro** (ex: `video_teste.mp4`) aparece visivelmente junto ao perfil seleccionado e à barra de progresso.
+- Não aparece um ID genérico (ex: um UUID como `a3f8b2c1-...`) nem um campo em branco.
+
+**Se não funcionar:** Reporta com título "Nome do ficheiro não aparece na Fila durante processamento".
+
+---
+
 ## 5. Glossário
 
 Termos técnicos explicados de forma simples:
