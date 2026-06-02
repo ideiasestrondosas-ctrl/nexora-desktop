@@ -1,14 +1,45 @@
-﻿# Estado de Sincronizacao - Nexora Desktop
+# Estado de Sincronizacao - Nexora Desktop
 
 > Handoff entre Claude Code e Google Antigravity.
 > Actualizar no FIM de cada sessao. Lido no INICIO de cada sessao.
 
 ---
 
-Actualizado: 2026-06-01
+Actualizado: 2026-06-02
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)  
+**Data:** 2026-06-02
+
+**Resumo:** 6 itens
+
+**Novas funcionalidades:**
+
+- add filename field to Job interface
+
+**Correcoes:**
+
+- validar binarios media por execucao em todos os niveis
+- rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- job:quarantined event sets qc_quarantined status (not cancelled)
+- use GitHub API to resolve BtbN FFmpeg asset URL
+- migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+
+**Ficheiros alterados:** src-tauri/Cargo.lock
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- **resolve_media_binary_path**: usa `is_real_binary()` (size > 4096), NAO `.exists()`. Stubs Tauri em `target/debug/` tem 1 byte. NAO reverter.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK.
+- **startup_checks (lib.rs)**: ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar binarios bundled partidos (da "FFprobe: OK" mesmo com stub). Nao alterado (fora de escopo).
+- **Commit**: `226147a` (apenas sidecar.rs). Binarios fora do git.
+
+---
 
 ### Sessao 53 — Fix spawn UNKNOWN ffprobe/ffmpeg em dev — CONCLUIDO
 
@@ -957,9 +988,40 @@ Fix: `no_window()` utilitario em `commands/mod.rs`, aplicado a 5 call sites em `
 
 ---
 
-Actualizado: 2026-06-01
+Actualizado: 2026-06-02
 
 ## O que foi feito
+
+### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)  
+**Data:** 2026-06-02
+
+**Resumo:** 6 itens
+
+**Novas funcionalidades:**
+
+- add filename field to Job interface
+
+**Correcoes:**
+
+- validar binarios media por execucao em todos os niveis
+- rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- job:quarantined event sets qc_quarantined status (not cancelled)
+- use GitHub API to resolve BtbN FFmpeg asset URL
+- migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+
+**Ficheiros alterados:** src-tauri/Cargo.lock
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- **resolve_media_binary_path**: usa `is_real_binary()` (size > 4096), NAO `.exists()`. Stubs Tauri em `target/debug/` tem 1 byte. NAO reverter.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK.
+- **startup_checks (lib.rs)**: ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar binarios bundled partidos (da "FFprobe: OK" mesmo com stub). Nao alterado (fora de escopo).
+- **Commit**: `226147a` (apenas sidecar.rs). Binarios fora do git.
+
+---
 
 ### Sessao 51 — Release v0.31.3-beta.1 — CONCLUIDO
 
@@ -1476,9 +1538,40 @@ Testar visualmente `npm run tauri dev` ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â�
 
 ---
 
-Actualizado: 2026-06-01
+Actualizado: 2026-06-02
 
 ## O que foi feito
+
+### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)  
+**Data:** 2026-06-02
+
+**Resumo:** 6 itens
+
+**Novas funcionalidades:**
+
+- add filename field to Job interface
+
+**Correcoes:**
+
+- validar binarios media por execucao em todos os niveis
+- rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- job:quarantined event sets qc_quarantined status (not cancelled)
+- use GitHub API to resolve BtbN FFmpeg asset URL
+- migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+
+**Ficheiros alterados:** src-tauri/Cargo.lock
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- **resolve_media_binary_path**: usa `is_real_binary()` (size > 4096), NAO `.exists()`. Stubs Tauri em `target/debug/` tem 1 byte. NAO reverter.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK.
+- **startup_checks (lib.rs)**: ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar binarios bundled partidos (da "FFprobe: OK" mesmo com stub). Nao alterado (fora de escopo).
+- **Commit**: `226147a` (apenas sidecar.rs). Binarios fora do git.
+
+---
 
 ### Sessao 51 — Release v0.31.3-beta.1 — CONCLUIDO
 
@@ -1612,9 +1705,40 @@ Continuar com Platform-Adaptive UX Phase A conforme plano em `C:\Users\arnal\.cl
 
 ---
 
-Actualizado: 2026-06-01
+Actualizado: 2026-06-02
 
 ## O que foi feito
+
+### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)  
+**Data:** 2026-06-02
+
+**Resumo:** 6 itens
+
+**Novas funcionalidades:**
+
+- add filename field to Job interface
+
+**Correcoes:**
+
+- validar binarios media por execucao em todos os niveis
+- rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- job:quarantined event sets qc_quarantined status (not cancelled)
+- use GitHub API to resolve BtbN FFmpeg asset URL
+- migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+
+**Ficheiros alterados:** src-tauri/Cargo.lock
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- **resolve_media_binary_path**: usa `is_real_binary()` (size > 4096), NAO `.exists()`. Stubs Tauri em `target/debug/` tem 1 byte. NAO reverter.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK.
+- **startup_checks (lib.rs)**: ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar binarios bundled partidos (da "FFprobe: OK" mesmo com stub). Nao alterado (fora de escopo).
+- **Commit**: `226147a` (apenas sidecar.rs). Binarios fora do git.
+
+---
 
 ### Sessao 51 — Release v0.31.3-beta.1 — CONCLUIDO
 
@@ -1768,9 +1892,40 @@ Implementar Platform-Adaptive UX conforme plano em `C:\Users\arnal\.claude\plans
 
 ---
 
-Actualizado: 2026-06-01
+Actualizado: 2026-06-02
 
 ## O que foi feito
+
+### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)  
+**Data:** 2026-06-02
+
+**Resumo:** 6 itens
+
+**Novas funcionalidades:**
+
+- add filename field to Job interface
+
+**Correcoes:**
+
+- validar binarios media por execucao em todos os niveis
+- rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- job:quarantined event sets qc_quarantined status (not cancelled)
+- use GitHub API to resolve BtbN FFmpeg asset URL
+- migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+
+**Ficheiros alterados:** src-tauri/Cargo.lock
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- **resolve_media_binary_path**: usa `is_real_binary()` (size > 4096), NAO `.exists()`. Stubs Tauri em `target/debug/` tem 1 byte. NAO reverter.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK.
+- **startup_checks (lib.rs)**: ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar binarios bundled partidos (da "FFprobe: OK" mesmo com stub). Nao alterado (fora de escopo).
+- **Commit**: `226147a` (apenas sidecar.rs). Binarios fora do git.
+
+---
 
 ### Sessao 51 — Release v0.31.3-beta.1 — CONCLUIDO
 
@@ -1963,9 +2118,40 @@ Aguardar prÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚
 
 ---
 
-Actualizado: 2026-06-01
+Actualizado: 2026-06-02
 
 ## O que foi feito
+
+### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)  
+**Data:** 2026-06-02
+
+**Resumo:** 6 itens
+
+**Novas funcionalidades:**
+
+- add filename field to Job interface
+
+**Correcoes:**
+
+- validar binarios media por execucao em todos os niveis
+- rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- job:quarantined event sets qc_quarantined status (not cancelled)
+- use GitHub API to resolve BtbN FFmpeg asset URL
+- migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+
+**Ficheiros alterados:** src-tauri/Cargo.lock
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- **resolve_media_binary_path**: usa `is_real_binary()` (size > 4096), NAO `.exists()`. Stubs Tauri em `target/debug/` tem 1 byte. NAO reverter.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK.
+- **startup_checks (lib.rs)**: ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar binarios bundled partidos (da "FFprobe: OK" mesmo com stub). Nao alterado (fora de escopo).
+- **Commit**: `226147a` (apenas sidecar.rs). Binarios fora do git.
+
+---
 
 ### Sessao 51 — Release v0.31.3-beta.1 — CONCLUIDO
 
@@ -2096,9 +2282,40 @@ Actualizado: 2026-06-01
 
 ---
 
-Actualizado: 2026-06-01
+Actualizado: 2026-06-02
 
 ## O que foi feito
+
+### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)  
+**Data:** 2026-06-02
+
+**Resumo:** 6 itens
+
+**Novas funcionalidades:**
+
+- add filename field to Job interface
+
+**Correcoes:**
+
+- validar binarios media por execucao em todos os niveis
+- rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- job:quarantined event sets qc_quarantined status (not cancelled)
+- use GitHub API to resolve BtbN FFmpeg asset URL
+- migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+
+**Ficheiros alterados:** src-tauri/Cargo.lock
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- **resolve_media_binary_path**: usa `is_real_binary()` (size > 4096), NAO `.exists()`. Stubs Tauri em `target/debug/` tem 1 byte. NAO reverter.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK.
+- **startup_checks (lib.rs)**: ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar binarios bundled partidos (da "FFprobe: OK" mesmo com stub). Nao alterado (fora de escopo).
+- **Commit**: `226147a` (apenas sidecar.rs). Binarios fora do git.
+
+---
 
 ### Sessao 51 — Release v0.31.3-beta.1 — CONCLUIDO
 
@@ -2225,9 +2442,40 @@ Actualizado: 2026-06-01
 
 ---
 
-Actualizado: 2026-06-01
+Actualizado: 2026-06-02
 
 ## O que foi feito
+
+### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)  
+**Data:** 2026-06-02
+
+**Resumo:** 6 itens
+
+**Novas funcionalidades:**
+
+- add filename field to Job interface
+
+**Correcoes:**
+
+- validar binarios media por execucao em todos os niveis
+- rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- job:quarantined event sets qc_quarantined status (not cancelled)
+- use GitHub API to resolve BtbN FFmpeg asset URL
+- migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+
+**Ficheiros alterados:** src-tauri/Cargo.lock
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- **resolve_media_binary_path**: usa `is_real_binary()` (size > 4096), NAO `.exists()`. Stubs Tauri em `target/debug/` tem 1 byte. NAO reverter.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK.
+- **startup_checks (lib.rs)**: ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar binarios bundled partidos (da "FFprobe: OK" mesmo com stub). Nao alterado (fora de escopo).
+- **Commit**: `226147a` (apenas sidecar.rs). Binarios fora do git.
+
+---
 
 ### Sessao 51 — Release v0.31.3-beta.1 — CONCLUIDO
 
@@ -2359,9 +2607,40 @@ Actualizado: 2026-06-01
 
 ---
 
-Actualizado: 2026-06-01
+Actualizado: 2026-06-02
 
 ## O que foi feito
+
+### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)  
+**Data:** 2026-06-02
+
+**Resumo:** 6 itens
+
+**Novas funcionalidades:**
+
+- add filename field to Job interface
+
+**Correcoes:**
+
+- validar binarios media por execucao em todos os niveis
+- rejeitar stubs de 1 byte ao resolver ffmpeg/ffprobe em dev
+- job:quarantined event sets qc_quarantined status (not cancelled)
+- use GitHub API to resolve BtbN FFmpeg asset URL
+- migrate QueuePage to useJobsStore — jobs now visible immediately after submission
+
+**Ficheiros alterados:** src-tauri/Cargo.lock
+
+**Notas para o proximo agente:**
+
+- **Binarios media TEM de ser STATIC** (~194 MB cada). `spawn UNKNOWN` ou exit `0xC0000135`/`3221225781`/`-1073741515` = stub de 1 byte ou build shared sem DLLs -> correr `npm run download:binaries`.
+- **resolve_media_binary_path**: usa `is_real_binary()` (size > 4096), NAO `.exists()`. Stubs Tauri em `target/debug/` tem 1 byte. NAO reverter.
+- **Check do menu dev** ("OK Binarios de media presentes") so verifica presenca, nao validade — pode dar falso OK.
+- **startup_checks (lib.rs)**: ainda usa fallback `Command::new("ffprobe")` do PATH — pode mascarar binarios bundled partidos (da "FFprobe: OK" mesmo com stub). Nao alterado (fora de escopo).
+- **Commit**: `226147a` (apenas sidecar.rs). Binarios fora do git.
+
+---
 
 ### Sessao 51 — Release v0.31.3-beta.1 — CONCLUIDO
 
