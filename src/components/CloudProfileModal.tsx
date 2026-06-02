@@ -12,6 +12,13 @@ import {
   useCloudStore,
 } from '@/store/cloud';
 
+interface OAuthTokens {
+  accessToken: string;
+  refreshToken?: string;
+  expiresIn: number;
+  accountInfo: string;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -34,6 +41,8 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     changed: boolean;
     action: 'test' | 'save';
   } | null>(null);
+  const [oauthStatus, setOauthStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
+  const [oauthAccountInfo, setOauthAccountInfo] = useState('');
 
   useEffect(() => {
     if (!open) return;
@@ -42,10 +51,22 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
       setProvider(editing.provider);
       setName(editing.name);
       setFields(editing.config);
+      if (editing.provider === 'gdrive' || editing.provider === 'dropbox') {
+        const existingToken = editing.config['oauth_token'] as string | undefined;
+        if (existingToken) {
+          setOauthStatus('connected');
+          setOauthAccountInfo((editing.config['account_info'] as string) || '');
+        } else {
+          setOauthStatus('idle');
+          setOauthAccountInfo('');
+        }
+      }
     } else {
       setProvider('ftp');
       setName('');
       setFields({});
+      setOauthStatus('idle');
+      setOauthAccountInfo('');
     }
   }, [open, editing]);
 
@@ -244,6 +265,30 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     }
   };
 
+  const handleOAuthConnect = async () => {
+    const clientId = String(fields['client_id'] ?? '');
+    if (!clientId) {
+      toast.error('Preencha o Client ID / App Key primeiro');
+      return;
+    }
+    setOauthStatus('connecting');
+    try {
+      const tokens = await invoke<OAuthTokens>('oauth_connect', {
+        provider,
+        clientId,
+      });
+      setField('oauth_token', tokens.accessToken);
+      setField('oauth_refresh', tokens.refreshToken ?? '');
+      setField('account_info', tokens.accountInfo);
+      setOauthAccountInfo(tokens.accountInfo);
+      setOauthStatus('connected');
+      toast.success(`Autenticado como ${tokens.accountInfo}`);
+    } catch (e) {
+      setOauthStatus('idle');
+      toast.error(`Autenticação falhou: ${e}`);
+    }
+  };
+
   const providerFields = PROVIDER_FIELDS[provider];
 
   return (
@@ -319,46 +364,84 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
               </div>
             ))}
 
-            {provider === 'gdrive' && (
-              <div className="bg-bg-secondary/50 rounded p-3 text-sm mt-2">
-                <p className="text-text-muted mb-2 text-xs">
-                  Requer Client ID e Secret registados em console.cloud.google.com.
-                </p>
+            {(provider === 'gdrive' || provider === 'dropbox') && (
+              <div className="bg-bg-secondary/50 rounded-lg p-3 space-y-3 mt-1">
+                {/* Status */}
+                <div className="flex items-center gap-2 text-xs">
+                  {oauthStatus === 'idle' && (
+                    <span className="text-text-muted">● Não autenticado</span>
+                  )}
+                  {oauthStatus === 'connecting' && (
+                    <span className="flex items-center gap-1.5 text-yellow-400">
+                      <Loader2 size={12} className="animate-spin" />A aguardar autorização no
+                      browser…
+                    </span>
+                  )}
+                  {oauthStatus === 'connected' && (
+                    <span className="flex items-center gap-1.5 text-green-400">
+                      <CheckCircle2 size={12} />
+                      {oauthAccountInfo || 'Conta autenticada'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Primary: PKCE flow */}
                 <button
                   type="button"
-                  onClick={handleGDriveAuth}
-                  disabled={gdrivePolling}
-                  className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-3 py-1.5 text-xs"
+                  onClick={handleOAuthConnect}
+                  disabled={oauthStatus === 'connecting'}
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-3 py-1.5 text-xs w-full justify-center"
                 >
-                  {gdrivePolling ? 'A aguardar autorização...' : 'Autenticar com Google'}
+                  <ExternalLink size={12} />
+                  {oauthStatus === 'connecting'
+                    ? 'A autenticar…'
+                    : provider === 'gdrive'
+                      ? 'Conectar com Google Drive'
+                      : 'Conectar com Dropbox'}
                 </button>
-                {gdriveAuthUrl && (
-                  <div className="mt-2 text-xs text-text-secondary space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-text-muted">Abra:</span>
-                      <button
-                        type="button"
-                        onClick={() => openUrl(gdriveAuthUrl)}
-                        className="flex items-center gap-1 text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all text-left"
-                      >
-                        {gdriveAuthUrl}
-                        <ExternalLink size={11} className="shrink-0" />
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-text-muted">Código:</span>
-                      <strong className="text-text-primary tracking-widest">
-                        {gdriveUserCode}
-                      </strong>
-                      <button
-                        type="button"
-                        onClick={() => navigator.clipboard.writeText(gdriveUserCode)}
-                        title="Copiar código"
-                        className="text-text-muted hover:text-text-primary transition-colors"
-                      >
-                        <Copy size={12} />
-                      </button>
-                    </div>
+
+                {/* Fallback: Device Flow (apenas GDrive) */}
+                {provider === 'gdrive' && (
+                  <div className="border-t border-border/30 pt-2">
+                    <p className="text-[10px] text-text-muted mb-1.5">
+                      Alternativa — autenticar com código (Device Flow):
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleGDriveAuth}
+                      disabled={gdrivePolling}
+                      className="text-xs text-text-muted hover:text-text-primary underline underline-offset-2"
+                    >
+                      {gdrivePolling ? 'A aguardar autorização…' : 'Autenticar com código'}
+                    </button>
+                    {gdriveAuthUrl && (
+                      <div className="mt-2 text-xs text-text-secondary space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-text-muted">Abra:</span>
+                          <button
+                            type="button"
+                            onClick={() => openUrl(gdriveAuthUrl)}
+                            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 underline break-all text-left"
+                          >
+                            {gdriveAuthUrl}
+                            <ExternalLink size={11} className="shrink-0" />
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-text-muted">Código:</span>
+                          <strong className="text-text-primary tracking-widest">
+                            {gdriveUserCode}
+                          </strong>
+                          <button
+                            type="button"
+                            onClick={() => navigator.clipboard.writeText(gdriveUserCode)}
+                            className="text-text-muted hover:text-text-primary"
+                          >
+                            <Copy size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
