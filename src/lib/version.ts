@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.31.5-beta.1';
+export const APP_VERSION: string = __APP_VERSION__;
 
 export interface VersionEntry {
   version: string;
@@ -7,8 +7,14 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: '0.31.6-beta.1',
+    description:
+      'v0.31.6-beta.1: separador "Guia Beta" visível em produção para todos os utilizadores, actualizações de dependências (sysinfo 0.37, react 19.2.7, russh 0.61).',
+  },
+  {
     version: '0.31.5-beta.1',
-    description: 'v0.31.5-beta.1.',
+    description:
+      'v0.31.5-beta.1: sub-testes T02-05, T08-03, T14-03, T15-03, secção T22 no BETA_TESTING_GUIDE.',
   },
   {
     version: '0.31.4-beta.1',

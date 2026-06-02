@@ -10,6 +10,30 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 61 — Fix release v0.31.6-beta.1 com Guia Beta em producao — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-02
+
+**Resumo:** A release v0.31.5-beta.1 tinha o MSI sem o separador "Guia Beta" porque a tag apontava para o commit 6ce5270 (sessao 58), anterior ao commit que activou a feature (3d5a4c7). Diagnosticado o problema, bump de versao para 0.31.6-beta.1, nova tag criada, CI acionado e passou em todas as plataformas, release publicada como Latest. Dev e main sincronizados com origin.
+
+**Alteracoes:**
+
+- `package.json`: 0.31.5-beta.1 -> 0.31.6-beta.1
+- `src-tauri/tauri.conf.json`: versao 0.31.5 -> 0.31.6, wix.version 0.31.5.1 -> 0.31.6.1
+- `src-tauri/Cargo.toml`: 0.31.5-beta.1 -> 0.31.6-beta.1
+
+**Estado final:** `main` @ `035a211`, `dev` @ `3f6c0f3`. Ambos sincronizados com origin. Release v0.31.6-beta.1 Latest.
+
+**Notas para o proximo agente:**
+
+- MSI v0.31.6-beta.1 inclui separador Guia Beta (visivel para todos os utilizadores).
+- Instalador lento no Sandbox (~10 min) e comportamento normal: Defender faz scan de binarios nao assinados.
+- Se houver nova instalacao dupla no Sandbox: remover versao antiga antes de instalar.
+- Zero PRs abertos.
+
+---
+
 ### Sessao 60 — Beta Testing Guide activado em producao + actualizado v0.31.5 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)
