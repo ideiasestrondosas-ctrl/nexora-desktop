@@ -10,6 +10,36 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 58 — Fix CI ESLint Mojibake em version.ts — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-02
+
+**Resumo:** Fix ESLint CI failure causado por whitespace irregular em comentario JSDoc de version.ts + diagnostico rust-analyzer.
+
+**Root cause:** O bloco JSDoc no topo de `src/lib/version.ts` continha bytes U+00A0 e similares embutidos em Mojibake UTF-8 duplo acumulado ao longo de releases anteriores. ESLint `no-irregular-whitespace` rejeita esses bytes em comentarios (strings ficam imunes por `skipStrings: true`). O `sync.ps1` agravam o Mojibake ao re-encodar o ficheiro em cada release via `Get-Content -Raw`.
+
+**Correccao:**
+
+- `src/lib/version.ts`: remover bloco JSDoc de 5 linhas. Codigo auto-explicativo; `sync.ps1` nao regenera o comentario logo bug nao reaparecer.
+- cherry-pick aplicado a `main` (o merge de dev para main ja tinha propagado o bug).
+
+**rust-analyzer crash:** `cargo check` compila limpo — problema era toolchain local. `rustup update` 1.95 → 1.96 resolveu.
+
+**Commits:**
+
+- `3c21bf6` dev — fix(lint): remover JSDoc com Mojibake de version.ts
+- `4e2ca4a` main — cherry-pick do mesmo fix
+
+**Estado final:** `dev` @ `3c21bf6`, `main` @ `4e2ca4a`. Ambas pushed. CI a retestar.
+
+**Notas para o proximo agente:**
+
+- `version.ts` ja nao tem comentario JSDoc — nao re-adicionar.
+- Se o CI passar, proximas tarefas sao os Dependabot PRs (cargo: notify/rusqlite/russh/sysinfo/zip; npm: cross-env/typescript-eslint/tauri-plugins; actions: upload/download-artifact).
+
+---
+
 ### Sessao 57 — Release v0.31.5-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  

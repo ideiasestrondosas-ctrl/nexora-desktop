@@ -255,6 +255,21 @@
 
 ---
 
+### Fase 30 - Fix CI ESLint + Release v0.31.5-beta.1 (Sessoes 56-58) -- CONCLUIDO
+
+**Objectivo:** Fix nome video nao aparecia na fila; release v0.31.5-beta.1; fix CI ESLint Mojibake.
+
+**Implementacao:**
+
+- [x] fix(queue): `src-tauri/src/commands/jobs.rs` — `submit_job` consulta `assets.filename` antes de retornar Job (filename nao era `None`) (`33fadf5`)
+- [x] chore(release): v0.31.5-beta.1 publicada — merge dev → main, tag, GitHub Release (`8993a4d` / `f19f5a1`)
+- [x] fix(lint): `src/lib/version.ts` — remover JSDoc com Mojibake/whitespace irregular (U+00A0) que causava ESLint `no-irregular-whitespace` no CI (`3c21bf6` dev / `4e2ca4a` main)
+- [x] toolchain: `rustup update` 1.95 → 1.96 — resolve rust-analyzer crash local exit code 1
+
+**Estado:** `dev` @ `3c21bf6`, `main` @ `4e2ca4a`. CI a retestar. rust-analyzer actualizado.
+
+---
+
 ### Fase 29 - Fixes CI/Build pos-release v0.31.4-beta.1 (Sessao 55) -- CONCLUIDO
 
 **Objectivo:** Corrigir 4 problemas detectados apos publicacao da release v0.31.4-beta.1 (build CI falhava em Quality Gate e em Download media binaries nas plataformas Windows/Linux).
