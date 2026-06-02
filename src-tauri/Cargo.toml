@@ -45,7 +45,7 @@ tauri-plugin-process = "2"
 tauri-plugin-os = "2"
 keyring = "3"
 window-vibrancy = "0.5"
-notify = "6"
+notify = "8"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 libc = "0.2"
