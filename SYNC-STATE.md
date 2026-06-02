@@ -10,6 +10,38 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 55 — Fixes CI/Build pos-release v0.31.4-beta.1 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-02
+
+**Resumo:** 4 fixes aplicados apos release v0.31.4-beta.1 — todos em `dev` e mergeados para `main`. Build CI passou nas 3 plataformas apos os fixes.
+
+**Correcoes:**
+
+- `style(sidecar)`: cargo fmt — reformatar condicao `if` em `sidecar.rs:72` (build CI falhava em Quality Gate)
+- `fix(sync)`: `Invoke-MergeToMain` em `sync.ps1` faz stash/pop automatico para lidar com `Cargo.lock` modificado por `cargo check`/`fmt` (impedia `git checkout main`)
+- `fix(binaries)`: regex BtbN exacto — `/gpl.*\.zip$/` apanhava `gpl-shared.zip` (build partilhado sem DLLs, smoke-test falhava); fix: `/gpl\.zip$/` sem `.*`
+- `ci`: `upload-artifact@v5 → @v6` e `download-artifact@v5 → @v7` (Node.js 24; forcado a partir de 16 Jun 2026)
+
+**Commits:**
+
+- `8e0c1bb` style(sidecar): cargo fmt — reformatar condicao if em sidecar.rs
+- `9bf1a08` fix(sync): stash/pop automatico em Invoke-MergeToMain para Cargo.lock modificado
+- `0f2dc53` fix(binaries): regex BtbN exacto para nao apanhar gpl-shared em vez de gpl static
+- `94c3304` ci: actualizar upload-artifact@v6 e download-artifact@v7 para Node.js 24
+
+**Estado final:** `dev` @ `94c3304`, `main` @ `379db0d`. Build `v0.31.4-beta.1` CI: Quality Gate OK + Windows OK + Linux OK + macOS OK + updater-json OK.
+
+**Notas para o proximo agente:**
+
+- Tag `v0.31.4-beta.1` aponta para `0f2dc53` (com o fix do regex BtbN). Build CI verde.
+- `actions/upload-artifact@v6` e `actions/download-artifact@v7` ja actualizados — nao reverter.
+- `sync.ps1` `Invoke-MergeToMain` faz stash/pop automatico — merge para main via sync.ps1 deve funcionar mesmo com `Cargo.lock` modificado.
+- Dependabot abriu varios PRs de actualizacao de dependencias — podem ser revistos/mergeados.
+
+---
+
 ### Sessao 54 — Release v0.31.4-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)  

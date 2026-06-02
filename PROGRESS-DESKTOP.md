@@ -255,6 +255,36 @@
 
 ---
 
+### Fase 29 - Fixes CI/Build pos-release v0.31.4-beta.1 (Sessao 55) -- CONCLUIDO
+
+**Objectivo:** Corrigir 4 problemas detectados apos publicacao da release v0.31.4-beta.1 (build CI falhava em Quality Gate e em Download media binaries nas plataformas Windows/Linux).
+
+**Implementacao:**
+
+- [x] style(sidecar): `sidecar.rs:72` — condicao `if` reformatada segundo `cargo fmt` (build CI falhava em Quality Gate)
+- [x] fix(sync): `sync.ps1::Invoke-MergeToMain` — stash/pop automatico antes de `git checkout main`; impedia merge quando `Cargo.lock` estava modificado por `cargo check`/`cargo fmt`
+- [x] fix(binaries): `download-media-binaries.js` — regex BtbN de `/gpl.*\.zip$/` para `/gpl\.zip$/`; o `.*` fazia match de `gpl-shared.zip` (build partilhado sem DLLs) em vez de `gpl.zip` (estatico); smoke-test falhava em Windows e Linux CI
+- [x] ci(build.yml): `upload-artifact@v5 → @v6`, `download-artifact@v5 → @v7` (suporte Node.js 24; forcado a partir de 16 Jun 2026)
+- [x] Build CI v0.31.4-beta.1: Quality Gate OK + Windows OK + Linux OK + macOS OK + generate-updater-json OK
+
+**Ficheiros alterados:**
+
+- `src-tauri/src/sidecar.rs` — reformatacao cargo fmt
+- `scripts/sync.ps1` — stash/pop em Invoke-MergeToMain
+- `scripts/download-media-binaries.js` — regex exacto BTBN_BUNDLES (4 entradas)
+- `.github/workflows/build.yml` — upload-artifact@v6 + download-artifact@v7
+
+**Commits:**
+
+- `8e0c1bb` style(sidecar): cargo fmt — reformatar condicao if em sidecar.rs
+- `9bf1a08` fix(sync): stash/pop automatico em Invoke-MergeToMain para Cargo.lock modificado
+- `0f2dc53` fix(binaries): regex BtbN exacto para nao apanhar gpl-shared em vez de gpl static
+- `94c3304` ci: actualizar upload-artifact@v6 e download-artifact@v7 para Node.js 24
+
+**Estado:** `dev` @ `94c3304`, `main` @ `379db0d`. Build CI verde nas 3 plataformas.
+
+---
+
 ### Fase 23 - Release v0.30.11-beta.1 + Fix sync.ps1 (Sessao 45) -- CONCLUIDO
 
 **Objectivo:** Publicar release v0.30.11-beta.1 e corrigir bug recorrente do sync.ps1.
