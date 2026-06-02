@@ -10,6 +10,32 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 56 — Fix nome video nao aparecia na fila — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-02
+
+**Resumo:** Bug de exibicao na fila (QueuePage/PipelineSummary) — nome do video aparecia como ID parcial (`4e00d464`) em vez do nome real. Fix cirurgico em Rust.
+
+**Root cause:** `submit_job` em `src-tauri/src/commands/jobs.rs` devolvia `filename: None`. O `BatchSubmitModal` adicionava esse job ao store sem nome (`addJob(job)`). Eventos do sidecar (`updateJob`) nunca preenchiam `filename`. Fallback: `job.id.slice(0, 8)` visivel na fila.
+
+**Correccao:**
+
+- `src-tauri/src/commands/jobs.rs`: query adicional `SELECT filename FROM assets WHERE id = ?1` no `submit_job` antes de retornar o Job — sem mudancas de schema ou frontend.
+
+**Commits:**
+
+- `33fadf5` fix(queue): submit_job devolve filename do asset para o store
+
+**Estado final:** `dev` @ `33fadf5`, `main` @ `379db0d`. Fix em dev, ainda nao mergeado para main.
+
+**Notas para o proximo agente:**
+
+- `submit_job` (Rust) devolve agora `filename` preenchido — nao reverter.
+- Fix nao foi mergeado para main nem fez release — incluir no proximo sync/release.
+
+---
+
 ### Sessao 55 — Fixes CI/Build pos-release v0.31.4-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)
