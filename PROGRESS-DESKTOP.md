@@ -1,3 +1,18 @@
+## [Sessao 60] 2026-06-02 — Beta Testing Guide activado em producao + actualizado v0.31.5
+
+### Concluido
+
+- [x] HelpModal.tsx: remover gate DEV do separador Guia Beta (agora visivel em producao)
+- [x] HelpModal.tsx: remover badge "DEV ONLY" do BetaGuidePanel
+- [x] HelpModal.tsx: usar APP_VERSION dinamico em vez de string hardcoded
+- [x] BETA_TESTING_GUIDE.pt.md: cabeçalho v0.31.5-beta.1, Junho 2026
+- [x] BETA_TESTING_GUIDE.pt.md: T18-01 actualizado (11 -> 12 separadores, Guia Beta)
+- [x] BETA_TESTING_GUIDE.pt.md: seccao "O que NAO reportar" +2 itens (VMAF timing, shortcut Windows)
+- [x] BETA_TESTING_GUIDE.pt.md: sub-testes T02-05 (QueuePill), T08-03 (Diagnostico), T14-03 (Atalho), T15-03 (Reactivo)
+- [x] BETA_TESTING_GUIDE.pt.md: nova seccao T22 com T22-01/02/03/04 (funcionalidades v0.30.11-v0.31.5)
+- [x] BETA_TESTING_GUIDE.en.md: mesmo ambito em ingles
+- [x] Merge dev -> main (159992c). 48 testes verdes.
+
 # Nexora Media Processing - Desktop Nativo - Estado do Projecto
 
 > **LEITURA OBRIGATORIA PARA TODOS OS AGENTES IA**
