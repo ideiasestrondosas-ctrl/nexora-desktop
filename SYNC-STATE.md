@@ -10,6 +10,29 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 59 — Dependabot PRs (12 mergeados) — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-02
+
+**Resumo:** Merge de todos os 12 Dependabot PRs pendentes. 9 sem breaking changes (merge directo). 3 com breaking changes fixados antes de mergear.
+
+**Fixes de codigo aplicados:**
+
+- `sysinfo 0.32→0.37`: `RefreshKind::new()` → `RefreshKind::nothing()`; `nets.refresh()` → `nets.refresh(false)` em `system.rs` e `lib.rs`
+- `react 19.2.7`: `react-dom` bumped de `^19.1.0` para `^19.2.7` em `package.json`; lock regenerado
+- `russh 0.45→0.61`: `ssh_key::PublicKey` em vez de `russh::keys::key::PublicKey` (privado); `AuthResult` enum com `matches!`; remover `#[async_trait]` (RPITIT nativo); adicionar `ssh-key = "0.7.0-rc.10"` ao Cargo.toml
+
+**Estado final:** `main` @ `29cd249`. Zero PRs abertos. CI verde.
+
+**Notas para o proximo agente:**
+
+- `dev` esta 6+ commits atras de `main` — fazer `git pull origin main` em dev se necessario.
+- russh 0.61: `sftp.rs` usa agora `ssh_key::PublicKey` e sem `async_trait` no Handler.
+- sysinfo 0.37: `RefreshKind::nothing()` e `nets.refresh(false)`.
+
+---
+
 ### Sessao 58 — Fix CI ESLint + Build + Release v0.31.5-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)
