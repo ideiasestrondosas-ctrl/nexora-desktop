@@ -57,6 +57,37 @@ export const PROVIDER_LABELS: Record<CloudProviderType, string> = {
   icloud: 'iCloud Drive',
 };
 
+export const PROVIDER_HELP: Record<CloudProviderType, string | null> = {
+  ftp: null,
+  sftp: null,
+  smb: null,
+  s3: null,
+  gdrive: [
+    '1. Aceda a console.cloud.google.com → APIs e Serviços → Credenciais',
+    '2. Criar credencial OAuth 2.0 → tipo "TV e dispositivos de entrada limitada"',
+    '3. Ative a Google Drive API no mesmo projeto',
+    '4. Copie o Client ID e o Client Secret para os campos acima',
+    '5. Clique "Autenticar com Google" e siga as instruções no ecrã',
+  ].join('\n'),
+  gdrive_personal: [
+    '1. Aceda a console.cloud.google.com → APIs e Serviços → Credenciais',
+    '2. Criar credencial OAuth 2.0 → tipo "Aplicação de computador" (Desktop app)',
+    '3. Ative a Google Drive API no mesmo projeto',
+    '4. Em "URIs de redirecionamento autorizados", adicione: http://127.0.0.1',
+    '5. Copie apenas o Client ID (sem secret) para o campo acima',
+    '6. Clique "Conectar com Google Drive" — o browser abrirá para autorizar',
+  ].join('\n'),
+  dropbox: [
+    '1. Aceda a dropbox.com/developers/apps e clique "Create app"',
+    '2. Escolha "Scoped access" → "Full Dropbox" → dê um nome à app',
+    '3. No separador "Settings" da app, em "Redirect URIs", adicione: http://localhost',
+    '4. Copie o "App key" (ex: abc1d2ef3g4h56) para o campo App Key acima',
+    '   (Não é o seu email — é o identificador da app)',
+    '5. Clique "Conectar com Dropbox" — o browser abrirá para autorizar',
+  ].join('\n'),
+  icloud: null,
+};
+
 export const PROVIDER_FIELDS: Record<
   CloudProviderType,
   {

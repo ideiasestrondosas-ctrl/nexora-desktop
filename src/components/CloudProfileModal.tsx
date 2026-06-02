@@ -2,13 +2,22 @@ import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
-import { X, Loader2, CheckCircle2, Copy, ExternalLink, ShieldAlert } from 'lucide-react';
+import {
+  X,
+  Loader2,
+  CheckCircle2,
+  Copy,
+  ExternalLink,
+  ShieldAlert,
+  HelpCircle,
+} from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import {
   CloudProfile,
   CloudProviderType,
   PROVIDER_LABELS,
   PROVIDER_FIELDS,
+  PROVIDER_HELP,
   useCloudStore,
 } from '@/store/cloud';
 
@@ -44,6 +53,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
   // Estado OAuth para providers PKCE (gdrive_personal, dropbox)
   const [oauthStatus, setOauthStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
   const [oauthAccountInfo, setOauthAccountInfo] = useState('');
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -81,6 +91,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
       if (f.defaultValue !== undefined) defaults[f.key] = f.defaultValue;
     });
     if (!editing) setFields(defaults);
+    setShowHelp(false);
   }, [provider, editing]);
 
   const setField = (key: string, value: unknown) =>
@@ -305,13 +316,36 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
             <Dialog.Title className="text-base font-semibold text-text-primary">
               {editing ? 'Editar Perfil' : 'Novo Perfil Cloud'}
             </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-text-muted hover:text-text-primary transition-colors"
-            >
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-2">
+              {PROVIDER_HELP[provider] && (
+                <button
+                  type="button"
+                  onClick={() => setShowHelp((v) => !v)}
+                  title="Como configurar este provider"
+                  className={`transition-colors ${showHelp ? 'text-blue-400' : 'text-text-muted hover:text-text-primary'}`}
+                >
+                  <HelpCircle size={18} />
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="text-text-muted hover:text-text-primary transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
+
+          {showHelp && PROVIDER_HELP[provider] && (
+            <div className="mx-6 mt-4 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
+              <p className="text-xs font-semibold text-blue-300 mb-1.5">
+                Como configurar: {PROVIDER_LABELS[provider]}
+              </p>
+              <pre className="text-xs text-blue-200/80 whitespace-pre-wrap leading-relaxed">
+                {PROVIDER_HELP[provider]}
+              </pre>
+            </div>
+          )}
 
           <div className="px-6 py-5 space-y-3">
             {/* Seleção de tipo: cards clicáveis em vez de dropdown */}

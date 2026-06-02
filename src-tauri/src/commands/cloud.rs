@@ -89,10 +89,14 @@ pub fn update_cloud_profile(
     credentials_json: String,
     state: State<AppState>,
 ) -> Result<(), String> {
-    // Actualiza keychain apenas se novas credenciais foram fornecidas
-    let creds: serde_json::Value = serde_json::from_str(&credentials_json).unwrap_or_default();
-    if creds.as_object().is_some_and(|o| !o.is_empty()) {
-        cloud::credentials::save(&id, &credentials_json)?;
+    let new_creds: serde_json::Value =
+        serde_json::from_str(&credentials_json).unwrap_or_default();
+    if new_creds.as_object().is_some_and(|o| !o.is_empty()) {
+        // Merge com keychain existente: novos valores substituem, mas campos ausentes
+        // (como oauth_token) são preservados para não quebrar perfis OAuth ao editar.
+        let existing = cloud::credentials::load(&id);
+        let merged = merge_creds(existing, new_creds);
+        cloud::credentials::save(&id, &merged.to_string())?;
     }
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute(
@@ -121,11 +125,41 @@ pub async fn test_cloud_connection(
 ) -> Result<(), String> {
     let config: serde_json::Value =
         serde_json::from_str(&config_json).map_err(|e| e.to_string())?;
-    let creds: serde_json::Value =
+    let passed: serde_json::Value =
         serde_json::from_str(&credentials_json).map_err(|e| e.to_string())?;
-    let _ = id;
+    // Merge keychain (base) + passed creds (override se não-vazio) para que editar o
+    // perfil sem re-autenticar não perca o oauth_token já guardado no keychain.
+    let kc = if !id.is_empty() {
+        cloud::credentials::load(&id)
+    } else {
+        serde_json::Value::Object(Default::default())
+    };
+    let creds = merge_creds(kc, passed);
     let provider = cloud::get_provider(&provider, &config, &creds)?;
     provider.test_connection().await
+}
+
+/// Merge: base (ex: keychain) + overrides (ex: form fields).
+/// Valores em overrides só substituem se forem não-empty-string.
+fn merge_creds(base: serde_json::Value, overrides: serde_json::Value) -> serde_json::Value {
+    match (base.as_object(), overrides.as_object()) {
+        (Some(b), Some(o)) => {
+            let mut merged = b.clone();
+            for (k, v) in o {
+                if !v.as_str().map(|s| s.is_empty()).unwrap_or(false) {
+                    merged.insert(k.clone(), v.clone());
+                }
+            }
+            serde_json::Value::Object(merged)
+        }
+        _ => {
+            if overrides.as_object().is_some_and(|o| !o.is_empty()) {
+                overrides
+            } else {
+                base
+            }
+        }
+    }
 }
 
 /// Resultado da sondagem TOFU de um host SFTP.
@@ -552,7 +586,12 @@ pub async fn oauth_connect(
 
     let pkce = cloud::oauth::generate_pkce();
     let port = cloud::oauth::find_free_port()?;
-    let redirect_uri = format!("http://127.0.0.1:{port}/callback");
+    // Google aceita http://127.0.0.1 com qualquer porta.
+    // Dropbox aceita http://localhost com qualquer porta (registar só "http://localhost" no App Console).
+    let redirect_uri = match oauth_provider {
+        cloud::oauth::OAuthProvider::GDrive => format!("http://127.0.0.1:{port}/callback"),
+        cloud::oauth::OAuthProvider::Dropbox => format!("http://localhost:{port}/callback"),
+    };
 
     let auth_url = match oauth_provider {
         cloud::oauth::OAuthProvider::GDrive => format!(
