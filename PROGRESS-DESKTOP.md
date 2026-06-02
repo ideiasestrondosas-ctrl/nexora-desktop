@@ -1,3 +1,16 @@
+## [Sessao 61 — adicional] 2026-06-02 — Versao dinamica + fix sync.ps1
+
+### Concluido
+
+- [x] vite.config.ts: injectar **APP_VERSION** via Vite define (fonte: package.json)
+- [x] src/lib/version.ts: APP_VERSION = **APP_VERSION** (sem hardcode)
+- [x] src/vite-env.d.ts: declarar **APP_VERSION** para TypeScript
+- [x] eslint.config.js: **APP_VERSION** como global readonly
+- [x] scripts/sync.ps1: Update-VersionTs chamada em todos os bumps; nao toca em APP_VERSION
+- [x] Merge dev -> main (b291217). Push.
+
+---
+
 ## [Sessao 61] 2026-06-02 — Fix release v0.31.6-beta.1 com Guia Beta em producao
 
 ### Concluido

@@ -10,7 +10,7 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
-### Sessao 61 — Fix release v0.31.6-beta.1 com Guia Beta em producao — CONCLUIDO
+### Sessao 61 — Fix v0.31.6-beta.1 + versao dinamica Vite define — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)
 **Data:** 2026-06-02
@@ -23,13 +23,21 @@ Agente: Claude Code (claude-sonnet-4-6)
 - `src-tauri/tauri.conf.json`: versao 0.31.5 -> 0.31.6, wix.version 0.31.5.1 -> 0.31.6.1
 - `src-tauri/Cargo.toml`: 0.31.5-beta.1 -> 0.31.6-beta.1
 
-**Estado final:** `main` @ `035a211`, `dev` @ `3f6c0f3`. Ambos sincronizados com origin. Release v0.31.6-beta.1 Latest.
+**Alteracoes adicionais desta sessao:**
+
+- `vite.config.ts`: injeta `__APP_VERSION__` via Vite define a partir de package.json
+- `src/lib/version.ts`: `APP_VERSION = __APP_VERSION__` (sem hardcode)
+- `src/vite-env.d.ts`: declaracao TypeScript de `__APP_VERSION__`
+- `eslint.config.js`: `__APP_VERSION__` como global readonly
+- `scripts/sync.ps1`: nao toca em APP_VERSION (apenas VERSION_HISTORY); actualiza version.ts em todos os bumps
+
+**Estado final:** `main` @ `b291217`, `dev` @ `a810773`. Ambos sincronizados com origin. Release v0.31.6-beta.1 Latest.
 
 **Notas para o proximo agente:**
 
-- MSI v0.31.6-beta.1 inclui separador Guia Beta (visivel para todos os utilizadores).
-- Instalador lento no Sandbox (~10 min) e comportamento normal: Defender faz scan de binarios nao assinados.
-- Se houver nova instalacao dupla no Sandbox: remover versao antiga antes de instalar.
+- APP_VERSION e dinamico: package.json e a unica fonte. Nao hardcodar versao em version.ts.
+- MSI v0.31.6-beta.1 inclui separador Guia Beta.
+- Instalador lento no Sandbox (~10 min) e normal: Defender faz scan de binarios nao assinados.
 - Zero PRs abertos.
 
 ---
