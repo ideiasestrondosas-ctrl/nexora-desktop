@@ -121,7 +121,7 @@ impl SftpProvider {
             .authenticate_password(&self.username, &self.password)
             .await
             .map_err(|e| format!("Autenticação SFTP falhou: {e}"))?;
-        if !authenticated {
+        if !matches!(authenticated, russh::client::AuthResult::Success) {
             return Err("Autenticação SFTP rejeitada pelo servidor".to_string());
         }
         let channel = handle
@@ -140,13 +140,12 @@ impl SftpProvider {
 
 struct SshHandler;
 
-#[async_trait]
 impl client::Handler for SshHandler {
     type Error = russh::Error;
 
     async fn check_server_key(
         &mut self,
-        _server_public_key: &russh::keys::key::PublicKey,
+        _server_public_key: &ssh_key::PublicKey,
     ) -> Result<bool, Self::Error> {
         Ok(true)
     }
