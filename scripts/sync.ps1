@@ -13,7 +13,9 @@
 # 1.2.0  Watch-GitHubActions: monitoriza main+dev+tag simultaneamente, ignora runs historicos (minCreatedAt),
 #         mostra label de branch, timeout 45min com prompt, poll 20s, nao fica preso em runs antigos
 # 1.3.0  FullRelease (opcao 6): pipeline 1->4 automatico com monitorizacao CI por fases; aviso actions deprecadas
-$SYNC_VERSION = "1.3.0"
+# 1.4.0  fix: opcao 4 "Ignorar versao" em Release mode ja cria tag se nao existir; Watch mostra "aguardar tag"
+#         em vez de "em fila" para Build; stall detection verifica se tag existe no GitHub antes de assumir OK
+$SYNC_VERSION = "1.4.0"
 
 # Configuracoes de codificacao para o terminal — UTF-8 em todo o pipeline
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -153,7 +155,10 @@ function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
             $run = if ($successRun) { $successRun } else { $wfRuns | Select-Object -First 1 }
 
             if (-not $run) {
-                Write-Host ("  ⏳  " + $wfName.PadRight(42) + " em fila") -ForegroundColor Gray
+                # "Build Nexora Desktop" nao aparece em fila — so dispara via push de tag.
+                # Mostrar label distinto para nao sugerir falsamente que esta em fila.
+                $noRunLabel = if ($wfName -eq "Build Nexora Desktop") { "aguardar tag  " } else { "em fila       " }
+                Write-Host ("  ⏳  " + $wfName.PadRight(42) + " $noRunLabel") -ForegroundColor Gray
                 $allDone = $false
                 continue
             }
@@ -204,12 +209,29 @@ function Watch-GitHubActions($sha, $version, $token, $branch = "main") {
         if ($ciPassedAt -and -not $buildDone) {
             $stallSec = [math]::Round(((Get-Date) - $ciPassedAt).TotalSeconds)
             if ($stallSec -gt $BUILD_STALL_TIMEOUT) {
+                # Verificar se a tag existe no GitHub antes de declarar sucesso
+                $tagRef = $null
+                if ($token -and $version) {
+                    try {
+                        $tagRef = Invoke-RestMethod `
+                            -Uri     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/refs/tags/v$version" `
+                            -Headers $headers -Method Get -ErrorAction Stop
+                    } catch { $tagRef = $null }
+                }
                 Write-Host ""
-                Write-Host ("  ⚠  CI passou mas Build nao detectado ha " + [math]::Round($stallSec / 60) + "min.") -ForegroundColor Yellow
-                Write-Host "     O Build pode ter corrido antes da janela de monitorizacao." -ForegroundColor DarkGray
-                Write-Host "     Verifica: https://github.com/$REPO_OWNER/$REPO_NAME/actions" -ForegroundColor DarkCyan
+                if (-not $tagRef -and $version) {
+                    Write-Host ("  ❌  Build nao disparado — tag v$version NAO existe no GitHub!") -ForegroundColor Red
+                    Write-Host "     O Build Nexora Desktop so corre quando uma tag v* e publicada." -ForegroundColor DarkRed
+                    Write-Host "     Solucao:" -ForegroundColor Yellow
+                    Write-Host "       git tag -a v$version -m 'Nexora Desktop $version'" -ForegroundColor Cyan
+                    Write-Host "       git push origin v$version" -ForegroundColor Cyan
+                } else {
+                    Write-Host ("  ⚠  CI passou mas Build nao detectado ha " + [math]::Round($stallSec / 60) + "min.") -ForegroundColor Yellow
+                    Write-Host "     O Build pode ter corrido antes da janela de monitorizacao." -ForegroundColor DarkGray
+                    Write-Host "     Verifica: https://github.com/$REPO_OWNER/$REPO_NAME/actions" -ForegroundColor DarkCyan
+                }
                 Write-Host ""
-                Write-Success "CI passou. A assumir Build OK — release v$version concluida."
+                Write-Success "CI passou. A monitorizar manualmente se necessario — release v$version."
                 return
             }
         }
@@ -2211,6 +2233,24 @@ if (-not $SkipRelease -and -not $promoteExisting) {
         Write-Success "Versao v$newVersion preparada com sucesso!"
         $isNewRelease = $true
     }
+}
+
+# ---------------------------------------------------------
+# MODO RELEASE SEM BUMP: garantir que tag da versao actual existe
+# ---------------------------------------------------------
+# Quando "Ignorar versao" (opcao 4) e escolhida em modo Release, $newVersion fica
+# vazio. Sem tag publicada, o workflow Build Nexora Desktop nunca dispara.
+if ($Release -and -not $SkipRelease -and -not $promoteExisting -and -not $newVersion -and $currentVersion) {
+    $tagName = "v$currentVersion"
+    $localTag = git tag -l $tagName 2>$null
+    if (-not $localTag) {
+        Write-Step "A criar tag $tagName (versao mantida, sem bump)..."
+        git tag -a $tagName -m "Nexora Desktop $currentVersion"
+        Write-Success "Tag $tagName criada — sera publicada com --tags"
+    } else {
+        Write-Info "Tag $tagName ja existe localmente — sera publicada com --tags"
+    }
+    $newVersion = $currentVersion
 }
 
 # ---------------------------------------------------------
