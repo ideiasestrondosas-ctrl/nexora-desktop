@@ -259,7 +259,7 @@ jobs:
           echo "$PLATFORM" > updater-info/platform.txt
 
       - name: Upload updater info
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: updater-info-${{ matrix.platform }}
           path: updater-info/
@@ -279,7 +279,7 @@ jobs:
           node-version: '22'
 
       - name: Download updater info from all platforms
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           pattern: updater-info-*
           merge-multiple: false
