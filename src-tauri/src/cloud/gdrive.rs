@@ -5,6 +5,14 @@ use std::path::Path;
 const GDRIVE_UPLOAD_BASE: &str = "https://www.googleapis.com/upload/drive/v3/files";
 const GDRIVE_FILES_URL: &str = "https://www.googleapis.com/drive/v3/files";
 
+/// Escapa um valor para uso seguro dentro de uma query da Drive API (delimitada
+/// por aspas simples). A ordem importa: escapar `\` ANTES de `'`, caso contrário
+/// a barra inserida pelo escape de `'` seria ela própria re-escapada de forma
+/// incorrecta, permitindo quebrar a query. Ver regras da Drive API v3 (search).
+fn escape_drive_query_value(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('\'', "\\'")
+}
+
 pub struct GDriveProvider {
     access_token: String,
     base_folder_id: Option<String>,
@@ -43,13 +51,13 @@ impl GDriveProvider {
         let q = match parent_id {
             Some(pid) => format!(
                 "name='{}' and mimeType='application/vnd.google-apps.folder' and '{}' in parents and trashed=false",
-                name.replace('\'', "\\'"),
+                escape_drive_query_value(name),
                 pid
             ),
             // Sem parent explícito: pesquisa na raiz do My Drive
             None => format!(
                 "name='{}' and mimeType='application/vnd.google-apps.folder' and 'root' in parents and trashed=false",
-                name.replace('\'', "\\'")
+                escape_drive_query_value(name)
             ),
         };
         let resp = client
@@ -160,7 +168,7 @@ impl CloudProvider for GDriveProvider {
         // Verificar se já existe um ficheiro com o mesmo nome na pasta de destino
         let q = format!(
             "name='{}' and '{}' in parents and mimeType!='application/vnd.google-apps.folder' and trashed=false",
-            filename.replace('\'', "\\'"),
+            escape_drive_query_value(&filename),
             parent_id
         );
         let search = client
@@ -342,5 +350,32 @@ impl CloudProvider for GDriveProvider {
             }
         }
         Ok(failed)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::escape_drive_query_value;
+
+    #[test]
+    fn escapa_aspa_simples() {
+        assert_eq!(escape_drive_query_value("O'Brien"), "O\\'Brien");
+    }
+
+    #[test]
+    fn escapa_barra_invertida_antes_de_aspa() {
+        // Entrada com `\` seguido de `'` — a barra tem de ser escapada primeiro,
+        // senão o resultado quebraria a query da Drive API.
+        assert_eq!(escape_drive_query_value("a\\'b"), "a\\\\\\'b");
+    }
+
+    #[test]
+    fn escapa_barra_invertida_isolada() {
+        assert_eq!(escape_drive_query_value("path\\to"), "path\\\\to");
+    }
+
+    #[test]
+    fn deixa_texto_normal_intacto() {
+        assert_eq!(escape_drive_query_value("relatorio final"), "relatorio final");
     }
 }
