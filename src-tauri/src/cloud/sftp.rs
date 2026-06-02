@@ -103,7 +103,8 @@ mod tests {
 
     #[test]
     fn new_le_host_fingerprint_do_config() {
-        let config = serde_json::json!({ "host": "h", "port": 22, "hostFingerprint": "SHA256:xyz" });
+        let config =
+            serde_json::json!({ "host": "h", "port": 22, "hostFingerprint": "SHA256:xyz" });
         let creds = serde_json::json!({ "username": "u", "password": "p" });
         let p = SftpProvider::new(&config, &creds).unwrap();
         assert_eq!(p.expected_fingerprint.as_deref(), Some("SHA256:xyz"));

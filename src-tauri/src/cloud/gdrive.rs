@@ -376,6 +376,9 @@ mod tests {
 
     #[test]
     fn deixa_texto_normal_intacto() {
-        assert_eq!(escape_drive_query_value("relatorio final"), "relatorio final");
+        assert_eq!(
+            escape_drive_query_value("relatorio final"),
+            "relatorio final"
+        );
     }
 }
