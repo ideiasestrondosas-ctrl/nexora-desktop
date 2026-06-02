@@ -8,13 +8,8 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 /// Calcula a fingerprint SHA256 de uma chave pública SSH no formato OpenSSH
 /// (`SHA256:<base64-sem-padding>`), usada para verificação de host key (TOFU).
-fn compute_fingerprint(key: &russh::keys::key::PublicKey) -> String {
-    use base64::engine::general_purpose::STANDARD_NO_PAD;
-    use base64::Engine;
-    use russh::keys::PublicKeyBase64;
-    use sha2::{Digest, Sha256};
-    let digest = Sha256::digest(key.public_key_bytes());
-    format!("SHA256:{}", STANDARD_NO_PAD.encode(digest))
+fn compute_fingerprint(key: &ssh_key::PublicKey) -> String {
+    key.fingerprint(ssh_key::HashAlg::Sha256).to_string()
 }
 
 // Módulo de testes unitários para funções puras do SftpProvider
@@ -265,7 +260,7 @@ impl client::Handler for SshHandler {
 
     async fn check_server_key(
         &mut self,
-        server_public_key: &russh::keys::key::PublicKey,
+        server_public_key: &ssh_key::PublicKey,
     ) -> Result<bool, Self::Error> {
         let fingerprint = compute_fingerprint(server_public_key);
         *self.observed.lock().unwrap() = Some(fingerprint.clone());
