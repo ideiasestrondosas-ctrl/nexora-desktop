@@ -235,7 +235,7 @@ pub fn get_system_info(app: tauri::AppHandle) -> Result<SystemInfo, String> {
     let (mem_total_gb, mem_used_gb) = {
         use sysinfo::{MemoryRefreshKind, RefreshKind, System};
         let sys = System::new_with_specifics(
-            RefreshKind::new().with_memory(MemoryRefreshKind::everything()),
+            RefreshKind::nothing().with_memory(MemoryRefreshKind::everything()),
         );
         let total = sys.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0);
         let used = sys.used_memory() as f64 / (1024.0 * 1024.0 * 1024.0);
