@@ -1,3 +1,13 @@
+## [Sessao 61 — final] 2026-06-02 — Fix sync.ps1 loop infinito em release publicada
+
+### Concluido
+
+- [x] sync.ps1 FASE 5: verificar release publicada via API antes de Watch-GitHubActions
+- [x] sync.ps1 FASE 6: verificar release publicada antes do loop de espera do Build
+- [x] Merge dev -> main (3772406). Push.
+
+---
+
 ## [Sessao 61 — adicional] 2026-06-02 — Versao dinamica + fix sync.ps1
 
 ### Concluido

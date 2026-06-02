@@ -31,7 +31,7 @@ Agente: Claude Code (claude-sonnet-4-6)
 - `eslint.config.js`: `__APP_VERSION__` como global readonly
 - `scripts/sync.ps1`: nao toca em APP_VERSION (apenas VERSION_HISTORY); actualiza version.ts em todos os bumps
 
-**Estado final:** `main` @ `b291217`, `dev` @ `a810773`. Ambos sincronizados com origin. Release v0.31.6-beta.1 Latest.
+**Estado final:** `main` @ `3772406`, `dev` @ `994b64c`. Ambos sincronizados com origin. Release v0.31.6-beta.1 Latest.
 
 **Notas para o proximo agente:**
 
