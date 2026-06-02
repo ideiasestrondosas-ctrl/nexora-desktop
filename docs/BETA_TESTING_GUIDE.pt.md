@@ -1,7 +1,7 @@
 # Nexora Desktop — Guia de Testes Beta
 
-**Versão:** v0.30.0-beta.1  
-**Data:** Maio 2026  
+**Versão:** v0.31.5-beta.1  
+**Data:** Junho 2026  
 **Aplicação:** Nexora Desktop — Processamento de Média Nativo
 
 ---
@@ -40,6 +40,7 @@
    - [T19 — Atalhos de Teclado](#t19--atalhos-de-teclado)
    - [T20 — Temas Visuais](#t20--temas-visuais)
    - [T21 — Idiomas](#t21--idiomas)
+   - [T22 — Funcionalidades desde v0.30.11](#t22--funcionalidades-introduzidas-desde-v03011)
 5. [Glossário](#5-glossário)
 6. [Contactos e Suporte](#6-contactos-e-suporte)
 
@@ -151,6 +152,8 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 - Versões para macOS e Linux não estão disponíveis nesta beta
 - O Google Drive e Dropbox precisam de configuração OAuth — erro de credenciais é esperado se não configurares
 - Há um atraso de 3 segundos nas Pastas Monitorizadas antes de detectar ficheiros novos — é intencional
+- O VMAF pode demorar 2–3× o tempo do vídeo em ficheiros com mais de 10 minutos — é normal
+- O botão "Criar atalho no desktop" só aparece em Windows (macOS e Linux: o botão não está visível)
 
 ---
 
@@ -1362,7 +1365,7 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 **O que deve acontecer:**
 
 - Abre uma janela grande com um menu lateral à esquerda e conteúdo à direita.
-- O menu lateral tem 11 separadores (Introdução, Dashboard, Biblioteca, Detalhe, Importar, Fila, Perfis, Definições, Cloud, Comparador, Logs).
+- O menu lateral tem 12 separadores (Introdução, Dashboard, Biblioteca, Detalhe, Importar, Fila, Perfis, Definições, Cloud, Comparador, Logs, Guia Beta).
 
 ---
 
@@ -1577,8 +1580,8 @@ Termos técnicos explicados de forma simples:
 - Manual do utilizador: `docs/USER_MANUAL.md` (na pasta da app)
 - Guia visual: `docs/SCREEN_GUIDE.md`
 
-**Versão testada:** v0.30.0-beta.1  
-**Última actualização deste guia:** Maio 2026
+**Versão testada:** v0.31.5-beta.1  
+**Última actualização deste guia:** Junho 2026
 
 ---
 
