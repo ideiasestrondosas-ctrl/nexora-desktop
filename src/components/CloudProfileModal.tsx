@@ -300,17 +300,20 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 glass-surface border border-border rounded-xl p-6 w-full max-w-lg z-50 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <Dialog.Title className="text-text-primary font-semibold">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-bg-primary border border-border rounded-2xl w-full max-w-lg z-50 shadow-2xl">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+            <Dialog.Title className="text-base font-semibold text-text-primary">
               {editing ? 'Editar Perfil' : 'Novo Perfil Cloud'}
             </Dialog.Title>
-            <button onClick={onClose} className="text-text-muted hover:text-text-primary">
+            <button
+              onClick={onClose}
+              className="text-text-muted hover:text-text-primary transition-colors"
+            >
               <X size={18} />
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="px-6 py-5 space-y-3">
             {/* Seleção de tipo: cards clicáveis em vez de dropdown */}
             {!editing && (
               <div>
@@ -488,7 +491,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
             </div>
           )}
 
-          <div className="flex justify-between mt-5">
+          <div className="px-6 pb-6 flex justify-between">
             <button
               onClick={handleTest}
               disabled={testing}

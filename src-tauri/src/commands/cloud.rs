@@ -472,7 +472,14 @@ async fn load_profile_provider(
     };
     let config: serde_json::Value =
         serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
-    let mut creds = cloud::credentials::load(profile_id);
+    // Backward compat: perfis criados antes da migração keychain (b6b76d1) têm as creds
+    // no blob config da DB. Se o keychain estiver vazio, usar config como fallback.
+    let kc = cloud::credentials::load(profile_id);
+    let mut creds = if kc.as_object().is_some_and(|o| !o.is_empty()) {
+        kc
+    } else {
+        config.clone()
+    };
 
     // Refresh automático apenas para providers PKCE (gdrive_personal, dropbox).
     // "gdrive" (Device Flow) não entra aqui — o refresh requer client_secret que
