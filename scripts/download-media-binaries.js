@@ -80,22 +80,22 @@ const BTBN = 'https://github.com/BtbN/FFmpeg-Builds/releases/latest/download';
 const BTBN_BUNDLES = {
   'win32-x64': {
     file: 'ffmpeg-master-latest-win64-gpl.zip',
-    pattern: /ffmpeg-master-latest-win64-gpl.*\.zip$/,
+    pattern: /ffmpeg-master-latest-win64-gpl\.zip$/,
     type: 'zip',
   },
   'win32-arm64': {
     file: 'ffmpeg-master-latest-win32-gpl.zip',
-    pattern: /ffmpeg-master-latest-win32-gpl.*\.zip$/,
+    pattern: /ffmpeg-master-latest-win32-gpl\.zip$/,
     type: 'zip',
   },
   'linux-x64': {
     file: 'ffmpeg-master-latest-linux64-gpl.tar.xz',
-    pattern: /ffmpeg-master-latest-linux64-gpl.*\.tar\.xz$/,
+    pattern: /ffmpeg-master-latest-linux64-gpl\.tar\.xz$/,
     type: 'tar',
   },
   'linux-arm64': {
     file: 'ffmpeg-master-latest-linuxarm64-gpl.tar.xz',
-    pattern: /ffmpeg-master-latest-linuxarm64-gpl.*\.tar\.xz$/,
+    pattern: /ffmpeg-master-latest-linuxarm64-gpl\.tar\.xz$/,
     type: 'tar',
   },
 };
