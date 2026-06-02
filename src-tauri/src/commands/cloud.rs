@@ -474,10 +474,12 @@ async fn load_profile_provider(
         serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
     let mut creds = cloud::credentials::load(profile_id);
 
-    // Refresh automático para providers OAuth
-    if matches!(provider_type.as_str(), "gdrive" | "dropbox") {
+    // Refresh automático apenas para providers PKCE (gdrive_personal, dropbox).
+    // "gdrive" (Device Flow) não entra aqui — o refresh requer client_secret que
+    // não é guardado em perfis PKCE e não está disponível neste contexto.
+    if matches!(provider_type.as_str(), "gdrive_personal" | "dropbox") {
         let oauth_provider = match provider_type.as_str() {
-            "gdrive" => cloud::oauth::OAuthProvider::GDrive,
+            "gdrive_personal" => cloud::oauth::OAuthProvider::GDrive,
             _ => cloud::oauth::OAuthProvider::Dropbox,
         };
         let client_id = config["client_id"].as_str().unwrap_or("").to_string();
@@ -536,7 +538,7 @@ pub async fn oauth_connect(
     use tauri_plugin_opener::OpenerExt;
 
     let oauth_provider = match provider.as_str() {
-        "gdrive" => cloud::oauth::OAuthProvider::GDrive,
+        "gdrive_personal" => cloud::oauth::OAuthProvider::GDrive,
         "dropbox" => cloud::oauth::OAuthProvider::Dropbox,
         other => return Err(format!("Provider OAuth desconhecido: {other}")),
     };

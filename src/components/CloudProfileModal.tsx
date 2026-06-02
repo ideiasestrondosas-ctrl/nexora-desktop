@@ -41,6 +41,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     changed: boolean;
     action: 'test' | 'save';
   } | null>(null);
+  // Estado OAuth para providers PKCE (gdrive_personal, dropbox)
   const [oauthStatus, setOauthStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
   const [oauthAccountInfo, setOauthAccountInfo] = useState('');
 
@@ -51,7 +52,8 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
       setProvider(editing.provider);
       setName(editing.name);
       setFields(editing.config);
-      if (editing.provider === 'gdrive' || editing.provider === 'dropbox') {
+      if (editing.provider === 'gdrive_personal' || editing.provider === 'dropbox') {
+        // oauth_token fica no keychain, não no config DB — mostramos como conectado se existir
         const existingToken = editing.config['oauth_token'] as string | undefined;
         if (existingToken) {
           setOauthStatus('connected');
@@ -60,6 +62,9 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
           setOauthStatus('idle');
           setOauthAccountInfo('');
         }
+      } else {
+        setOauthStatus('idle');
+        setOauthAccountInfo('');
       }
     } else {
       setProvider('ftp');
@@ -100,9 +105,6 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     return { config, creds };
   };
 
-  // Para SFTP, garante que a identidade do servidor (host key) é confiável antes de
-  // qualquer operação. Devolve true se já confiável; caso contrário abre o painel de
-  // confirmação TOFU e devolve false.
   const ensureSftpTrust = async (
     config: Record<string, unknown>,
     creds: Record<string, unknown>,
@@ -196,9 +198,6 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     }
   };
 
-  // Utilizador confirmou a identidade do servidor SFTP: grava a fingerprint no config
-  // e retoma a acção pendente (a fingerprint é passada explicitamente para evitar
-  // depender do flush de estado do React).
   const confirmFingerprint = async () => {
     if (!fpPrompt) return;
     const fingerprint = fpPrompt.fingerprint;
@@ -223,6 +222,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     }
   };
 
+  // GDrive Device Flow (perfis com client_secret, credenciais "TV/dispositivos limitados")
   const handleGDriveAuth = async () => {
     const clientId = String(fields['client_id'] ?? '');
     if (!clientId) {
@@ -239,7 +239,6 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
       setGdriveAuthUrl(challenge.url);
       setGdriveUserCode(challenge.userCode);
       setGdrivePolling(true);
-      // Verificar a cada 5 segundos se o utilizador autorizou
       const interval = setInterval(async () => {
         try {
           const tokens = await invoke<Record<string, unknown>>('gdrive_poll_auth', {
@@ -265,6 +264,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     }
   };
 
+  // OAuth PKCE (gdrive_personal e dropbox — sem client_secret)
   const handleOAuthConnect = async () => {
     const clientId = String(fields['client_id'] ?? '');
     if (!clientId) {
@@ -300,7 +300,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 glass-surface border border-border rounded-xl p-6 w-full max-w-md z-50 shadow-xl">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 glass-surface border border-border rounded-xl p-6 w-full max-w-lg z-50 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="text-text-primary font-semibold">
               {editing ? 'Editar Perfil' : 'Novo Perfil Cloud'}
@@ -311,20 +311,28 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
           </div>
 
           <div className="space-y-3">
+            {/* Seleção de tipo: cards clicáveis em vez de dropdown */}
             {!editing && (
               <div>
-                <label className="text-xs text-text-muted block mb-1">Tipo</label>
-                <select
-                  value={provider}
-                  onChange={(e) => setProvider(e.target.value as CloudProviderType)}
-                  className="w-full bg-bg-secondary border border-border rounded px-3 py-2 text-text-primary text-sm"
-                >
+                <label className="text-xs text-text-muted block mb-1.5">Tipo de destino</label>
+                <div className="grid grid-cols-4 gap-1.5">
                   {(Object.keys(PROVIDER_LABELS) as CloudProviderType[]).map((k) => (
-                    <option key={k} value={k}>
-                      {PROVIDER_LABELS[k]}
-                    </option>
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setProvider(k)}
+                      className={`rounded-lg border px-2 py-2.5 text-left transition-colors ${
+                        provider === k
+                          ? 'border-blue-500 bg-blue-500/15 text-blue-300'
+                          : 'border-border hover:border-border bg-bg-secondary text-text-muted hover:text-text-secondary'
+                      }`}
+                    >
+                      <div className="text-[11px] font-medium leading-tight">
+                        {PROVIDER_LABELS[k]}
+                      </div>
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
             )}
 
@@ -364,9 +372,55 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
               </div>
             ))}
 
-            {(provider === 'gdrive' || provider === 'dropbox') && (
+            {/* GDrive Device Flow — para perfis com Client Secret (credenciais "TV/dispositivos") */}
+            {provider === 'gdrive' && (
+              <div className="bg-bg-secondary/50 rounded p-3 text-sm mt-2">
+                <p className="text-text-muted mb-2 text-xs">
+                  Requer Client ID e Secret registados em console.cloud.google.com.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleGDriveAuth}
+                  disabled={gdrivePolling}
+                  className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-3 py-1.5 text-xs"
+                >
+                  {gdrivePolling ? 'A aguardar autorização...' : 'Autenticar com Google'}
+                </button>
+                {gdriveAuthUrl && (
+                  <div className="mt-2 text-xs text-text-secondary space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-text-muted">Abra:</span>
+                      <button
+                        type="button"
+                        onClick={() => openUrl(gdriveAuthUrl)}
+                        className="flex items-center gap-1 text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all text-left"
+                      >
+                        {gdriveAuthUrl}
+                        <ExternalLink size={11} className="shrink-0" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-text-muted">Código:</span>
+                      <strong className="text-text-primary tracking-widest">
+                        {gdriveUserCode}
+                      </strong>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(gdriveUserCode)}
+                        title="Copiar código"
+                        className="text-text-muted hover:text-text-primary transition-colors"
+                      >
+                        <Copy size={12} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* OAuth PKCE — para gdrive_personal e dropbox (sem client_secret) */}
+            {(provider === 'gdrive_personal' || provider === 'dropbox') && (
               <div className="bg-bg-secondary/50 rounded-lg p-3 space-y-3 mt-1">
-                {/* Status */}
                 <div className="flex items-center gap-2 text-xs">
                   {oauthStatus === 'idle' && (
                     <span className="text-text-muted">● Não autenticado</span>
@@ -384,8 +438,6 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
                     </span>
                   )}
                 </div>
-
-                {/* Primary: PKCE flow */}
                 <button
                   type="button"
                   onClick={handleOAuthConnect}
@@ -395,55 +447,10 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
                   <ExternalLink size={12} />
                   {oauthStatus === 'connecting'
                     ? 'A autenticar…'
-                    : provider === 'gdrive'
+                    : provider === 'gdrive_personal'
                       ? 'Conectar com Google Drive'
                       : 'Conectar com Dropbox'}
                 </button>
-
-                {/* Fallback: Device Flow (apenas GDrive) */}
-                {provider === 'gdrive' && (
-                  <div className="border-t border-border/30 pt-2">
-                    <p className="text-[10px] text-text-muted mb-1.5">
-                      Alternativa — autenticar com código (Device Flow):
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleGDriveAuth}
-                      disabled={gdrivePolling}
-                      className="text-xs text-text-muted hover:text-text-primary underline underline-offset-2"
-                    >
-                      {gdrivePolling ? 'A aguardar autorização…' : 'Autenticar com código'}
-                    </button>
-                    {gdriveAuthUrl && (
-                      <div className="mt-2 text-xs text-text-secondary space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-text-muted">Abra:</span>
-                          <button
-                            type="button"
-                            onClick={() => openUrl(gdriveAuthUrl)}
-                            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 underline break-all text-left"
-                          >
-                            {gdriveAuthUrl}
-                            <ExternalLink size={11} className="shrink-0" />
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-text-muted">Código:</span>
-                          <strong className="text-text-primary tracking-widest">
-                            {gdriveUserCode}
-                          </strong>
-                          <button
-                            type="button"
-                            onClick={() => navigator.clipboard.writeText(gdriveUserCode)}
-                            className="text-text-muted hover:text-text-primary"
-                          >
-                            <Copy size={12} />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             )}
           </div>

@@ -33,7 +33,7 @@ pub fn get_provider(
         "dropbox" => dropbox::DropboxProvider::new(config, creds)
             .map(|p| Box::new(p) as Box<dyn CloudProvider>)
             .map_err(|e| format!("Perfil Dropbox inválido: {e}")),
-        "gdrive" => gdrive::GDriveProvider::new(config, creds)
+        "gdrive" | "gdrive_personal" => gdrive::GDriveProvider::new(config, creds)
             .map(|p| Box::new(p) as Box<dyn CloudProvider>)
             .map_err(|e| format!("Perfil GDrive inválido: {e}")),
         "icloud" => icloud::ICloudProvider::new(config)
