@@ -146,7 +146,7 @@ pub fn run() {
                     std::thread::sleep(std::time::Duration::from_secs(2));
                     sys.refresh_cpu_usage();
                     sys.refresh_memory();
-                    nets.refresh();
+                    nets.refresh(false);
 
                     let rx: u64 = nets.values().map(|n| n.received()).sum();
                     let tx: u64 = nets.values().map(|n| n.transmitted()).sum();
