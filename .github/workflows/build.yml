@@ -259,7 +259,7 @@ jobs:
           echo "$PLATFORM" > updater-info/platform.txt
 
       - name: Upload updater info
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: updater-info-${{ matrix.platform }}
           path: updater-info/
