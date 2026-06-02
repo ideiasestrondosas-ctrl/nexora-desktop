@@ -3,7 +3,7 @@ import { create } from 'zustand';
 export interface CloudProfile {
   id: string;
   name: string;
-  provider: 'ftp' | 'sftp' | 'smb' | 's3' | 'gdrive' | 'icloud';
+  provider: 'ftp' | 'sftp' | 'smb' | 's3' | 'gdrive' | 'dropbox' | 'icloud';
   config: Record<string, unknown>;
   createdAt: string;
 }
@@ -52,6 +52,7 @@ export const PROVIDER_LABELS: Record<CloudProviderType, string> = {
   smb: 'Pasta de Rede (SMB)',
   s3: 'Amazon S3 / Compatível',
   gdrive: 'Google Drive',
+  dropbox: 'Dropbox',
   icloud: 'iCloud Drive',
 };
 
@@ -92,6 +93,15 @@ export const PROVIDER_FIELDS: Record<
     { key: 'base_path', label: 'Pasta no Drive', type: 'text', defaultValue: 'Nexora/Output/' },
     { key: 'client_id', label: 'Client ID', type: 'text' },
     { key: 'client_secret', label: 'Client Secret', type: 'password' },
+  ],
+  dropbox: [
+    {
+      key: 'base_path',
+      label: 'Pasta no Dropbox',
+      type: 'text' as const,
+      defaultValue: '/Nexora/Output',
+    },
+    { key: 'client_id', label: 'App Key', type: 'text' as const },
   ],
   icloud: [
     {
