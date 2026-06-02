@@ -304,6 +304,25 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 ---
 
+#### T02-05 — QueuePill: Indicador de Fila em Tempo Real
+
+**Precisas de:** Um trabalho em processamento (T04-01 passou).
+
+**Passos:**
+
+1. Com um trabalho a processar, observa a **barra de topo** (a barra horizontal acima do conteúdo principal).
+2. À direita das métricas circulares (CPU, RAM, GPU, Disco), procura uma pílula/badge pequena.
+
+**O que deve acontecer:**
+
+- Enquanto há trabalhos em curso: a pílula mostra um dot **azul pulsante** e texto como "1 em curso".
+- Quando todos os trabalhos terminam: o dot fica cinzento e o texto muda para "Inactivo".
+- Aparece um número verde com ✓ ao lado, indicando quantos trabalhos foram concluídos nesta sessão.
+
+**Se não funcionar:** Reporta com título "QueuePill não aparece ou não actualiza na barra de topo".
+
+---
+
 ### T03 — Biblioteca
 
 > **Objetivo:** Verificar todas as formas de importar ficheiros, navegar, filtrar e eliminar.
@@ -905,6 +924,25 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 ---
 
+#### T08-03 — Modal de Diagnóstico do Sistema
+
+**Passos:**
+
+1. Observa o ícone de **Definições** no menu da esquerda.
+2. Se houver um ponto **amarelo** no canto do ícone, clica em Definições.
+3. Verifica se aparece um banner de aviso no topo da página de Definições.
+4. Se aparecer, clica em **Ver detalhes** (ou equivalente).
+
+**O que deve acontecer:**
+
+- Abre um modal com o estado de três componentes: **FFmpeg**, **FFprobe**, e **Engine**.
+- Em instalação normal, os três devem aparecer com estado **verde** (OK).
+- Se algum aparecer a vermelho, o modal indica o problema e sugere como resolver.
+
+**Nota:** Em instalação correcta, o ponto amarelo não deve aparecer na sidebar. Reporta se aparecer sem motivo aparente com título "Badge de aviso em Definições sem motivo aparente".
+
+---
+
 ### T09 — Definições › Logs
 
 > **Objetivo:** Verificar as opções de registo (logs) de actividade.  
@@ -1200,6 +1238,24 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 ---
 
+#### T14-03 — Atalho no Desktop e Badge "Já Actualizado"
+
+**Passos:**
+
+1. Em Definições › Sobre, procura o botão **"Criar atalho no desktop"** (apenas visível em Windows).
+2. Clica no botão.
+3. Minimiza a app e verifica o Ambiente de Trabalho.
+4. Volta à app e clica em **"Verificar Actualizações"** quando já tens a versão mais recente instalada.
+
+**O que deve acontecer:**
+
+- Um atalho do Nexora Desktop aparece no Ambiente de Trabalho do Windows.
+- Ao verificar actualizações com a versão mais recente já instalada, aparece um badge **"Já actualizado ✓"** inline a verde, que desaparece automaticamente ao fim de cerca de 6 segundos.
+
+**Se não funcionar:** Reporta com título "Botão 'Criar atalho no desktop' não funciona" ou "Badge 'já actualizado' não aparece".
+
+---
+
 ### T15 — Detalhe de Ficheiro
 
 > **Objetivo:** Verificar a página de detalhe de um ficheiro com os seus metadados e histórico de trabalhos.
@@ -1239,6 +1295,26 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 - O trabalho é adicionado à fila (podes verificar em Fila).
 - A página de detalhe mostra o novo trabalho no histórico com estado "Em fila" ou "A processar".
+
+---
+
+#### T15-03 — Página de Detalhe Actualiza em Tempo Real
+
+**Precisas de:** Um ficheiro importado com um trabalho recentemente submetido (T04-01 passou).
+
+**Passos:**
+
+1. Abre a página de detalhe de um ficheiro que acabaste de submeter para processamento (T15-01).
+2. Permanece nessa página sem navegar para outro ecrã.
+3. Aguarda que o processamento avance.
+
+**O que deve acontecer:**
+
+- O estado do trabalho no histórico muda de **"Em fila"** → **"A processar"** → **"Concluído"** sem precisares de recarregar a página ou navegar.
+- Quando o trabalho termina, o score **VMAF**, o codec de output e o caminho do ficheiro processado aparecem automaticamente na página.
+- Não precisas de voltar à Biblioteca e reabrir o ficheiro para ver os resultados actualizados.
+
+**Se não funcionar:** Reporta com título "Detalhe de ficheiro não actualiza em tempo real durante processamento".
 
 ---
 
