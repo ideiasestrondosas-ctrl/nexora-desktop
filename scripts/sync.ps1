@@ -46,8 +46,13 @@ function Test-MediaBinaryRuns {
 function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
     Write-Step "Modo Release: a fazer merge $sourceBranch -> main..."
 
+    # Stash alteracoes locais (ex: Cargo.lock) para permitir git checkout
+    $stashResult = git stash 2>&1
+    $didStash = $stashResult -notmatch "No local changes to stash"
+
     git checkout main 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
+        if ($didStash) { git stash pop 2>&1 | Out-Null }
         Write-Err "Nao foi possivel mudar para main"
         return $false
     }
@@ -58,6 +63,7 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
     if ($LASTEXITCODE -ne 0) {
         Write-Err "Nao foi possivel sincronizar com origin/main"
         git checkout $sourceBranch 2>&1 | Out-Null
+        if ($didStash) { git stash pop 2>&1 | Out-Null }
         return $false
     }
 
@@ -67,6 +73,7 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
         Write-Err "Merge falhou. Possiveis conflitos de ficheiros."
         Write-Info "Resolva manualmente: git checkout main && git merge -X theirs --no-edit $sourceBranch"
         git checkout $sourceBranch 2>&1 | Out-Null
+        if ($didStash) { git stash pop 2>&1 | Out-Null }
         return $false
     }
 
@@ -82,8 +89,9 @@ function Invoke-MergeToMain($targetVersion, $sourceBranch, $authUrl) {
         Write-Err "Push para main falhou"
     }
 
-    # Voltar para dev
+    # Voltar para dev e restaurar stash
     git checkout $sourceBranch 2>&1 | Out-Null
+    if ($didStash) { git stash pop 2>&1 | Out-Null }
     Write-Success "De volta ao branch $sourceBranch"
     return $true
 }
