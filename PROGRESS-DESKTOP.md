@@ -20,10 +20,26 @@
 
 ### Pendente (utilizador)
 
-- [ ] Rotacionar o GitHub PAT (R1)
-- [ ] Re-fixar media-binaries.lock.json para macOS/Linux (so win32-x64 semeado)
+- [x] Rotacionar o GitHub PAT (R1) — PAT revogado; git credential via gh auth setup-git
+- [x] Re-fixar media-binaries.lock.json win32-x64 + linux-x64 + linux-arm64 (BtbN 2026-06-02)
+- [x] Publicar release 0.32.0-beta.1 — Latest publicada com 7 artefactos (2026-06-02 17:45 UTC)
 - [ ] Teste manual SFTP end-to-end (1a ligacao / repeticao / mismatch MITM)
-- [ ] Publicar release 0.32.0-beta.1 via sync.ps1
+- [ ] media-binaries.lock.json macOS — requer --write-lock em maquina macOS
+
+---
+
+## [Sessao 63] 2026-06-02 — Release v0.32.0-beta.1 + Fixes sync.ps1
+
+### Concluido
+
+- [x] Diagnosticar e corrigir tag v0.32.0-beta.1 em falta no GitHub (Build nunca disparava)
+- [x] sync.ps1 v1.4.0: opcao 4 em Release mode cria tag local se nao existir
+- [x] sync.ps1 v1.4.1: fallback GITHUB_TOKEN via gh CLI (PAT em .env agora opcional)
+- [x] sync.ps1 v1.4.2: Invoke-PublishDraft detecta Build runs em branches de tag
+- [x] media-binaries.lock.json: win32-x64 corrigido + linux-x64 + linux-arm64 adicionados
+- [x] Build v0.32.0-beta.1: Windows + Linux + macOS verdes
+- [x] Release v0.32.0-beta.1 publicada como Latest com corpo rico
+- [x] PAT ghp_1xPrA1J9... revogado; .env limpo; git credential via gh auth setup-git
 
 ---
 

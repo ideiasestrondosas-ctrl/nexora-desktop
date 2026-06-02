@@ -15,7 +15,9 @@
 # 1.3.0  FullRelease (opcao 6): pipeline 1->4 automatico com monitorizacao CI por fases; aviso actions deprecadas
 # 1.4.0  fix: opcao 4 "Ignorar versao" em Release mode ja cria tag se nao existir; Watch mostra "aguardar tag"
 #         em vez de "em fila" para Build; stall detection verifica se tag existe no GitHub antes de assumir OK
-$SYNC_VERSION = "1.4.0"
+# 1.4.1  fallback: GITHUB_TOKEN lido de gh CLI se .env nao tiver token (evita PAT obrigatorio)
+# 1.4.2  fix: Invoke-PublishDraft procurava Build runs so em main/dev; tags correm em branch proprio
+$SYNC_VERSION = "1.4.2"
 
 # Configuracoes de codificacao para o terminal — UTF-8 em todo o pipeline
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -1277,7 +1279,8 @@ function Invoke-PublishDraft {
                 -Method  Get `
                 -Headers $ciHeaders `
                 -ErrorAction Stop
-            $ciRuns = @($ciResp.workflow_runs | Where-Object { $_.name -eq $buildWorkflow -and $_.head_branch -match "^(main|dev)$" } | Sort-Object { [datetime]$_.created_at } -Descending)
+            # Incluir runs no branch da tag (ex: "v0.32.0-beta.1") alem de main/dev
+            $ciRuns = @($ciResp.workflow_runs | Where-Object { $_.name -eq $buildWorkflow } | Sort-Object { [datetime]$_.created_at } -Descending)
         } catch {
             Write-Warn "Nao foi possivel verificar CI: $($_.Exception.Message)"
             break
@@ -1533,13 +1536,23 @@ if (Test-Path ".env") {
         }
     }
 }
+# Fallback: usar token do gh CLI se .env nao tiver GITHUB_TOKEN
+if (-not $script:GITHUB_TOKEN) {
+    $ghToken = & gh auth token 2>$null
+    if ($ghToken -and $LASTEXITCODE -eq 0) {
+        $script:GITHUB_TOKEN = $ghToken.Trim()
+        Write-Info "GITHUB_TOKEN obtido via gh CLI (fallback)"
+    }
+}
 
 # ---------------------------------------------------------
 # MODO: PUBLICAR DRAFT RELEASE EXISTENTE (-PublishDraft / opcao 6)
 # ---------------------------------------------------------
 if ($PublishDraft) {
     if (-not $script:GITHUB_TOKEN) {
-        Write-Err "GITHUB_TOKEN nao encontrado. Adiciona GITHUB_TOKEN=<token> ao ficheiro .env"
+        Write-Err "GITHUB_TOKEN nao encontrado. Opcoes:"
+        Write-Host "  1. Adiciona GITHUB_TOKEN=<token> ao ficheiro .env" -ForegroundColor Gray
+        Write-Host "  2. Autentica o gh CLI:  gh auth login" -ForegroundColor Gray
         Pop-Location; exit 1
     }
     Invoke-PublishDraft `

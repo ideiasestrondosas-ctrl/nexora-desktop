@@ -5,31 +5,6 @@ use serde::Serialize;
 use tauri::State;
 use uuid::Uuid;
 
-// ── Keychain helpers ──────────────────────────────────────────────────────────
-
-const KEYRING_SERVICE: &str = "nexora-cloud";
-
-fn save_credentials(profile_id: &str, creds_json: &str) -> Result<(), String> {
-    keyring::Entry::new(KEYRING_SERVICE, profile_id)
-        .map_err(|e| format!("Keychain inacessível: {e}"))?
-        .set_secret(creds_json.as_bytes())
-        .map_err(|e| format!("Falha ao guardar credenciais no keychain: {e}"))
-}
-
-fn load_credentials(profile_id: &str) -> serde_json::Value {
-    keyring::Entry::new(KEYRING_SERVICE, profile_id)
-        .ok()
-        .and_then(|e| e.get_secret().ok())
-        .and_then(|b| serde_json::from_slice(&b).ok())
-        .unwrap_or(serde_json::Value::Object(Default::default()))
-}
-
-fn delete_credentials(profile_id: &str) {
-    if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, profile_id) {
-        let _ = entry.delete_credential();
-    }
-}
-
 // ── Public types (sent to frontend) ──────────────────────────────────────────
 
 #[derive(Debug, Serialize, Clone)]
@@ -90,7 +65,7 @@ pub fn create_cloud_profile(
     let id = Uuid::new_v4().to_string();
     let now = Utc::now().to_rfc3339();
     // Guarda credenciais no keychain do SO antes de escrever na BD
-    save_credentials(&id, &credentials_json)?;
+    cloud::credentials::save(&id, &credentials_json)?;
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute(
         "INSERT INTO cloud_profiles (id, name, provider, config, created_at) VALUES (?1,?2,?3,?4,?5)",
@@ -117,7 +92,7 @@ pub fn update_cloud_profile(
     // Actualiza keychain apenas se novas credenciais foram fornecidas
     let creds: serde_json::Value = serde_json::from_str(&credentials_json).unwrap_or_default();
     if creds.as_object().is_some_and(|o| !o.is_empty()) {
-        save_credentials(&id, &credentials_json)?;
+        cloud::credentials::save(&id, &credentials_json)?;
     }
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute(
@@ -130,7 +105,7 @@ pub fn update_cloud_profile(
 
 #[tauri::command]
 pub fn delete_cloud_profile(id: String, state: State<AppState>) -> Result<(), String> {
-    delete_credentials(&id);
+    cloud::credentials::delete(&id);
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute("DELETE FROM cloud_profiles WHERE id=?1", [&id])
         .map_err(|e| e.to_string())?;
@@ -283,7 +258,7 @@ pub(crate) async fn run_cloud_uploads(job_id: &str, state: &AppState) -> Result<
 
         let local_path = std::path::Path::new(&output_path);
         // Creds: keychain (perfis novos) → fallback para config blob (perfis migrados)
-        let keychain_creds = load_credentials(&profile_id);
+        let keychain_creds = cloud::credentials::load(&profile_id);
         let creds = if keychain_creds.as_object().is_some_and(|o| !o.is_empty()) {
             keychain_creds
         } else {
@@ -479,21 +454,40 @@ pub async fn gdrive_poll_auth(
 
 // ── File browser commands ─────────────────────────────────────────────────────
 
-fn load_profile_provider(
+async fn load_profile_provider(
     profile_id: &str,
-    state: &tauri::State<AppState>,
+    state: &tauri::State<'_, AppState>,
 ) -> Result<(Box<dyn cloud::provider::CloudProvider>, String), String> {
-    let db = state.db.lock().map_err(|e| e.to_string())?;
-    let (provider_type, config_str): (String, String) = db
-        .query_row(
-            "SELECT provider, config FROM cloud_profiles WHERE id=?1",
-            [profile_id],
-            |row| Ok((row.get(0)?, row.get(1)?)),
-        )
-        .map_err(|_| format!("Perfil '{}' não encontrado", profile_id))?;
-    drop(db);
-    let config: serde_json::Value = serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
-    let provider = cloud::get_provider(&provider_type, &config, &config)?;
+    let (provider_type, config_str) = {
+        let db = state.db.lock().map_err(|e| e.to_string())?;
+        let row: (String, String) = db
+            .query_row(
+                "SELECT provider, config FROM cloud_profiles WHERE id=?1",
+                [profile_id],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .map_err(|_| format!("Perfil '{}' não encontrado", profile_id))?;
+        row
+        // db (MutexGuard) drops here — antes de qualquer await
+    };
+    let config: serde_json::Value =
+        serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
+    let mut creds = cloud::credentials::load(profile_id);
+
+    // Refresh automático para providers OAuth
+    if matches!(provider_type.as_str(), "gdrive" | "dropbox") {
+        let oauth_provider = match provider_type.as_str() {
+            "gdrive" => cloud::oauth::OAuthProvider::GDrive,
+            _ => cloud::oauth::OAuthProvider::Dropbox,
+        };
+        let client_id = config["client_id"].as_str().unwrap_or("").to_string();
+        if cloud::oauth::refresh_if_needed(&mut creds, &oauth_provider, &client_id).await? {
+            let updated = creds.to_string();
+            cloud::credentials::save(profile_id, &updated)?;
+        }
+    }
+
+    let provider = cloud::get_provider(&provider_type, &config, &creds)?;
     Ok((provider, provider_type))
 }
 
@@ -503,7 +497,7 @@ pub async fn cloud_list_files(
     subpath: Option<String>,
     state: tauri::State<'_, AppState>,
 ) -> Result<Vec<cloud::provider::RemoteFile>, String> {
-    let (provider, _) = load_profile_provider(&profile_id, &state)?;
+    let (provider, _) = load_profile_provider(&profile_id, &state).await?;
     let path = subpath.as_deref().unwrap_or("");
     provider.list_files(path).await
 }
@@ -514,7 +508,7 @@ pub async fn cloud_delete_files(
     paths: Vec<String>,
     state: tauri::State<'_, AppState>,
 ) -> Result<Vec<String>, String> {
-    let (provider, _) = load_profile_provider(&profile_id, &state)?;
+    let (provider, _) = load_profile_provider(&profile_id, &state).await?;
     provider.delete_files(&paths).await
 }
 
@@ -525,8 +519,82 @@ pub async fn cloud_download_file(
     local_path: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
-    let (provider, _) = load_profile_provider(&profile_id, &state)?;
+    let (provider, _) = load_profile_provider(&profile_id, &state).await?;
     provider
         .download(&remote_path, std::path::Path::new(&local_path))
         .await
+}
+
+// ── OAuth PKCE connect ────────────────────────────────────────────────────────
+
+#[tauri::command]
+pub async fn oauth_connect(
+    provider: String,
+    client_id: String,
+    app: tauri::AppHandle,
+) -> Result<cloud::oauth::OAuthTokens, String> {
+    use tauri_plugin_opener::OpenerExt;
+
+    let oauth_provider = match provider.as_str() {
+        "gdrive" => cloud::oauth::OAuthProvider::GDrive,
+        "dropbox" => cloud::oauth::OAuthProvider::Dropbox,
+        other => return Err(format!("Provider OAuth desconhecido: {other}")),
+    };
+
+    let pkce = cloud::oauth::generate_pkce();
+    let port = cloud::oauth::find_free_port()?;
+    let redirect_uri = format!("http://127.0.0.1:{port}/callback");
+
+    let auth_url = match oauth_provider {
+        cloud::oauth::OAuthProvider::GDrive => format!(
+            "https://accounts.google.com/o/oauth2/v2/auth\
+             ?client_id={client_id}\
+             &response_type=code\
+             &redirect_uri={redirect_uri_enc}\
+             &scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive\
+             &code_challenge={challenge}\
+             &code_challenge_method=S256\
+             &access_type=offline\
+             &prompt=consent",
+            redirect_uri_enc = urlencoding_encode(&redirect_uri),
+            challenge = pkce.challenge,
+        ),
+        cloud::oauth::OAuthProvider::Dropbox => format!(
+            "https://www.dropbox.com/oauth2/authorize\
+             ?client_id={client_id}\
+             &response_type=code\
+             &redirect_uri={redirect_uri_enc}\
+             &code_challenge={challenge}\
+             &code_challenge_method=S256\
+             &token_access_type=offline",
+            redirect_uri_enc = urlencoding_encode(&redirect_uri),
+            challenge = pkce.challenge,
+        ),
+    };
+
+    app.opener()
+        .open_url(&auth_url, None::<&str>)
+        .map_err(|e| format!("Falha ao abrir browser: {e}"))?;
+
+    let code = cloud::oauth::await_oauth_callback(port).await?;
+
+    cloud::oauth::exchange_code(
+        &oauth_provider,
+        &code,
+        &pkce.verifier,
+        &client_id,
+        &redirect_uri,
+    )
+    .await
+}
+
+fn urlencoding_encode(s: &str) -> String {
+    s.chars()
+        .flat_map(|c| match c {
+            'A'..='Z' | 'a'..='z' | '0'..='9' | '-' | '_' | '.' | '~' => {
+                vec![c]
+            }
+            _ => format!("%{:02X}", c as u32).chars().collect(),
+        })
+        .collect()
 }

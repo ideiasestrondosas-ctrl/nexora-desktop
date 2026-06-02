@@ -236,6 +236,7 @@ pub fn run() {
             commands::cloud::add_cloud_asset,
             commands::cloud::gdrive_start_auth,
             commands::cloud::gdrive_poll_auth,
+            commands::cloud::oauth_connect,
             commands::cloud::cloud_list_files,
             commands::cloud::cloud_delete_files,
             commands::cloud::cloud_download_file,

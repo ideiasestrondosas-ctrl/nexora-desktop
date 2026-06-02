@@ -82,7 +82,7 @@ const TAB_COUNTS: Record<ScreenTab, number> = {
   queue: 3,
   profiles: 1,
   settings: 5,
-  cloud: 6,
+  cloud: 7,
   comparator: 5,
   logs: 1,
   betaGuide: 0,
@@ -192,19 +192,61 @@ function ScreenCard({
   );
 }
 
+function extractText(node: React.ReactNode): string {
+  if (!node) return '';
+  if (typeof node === 'string') return node;
+  if (typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join('');
+  if (React.isValidElement(node)) {
+    return extractText((node.props as { children?: React.ReactNode }).children);
+  }
+  return '';
+}
+
+// Matches GitHub's heading anchor algorithm (keeps accented chars, replaces spaces with hyphens)
+function githubSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N} -]/gu, '')
+    .replace(/ /g, '-');
+}
+
 const MD_COMPONENTS: React.ComponentProps<typeof ReactMarkdown>['components'] = {
-  h1: ({ children }) => (
-    <h1 className="text-base font-bold text-text-primary mt-5 mb-2 pb-1 border-b border-border/50">
-      {children}
-    </h1>
-  ),
-  h2: ({ children }) => (
-    <h2 className="text-sm font-bold text-text-primary mt-4 mb-1.5">{children}</h2>
-  ),
-  h3: ({ children }) => <h3 className="text-xs font-bold text-brand mt-3 mb-1">{children}</h3>,
-  h4: ({ children }) => (
-    <h4 className="text-xs font-semibold text-text-secondary mt-2 mb-1">{children}</h4>
-  ),
+  h1: ({ children }) => {
+    const id = githubSlug(extractText(children));
+    return (
+      <h1
+        id={id}
+        className="text-base font-bold text-text-primary mt-5 mb-2 pb-1 border-b border-border/50"
+      >
+        {children}
+      </h1>
+    );
+  },
+  h2: ({ children }) => {
+    const id = githubSlug(extractText(children));
+    return (
+      <h2 id={id} className="text-sm font-bold text-text-primary mt-4 mb-1.5">
+        {children}
+      </h2>
+    );
+  },
+  h3: ({ children }) => {
+    const id = githubSlug(extractText(children));
+    return (
+      <h3 id={id} className="text-xs font-bold text-brand mt-3 mb-1">
+        {children}
+      </h3>
+    );
+  },
+  h4: ({ children }) => {
+    const id = githubSlug(extractText(children));
+    return (
+      <h4 id={id} className="text-xs font-semibold text-text-secondary mt-2 mb-1">
+        {children}
+      </h4>
+    );
+  },
   p: ({ children }) => (
     <p className="text-xs text-text-secondary leading-relaxed mb-2">{children}</p>
   ),
@@ -252,11 +294,35 @@ const MD_COMPONENTS: React.ComponentProps<typeof ReactMarkdown>['components'] = 
   ),
   td: ({ children }) => <td className="px-2 py-1.5 text-text-secondary align-top">{children}</td>,
   hr: () => <hr className="my-4 border-border/50" />,
-  a: ({ href, children }) => (
-    <a href={href} className="text-brand hover:underline" target="_blank" rel="noopener noreferrer">
-      {children}
-    </a>
-  ),
+  a: ({ href, children }) => {
+    if (href?.startsWith('#')) {
+      return (
+        <a
+          href={href}
+          className="text-brand hover:underline cursor-pointer"
+          onClick={(e) => {
+            e.preventDefault();
+            const id = decodeURIComponent(href.slice(1));
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        >
+          {children}
+        </a>
+      );
+    }
+    return (
+      <a
+        href={href}
+        className="text-brand hover:underline"
+        onClick={(e) => {
+          e.preventDefault();
+          if (href) openUrl(href).catch(console.error);
+        }}
+      >
+        {children}
+      </a>
+    );
+  },
   strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
   em: ({ children }) => <em className="italic text-text-muted">{children}</em>,
 };
