@@ -1,7 +1,7 @@
 # Nexora Desktop — Beta Testing Guide
 
-**Version:** v0.30.0-beta.1  
-**Date:** May 2026  
+**Version:** v0.31.5-beta.1  
+**Date:** June 2026  
 **Application:** Nexora Desktop — Native Media Processing
 
 ---
@@ -40,6 +40,7 @@
    - [T19 — Keyboard Shortcuts](#t19--keyboard-shortcuts)
    - [T20 — Visual Themes](#t20--visual-themes)
    - [T21 — Languages](#t21--languages)
+   - [T22 — Features Since v0.30.11](#t22--features-introduced-since-v03011)
 5. [Glossary](#5-glossary)
 6. [Contacts and Support](#6-contacts-and-support)
 
@@ -146,11 +147,13 @@ SYSTEM:
 
 These issues are **already known** by the team and don't need to be reported:
 
-- The auto-updater shows an error — normal in test builds
+- Automatic updates show an error — normal in test versions
 - iCloud Drive appears but doesn't work — not supported in this version
-- macOS and Linux builds are not available in this beta
-- Google Drive and Dropbox need OAuth setup — credential errors are expected if not configured
+- macOS and Linux versions are not available in this beta
+- Google Drive and Dropbox require OAuth configuration — a credentials error is expected if you haven't configured them
 - There is a 3-second delay in Watch Folders before detecting new files — this is intentional
+- VMAF scoring may take 2–3× the video duration for files longer than 10 minutes — this is expected
+- The "Create desktop shortcut" button only appears on Windows (macOS and Linux: button not visible)
 
 ---
 
@@ -298,6 +301,25 @@ These issues are **already known** by the team and don't need to be reported:
 - Clicking an item takes you to that file's detail page.
 
 **If it doesn't work:** Report with title "Recent jobs don't appear on Dashboard".
+
+---
+
+#### T02-05 — QueuePill: Real-Time Queue Indicator
+
+**You need:** A job currently being processed (T04-01 passed).
+
+**Steps:**
+
+1. With a job processing, look at the **top bar** (the horizontal bar above the main content area).
+2. To the right of the circular metrics (CPU, RAM, GPU, Disk), look for a small pill/badge.
+
+**What should happen:**
+
+- While jobs are in progress: the pill shows a **pulsing blue dot** and text like "1 in progress".
+- When all jobs finish: the dot turns grey and the text changes to "Idle".
+- A green number with ✓ appears alongside, showing how many jobs have completed in this session.
+
+**If it doesn't work:** Report with the title "QueuePill does not appear or does not update in the top bar".
 
 ---
 
@@ -902,6 +924,25 @@ These issues are **already known** by the team and don't need to be reported:
 
 ---
 
+#### T08-03 — System Diagnostics Modal
+
+**Steps:**
+
+1. Look at the **Settings** icon in the left menu.
+2. If there is a **yellow dot** in the corner of the icon, click on Settings.
+3. Check if a warning banner appears at the top of the Settings page.
+4. If it appears, click **View details** (or equivalent).
+
+**What should happen:**
+
+- A modal opens showing the status of three components: **FFmpeg**, **FFprobe**, and **Engine**.
+- In a normal installation, all three should show **green** status (OK).
+- If any appears red, the modal indicates the problem and suggests how to fix it.
+
+**Note:** In a correct installation, the yellow dot should not appear in the sidebar. Report it if it appears without an obvious reason with the title "Warning badge in Settings with no apparent reason".
+
+---
+
 ### T09 — Settings › Logs
 
 > **Objective:** Verify activity log settings.  
@@ -1197,6 +1238,24 @@ These issues are **already known** by the team and don't need to be reported:
 
 ---
 
+#### T14-03 — Desktop Shortcut and "Already Up To Date" Badge
+
+**Steps:**
+
+1. In Settings › About, look for the **"Create desktop shortcut"** button (only visible on Windows).
+2. Click the button.
+3. Minimise the app and check the Desktop.
+4. Return to the app and click **"Check for Updates"** when you already have the latest version installed.
+
+**What should happen:**
+
+- A Nexora Desktop shortcut appears on the Windows Desktop.
+- When checking for updates with the latest version already installed, an **"Already up to date ✓"** inline badge appears in green and automatically disappears after approximately 6 seconds.
+
+**If it doesn't work:** Report with the title "Create desktop shortcut button doesn't work" or "'Already up to date' badge doesn't appear".
+
+---
+
 ### T15 — Asset Detail
 
 > **Objective:** Verify the file detail page with metadata and job history.
@@ -1236,6 +1295,26 @@ These issues are **already known** by the team and don't need to be reported:
 
 - The job is added to the queue (you can verify in Queue).
 - The detail page shows the new job in the history with status "Queued" or "Processing".
+
+---
+
+#### T15-03 — Asset Detail Page Updates in Real Time
+
+**You need:** An imported file with a recently submitted job (T04-01 passed).
+
+**Steps:**
+
+1. Open the detail page of a file you have just submitted for processing (T15-01).
+2. Stay on this page without navigating to another screen.
+3. Wait for the processing to progress.
+
+**What should happen:**
+
+- The job status in the history section changes from **"Queued"** → **"Processing"** → **"Completed"** without reloading the page or navigating.
+- When the job finishes, the **VMAF** score, output codec, and the path of the processed file appear automatically on the page.
+- You do not need to return to the Library and reopen the file to see the updated results.
+
+**If it doesn't work:** Report with the title "Asset detail page does not update in real time during processing".
 
 ---
 
@@ -1362,7 +1441,7 @@ These issues are **already known** by the team and don't need to be reported:
 **What should happen:**
 
 - A large window opens with a sidebar menu on the left and content on the right.
-- The sidebar has 11 tabs (Introduction, Dashboard, Library, Asset Detail, Import, Queue, Profiles, Settings, Cloud, Comparator, Logs).
+- The side menu has 12 tabs (Introduction, Dashboard, Library, Asset Detail, Import, Queue, Profiles, Settings, Cloud, Comparator, Logs, Beta Guide).
 
 ---
 
@@ -1541,6 +1620,104 @@ These issues are **already known** by the team and don't need to be reported:
 
 ---
 
+### T22 — Features Introduced Since v0.30.11
+
+> **Note:** This section tests features added in versions v0.30.11 to v0.31.5. They complement the previous tests — if you have already done T02 to T21, these tests focus on the specific details of the new versions.
+
+---
+
+#### T22-01 — QueuePill: Behaviour in All States
+
+> **Objective:** Test all states of the queue indicator in the top bar.
+
+**Steps:**
+
+1. With the app and no jobs in progress, observe the top bar.
+2. Submit a job (see T04-01).
+3. Observe the pill during processing.
+4. Wait for the job to complete.
+5. Submit another job and cancel it immediately (see T04-03).
+
+**What should happen:**
+
+- **Idle** state (no jobs): grey pill with "Idle" text, no job count.
+- **Active** state (processing): pulsing blue dot, number of in-progress jobs visible.
+- **With completed jobs**: green number with ✓ appears and increments with each finished job.
+- A **cancelled** job does not increment the green completed counter.
+
+**If it doesn't work:** Report with the title "QueuePill — incorrect behaviour in state [X]".
+
+---
+
+#### T22-02 — AssetDetailPage: Complete Reactive Update
+
+> **Objective:** Confirm all fields that update in real time during processing.
+
+**You need:** An imported file in the Library.
+
+**Steps:**
+
+1. Open the detail page of a file (T15-01).
+2. Click **Process** and select the **web-hd** profile.
+3. Stay on the detail page without navigating.
+4. Observe the following fields during and after processing:
+   - Job status in the history section
+   - VMAF score (appears after completion)
+   - Codec and resolution of the output file
+   - Path of the processed file
+
+**What should happen:**
+
+- All of the above fields update without reloading the page or navigating to another screen.
+- The VMAF appears with the score and the corresponding colour (green ≥ 85, yellow 70–84, red < 70).
+
+**If it doesn't work:** Report with the title "AssetDetailPage — field [X] does not update in real time".
+
+---
+
+#### T22-03 — QC States: Quarantine and Rejection
+
+> **Objective:** Verify the specific quality control states in the Queue history.
+
+> _This test may not occur with every file — quarantine happens when the app detects a potential quality issue. You can try with low-quality or heavily compressed videos._
+
+**If you see a "QUARANTINE" section in the Queue:**
+
+**Steps:**
+
+1. In the Queue, observe the quarantine section (orange/yellow background).
+2. Click the **thumbs down** icon (reject) next to a quarantined file.
+3. Check the final status of the file in the job history.
+
+**What should happen:**
+
+- After rejecting: the status changes to **"Rejected"** (red) in the history.
+- The rejected file does not return to "Completed" or "Queued".
+- The status persists after navigating to another screen and returning to the Queue.
+
+**If it doesn't work:** Report with the title "'Rejected' status does not appear correctly in history".
+
+---
+
+#### T22-04 — Filename Visible in Queue
+
+> **Objective:** Confirm that the filename appears correctly during processing.
+
+**Steps:**
+
+1. Submit a job (T04-01).
+2. Navigate immediately to **Queue**.
+3. Observe the job in the "Processing" section.
+
+**What should happen:**
+
+- The **filename** (e.g. `test_video.mp4`) is clearly visible next to the selected profile and the progress bar.
+- A generic ID (e.g. a UUID like `a3f8b2c1-...`) or a blank field does not appear.
+
+**If it doesn't work:** Report with the title "Filename does not appear in Queue during processing".
+
+---
+
 ## 5. Glossary
 
 Technical terms explained in plain language:
@@ -1577,8 +1754,8 @@ Technical terms explained in plain language:
 - User manual: `docs/USER_MANUAL.md` (in the app folder)
 - Visual guide: `docs/SCREEN_GUIDE.md`
 
-**Version tested:** v0.30.0-beta.1  
-**Guide last updated:** May 2026
+**Version tested:** v0.31.5-beta.1  
+**Last updated:** June 2026
 
 ---
 
