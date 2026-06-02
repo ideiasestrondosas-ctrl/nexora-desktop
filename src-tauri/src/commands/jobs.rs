@@ -107,6 +107,14 @@ pub fn submit_job(
         ),
     );
 
+    let filename: Option<String> = db
+        .query_row(
+            "SELECT filename FROM assets WHERE id = ?1",
+            rusqlite::params![asset_id],
+            |r| r.get(0),
+        )
+        .ok();
+
     Ok(Job {
         id,
         asset_id,
@@ -123,7 +131,7 @@ pub fn submit_job(
         output_path: None,
         vmaf_score: None,
         lufs: None,
-        filename: None,
+        filename,
     })
 }
 
