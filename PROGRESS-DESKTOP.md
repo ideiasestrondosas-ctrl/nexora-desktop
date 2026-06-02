@@ -1,3 +1,17 @@
+## [Sessao 61] 2026-06-02 — Fix release v0.31.6-beta.1 com Guia Beta em producao
+
+### Concluido
+
+- [x] Diagnosticar ausencia do separador Guia Beta no MSI v0.31.5-beta.1 (tag apontava para commit pre-feature 6ce5270)
+- [x] Bump versao para 0.31.6-beta.1 em package.json, tauri.conf.json (versao + wix.version), Cargo.toml
+- [x] Criar tag v0.31.6-beta.1 e push para origin (CI acionado)
+- [x] CI passou: Quality Gate + Windows + macOS + Linux + updater JSON
+- [x] Merge dev -> main (035a211). Push main e dev para origin.
+- [x] Publicar release v0.31.6-beta.1 como Latest no GitHub (MSI 184 MB com Guia Beta)
+- [x] Actualizar ficheiros de sessao (SYNC-STATE, PROGRESS, session-info, wip-session)
+
+---
+
 ## [Sessao 60] 2026-06-02 — Beta Testing Guide activado em producao + actualizado v0.31.5
 
 ### Concluido
