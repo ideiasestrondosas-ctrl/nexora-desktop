@@ -279,7 +279,7 @@ jobs:
           node-version: '22'
 
       - name: Download updater info from all platforms
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: updater-info-*
           merge-multiple: false
