@@ -820,10 +820,10 @@ function Update-VersionTs($version, $categorized) {
 
     # Construir descricao resumida
     $descParts = @()
-    if ($categorized.Added.Count -gt 0) {
+    if ($categorized -and $categorized.Added.Count -gt 0) {
         $descParts += ($categorized.Added | Select-Object -First 2) -join ", "
     }
-    if ($categorized.Fixed.Count -gt 0) {
+    if ($categorized -and $categorized.Fixed.Count -gt 0) {
         $descParts += ($categorized.Fixed | Select-Object -First 2) -join ", "
     }
     $description = "v$version"
@@ -2168,6 +2168,9 @@ if (-not $SkipRelease -and -not $promoteExisting) {
             )
         }
 
+        # Actualizar version.ts em todos os bumps (Release ou nao)
+        Update-VersionTs $newVersion $categorizedForPreview
+
         # Modo Release: gerar ficheiros adicionais automaticamente
         $releaseNotesPath = $null
         if ($Release) {
@@ -2179,17 +2182,13 @@ if (-not $SkipRelease -and -not $promoteExisting) {
 
             # 2. SYNC-STATE.md
             Update-SyncState $newVersion $agentInfo $categorizedForPreview $filesChanged $sessionInfo
-
-            # 3. version.ts
-            Update-VersionTs $newVersion $categorizedForPreview
         }
 
         # Commit de release + tag (verificar se tag ja existe)
-        $filesToAdd = @("package.json", "src-tauri\Cargo.toml", "src-tauri\tauri.conf.json", "CHANGELOG.md", "PROGRESS-DESKTOP.md")
+        $filesToAdd = @("package.json", "src-tauri\Cargo.toml", "src-tauri\tauri.conf.json", "CHANGELOG.md", "PROGRESS-DESKTOP.md", "src\lib\version.ts")
         if ($Release -and $releaseNotesPath) {
             $filesToAdd += "release-notes-v$newVersion.md"
             $filesToAdd += "SYNC-STATE.md"
-            $filesToAdd += "src\lib\version.ts"
         }
         # Formatar ficheiros antes do commit — evita prettier fail no CI
         # Nota: npm e um .cmd no Windows, por isso usar o call operator & em vez de Start-Process
