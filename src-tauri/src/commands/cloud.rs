@@ -5,31 +5,6 @@ use serde::Serialize;
 use tauri::State;
 use uuid::Uuid;
 
-// ── Keychain helpers ──────────────────────────────────────────────────────────
-
-const KEYRING_SERVICE: &str = "nexora-cloud";
-
-fn save_credentials(profile_id: &str, creds_json: &str) -> Result<(), String> {
-    keyring::Entry::new(KEYRING_SERVICE, profile_id)
-        .map_err(|e| format!("Keychain inacessível: {e}"))?
-        .set_secret(creds_json.as_bytes())
-        .map_err(|e| format!("Falha ao guardar credenciais no keychain: {e}"))
-}
-
-fn load_credentials(profile_id: &str) -> serde_json::Value {
-    keyring::Entry::new(KEYRING_SERVICE, profile_id)
-        .ok()
-        .and_then(|e| e.get_secret().ok())
-        .and_then(|b| serde_json::from_slice(&b).ok())
-        .unwrap_or(serde_json::Value::Object(Default::default()))
-}
-
-fn delete_credentials(profile_id: &str) {
-    if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, profile_id) {
-        let _ = entry.delete_credential();
-    }
-}
-
 // ── Public types (sent to frontend) ──────────────────────────────────────────
 
 #[derive(Debug, Serialize, Clone)]
@@ -90,7 +65,7 @@ pub fn create_cloud_profile(
     let id = Uuid::new_v4().to_string();
     let now = Utc::now().to_rfc3339();
     // Guarda credenciais no keychain do SO antes de escrever na BD
-    save_credentials(&id, &credentials_json)?;
+    cloud::credentials::save(&id, &credentials_json)?;
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute(
         "INSERT INTO cloud_profiles (id, name, provider, config, created_at) VALUES (?1,?2,?3,?4,?5)",
@@ -117,7 +92,7 @@ pub fn update_cloud_profile(
     // Actualiza keychain apenas se novas credenciais foram fornecidas
     let creds: serde_json::Value = serde_json::from_str(&credentials_json).unwrap_or_default();
     if creds.as_object().is_some_and(|o| !o.is_empty()) {
-        save_credentials(&id, &credentials_json)?;
+        cloud::credentials::save(&id, &credentials_json)?;
     }
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute(
@@ -130,7 +105,7 @@ pub fn update_cloud_profile(
 
 #[tauri::command]
 pub fn delete_cloud_profile(id: String, state: State<AppState>) -> Result<(), String> {
-    delete_credentials(&id);
+    cloud::credentials::delete(&id);
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.execute("DELETE FROM cloud_profiles WHERE id=?1", [&id])
         .map_err(|e| e.to_string())?;
@@ -283,7 +258,7 @@ pub(crate) async fn run_cloud_uploads(job_id: &str, state: &AppState) -> Result<
 
         let local_path = std::path::Path::new(&output_path);
         // Creds: keychain (perfis novos) → fallback para config blob (perfis migrados)
-        let keychain_creds = load_credentials(&profile_id);
+        let keychain_creds = cloud::credentials::load(&profile_id);
         let creds = if keychain_creds.as_object().is_some_and(|o| !o.is_empty()) {
             keychain_creds
         } else {
@@ -479,9 +454,9 @@ pub async fn gdrive_poll_auth(
 
 // ── File browser commands ─────────────────────────────────────────────────────
 
-fn load_profile_provider(
+async fn load_profile_provider(
     profile_id: &str,
-    state: &tauri::State<AppState>,
+    state: &tauri::State<'_, AppState>,
 ) -> Result<(Box<dyn cloud::provider::CloudProvider>, String), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let (provider_type, config_str): (String, String) = db
@@ -492,8 +467,10 @@ fn load_profile_provider(
         )
         .map_err(|_| format!("Perfil '{}' não encontrado", profile_id))?;
     drop(db);
-    let config: serde_json::Value = serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
-    let provider = cloud::get_provider(&provider_type, &config, &config)?;
+    let config: serde_json::Value =
+        serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
+    let creds = cloud::credentials::load(profile_id);
+    let provider = cloud::get_provider(&provider_type, &config, &creds)?;
     Ok((provider, provider_type))
 }
 
@@ -503,7 +480,7 @@ pub async fn cloud_list_files(
     subpath: Option<String>,
     state: tauri::State<'_, AppState>,
 ) -> Result<Vec<cloud::provider::RemoteFile>, String> {
-    let (provider, _) = load_profile_provider(&profile_id, &state)?;
+    let (provider, _) = load_profile_provider(&profile_id, &state).await?;
     let path = subpath.as_deref().unwrap_or("");
     provider.list_files(path).await
 }
@@ -514,7 +491,7 @@ pub async fn cloud_delete_files(
     paths: Vec<String>,
     state: tauri::State<'_, AppState>,
 ) -> Result<Vec<String>, String> {
-    let (provider, _) = load_profile_provider(&profile_id, &state)?;
+    let (provider, _) = load_profile_provider(&profile_id, &state).await?;
     provider.delete_files(&paths).await
 }
 
@@ -525,7 +502,7 @@ pub async fn cloud_download_file(
     local_path: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
-    let (provider, _) = load_profile_provider(&profile_id, &state)?;
+    let (provider, _) = load_profile_provider(&profile_id, &state).await?;
     provider
         .download(&remote_path, std::path::Path::new(&local_path))
         .await

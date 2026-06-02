@@ -1,3 +1,4 @@
+pub mod credentials;
 pub mod ftp;
 pub mod gdrive;
 pub mod icloud;
