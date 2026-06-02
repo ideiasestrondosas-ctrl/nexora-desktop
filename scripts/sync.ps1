@@ -2329,16 +2329,30 @@ if ($LASTEXITCODE -eq 0) {
         $devBranch = $branch
         $mergeOk   = Invoke-MergeToMain $newVersion $devBranch $authenticatedUrl
         if ($mergeOk -and $script:GITHUB_TOKEN) {
-            Write-Host ""
-            if ($FullRelease) {
-                Write-Host "  [FASE 5/7] A monitorizar CI em main automaticamente..." -ForegroundColor DarkGreen
-                $mainSha = git rev-parse main 2>$null
-                Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN "main"
-            } else {
-                $watchAns = Read-Host "  Queres aguardar pelos GitHub Actions? [S/N] (Padrao: N)"
-                if ($watchAns -match '^[Ss]$') {
+            # Verificar se release ja publicada — saltar monitorizacao CI (evita loop se release ja existe)
+            $_ciH = @{ "Authorization" = "token $script:GITHUB_TOKEN"; "Accept" = "application/vnd.github+json" }
+            $_relPublished = $false
+            try {
+                $_rel = Invoke-RestMethod -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/tags/v$newVersion" -Method Get -Headers $_ciH -ErrorAction Stop
+                if ($_rel -and -not $_rel.draft) {
+                    $_relPublished = $true
+                    Write-Host ""
+                    Write-Success "Release v$newVersion ja esta publicada — a saltar monitorizacao CI."
+                }
+            } catch { }
+
+            if (-not $_relPublished) {
+                Write-Host ""
+                if ($FullRelease) {
+                    Write-Host "  [FASE 5/7] A monitorizar CI em main automaticamente..." -ForegroundColor DarkGreen
                     $mainSha = git rev-parse main 2>$null
                     Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN "main"
+                } else {
+                    $watchAns = Read-Host "  Queres aguardar pelos GitHub Actions? [S/N] (Padrao: N)"
+                    if ($watchAns -match '^[Ss]$') {
+                        $mainSha = git rev-parse main 2>$null
+                        Watch-GitHubActions $mainSha $newVersion $script:GITHUB_TOKEN "main"
+                    }
                 }
             }
         }
@@ -2453,8 +2467,19 @@ if ($FullRelease -and $script:GITHUB_TOKEN) {
     $latestTag  = git describe --tags --abbrev=0 2>$null
     $tagCommit  = git rev-list -n 1 $latestTag 2>$null
     $ciHeaders  = @{ "Authorization" = "token $script:GITHUB_TOKEN"; "Accept" = "application/vnd.github+json" }
+
+    # Saltar espera se release ja publicada
+    $_fase6Skip = $false
+    try {
+        $_fase6Rel = Invoke-RestMethod -Uri "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/tags/$latestTag" -Method Get -Headers $ciHeaders -ErrorAction Stop
+        if ($_fase6Rel -and -not $_fase6Rel.draft) {
+            $_fase6Skip = $true
+            Write-Success "Release $latestTag ja publicada — a saltar espera do Build."
+        }
+    } catch { }
+
     $buildStart = Get-Date
-    $buildDone  = $false
+    $buildDone  = $_fase6Skip
 
     while (-not $buildDone) {
         try {
