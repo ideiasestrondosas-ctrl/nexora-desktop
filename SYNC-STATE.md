@@ -10,6 +10,32 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 60 — Beta Testing Guide activado em producao + actualizado v0.31.5 — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-02
+
+**Resumo:** Separador "Guia Beta" no HelpModal agora visivel em producao (sem gate DEV). Badge "DEV ONLY" removido. Versao dinamica via APP_VERSION. BETA_TESTING_GUIDE PT+EN actualizado para v0.31.5-beta.1 com novos sub-testes e seccao T22. Merge para main com 48 testes verdes.
+
+**Alteracoes de codigo:**
+
+- `src/components/HelpModal.tsx`: remover `import.meta.env.DEV` gate, remover badge DEV ONLY, usar `APP_VERSION` dinamico
+
+**Alteracoes de documentacao:**
+
+- `docs/BETA_TESTING_GUIDE.pt.md`: v0.31.5-beta.1, Junho 2026, T18-01 12 tabs, +2 limitacoes, T02-05/T08-03/T14-03/T15-03, T22 (4 testes)
+- `docs/BETA_TESTING_GUIDE.en.md`: mesmo ambito em ingles
+
+**Estado final:** `main` @ `159992c`, `dev` @ `a4d08ec`. 48 testes verdes. Sem push para origin.
+
+**Notas para o proximo agente:**
+
+- Guia Beta agora visivel a todos os utilizadores em producao.
+- BETA_TESTING_GUIDE actualizado — pronto para distribuir aos beta testers.
+- CI nao triggerado (sem push). Se necessario: `git push origin main dev`.
+
+---
+
 ### Sessao 59 — Dependabot PRs (12 mergeados) — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)
