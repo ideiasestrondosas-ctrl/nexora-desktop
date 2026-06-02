@@ -11,7 +11,16 @@
  *   node scripts/download-media-binaries.js --platform win32 --arch x64
  */
 
-import { existsSync, mkdirSync, chmodSync, readdirSync, statSync, createWriteStream } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  chmodSync,
+  readdirSync,
+  statSync,
+  createWriteStream,
+  readFileSync,
+  writeFileSync,
+} from 'fs';
 import { pipeline } from 'stream/promises';
 import { get } from 'https';
 import { tmpdir } from 'os';
@@ -19,9 +28,54 @@ import { join } from 'path';
 import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
 import { copyFile, unlink, rm } from 'fs/promises';
+import { sha256OfFile, compareChecksum } from './lib/verify-checksum.js';
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
+
+// ── Verificação de integridade (H1) ───────────────────────────────────────────
+// Os arquivos descarregados são verificados contra checksums SHA-256 fixados em
+// scripts/media-binaries.lock.json. Mismatch aborta o build (tamper-evidente).
+// `--write-lock` regista os checksums actuais (correr na 1ª build de cada plataforma).
+
+const LOCK_PATH = join(process.cwd(), 'scripts', 'media-binaries.lock.json');
+const writeLock = process.argv.includes('--write-lock');
+
+function loadLock() {
+  try {
+    return JSON.parse(readFileSync(LOCK_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+const checksumLock = loadLock();
+
+async function verifyArchive(key, archivePath) {
+  const actual = await sha256OfFile(archivePath);
+  if (writeLock) {
+    checksumLock[key] = actual;
+    writeFileSync(LOCK_PATH, `${JSON.stringify(checksumLock, null, 2)}\n`);
+    console.log(`  ✎ checksum fixado para ${key}: ${actual}`);
+    return;
+  }
+  const status = compareChecksum(checksumLock[key], actual);
+  if (status === 'mismatch') {
+    throw new Error(
+      `Checksum inválido para ${key}!\n` +
+        `  esperado: ${checksumLock[key]}\n` +
+        `  obtido:   ${actual}\n` +
+        `  Possível adulteração ou MITM do binário — build abortado.`,
+    );
+  }
+  if (status === 'missing') {
+    console.warn(
+      `  ⚠ checksum não fixado para ${key} (sha256=${actual}). ` +
+        `Correr com --write-lock para fixar e proteger contra adulteração.`,
+    );
+    return;
+  }
+  console.log(`  ✓ checksum verificado: ${key}`);
+}
 
 // Smoke-test: um binário media só é válido se `-version` sair com código 0.
 // Apanha tanto stubs de 1 byte como builds SHARED sem as DLLs ao lado.
@@ -213,11 +267,12 @@ function findFile(dir, name) {
 
 // ── Descarregar e extrair para um binário individual ─────────────────────────
 
-async function downloadBinary(url, binName, extractType, tmpBase) {
+async function downloadBinary(url, binName, extractType, tmpBase, checksumKey) {
   const archivePath = `${tmpBase}.${extractType === 'zip' ? 'zip' : 'tar.xz'}`;
   const extractDir = `${tmpBase}-out`;
 
   await downloadTo(url, archivePath);
+  if (checksumKey) await verifyArchive(checksumKey, archivePath);
   if (extractType === 'zip') {
     await extractZip(archivePath, extractDir);
   } else {
@@ -297,7 +352,13 @@ async function main() {
       {
         const url = EVERMEET.x64[tool];
         const tmpDir = `${tmpBase}-${tool}-evermeet`;
-        const { found, extractDir } = await downloadBinary(url, tool, 'zip', tmpDir);
+        const { found, extractDir } = await downloadBinary(
+          url,
+          tool,
+          'zip',
+          tmpDir,
+          `darwin-${tool}`,
+        );
         if (found) {
           evermeetPath = `${tmpBase}-${tool}-evermeet-bin`;
           await copyFile(found, evermeetPath);
@@ -406,6 +467,7 @@ async function main() {
     console.error(`\nErro fatal: ${lastError.message}`);
     process.exit(1);
   }
+  await verifyArchive(key, archivePath);
   if (bundle.type === 'zip') {
     await extractZip(archivePath, extractDir);
   } else {

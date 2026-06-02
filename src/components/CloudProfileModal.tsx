@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
-import { X, Loader2, CheckCircle2, Copy, ExternalLink } from 'lucide-react';
+import { X, Loader2, CheckCircle2, Copy, ExternalLink, ShieldAlert } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import {
   CloudProfile,
@@ -28,9 +28,16 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
   const [gdriveAuthUrl, setGdriveAuthUrl] = useState('');
   const [gdriveUserCode, setGdriveUserCode] = useState('');
   const [gdrivePolling, setGdrivePolling] = useState(false);
+  // Confirmação TOFU da host key SFTP (C1)
+  const [fpPrompt, setFpPrompt] = useState<{
+    fingerprint: string;
+    changed: boolean;
+    action: 'test' | 'save';
+  } | null>(null);
 
   useEffect(() => {
     if (!open) return;
+    setFpPrompt(null);
     if (editing) {
       setProvider(editing.provider);
       setName(editing.name);
@@ -72,17 +79,78 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     return { config, creds };
   };
 
-  const handleTest = async () => {
-    setTesting(true);
-    try {
-      const { config, creds } = splitFields();
-      await invoke('test_cloud_connection', {
-        id: editing?.id ?? '',
+  // Para SFTP, garante que a identidade do servidor (host key) é confiável antes de
+  // qualquer operação. Devolve true se já confiável; caso contrário abre o painel de
+  // confirmação TOFU e devolve false.
+  const ensureSftpTrust = async (
+    config: Record<string, unknown>,
+    creds: Record<string, unknown>,
+    action: 'test' | 'save',
+  ): Promise<boolean> => {
+    if (provider !== 'sftp') return true;
+    const probe = await invoke<{ fingerprint: string; matchesStored: boolean }>('sftp_probe_host', {
+      configJson: JSON.stringify(config),
+      credentialsJson: JSON.stringify(creds),
+    });
+    if (probe.matchesStored) return true;
+    setFpPrompt({
+      fingerprint: probe.fingerprint,
+      changed: Boolean(config.hostFingerprint),
+      action,
+    });
+    return false;
+  };
+
+  const doTest = async (config: Record<string, unknown>, creds: Record<string, unknown>) => {
+    await invoke('test_cloud_connection', {
+      id: editing?.id ?? '',
+      provider,
+      configJson: JSON.stringify(config),
+      credentialsJson: JSON.stringify(creds),
+    });
+    toast.success('Ligação bem-sucedida');
+  };
+
+  const doSave = async (config: Record<string, unknown>, creds: Record<string, unknown>) => {
+    if (editing) {
+      try {
+        await invoke('test_cloud_connection', {
+          id: editing.id,
+          provider,
+          configJson: JSON.stringify(config),
+          credentialsJson: JSON.stringify(creds),
+        });
+      } catch (e) {
+        toast.error(`Ligação falhou, perfil não actualizado: ${e}`);
+        return;
+      }
+      await invoke('update_cloud_profile', {
+        id: editing.id,
+        name: name.trim(),
+        configJson: JSON.stringify(config),
+        credentialsJson: JSON.stringify(creds),
+      });
+      updateProfile(editing.id, { name: name.trim(), provider, config });
+      toast.success('Perfil actualizado');
+    } else {
+      const created = await invoke<CloudProfile>('create_cloud_profile', {
+        name: name.trim(),
         provider,
         configJson: JSON.stringify(config),
         credentialsJson: JSON.stringify(creds),
       });
-      toast.success('Ligação bem-sucedida');
+      addProfile(created);
+      toast.success('Perfil criado');
+    }
+    onClose();
+  };
+
+  const handleTest = async () => {
+    setTesting(true);
+    try {
+      const { config, creds } = splitFields();
+      if (!(await ensureSftpTrust(config, creds, 'test'))) return;
+      await doTest(config, creds);
     } catch (e) {
       toast.error(`Falha na ligação: ${e}`);
     } finally {
@@ -98,41 +166,38 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     setSaving(true);
     try {
       const { config, creds } = splitFields();
-
-      if (editing) {
-        try {
-          await invoke('test_cloud_connection', {
-            id: editing.id,
-            provider,
-            configJson: JSON.stringify(config),
-            credentialsJson: JSON.stringify(creds),
-          });
-        } catch (e) {
-          toast.error(`Ligação falhou, perfil não actualizado: ${e}`);
-          return;
-        }
-        await invoke('update_cloud_profile', {
-          id: editing.id,
-          name: name.trim(),
-          configJson: JSON.stringify(config),
-          credentialsJson: JSON.stringify(creds),
-        });
-        updateProfile(editing.id, { name: name.trim(), provider, config });
-        toast.success('Perfil actualizado');
-      } else {
-        const created = await invoke<CloudProfile>('create_cloud_profile', {
-          name: name.trim(),
-          provider,
-          configJson: JSON.stringify(config),
-          credentialsJson: JSON.stringify(creds),
-        });
-        addProfile(created);
-        toast.success('Perfil criado');
-      }
-      onClose();
+      if (!(await ensureSftpTrust(config, creds, 'save'))) return;
+      await doSave(config, creds);
     } catch (e) {
       toast.error(`Erro ao guardar: ${e}`);
     } finally {
+      setSaving(false);
+    }
+  };
+
+  // Utilizador confirmou a identidade do servidor SFTP: grava a fingerprint no config
+  // e retoma a acção pendente (a fingerprint é passada explicitamente para evitar
+  // depender do flush de estado do React).
+  const confirmFingerprint = async () => {
+    if (!fpPrompt) return;
+    const fingerprint = fpPrompt.fingerprint;
+    const action = fpPrompt.action;
+    setFpPrompt(null);
+    setField('hostFingerprint', fingerprint);
+    const { config, creds } = splitFields();
+    config.hostFingerprint = fingerprint;
+    try {
+      if (action === 'test') {
+        setTesting(true);
+        await doTest(config, creds);
+      } else {
+        setSaving(true);
+        await doSave(config, creds);
+      }
+    } catch (e) {
+      toast.error(`${e}`);
+    } finally {
+      setTesting(false);
       setSaving(false);
     }
   };
@@ -299,6 +364,39 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
               </div>
             )}
           </div>
+
+          {fpPrompt && (
+            <div className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+              <div className="flex items-center gap-2 text-amber-300 font-medium mb-1">
+                <ShieldAlert size={16} />
+                {fpPrompt.changed
+                  ? 'A identidade do servidor MUDOU'
+                  : 'Confirmar identidade do servidor'}
+              </div>
+              <p className="text-text-secondary text-xs mb-2">
+                {fpPrompt.changed
+                  ? 'A host key deste servidor é diferente da que confiou anteriormente. Pode ser uma reinstalação legítima — ou um ataque man-in-the-middle. Só confie se reconhecer esta fingerprint.'
+                  : 'É a primeira ligação a este servidor. Verifique que esta fingerprint corresponde ao servidor real antes de confiar.'}
+              </p>
+              <code className="block bg-bg-secondary rounded px-2 py-1 text-xs text-text-primary break-all mb-3">
+                {fpPrompt.fingerprint}
+              </code>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setFpPrompt(null)}
+                  className="text-xs text-text-muted hover:text-text-primary px-3 py-1.5"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmFingerprint}
+                  className="text-xs bg-amber-600 hover:bg-amber-500 text-white rounded px-3 py-1.5"
+                >
+                  Confiar e continuar
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-between mt-5">
             <button

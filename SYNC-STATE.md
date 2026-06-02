@@ -6,9 +6,38 @@
 ---
 
 Actualizado: 2026-06-02
-Agente: Claude Code (claude-sonnet-4-6)
+Agente: Claude Code (claude-opus-4-8)
 
 ## O que foi feito
+
+### Sessao 62 — Auditoria de seguranca defensiva + correccoes (0.32.0-beta.1) — CONCLUIDO
+
+**Agente:** Claude Code (claude-opus-4-8)
+**Data:** 2026-06-02
+
+**Resumo:** 1a auditoria de seguranca formal do Nexora Desktop. Confirmados e
+corrigidos 13 achados (C1 Critical -> L3 Low), 1 commit por achado com teste de
+regressao. C1 era critico: a verificacao de host key SFTP devolvia sempre
+Ok(true) (MITM) — corrigida com TOFU + confirmacao de fingerprint. Entregue
+relatorio profissional, SECURITY_SCOPE.md e spec. Bump 0.32.0-beta.1.
+
+**Achados corrigidos (commit):**
+
+- C1 host key SFTP TOFU (`d4604ba`) · H1 checksum binarios media (`bf544b7`)
+- H2 remover `**` do asset scope (`bb4d90d`) · M1 base64 so de assets registados (`4c69226`)
+- M2 escaping query GDrive (`712f79b`) · M3 least-privilege CI/CD (`6207061`)
+- M4 redacao de credenciais nos logs (`77f4149`) · L2+L3 .desktop Exec + 0o600 SQLite (`dde36af`)
+- L1 (CSP style-src) risco aceite · L4/I1 doc · R1 rotacao PAT recomendada
+
+**Verificacao:** cargo test 44, clippy 0 warn, npm test 52, lint 0 warn, npm audit 0 vuln.
+
+**Pendente (utilizador):** rotacionar PAT (R1); re-fixar media-binaries.lock.json
+para macOS/Linux; teste manual SFTP end-to-end; publicar release via sync.ps1.
+
+**Entregaveis:** docs/SECURITY_AUDIT_REPORT_0.32.0-beta.1.md, SECURITY_SCOPE.md,
+docs/superpowers/specs/2026-06-02-security-audit-design.md.
+
+---
 
 ### Sessao 61 — Fix v0.31.6-beta.1 + versao dinamica Vite define — CONCLUIDO
 
@@ -31,7 +60,7 @@ Agente: Claude Code (claude-sonnet-4-6)
 - `eslint.config.js`: `__APP_VERSION__` como global readonly
 - `scripts/sync.ps1`: nao toca em APP_VERSION (apenas VERSION_HISTORY); actualiza version.ts em todos os bumps
 
-**Estado final:** `main` @ `b291217`, `dev` @ `a810773`. Ambos sincronizados com origin. Release v0.31.6-beta.1 Latest.
+**Estado final:** `main` @ `3772406`, `dev` @ `994b64c`. Ambos sincronizados com origin. Release v0.31.6-beta.1 Latest.
 
 **Notas para o proximo agente:**
 

@@ -229,6 +229,7 @@ pub fn run() {
             commands::cloud::update_cloud_profile,
             commands::cloud::delete_cloud_profile,
             commands::cloud::test_cloud_connection,
+            commands::cloud::sftp_probe_host,
             commands::cloud::get_job_cloud_destinations,
             commands::cloud::process_cloud_destinations,
             commands::cloud::retry_cloud_upload,

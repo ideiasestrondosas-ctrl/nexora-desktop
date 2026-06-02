@@ -1,3 +1,42 @@
+## [Sessao 62] 2026-06-02 — Auditoria de seguranca defensiva + correccoes (0.32.0-beta.1)
+
+### Concluido
+
+- [x] C1 (Critical): host key SFTP via TOFU + confirmacao de fingerprint — corrige MITM (`d4604ba`)
+- [x] H1 (High): checksum SHA-256 dos binarios FFmpeg/ffprobe no build (`bf544b7`)
+- [x] H2 (High): removido `**` do assetProtocol scope (`bb4d90d`)
+- [x] M1 (Medium): read_video/thumbnail_base64 so servem assets registados na BD (`4c69226`)
+- [x] M2 (Medium): escapar `\` antes de `'` na query Google Drive (`712f79b`)
+- [x] M3 (Medium): least-privilege GITHUB_TOKEN nos workflows CI/CD (`6207061`)
+- [x] M4 (Medium): redigir credenciais (password em URLs) nos exports de logs (`77f4149`)
+- [x] L2 (Low): aspas + escaping no Exec do .desktop (`dde36af`)
+- [x] L3 (Low): permissoes 0o600 no ficheiro SQLite em Unix (`dde36af`)
+- [x] L1 (Low): CSP style-src 'unsafe-inline' — risco aceite (Radix), documentado
+- [x] L4/I1: SECURITY_SCOPE.md criado; pkg fork + SBOM no roadmap
+- [x] R1: rotacao preventiva do PAT recomendada no relatorio (sem fuga no repo)
+- [x] Bump 0.32.0-beta.1 (package.json, Cargo.toml, tauri.conf.json, lockfiles)
+- [x] Relatorio docs/SECURITY_AUDIT_REPORT_0.32.0-beta.1.md + spec
+- [x] Verificacao verde: cargo test 44, clippy 0 warn, npm test 52, lint 0 warn, npm audit 0 vuln
+
+### Pendente (utilizador)
+
+- [ ] Rotacionar o GitHub PAT (R1)
+- [ ] Re-fixar media-binaries.lock.json para macOS/Linux (so win32-x64 semeado)
+- [ ] Teste manual SFTP end-to-end (1a ligacao / repeticao / mismatch MITM)
+- [ ] Publicar release 0.32.0-beta.1 via sync.ps1
+
+---
+
+## [Sessao 61 — final] 2026-06-02 — Fix sync.ps1 loop infinito em release publicada
+
+### Concluido
+
+- [x] sync.ps1 FASE 5: verificar release publicada via API antes de Watch-GitHubActions
+- [x] sync.ps1 FASE 6: verificar release publicada antes do loop de espera do Build
+- [x] Merge dev -> main (3772406). Push.
+
+---
+
 ## [Sessao 61 — adicional] 2026-06-02 — Versao dinamica + fix sync.ps1
 
 ### Concluido

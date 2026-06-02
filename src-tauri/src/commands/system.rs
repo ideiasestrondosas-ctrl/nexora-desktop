@@ -853,9 +853,18 @@ pub fn create_windows_shortcut() -> Result<(), String> {
 pub fn create_desktop_shortcut() -> Result<(), String> {
     let home = std::env::var("HOME").map_err(|e| e.to_string())?;
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    // Spec freedesktop: paths com espaços/caracteres reservados têm de vir entre
+    // aspas duplas, com `\`, `"`, `` ` `` e `$` escapados por barra invertida.
+    let exec = exe
+        .display()
+        .to_string()
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('`', "\\`")
+        .replace('$', "\\$");
     let content = format!(
-        "[Desktop Entry]\nName=Nexora Desktop\nExec={}\nIcon=nexora-desktop\nType=Application\nCategories=AudioVideo;Video;\nTerminal=false\n",
-        exe.display()
+        "[Desktop Entry]\nName=Nexora Desktop\nExec=\"{}\"\nIcon=nexora-desktop\nType=Application\nCategories=AudioVideo;Video;\nTerminal=false\n",
+        exec
     );
     let path = format!("{}/Desktop/Nexora Desktop.desktop", home);
     std::fs::write(&path, &content).map_err(|e| e.to_string())?;

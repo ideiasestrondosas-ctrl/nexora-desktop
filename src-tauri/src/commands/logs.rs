@@ -166,6 +166,45 @@ pub fn write_log(level: String, source: String, message: String) {
     crate::logger::write(&level.to_uppercase(), &source, &message);
 }
 
+/// Redige credenciais embebidas em URLs (`scheme://user:pass@host`) antes de
+/// escrever logs para um ficheiro exportável. Defesa-em-profundidade: embora as
+/// mensagens de erro das libs cloud não devam conter a password, uma URL completa
+/// pode escapar para um log e ser depois partilhada no export. Substitui apenas a
+/// password por `***`, preservando scheme/user/host para diagnóstico.
+fn redact_credentials(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(pos) = rest.find("://") {
+        out.push_str(&rest[..pos + 3]);
+        let after = &rest[pos + 3..];
+        // A autoridade vai até ao primeiro delimitador de path/query/espaço.
+        let auth_end = after
+            .find(|c: char| c == '/' || c == '?' || c == '#' || c.is_whitespace())
+            .unwrap_or(after.len());
+        let authority = &after[..auth_end];
+        match authority.find('@') {
+            Some(at) => {
+                let userinfo = &authority[..at];
+                let host = &authority[at..]; // inclui o '@'
+                match userinfo.find(':') {
+                    // user:pass@host → redige só a password
+                    Some(colon) => {
+                        out.push_str(&userinfo[..colon]);
+                        out.push_str(":***");
+                        out.push_str(host);
+                    }
+                    // user@host (sem password) → preserva
+                    None => out.push_str(authority),
+                }
+            }
+            None => out.push_str(authority),
+        }
+        rest = &after[auth_end..];
+    }
+    out.push_str(rest);
+    out
+}
+
 #[tauri::command]
 pub fn export_logs(path: String, state: State<'_, AppState>) -> Result<(), String> {
     use std::io::Write as IoWrite;
@@ -181,7 +220,10 @@ pub fn export_logs(path: String, state: State<'_, AppState>) -> Result<(), Strin
             let level: String = row.get(1)?;
             let source: String = row.get(2)?;
             let message: String = row.get(3)?;
-            Ok(format!("[{}] [{:<5}] {} — {}", ts, level, source, message))
+            Ok(redact_credentials(&format!(
+                "[{}] [{:<5}] {} — {}",
+                ts, level, source, message
+            )))
         })
         .map_err(|e| e.to_string())?
         .filter_map(|r| r.ok())
@@ -310,8 +352,15 @@ pub async fn export_logs_bundle(app: tauri::AppHandle) -> Result<String, String>
         let mut added = 0usize;
         for (name, path) in &log_files {
             let content = std::fs::read(path).map_err(|e| e.to_string())?;
+            // Ficheiros .log são texto; redige credenciais antes de incluir no bundle.
+            // .log.zip já vêm comprimidos (rotação) — incluídos tal como estão.
+            let payload: Vec<u8> = if name.ends_with(".log") {
+                redact_credentials(&String::from_utf8_lossy(&content)).into_bytes()
+            } else {
+                content
+            };
             zip.start_file(name, options).map_err(|e| e.to_string())?;
-            zip.write_all(&content).map_err(|e| e.to_string())?;
+            zip.write_all(&payload).map_err(|e| e.to_string())?;
             added += 1;
         }
         if added == 0 {
@@ -467,7 +516,10 @@ pub fn get_last_n_logs_text(n: i64, state: State<'_, AppState>) -> Result<String
             let level: String = row.get(1)?;
             let source: String = row.get(2)?;
             let message: String = row.get(3)?;
-            Ok(format!("[{}] [{:<5}] {} — {}", ts, level, source, message))
+            Ok(redact_credentials(&format!(
+                "[{}] [{:<5}] {} — {}",
+                ts, level, source, message
+            )))
         })
         .map_err(|e| e.to_string())?
         .filter_map(|r| r.ok())
@@ -497,7 +549,49 @@ pub fn save_bug_report(content: String, app: tauri::AppHandle) -> Result<String,
 
 #[cfg(test)]
 mod tests {
-    use super::validate_log_endpoint;
+    use super::{redact_credentials, validate_log_endpoint};
+
+    #[test]
+    fn redige_password_em_url_ftp() {
+        assert_eq!(
+            redact_credentials("falha ftp://admin:s3cr3t@1.2.3.4/path: timeout"),
+            "falha ftp://admin:***@1.2.3.4/path: timeout"
+        );
+    }
+
+    #[test]
+    fn redige_password_com_porta() {
+        assert_eq!(
+            redact_credentials("sftp://user:pw@host.example:22"),
+            "sftp://user:***@host.example:22"
+        );
+    }
+
+    #[test]
+    fn preserva_url_sem_credenciais() {
+        assert_eq!(
+            redact_credentials("https://logs.example.com/upload"),
+            "https://logs.example.com/upload"
+        );
+    }
+
+    #[test]
+    fn preserva_user_sem_password() {
+        // user@host (sem ':pass') não é segredo — mantém-se para diagnóstico.
+        assert_eq!(
+            redact_credentials("ftp://anonymous@ftp.example.com/pub"),
+            "ftp://anonymous@ftp.example.com/pub"
+        );
+    }
+
+    #[test]
+    fn nao_confunde_email_com_credencial() {
+        // Sem esquema `://` antes, um email no texto fica intacto.
+        assert_eq!(
+            redact_credentials("contacto: user@example.com"),
+            "contacto: user@example.com"
+        );
+    }
 
     #[test]
     fn endpoint_vazio_rejeitado() {

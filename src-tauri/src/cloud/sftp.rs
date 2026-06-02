@@ -3,8 +3,19 @@ use async_trait::async_trait;
 use russh::client;
 use russh_sftp::client::SftpSession;
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+/// Calcula a fingerprint SHA256 de uma chave pública SSH no formato OpenSSH
+/// (`SHA256:<base64-sem-padding>`), usada para verificação de host key (TOFU).
+fn compute_fingerprint(key: &russh::keys::key::PublicKey) -> String {
+    use base64::engine::general_purpose::STANDARD_NO_PAD;
+    use base64::Engine;
+    use russh::keys::PublicKeyBase64;
+    use sha2::{Digest, Sha256};
+    let digest = Sha256::digest(key.public_key_bytes());
+    format!("SHA256:{}", STANDARD_NO_PAD.encode(digest))
+}
 
 // Módulo de testes unitários para funções puras do SftpProvider
 #[cfg(test)]
@@ -18,6 +29,7 @@ mod tests {
             username: "user".to_string(),
             password: "pass".to_string(),
             base_path: base_path.to_string(),
+            expected_fingerprint: None,
         }
     }
 
@@ -67,6 +79,55 @@ mod tests {
         assert!(SftpProvider::validate_remote_path("").is_ok());
         assert!(SftpProvider::validate_remote_path("a..b/file.mp4").is_ok());
     }
+
+    // ── Verificação de host key (C1) ──────────────────────────────────────────
+
+    #[test]
+    fn host_key_modo_descoberta_aceita_qualquer_fingerprint() {
+        // expected=None (TOFU descoberta): aceita para captar a fingerprint
+        assert!(fingerprint_is_trusted(&None, "SHA256:qualquer"));
+    }
+
+    #[test]
+    fn host_key_aceita_fingerprint_coincidente() {
+        let expected = Some("SHA256:abc123".to_string());
+        assert!(fingerprint_is_trusted(&expected, "SHA256:abc123"));
+    }
+
+    #[test]
+    fn host_key_rejeita_fingerprint_divergente() {
+        // Divergência = possível MITM → rejeitar
+        let expected = Some("SHA256:abc123".to_string());
+        assert!(!fingerprint_is_trusted(&expected, "SHA256:OUTRA"));
+    }
+
+    #[test]
+    fn new_le_host_fingerprint_do_config() {
+        let config =
+            serde_json::json!({ "host": "h", "port": 22, "hostFingerprint": "SHA256:xyz" });
+        let creds = serde_json::json!({ "username": "u", "password": "p" });
+        let p = SftpProvider::new(&config, &creds).unwrap();
+        assert_eq!(p.expected_fingerprint.as_deref(), Some("SHA256:xyz"));
+    }
+
+    #[test]
+    fn new_sem_fingerprint_fica_nao_confiavel() {
+        let config = serde_json::json!({ "host": "h", "port": 22 });
+        let creds = serde_json::json!({ "username": "u", "password": "p" });
+        let p = SftpProvider::new(&config, &creds).unwrap();
+        assert!(p.expected_fingerprint.is_none());
+    }
+
+    #[tokio::test]
+    async fn open_sftp_recusa_host_nao_confiavel_sem_ligar() {
+        // Sem fingerprint confiável, open_sftp falha imediatamente (sem rede).
+        let p = make_provider("host", "/uploads");
+        let err = match p.open_sftp().await {
+            Ok(_) => panic!("esperava erro de host não confiável"),
+            Err(e) => e,
+        };
+        assert!(err.contains("não confiável"), "mensagem inesperada: {err}");
+    }
 }
 
 pub struct SftpProvider {
@@ -75,6 +136,9 @@ pub struct SftpProvider {
     username: String,
     password: String,
     base_path: String,
+    /// Fingerprint SHA256 da host key em que o utilizador confiou (TOFU).
+    /// `None` = host ainda não confiado; operações de I/O são recusadas.
+    expected_fingerprint: Option<String>,
 }
 
 impl SftpProvider {
@@ -91,6 +155,10 @@ impl SftpProvider {
                 .ok_or_else(|| "username é obrigatório".to_string())?
                 .to_string(),
             password: creds["password"].as_str().unwrap_or("").to_string(),
+            expected_fingerprint: config["hostFingerprint"]
+                .as_str()
+                .filter(|s| !s.is_empty())
+                .map(|s| s.to_string()),
         })
     }
 
@@ -111,12 +179,39 @@ impl SftpProvider {
         }
     }
 
-    async fn open_sftp(&self) -> Result<SftpSession, String> {
+    /// Liga ao servidor verificando a host key contra `expected`.
+    /// Devolve o handle autenticado e o estado partilhado com a fingerprint observada.
+    async fn connect_handle(
+        &self,
+        expected: Option<String>,
+    ) -> Result<(client::Handle<SshHandler>, Arc<Mutex<Option<String>>>), String> {
+        let observed = Arc::new(Mutex::new(None));
+        let handler = SshHandler {
+            expected: expected.clone(),
+            observed: observed.clone(),
+        };
         let config = Arc::new(client::Config::default());
         let addr = (self.host.as_str(), self.port);
-        let mut handle = client::connect(config, addr, SshHandler)
-            .await
-            .map_err(|e| format!("Ligação SFTP falhou em {}:{}: {e}", self.host, self.port))?;
+        let mut handle = match client::connect(config, addr, handler).await {
+            Ok(h) => h,
+            Err(e) => {
+                // Se capturámos uma fingerprint diferente da esperada, a ligação foi
+                // recusada por divergência de host key (possível MITM).
+                if let (Some(exp), Some(obs)) = (&expected, observed.lock().unwrap().clone()) {
+                    if exp != &obs {
+                        return Err(format!(
+                            "Identidade do servidor SFTP mudou! Esperado {exp}, recebido {obs}. \
+                             Ligação recusada (possível ataque MITM). Se a mudança for legítima, \
+                             edite o perfil e confirme a nova identidade do servidor."
+                        ));
+                    }
+                }
+                return Err(format!(
+                    "Ligação SFTP falhou em {}:{}: {e}",
+                    self.host, self.port
+                ));
+            }
+        };
         let authenticated = handle
             .authenticate_password(&self.username, &self.password)
             .await
@@ -124,6 +219,26 @@ impl SftpProvider {
         if !matches!(authenticated, russh::client::AuthResult::Success) {
             return Err("Autenticação SFTP rejeitada pelo servidor".to_string());
         }
+        Ok((handle, observed))
+    }
+
+    /// Liga em modo descoberta (sem verificação) e devolve a fingerprint SHA256 da
+    /// host key do servidor — usado pelo fluxo TOFU para confirmação do utilizador.
+    pub async fn probe_fingerprint(&self) -> Result<String, String> {
+        let (_handle, observed) = self.connect_handle(None).await?;
+        let fingerprint = observed.lock().unwrap().clone();
+        fingerprint
+            .ok_or_else(|| "Não foi possível obter a identidade do servidor SFTP".to_string())
+    }
+
+    async fn open_sftp(&self) -> Result<SftpSession, String> {
+        // Recusa operações de I/O se o host ainda não foi confiado (TOFU).
+        let expected = self.expected_fingerprint.clone().ok_or_else(|| {
+            "Servidor SFTP não confiável — abra o perfil, teste a ligação e confirme a \
+             identidade do servidor antes de carregar ou transferir ficheiros."
+                .to_string()
+        })?;
+        let (handle, _observed) = self.connect_handle(Some(expected)).await?;
         let channel = handle
             .channel_open_session()
             .await
@@ -138,16 +253,32 @@ impl SftpProvider {
     }
 }
 
-struct SshHandler;
+struct SshHandler {
+    /// Fingerprint confiável esperada. `None` = modo descoberta (aceita e capta).
+    expected: Option<String>,
+    /// Fingerprint observada do servidor, captada durante o handshake.
+    observed: Arc<Mutex<Option<String>>>,
+}
 
 impl client::Handler for SshHandler {
     type Error = russh::Error;
 
     async fn check_server_key(
         &mut self,
-        _server_public_key: &ssh_key::PublicKey,
+        server_public_key: &russh::keys::key::PublicKey,
     ) -> Result<bool, Self::Error> {
-        Ok(true)
+        let fingerprint = compute_fingerprint(server_public_key);
+        *self.observed.lock().unwrap() = Some(fingerprint.clone());
+        Ok(fingerprint_is_trusted(&self.expected, &fingerprint))
+    }
+}
+
+/// Decisão de confiança da host key (lógica pura, testável sem rede).
+/// `None` esperado = modo descoberta (aceita). Caso contrário só aceita igualdade exacta.
+fn fingerprint_is_trusted(expected: &Option<String>, observed: &str) -> bool {
+    match expected {
+        None => true,
+        Some(expected) => expected == observed,
     }
 }
 

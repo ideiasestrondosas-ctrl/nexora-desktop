@@ -373,13 +373,38 @@ pub fn find_asset_by_path(path: String, state: State<AppState>) -> Result<Option
     Ok(result)
 }
 
+/// Valida que o caminho corresponde a um asset registado na BD antes de servir o
+/// seu conteúdo ao webview. Defesa-em-profundidade contra leitura arbitrária de
+/// ficheiros via IPC (ex.: ~/.ssh, ficheiros de sistema) — o frontend só pede
+/// caminhos que vieram de registos de assets. [M1]
+fn assert_registered_asset(db: &rusqlite::Connection, path: &str) -> Result<(), String> {
+    let known: Option<i64> = db
+        .query_row(
+            "SELECT 1 FROM assets \
+             WHERE path=?1 OR output_path=?1 OR thumbnail_path=?1 OR thumbnail_output_path=?1 \
+             LIMIT 1",
+            [path],
+            |r| r.get(0),
+        )
+        .optional()
+        .map_err(|e| e.to_string())?;
+    if known.is_none() {
+        return Err("Acesso negado: o caminho não corresponde a um asset conhecido".to_string());
+    }
+    Ok(())
+}
+
 /// Lê um ficheiro de thumbnail e devolve conteúdo como base64.
 /// Usado como fallback quando o asset protocol falha (scope/CSP).
 /// Só para ficheiros pequenos (thumbnails ~50KB) — não usar para vídeos.
 #[tauri::command]
-pub fn read_thumbnail_base64(path: String) -> Result<String, String> {
+pub fn read_thumbnail_base64(path: String, state: State<AppState>) -> Result<String, String> {
     use base64::engine::general_purpose::STANDARD;
     use base64::Engine;
+    {
+        let db = state.db.lock().map_err(|e| e.to_string())?;
+        assert_registered_asset(&db, &path)?;
+    }
     let bytes = std::fs::read(&path).map_err(|e| format!("read_thumbnail_base64: {e}"))?;
     Ok(STANDARD.encode(bytes))
 }
@@ -388,9 +413,13 @@ pub fn read_thumbnail_base64(path: String) -> Result<String, String> {
 /// Fallback quando o asset protocol não serve o ficheiro (Windows scope mismatch).
 /// Para ficheiros maiores retorna Err("FILE_TOO_LARGE:{bytes}").
 #[tauri::command]
-pub fn read_video_base64(path: String) -> Result<String, String> {
+pub fn read_video_base64(path: String, state: State<AppState>) -> Result<String, String> {
     use base64::engine::general_purpose::STANDARD;
     use base64::Engine;
+    {
+        let db = state.db.lock().map_err(|e| e.to_string())?;
+        assert_registered_asset(&db, &path)?;
+    }
 
     let metadata = std::fs::metadata(&path).map_err(|e| format!("read_video_base64: {e}"))?;
 
@@ -401,4 +430,34 @@ pub fn read_video_base64(path: String) -> Result<String, String> {
 
     let bytes = std::fs::read(&path).map_err(|e| format!("read_video_base64: {e}"))?;
     Ok(STANDARD.encode(bytes))
+}
+
+#[cfg(test)]
+mod m1_tests {
+    use super::assert_registered_asset;
+    use rusqlite::Connection;
+
+    fn db_com_asset(path: &str) -> Connection {
+        let db = Connection::open_in_memory().unwrap();
+        db.execute_batch(
+            "CREATE TABLE assets (path TEXT, output_path TEXT, thumbnail_path TEXT, thumbnail_output_path TEXT);",
+        )
+        .unwrap();
+        db.execute("INSERT INTO assets VALUES (?1, NULL, NULL, NULL)", [path])
+            .unwrap();
+        db
+    }
+
+    #[test]
+    fn aceita_caminho_de_asset_registado() {
+        let db = db_com_asset("/videos/clip.mp4");
+        assert!(assert_registered_asset(&db, "/videos/clip.mp4").is_ok());
+    }
+
+    #[test]
+    fn rejeita_caminho_arbitrario() {
+        let db = db_com_asset("/videos/clip.mp4");
+        let err = assert_registered_asset(&db, "/home/user/.ssh/id_rsa").unwrap_err();
+        assert!(err.contains("Acesso negado"));
+    }
 }
