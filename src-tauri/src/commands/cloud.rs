@@ -153,6 +153,40 @@ pub async fn test_cloud_connection(
     provider.test_connection().await
 }
 
+/// Resultado da sondagem TOFU de um host SFTP.
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SftpHostProbe {
+    /// Fingerprint SHA256 da host key (`SHA256:...`).
+    pub fingerprint: String,
+    /// True se coincidir com o `hostFingerprint` já guardado no config do perfil.
+    pub matches_stored: bool,
+}
+
+/// Liga ao servidor SFTP em modo descoberta e devolve a fingerprint da host key,
+/// para o utilizador confirmar a identidade (Trust-On-First-Use) antes de confiar.
+#[tauri::command]
+pub async fn sftp_probe_host(
+    config_json: String,
+    credentials_json: String,
+) -> Result<SftpHostProbe, String> {
+    let config: serde_json::Value =
+        serde_json::from_str(&config_json).map_err(|e| e.to_string())?;
+    let creds: serde_json::Value =
+        serde_json::from_str(&credentials_json).map_err(|e| e.to_string())?;
+    let provider = cloud::sftp::SftpProvider::new(&config, &creds)?;
+    let fingerprint = provider.probe_fingerprint().await?;
+    let matches_stored = config
+        .get("hostFingerprint")
+        .and_then(|v| v.as_str())
+        .map(|s| s == fingerprint)
+        .unwrap_or(false);
+    Ok(SftpHostProbe {
+        fingerprint,
+        matches_stored,
+    })
+}
+
 #[tauri::command]
 pub fn get_job_cloud_destinations(
     job_id: String,
