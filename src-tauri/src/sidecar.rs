@@ -72,8 +72,7 @@ pub fn resolve_media_binary_path<R: Runtime>(app: &AppHandle<R>, name: &str) -> 
                     for entry in entries.flatten() {
                         let fname = entry.file_name();
                         let fname_str = fname.to_string_lossy();
-                        if fname_str.starts_with(&format!("{}-", name))
-                            && fname_str.ends_with(ext)
+                        if fname_str.starts_with(&format!("{}-", name)) && fname_str.ends_with(ext)
                         {
                             let candidate = entry.path();
                             if is_real_binary(&candidate) {
