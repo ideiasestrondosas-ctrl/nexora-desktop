@@ -255,18 +255,20 @@
 
 ---
 
-### Fase 30 - Fix CI ESLint + Release v0.31.5-beta.1 (Sessoes 56-58) -- CONCLUIDO
+### Fase 30 - Fix CI ESLint + Build + Release v0.31.5-beta.1 (Sessoes 56-58) -- CONCLUIDO
 
-**Objectivo:** Fix nome video nao aparecia na fila; release v0.31.5-beta.1; fix CI ESLint Mojibake.
+**Objectivo:** Fix nome video nao aparecia na fila; release v0.31.5-beta.1; fix CI ESLint Mojibake; build e publicacao da release com instaladores.
 
 **Implementacao:**
 
-- [x] fix(queue): `src-tauri/src/commands/jobs.rs` — `submit_job` consulta `assets.filename` antes de retornar Job (filename nao era `None`) (`33fadf5`)
-- [x] chore(release): v0.31.5-beta.1 publicada — merge dev → main, tag, GitHub Release (`8993a4d` / `f19f5a1`)
-- [x] fix(lint): `src/lib/version.ts` — remover JSDoc com Mojibake/whitespace irregular (U+00A0) que causava ESLint `no-irregular-whitespace` no CI (`3c21bf6` dev / `4e2ca4a` main)
-- [x] toolchain: `rustup update` 1.95 → 1.96 — resolve rust-analyzer crash local exit code 1
+- [x] fix(queue): `src-tauri/src/commands/jobs.rs` — `submit_job` consulta `assets.filename` antes de retornar Job (`33fadf5`)
+- [x] chore(release): v0.31.5-beta.1 — merge dev → main, tag, GitHub Release draft (`8993a4d` / `f19f5a1`)
+- [x] fix(lint): `src/lib/version.ts` — remover JSDoc com Mojibake/whitespace irregular (U+00A0), ESLint `no-irregular-whitespace` (`3c21bf6` dev / `4e2ca4a` main)
+- [x] toolchain: `rustup update` 1.95 → 1.96 — resolve rust-analyzer crash exit code 1
+- [x] re-tag `v0.31.5-beta.1` de `8993a4d` para `6ce5270` — Build re-disparado, passou nas 3 plataformas
+- [x] `gh release edit --draft=false --latest` — release publicada com instaladores Windows/macOS/Linux
 
-**Estado:** `dev` @ `3c21bf6`, `main` @ `4e2ca4a`. CI a retestar. rust-analyzer actualizado.
+**Estado:** `dev` @ `b9069e8`, `main` @ `6ce5270`. CI verde. Release v0.31.5-beta.1 Latest com todos os instaladores.
 
 ---
 

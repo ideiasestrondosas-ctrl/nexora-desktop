@@ -10,33 +10,40 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
-### Sessao 58 — Fix CI ESLint Mojibake em version.ts — CONCLUIDO
+### Sessao 58 — Fix CI ESLint + Build + Release v0.31.5-beta.1 — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)
 **Data:** 2026-06-02
 
-**Resumo:** Fix ESLint CI failure causado por whitespace irregular em comentario JSDoc de version.ts + diagnostico rust-analyzer.
+**Resumo:** Fix ESLint CI (Mojibake em version.ts), re-tag e build das 3 plataformas, publicacao da release v0.31.5-beta.1 como Latest.
 
-**Root cause:** O bloco JSDoc no topo de `src/lib/version.ts` continha bytes U+00A0 e similares embutidos em Mojibake UTF-8 duplo acumulado ao longo de releases anteriores. ESLint `no-irregular-whitespace` rejeita esses bytes em comentarios (strings ficam imunes por `skipStrings: true`). O `sync.ps1` agravam o Mojibake ao re-encodar o ficheiro em cada release via `Get-Content -Raw`.
+**Root cause ESLint:** Bloco JSDoc no topo de `src/lib/version.ts` com bytes U+00A0 (Mojibake UTF-8 duplo acumulado). ESLint `no-irregular-whitespace` rejeita em comentarios. Fix: remover o JSDoc de 5 linhas.
 
-**Correccao:**
+**Root cause Build sem assets:** A tag `v0.31.5-beta.1` apontava para `8993a4d` (pre-fix). Build correu antes do fix e falhou no Quality Gate. Release ficou draft sem instaladores.
 
-- `src/lib/version.ts`: remover bloco JSDoc de 5 linhas. Codigo auto-explicativo; `sync.ps1` nao regenera o comentario logo bug nao reaparecer.
-- cherry-pick aplicado a `main` (o merge de dev para main ja tinha propagado o bug).
+**Correccoes:**
 
-**rust-analyzer crash:** `cargo check` compila limpo — problema era toolchain local. `rustup update` 1.95 → 1.96 resolveu.
+- `src/lib/version.ts`: remover bloco JSDoc corrompido
+- Re-tag `v0.31.5-beta.1` de `8993a4d` para `6ce5270` (main HEAD)
+- Build re-disparado: Quality Gate + Linux (12m) + Windows (20m) + macOS (12m) + generate-updater-json — todos verdes
+- `gh release edit --draft=false --latest` para publicar
+
+**rust-analyzer crash:** `rustup update` 1.95 → 1.96 resolveu.
 
 **Commits:**
 
 - `3c21bf6` dev — fix(lint): remover JSDoc com Mojibake de version.ts
 - `4e2ca4a` main — cherry-pick do mesmo fix
+- `dfb0118` dev — docs(session): sessao 58
+- `b9069e8` dev — Cargo.lock + release-notes (sync.ps1)
+- `6ce5270` main — Merge branch 'dev'
 
-**Estado final:** `dev` @ `3c21bf6`, `main` @ `4e2ca4a`. Ambas pushed. CI a retestar.
+**Estado final:** `dev` @ `b9069e8`, `main` @ `6ce5270`. Release v0.31.5-beta.1 Latest com instaladores Windows/macOS/Linux.
 
 **Notas para o proximo agente:**
 
-- `version.ts` ja nao tem comentario JSDoc — nao re-adicionar.
-- Se o CI passar, proximas tarefas sao os Dependabot PRs (cargo: notify/rusqlite/russh/sysinfo/zip; npm: cross-env/typescript-eslint/tauri-plugins; actions: upload/download-artifact).
+- `version.ts` sem JSDoc — nao re-adicionar; `sync.ps1` nao o regenera.
+- Dependabot PRs pendentes: npm (cross-env, typescript-eslint, tauri-plugins) e possivelmente github-actions.
 
 ---
 
