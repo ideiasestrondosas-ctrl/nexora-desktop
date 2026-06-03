@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS cloud_profiles (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,
     provider    TEXT NOT NULL
-                    CHECK(provider IN ('ftp','sftp','smb','s3','gdrive','icloud')),
+                    CHECK(provider IN ('ftp','sftp','smb','s3','gdrive','gdrive_personal','dropbox','icloud')),
     config      TEXT NOT NULL,
     created_at  TEXT NOT NULL
 );
