@@ -6,6 +6,7 @@ import {
   X,
   Loader2,
   CheckCircle2,
+  Check,
   Copy,
   ExternalLink,
   ShieldAlert,
@@ -44,6 +45,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
   const [gdriveAuthUrl, setGdriveAuthUrl] = useState('');
   const [gdriveUserCode, setGdriveUserCode] = useState('');
   const [gdrivePolling, setGdrivePolling] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   // Confirmação TOFU da host key SFTP (C1)
   const [fpPrompt, setFpPrompt] = useState<{
     fingerprint: string;
@@ -461,11 +463,19 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
                       </strong>
                       <button
                         type="button"
-                        onClick={() => navigator.clipboard.writeText(gdriveUserCode)}
+                        onClick={() => {
+                          navigator.clipboard.writeText(gdriveUserCode);
+                          setCodeCopied(true);
+                          setTimeout(() => setCodeCopied(false), 2000);
+                        }}
                         title="Copiar código"
-                        className="text-text-muted hover:text-text-primary transition-colors"
+                        className="transition-colors"
                       >
-                        <Copy size={12} />
+                        {codeCopied ? (
+                          <Check size={12} className="text-green-500" />
+                        ) : (
+                          <Copy size={12} className="text-text-muted hover:text-text-primary" />
+                        )}
                       </button>
                     </div>
                   </div>
