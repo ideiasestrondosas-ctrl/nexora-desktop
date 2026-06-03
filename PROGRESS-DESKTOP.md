@@ -1,3 +1,22 @@
+## [Sessao 64] 2026-06-03 — Fix OAuth cloud (Dropbox port + GDrive help + icon tema claro)
+
+### Concluido
+
+- [x] CloudProfileModal.tsx: icone ? — idle text-text-muted -> text-text-secondary (visivel em tema claro)
+- [x] CloudProfileModal.tsx: painel ajuda — cores blue-300/200 -> text-text-primary/secondary (tokens semanticos)
+- [x] commands/cloud.rs: Dropbox oauth_connect — porta fixa 8475 (redirect_uri = http://127.0.0.1:8475)
+- [x] store/cloud.ts: PROVIDER_HELP Dropbox — URI exacto a registar no App Console
+- [x] store/cloud.ts: PROVIDER_HELP GDrive Personal — aviso Desktop app + formato client_id + utilizadores de teste
+
+### Pendente
+
+- [ ] Teste manual OAuth Dropbox (registar http://127.0.0.1:8475 no App Console)
+- [ ] Teste manual OAuth GDrive Personal (cliente "Desktop app" no Google Cloud Console)
+- [ ] Teste manual SFTP end-to-end (1a ligacao / repeticao / mismatch MITM)
+- [ ] media-binaries.lock.json macOS (requer --write-lock em maquina macOS)
+
+---
+
 ## [Sessao 62] 2026-06-02 — Auditoria de seguranca defensiva + correccoes (0.32.0-beta.1)
 
 ### Concluido

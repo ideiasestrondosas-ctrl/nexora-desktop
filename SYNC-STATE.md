@@ -5,10 +5,44 @@
 
 ---
 
-Actualizado: 2026-06-02
+Actualizado: 2026-06-03
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 64 — Fix OAuth cloud (Dropbox port + GDrive help + icon tema claro) — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-03
+
+**Resumo:** Corrigidos 2 bugs OAuth e 1 problema de visibilidade de UI. Dropbox falhava
+com "Invalid redirect_uri" porque o URI era dinamico; agora usa porta fixa 8475.
+GDrive Personal dava 401 invalid_client por instrucoes ambiguas; PROVIDER_HELP
+actualizado com aviso "Desktop app obrigatorio", formato do client_id e utilizadores
+de teste. Icone ? no modal cloud estava invisivel no tema claro; cores migradas
+para tokens semanticos (text-text-secondary / bg-bg-secondary) que comutam
+automaticamente com o tema.
+
+**Alteracoes:**
+
+- `src/components/CloudProfileModal.tsx` — icone ? idle: text-text-muted -> text-text-secondary;
+  painel ajuda: text-blue-300/200 -> text-text-primary/secondary (visivel em tema claro)
+- `src-tauri/src/commands/cloud.rs` — Dropbox: porta fixa 8475, redirect_uri = http://127.0.0.1:8475
+- `src/store/cloud.ts` — PROVIDER_HELP Dropbox: URI exacto a registar (porta 8475);
+  PROVIDER_HELP GDrive Personal: aviso Desktop app obrigatorio + formato client_id + utilizadores de teste
+
+**Config global:**
+
+- ~/.claude/settings.json — CLAUDE_CODE_USE_POWERSHELL_TOOL=1 adicionado ao env
+
+**Pendente proximo agente:**
+
+- Teste manual OAuth: Dropbox com URI http://127.0.0.1:8475 registado no App Console
+- Teste manual OAuth: GDrive Personal com cliente "Desktop app" no Google Cloud Console
+- Teste manual SFTP end-to-end (pendente desde sessao 62)
+- media-binaries.lock.json macOS (requer --write-lock em maquina macOS)
+
+---
 
 ### Sessao 63 — Release v0.32.0-beta.1 + Fixes sync.ps1 — CONCLUIDO
 

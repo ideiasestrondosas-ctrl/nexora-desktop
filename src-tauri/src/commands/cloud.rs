@@ -585,12 +585,14 @@ pub async fn oauth_connect(
     };
 
     let pkce = cloud::oauth::generate_pkce();
-    let port = cloud::oauth::find_free_port()?;
-    // Google aceita http://127.0.0.1 com qualquer porta.
-    // Dropbox aceita http://localhost com qualquer porta (registar só "http://localhost" no App Console).
-    let redirect_uri = match oauth_provider {
-        cloud::oauth::OAuthProvider::GDrive => format!("http://127.0.0.1:{port}/callback"),
-        cloud::oauth::OAuthProvider::Dropbox => format!("http://localhost:{port}/callback"),
+    // Google ignora a porta para URIs 127.0.0.1 em apps Desktop → porta dinâmica OK.
+    // Dropbox exige match exacto → porta fixa 8475; utilizador regista http://127.0.0.1:8475
+    let (port, redirect_uri) = match oauth_provider {
+        cloud::oauth::OAuthProvider::GDrive => {
+            let p = cloud::oauth::find_free_port()?;
+            (p, format!("http://127.0.0.1:{p}/callback"))
+        }
+        cloud::oauth::OAuthProvider::Dropbox => (8475u16, "http://127.0.0.1:8475".to_string()),
     };
 
     let auth_url = match oauth_provider {

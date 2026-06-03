@@ -322,7 +322,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
                   type="button"
                   onClick={() => setShowHelp((v) => !v)}
                   title="Como configurar este provider"
-                  className={`transition-colors ${showHelp ? 'text-blue-400' : 'text-text-muted hover:text-text-primary'}`}
+                  className={`transition-colors ${showHelp ? 'text-blue-600' : 'text-text-secondary hover:text-text-primary'}`}
                 >
                   <HelpCircle size={18} />
                 </button>
@@ -337,11 +337,11 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
           </div>
 
           {showHelp && PROVIDER_HELP[provider] && (
-            <div className="mx-6 mt-4 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
-              <p className="text-xs font-semibold text-blue-300 mb-1.5">
+            <div className="mx-6 mt-4 rounded-lg border border-border bg-bg-secondary p-3">
+              <p className="text-xs font-semibold text-text-primary mb-1.5">
                 Como configurar: {PROVIDER_LABELS[provider]}
               </p>
-              <pre className="text-xs text-blue-200/80 whitespace-pre-wrap leading-relaxed">
+              <pre className="text-xs text-text-secondary whitespace-pre-wrap leading-relaxed">
                 {PROVIDER_HELP[provider]}
               </pre>
             </div>
