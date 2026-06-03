@@ -118,6 +118,22 @@ mod tests {
     }
 
     #[test]
+    fn new_fails_with_empty_email() {
+        let err = MegaProvider::new(
+            &serde_json::json!({ "base_path": "A", "email": "" }),
+            &creds(),
+        )
+        .unwrap_err();
+        assert!(err.contains("Email"));
+    }
+
+    #[test]
+    fn new_fails_with_empty_password() {
+        let err = MegaProvider::new(&cfg("A"), &serde_json::json!({ "password": "" })).unwrap_err();
+        assert!(err.contains("Password"));
+    }
+
+    #[test]
     fn full_path_empty_subpath_returns_root_path() {
         let p = MegaProvider::new(&cfg("Nexora/Output"), &creds()).unwrap();
         assert_eq!(p.full_path(""), "/Root/Nexora/Output");
