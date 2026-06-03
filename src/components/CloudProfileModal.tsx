@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
@@ -54,6 +54,10 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
   const [oauthStatus, setOauthStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
   const [oauthAccountInfo, setOauthAccountInfo] = useState('');
   const [showHelp, setShowHelp] = useState(false);
+  // Ref síncrono para tokens OAuth — evita race condition entre toast e commit de estado React.
+  // O toast.success aparece antes do React commitar os setField(), então handleTest pode
+  // executar a partir de um closure stale sem oauth_token em fields. O ref é sempre actual.
+  const oauthTokensRef = useRef<{ token: string; refresh: string } | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -82,6 +86,7 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
       setFields({});
       setOauthStatus('idle');
       setOauthAccountInfo('');
+      oauthTokensRef.current = null;
     }
   }, [open, editing]);
 
@@ -113,6 +118,12 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
       if (credKeys.includes(k)) creds[k] = v;
       else config[k] = v;
     });
+    // Para providers PKCE: injectar token do ref síncrono se fields ainda não o tiver
+    // (o ref é actualizado antes do toast, pelo que é sempre mais recente que o estado React)
+    if ((provider === 'gdrive_personal' || provider === 'dropbox') && oauthTokensRef.current) {
+      creds['oauth_token'] = oauthTokensRef.current.token;
+      if (oauthTokensRef.current.refresh) creds['oauth_refresh'] = oauthTokensRef.current.refresh;
+    }
     return { config, creds };
   };
 
@@ -288,6 +299,13 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
         provider,
         clientId,
       });
+      // Guardar no ref de forma SÍNCRONA antes do toast — evita race condition onde
+      // o toast aparece antes do React commitar os setField(), fazendo handleTest
+      // executar a partir de um closure stale sem oauth_token.
+      oauthTokensRef.current = {
+        token: tokens.accessToken,
+        refresh: tokens.refreshToken ?? '',
+      };
       setField('oauth_token', tokens.accessToken);
       setField('oauth_refresh', tokens.refreshToken ?? '');
       setField('account_info', tokens.accountInfo);
@@ -528,8 +546,8 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
           <div className="px-6 pb-6 flex justify-between">
             <button
               onClick={handleTest}
-              disabled={testing}
-              className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary border border-border rounded px-3 py-1.5"
+              disabled={testing || oauthStatus === 'connecting'}
+              className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary border border-border rounded px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {testing ? (
                 <Loader2 size={14} className="animate-spin" />
