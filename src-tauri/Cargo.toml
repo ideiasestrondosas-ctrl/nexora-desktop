@@ -47,6 +47,8 @@ tauri-plugin-clipboard-manager = "2.3.2"
 tauri-plugin-process = "2"
 tauri-plugin-os = "2"
 keyring = { version = "3", features = ["windows-native", "apple-native"] }
+mega = "0.8"
+tokio-util = { version = "0.7", features = ["compat"] }
 window-vibrancy = "0.5"
 notify = "8"
 
