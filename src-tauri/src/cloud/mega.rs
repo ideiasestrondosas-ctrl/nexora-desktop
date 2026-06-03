@@ -1,6 +1,7 @@
 use super::provider::{CloudProvider, RemoteFile};
 use async_trait::async_trait;
 use std::path::Path;
+use tokio_util::compat::TokioAsyncReadCompatExt;
 
 #[derive(Debug)]
 pub struct MegaProvider {
@@ -73,8 +74,45 @@ impl CloudProvider for MegaProvider {
         Ok(())
     }
 
-    async fn upload(&self, _local_path: &Path, _remote_path: &str) -> Result<String, String> {
-        todo!()
+    async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
+        let filename = Path::new(remote_path)
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+
+        let file = tokio::fs::File::open(local_path)
+            .await
+            .map_err(|e| format!("MEGA: falha ao ler ficheiro local: {e}"))?;
+        let size = file
+            .metadata()
+            .await
+            .map_err(|e| format!("MEGA: falha ao ler metadata: {e}"))?
+            .len();
+        let reader = file.compat();
+
+        let http_client = reqwest::Client::new();
+        let mut mega = mega::Client::builder()
+            .build(http_client)
+            .map_err(|e| format!("MEGA: falha ao criar cliente: {e}"))?;
+        mega.login(&self.email, &self.password, None)
+            .await
+            .map_err(|_| "MEGA: credenciais inválidas — verifique email e password".to_string())?;
+
+        let nodes = mega
+            .fetch_own_nodes()
+            .await
+            .map_err(|e| format!("MEGA inacessível: {e}"))?;
+        let root_path = format!("/Root/{}", self.base_path);
+        let parent = nodes
+            .get_node_by_path(&root_path)
+            .ok_or_else(|| format!("Pasta '{}' não encontrada no MEGA. Crie-a primeiro em mega.nz", self.base_path))?;
+
+        mega.upload_node(parent, &filename, size, reader, mega::LastModified::Now)
+            .await
+            .map_err(|e| format!("MEGA upload falhou: {e}"))?;
+
+        Ok(format!("{}/{}", self.base_path, filename))
     }
 
     async fn download(&self, _remote_path: &str, _local_path: &Path) -> Result<(), String> {
