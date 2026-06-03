@@ -10,6 +10,46 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 64 (continuacao) — Fix OAuth GDrive Personal end-to-end — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-03
+
+**Resumo:** Sessao extensa de debug OAuth GDrive Personal. Apos fixes anteriores (Dropbox OK),
+o GDrive Personal continuava a falhar. Identificados e corrigidos 4 bugs adicionais:
+(1) token exchange falhava — Google Desktop app requer client_secret mesmo com PKCE;
+(2) modal fechava acidentalmente via Escape/clique-fora durante OAuth — tokens perdidos;
+(3) token refresh falhava com invalid_request — client_secret tambem obrigatorio no refresh;
+(4) modal overflow com painel de ajuda — botoes inacessiveis.
+
+**Commits:**
+
+- `ea2109e` feat(cloud): feedback visual verde ao copiar codigo GDrive Device Flow
+- `e72bfec` fix(cloud): bloquear Escape/clique fora do modal durante e apos OAuth
+- `4de65c4` fix(cloud): client_secret no refresh GDrive + modal scrollavel
+
+**Alteracoes principais:**
+
+- `src/store/cloud.ts`: gdrive_personal adiciona campo Client Secret obrigatorio
+- `src/components/CloudProfileModal.tsx`: Escape bloqueado; max-h-[90vh] + scroll; feedback copiar
+- `src-tauri/src/cloud/oauth.rs`: exchange_code e refresh_if_needed incluem client_secret opcional
+- `src-tauri/src/commands/cloud.rs`: oauth_connect aceita client_secret parametro
+
+**Estado dos providers:**
+
+- Dropbox: FUNCIONAL (porta 8475; WinCredential confirmado nos logs)
+- GDrive Personal: FUNCIONAL (perfil criado; browse a verificar apos fix refresh)
+- GDrive (Device Flow): FUNCIONAL (nao alterado)
+- SFTP: NAO TESTADO end-to-end
+
+**Pendente proximo agente:**
+
+1. Verificar browse GDrive Personal (novo perfil com client_secret correcto)
+2. Teste manual SFTP end-to-end
+3. media-binaries.lock.json macOS (requer --write-lock em maquina macOS)
+
+---
+
 ### Sessao 64 — Fix OAuth cloud (Dropbox port + GDrive help + icon tema claro) — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)

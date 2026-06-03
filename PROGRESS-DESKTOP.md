@@ -1,4 +1,4 @@
-## [Sessao 64] 2026-06-03 — Fix OAuth cloud (Dropbox port + GDrive help + icon tema claro)
+## [Sessao 64] 2026-06-03 — Fix OAuth cloud completo (Dropbox + GDrive Personal end-to-end)
 
 ### Concluido
 
@@ -7,11 +7,21 @@
 - [x] commands/cloud.rs: Dropbox oauth_connect — porta fixa 8475 (redirect_uri = http://127.0.0.1:8475)
 - [x] store/cloud.ts: PROVIDER_HELP Dropbox — URI exacto a registar no App Console
 - [x] store/cloud.ts: PROVIDER_HELP GDrive Personal — aviso Desktop app + formato client_id + utilizadores de teste
+- [x] credentials/mod.rs: keyring v3 requer features windows-native/apple-native explicitas (MockCredential nao persiste)
+- [x] cloud.rs oauth_connect: corrigir race condition oauth_token via useRef sincrono antes do toast (`45a83f7`)
+- [x] migrations: dropbox e gdrive_personal adicionados ao CHECK constraint da BD (`5187089`)
+- [x] CloudProfileModal.tsx: feedback visual verde (Check) ao copiar codigo GDrive Device Flow (`ea2109e`)
+- [x] CloudProfileModal.tsx: Escape e clique-fora bloqueados durante/apos OAuth — modal nao fecha acidentalmente (`e72bfec`)
+- [x] store/cloud.ts: gdrive_personal adiciona campo Client Secret (Google Desktop app requer-no no token exchange)
+- [x] cloud/oauth.rs: exchange_code inclui client_secret opcional no POST (`4de65c4`)
+- [x] cloud/oauth.rs: refresh_if_needed le client_secret das creds do keychain e inclui no POST de refresh (`4de65c4`)
+- [x] CloudProfileModal.tsx: max-h-[90vh] + scroll interno — painel ajuda (?) nao bloqueia botoes (`4de65c4`)
+- [x] Teste manual OAuth Dropbox — PASSOU (keyring WinCredential set secret confirmado nos logs)
+- [x] Teste manual OAuth GDrive Personal — PASSOU (perfil criado com sucesso apos fixes)
 
 ### Pendente
 
-- [ ] Teste manual OAuth Dropbox (registar http://127.0.0.1:8475 no App Console)
-- [ ] Teste manual OAuth GDrive Personal (cliente "Desktop app" no Google Cloud Console)
+- [ ] Verificar browse GDrive Personal (fix refresh client_secret aplicado — nao retestado ainda)
 - [ ] Teste manual SFTP end-to-end (1a ligacao / repeticao / mismatch MITM)
 - [ ] media-binaries.lock.json macOS (requer --write-lock em maquina macOS)
 
