@@ -58,10 +58,48 @@ export const PROVIDER_LABELS: Record<CloudProviderType, string> = {
 };
 
 export const PROVIDER_HELP: Record<CloudProviderType, string | null> = {
-  ftp: null,
-  sftp: null,
-  smb: null,
-  s3: null,
+  ftp: [
+    '1. Introduza o endereço do servidor FTP no campo Host',
+    '   (ex: ftp.exemplo.com ou 192.168.1.100)',
+    '2. Porta: 21 para FTP standard; 990 para FTPS implícito',
+    '3. Pasta base: caminho de destino no servidor (ex: /uploads/nexora)',
+    '4. Utilizador e Password: credenciais da sua conta FTP',
+    '5. Activar "Usar TLS (FTPS)" para ligação cifrada — recomendado sempre que o servidor suporte',
+    '   NOTA: o servidor tem de aceitar ligações FTP activas ou passivas na porta configurada',
+  ].join('\n'),
+  sftp: [
+    '1. Introduza o endereço do servidor no campo Host',
+    '   (ex: sftp.exemplo.com ou endereço IP)',
+    '2. Porta: 22 é o padrão SSH/SFTP',
+    '3. Pasta base: caminho de destino no servidor (ex: /home/user/uploads)',
+    '4. Utilizador: nome de utilizador SSH da sua conta no servidor',
+    '5. Password: password da conta SSH (ou deixe vazio se usar chave SSH — não suportado ainda)',
+    '   Na primeira ligação será pedido para confirmar a identidade do servidor (TOFU)',
+    '   Verifique a fingerprint com o administrador antes de confiar',
+  ].join('\n'),
+  smb: [
+    '1. Introduza o caminho UNC completo da pasta de rede no campo Caminho UNC',
+    '   Formato: \\\\servidor\\pasta ou \\\\192.168.1.100\\partilha',
+    '   Exemplos:',
+    '     \\\\nas.local\\media\\nexora',
+    '     \\\\192.168.1.50\\uploads',
+    '2. A pasta tem de estar acessível pelo utilizador actual do Windows/macOS',
+    '3. No Windows: certifique-se de que a partilha está montada ou acessível via explorador',
+    '4. No macOS: o caminho UNC é convertido para montagem AFP/SMB automaticamente',
+    '   NOTA: autenticação por credenciais SMB não está suportada — use a sessão do SO',
+  ].join('\n'),
+  s3: [
+    '1. Bucket: nome do bucket S3 (ex: minha-empresa-nexora)',
+    '2. Região: região AWS onde o bucket foi criado (ex: eu-west-1, us-east-1)',
+    '3. Endpoint: deixe vazio para AWS S3 oficial',
+    '   Para S3-compatível (Cloudflare R2, MinIO, Backblaze B2, Wasabi):',
+    '     Cloudflare R2: https://<account-id>.r2.cloudflarestorage.com',
+    '     MinIO:         http://127.0.0.1:9000',
+    '     Backblaze B2:  https://s3.us-west-004.backblazeb2.com',
+    '4. Pasta base: prefixo de destino dentro do bucket (ex: nexora/output/)',
+    '5. Access Key e Secret Key: credenciais IAM com permissão s3:PutObject no bucket',
+    '   Para gerar no AWS: IAM → Utilizadores → Chaves de Acesso → Criar chave de acesso',
+  ].join('\n'),
   gdrive: [
     '1. Aceda a console.cloud.google.com → APIs e Serviços → Credenciais',
     '2. Criar credencial OAuth 2.0 → tipo "TV e dispositivos de entrada limitada"',
@@ -93,7 +131,15 @@ export const PROVIDER_HELP: Record<CloudProviderType, string | null> = {
     '   (Não é o seu email — é o identificador da app)',
     '5. Clique "Conectar com Dropbox" — o browser abrirá para autorizar',
   ].join('\n'),
-  icloud: null,
+  icloud: [
+    '1. Apenas disponível em macOS — no Windows e Linux este provider não funciona',
+    '2. Sub-pasta: nome da pasta dentro do iCloud Drive onde os ficheiros serão guardados',
+    '   (ex: Nexora/ cria a pasta "Nexora" directamente no iCloud Drive)',
+    '3. Certifique-se de que o iCloud Drive está activado e sincronizado:',
+    '   Definições do Sistema → Apple ID → iCloud → iCloud Drive → Activado',
+    '4. A pasta de destino é criada automaticamente na primeira transferência',
+    '   NOTA: funciona como partilha SMB local ao iCloud — não usa a API oficial do iCloud',
+  ].join('\n'),
 };
 
 export const PROVIDER_FIELDS: Record<

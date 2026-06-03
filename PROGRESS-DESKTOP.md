@@ -1,3 +1,21 @@
+## [Sessao 65] 2026-06-03 — Help text todos os providers cloud
+
+### Concluido
+
+- [x] store/cloud.ts: PROVIDER_HELP FTP — host, porta, TLS/FTPS, nota ligacao activa/passiva
+- [x] store/cloud.ts: PROVIDER_HELP SFTP — host, porta 22, TOFU fingerprint na 1a ligacao
+- [x] store/cloud.ts: PROVIDER_HELP SMB — formato UNC, exemplos NAS/IP, nota autenticacao SO
+- [x] store/cloud.ts: PROVIDER_HELP S3 — bucket, regiao, endpoint S3-compativel (R2/MinIO/B2/Wasabi), IAM
+- [x] store/cloud.ts: PROVIDER_HELP iCloud — requisito macOS, iCloud Drive settings, nota implementacao SMB
+- [x] Analise logs crash — confirmado: reinicializacoes manuais, nao panics Rust
+
+### Pendente
+
+- [ ] Teste manual SFTP end-to-end (1a ligacao / repeticao / mismatch MITM)
+- [ ] media-binaries.lock.json macOS — requer --write-lock em maquina macOS
+
+---
+
 ## [Sessao 64] 2026-06-03 — Fix OAuth cloud completo (Dropbox + GDrive Personal end-to-end)
 
 ### Concluido

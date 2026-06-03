@@ -10,6 +10,28 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 65 — Help text todos os providers cloud — CONCLUIDO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-03
+
+**Resumo:** Adicionado PROVIDER_HELP para FTP, SFTP, SMB, S3 e iCloud em `src/store/cloud.ts`.
+O icone ? no modal de criacao de perfil cloud agora aparece para todos os 8 providers.
+Analisados logs de debug de sessao de testes: reinicializacoes eram manuais (nao panics Rust);
+chamadas rapidas a googleapis sao normais (latencia + React StrictMode double-invoke em dev).
+
+**Alteracoes:**
+
+- `src/store/cloud.ts`: PROVIDER_HELP preenchido para FTP, SFTP, SMB, S3, iCloud
+
+**Pendente proximo agente:**
+
+1. Commit da alteracao store/cloud.ts (PROVIDER_HELP)
+2. Teste manual SFTP end-to-end
+3. media-binaries.lock.json macOS
+
+---
+
 ### Sessao 64 (continuacao) — Fix OAuth GDrive Personal end-to-end — CONCLUIDO
 
 **Agente:** Claude Code (claude-sonnet-4-6)
