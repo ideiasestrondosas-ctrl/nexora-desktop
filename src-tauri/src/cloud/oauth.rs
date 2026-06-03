@@ -117,6 +117,7 @@ pub async fn exchange_code(
     code: &str,
     verifier: &str,
     client_id: &str,
+    client_secret: Option<&str>,
     redirect_uri: &str,
 ) -> Result<OAuthTokens, String> {
     let client = reqwest::Client::new();
@@ -126,13 +127,16 @@ pub async fn exchange_code(
         OAuthProvider::Dropbox => "https://api.dropboxapi.com/oauth2/token",
     };
 
-    let params = [
+    let mut params = vec![
         ("grant_type", "authorization_code"),
         ("code", code),
         ("redirect_uri", redirect_uri),
         ("client_id", client_id),
         ("code_verifier", verifier),
     ];
+    if let Some(secret) = client_secret {
+        params.push(("client_secret", secret));
+    }
 
     let resp = client
         .post(token_url)
@@ -239,11 +243,15 @@ pub async fn refresh_if_needed(
         OAuthProvider::Dropbox => "https://api.dropboxapi.com/oauth2/token",
     };
 
-    let params = [
+    let client_secret = creds["client_secret"].as_str().map(|s| s.to_string());
+    let mut params = vec![
         ("grant_type", "refresh_token"),
-        ("refresh_token", &refresh_token),
+        ("refresh_token", refresh_token.as_str()),
         ("client_id", client_id),
     ];
+    if let Some(secret) = &client_secret {
+        params.push(("client_secret", secret.as_str()));
+    }
 
     let resp = client
         .post(token_url)

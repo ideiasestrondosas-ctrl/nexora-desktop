@@ -574,6 +574,7 @@ pub async fn cloud_download_file(
 pub async fn oauth_connect(
     provider: String,
     client_id: String,
+    client_secret: Option<String>,
     app: tauri::AppHandle,
 ) -> Result<cloud::oauth::OAuthTokens, String> {
     use tauri_plugin_opener::OpenerExt;
@@ -633,6 +634,7 @@ pub async fn oauth_connect(
         &code,
         &pkce.verifier,
         &client_id,
+        client_secret.as_deref(),
         &redirect_uri,
     )
     .await

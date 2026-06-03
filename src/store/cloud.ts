@@ -76,8 +76,9 @@ export const PROVIDER_HELP: Record<CloudProviderType, string | null> = {
     '3. Em "URIs de redirecionamento autorizados" → deixe VAZIO',
     '   (Desktop app aceita 127.0.0.1 com qualquer porta automaticamente)',
     '4. Ative a Google Drive API (APIs e Serviços → Biblioteca → "Google Drive API")',
-    '5. Copie apenas o Client ID para o campo acima (sem secret)',
-    '   Formato: 123456789-abc123xyz.apps.googleusercontent.com',
+    '5. Copie o Client ID e o Client Secret para os campos acima',
+    '   Client ID: 123456789-abc123xyz.apps.googleusercontent.com',
+    '   Client Secret: GOCSPX-xxxx (visível na página da credencial)',
     '6. Se aparecer erro de acesso: Tela de consentimento OAuth → Utilizadores de teste',
     '   → adicione o seu email Google',
     '7. Clique "Conectar com Google Drive" — o browser abrirá para autorizar',
@@ -136,6 +137,7 @@ export const PROVIDER_FIELDS: Record<
   gdrive_personal: [
     { key: 'base_path', label: 'Pasta no Drive', type: 'text', defaultValue: 'Nexora/Output/' },
     { key: 'client_id', label: 'Client ID', type: 'text' },
+    { key: 'client_secret', label: 'Client Secret', type: 'password' },
   ],
   dropbox: [
     {
