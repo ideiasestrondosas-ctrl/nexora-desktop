@@ -331,7 +331,15 @@ export function CloudProfileModal({ open, onClose, editing }: Props) {
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-bg-primary border border-border rounded-2xl w-full max-w-lg z-50 shadow-2xl">
+        <Dialog.Content
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-bg-primary border border-border rounded-2xl w-full max-w-lg z-50 shadow-2xl"
+          onEscapeKeyDown={(e) => {
+            if (oauthStatus !== 'idle') e.preventDefault();
+          }}
+          onInteractOutside={(e) => {
+            if (oauthStatus !== 'idle') e.preventDefault();
+          }}
+        >
           <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <Dialog.Title className="text-base font-semibold text-text-primary">
               {editing ? 'Editar Perfil' : 'Novo Perfil Cloud'}
