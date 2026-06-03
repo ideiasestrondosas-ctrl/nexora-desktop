@@ -119,8 +119,63 @@ impl CloudProvider for MegaProvider {
         todo!()
     }
 
-    async fn list_files(&self, _path: &str) -> Result<Vec<RemoteFile>, String> {
-        todo!()
+    async fn list_files(&self, path: &str) -> Result<Vec<RemoteFile>, String> {
+        let http_client = reqwest::Client::new();
+        let mut mega = mega::Client::builder()
+            .build(http_client)
+            .map_err(|e| format!("MEGA: falha ao criar cliente: {e}"))?;
+        mega.login(&self.email, &self.password, None)
+            .await
+            .map_err(|_| "MEGA: credenciais inválidas — verifique email e password".to_string())?;
+
+        let nodes = mega
+            .fetch_own_nodes()
+            .await
+            .map_err(|e| format!("MEGA inacessível: {e}"))?;
+
+        // Se subpath vazio → usar base_path por caminho textual.
+        // Se subpath não vazio → é um handle MEGA (potencialmente composto "pai/filho");
+        //   extrai o handle folha (último segmento) e usa get_node_by_handle.
+        let parent = if path.is_empty() {
+            let root_path = format!("/Root/{}", self.base_path);
+            nodes
+                .get_node_by_path(&root_path)
+                .ok_or_else(|| format!("Pasta '{}' não encontrada no MEGA", self.base_path))?
+        } else {
+            let handle = path.rsplit('/').next().unwrap_or(path);
+            nodes
+                .get_node_by_handle(handle)
+                .ok_or_else(|| format!("Pasta com handle '{}' não encontrada", handle))?
+        };
+
+        let mut files = Vec::new();
+        for child_handle in parent.children() {
+            let Some(child) = nodes.get_node_by_handle(child_handle) else {
+                continue;
+            };
+            let name = child.name().to_string();
+            if name.is_empty() {
+                continue;
+            }
+            let is_dir = child.kind().is_folder();
+            // O path em RemoteFile é o handle — permite navegação e download/delete por handle.
+            // Formato composto permite breadcrumb correcto no browser modal.
+            let child_path = if path.is_empty() {
+                child.handle().to_string()
+            } else {
+                format!("{}/{}", path.trim_end_matches('/'), child.handle())
+            };
+            let size = if is_dir { None } else { Some(child.size()) };
+            let modified = child.modified_at().map(|dt| dt.to_rfc3339());
+            files.push(RemoteFile {
+                name,
+                path: child_path,
+                size,
+                modified,
+                is_dir,
+            });
+        }
+        Ok(files)
     }
 
     async fn delete_files(&self, _paths: &[String]) -> Result<Vec<String>, String> {
