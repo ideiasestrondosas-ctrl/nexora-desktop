@@ -55,7 +55,22 @@ impl CloudProvider for MegaProvider {
     }
 
     async fn test_connection(&self) -> Result<(), String> {
-        todo!()
+        let http_client = reqwest::Client::new();
+        let mut mega = mega::Client::builder()
+            .build(http_client)
+            .map_err(|e| format!("MEGA: falha ao criar cliente: {e}"))?;
+        mega.login(&self.email, &self.password, None)
+            .await
+            .map_err(|_| "MEGA: credenciais inválidas — verifique email e password".to_string())?;
+        let nodes = mega
+            .fetch_own_nodes()
+            .await
+            .map_err(|e| format!("MEGA inacessível: {e}"))?;
+        let root_path = format!("/Root/{}", self.base_path);
+        nodes
+            .get_node_by_path(&root_path)
+            .ok_or_else(|| format!("Pasta '{}' não encontrada no MEGA. Crie-a primeiro em mega.nz", self.base_path))?;
+        Ok(())
     }
 
     async fn upload(&self, _local_path: &Path, _remote_path: &str) -> Result<String, String> {
