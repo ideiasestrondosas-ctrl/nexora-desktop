@@ -290,14 +290,17 @@ Configure cloud storage destinations for automatic file delivery after transcodi
 
 ### Supported Providers
 
-| Provider         | Protocol    | Browse | Upload | Download | Notes                                   |
-| ---------------- | ----------- | :----: | :----: | :------: | --------------------------------------- |
-| **FTP**          | FTP / FTPS  |   ✅   |   ✅   |    ✅    | Plain FTP or explicit TLS               |
-| **SFTP**         | SSH         |   ✅   |   ✅   |    ✅    | Password or key-based auth              |
-| **SMB**          | CIFS / SMB2 |   ✅   |   ✅   |    ✅    | Windows shares and NAS devices          |
-| **S3**           | HTTPS       |   ✅   |   ✅   |    ✅    | AWS S3, MinIO, Wasabi, Backblaze B2     |
-| **Google Drive** | HTTPS       |   ✅   |   ✅   |    ✅    | OAuth device flow; upserts on re-upload |
-| **iCloud**       | —           |   ❌   |   ❌   |    ❌    | Via local folder sync only              |
+| Provider                  | Protocol     | Browse | Upload | Download | Notes                                         |
+| ------------------------- | ------------ | :----: | :----: | :------: | --------------------------------------------- |
+| **FTP**                   | FTP / FTPS   |   ✅   |   ✅   |    ✅    | Plain FTP or explicit TLS                     |
+| **SFTP**                  | SSH          |   ✅   |   ✅   |    ✅    | Password or key-based auth                    |
+| **SMB**                   | CIFS / SMB2  |   ✅   |   ✅   |    ✅    | Windows shares and NAS devices                |
+| **S3**                    | HTTPS        |   ✅   |   ✅   |    ✅    | AWS S3, MinIO, Wasabi, Backblaze B2, R2       |
+| **Google Drive**          | HTTPS        |   ✅   |   ✅   |    ✅    | OAuth device flow; upserts on re-upload       |
+| **Google Drive Personal** | HTTPS        |   ✅   |   ✅   |    ✅    | OAuth PKCE (browser); own console credentials |
+| **Dropbox**               | HTTPS        |   ✅   |   ✅   |    ✅    | OAuth PKCE (browser); own app key required    |
+| **MEGA**                  | HTTPS (E2EE) |   ✅   |   ✅   |    ✅    | Email + password; end-to-end encrypted        |
+| **iCloud**                | —            |   ❌   |   ❌   |    ❌    | Via local folder sync only (macOS only)       |
 
 ### Google Drive Authentication
 
@@ -306,6 +309,16 @@ Nexora uses OAuth 2.0 Device Flow (no password storage):
 1. Click **Authenticate** in the Google Drive profile — Nexora requests a device code
 2. Open the provided URL in your browser and enter the user code
 3. Nexora polls Google every 5 seconds until authorized. The token is stored locally.
+
+### MEGA Authentication
+
+MEGA uses email and password stored in the OS keychain (never in plaintext):
+
+1. Create a MEGA account at [mega.nz](https://mega.nz) if you don't have one
+2. **Before saving the profile**, create the destination folder in MEGA (e.g. `Nexora/Output` inside Cloud Drive)
+3. Enter the folder path without a leading slash (e.g. `Nexora/Output`)
+4. Click **Test Connection** — Nexora logs in, fetches the node tree, and verifies the folder exists
+5. Files are end-to-end encrypted by MEGA automatically; Nexora never sends plaintext to MEGA servers
 
 ### Cloud File Browser
 

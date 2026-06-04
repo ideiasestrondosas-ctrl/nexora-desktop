@@ -1035,6 +1035,40 @@ These issues are **already known** by the team and don't need to be reported:
 
 ---
 
+#### T10-03 — Create a MEGA profile (form validation)
+
+**You need:** A MEGA account at mega.nz (or fake credentials to test the form only).
+
+**Steps:**
+
+1. In Settings, click the **Cloud** tab.
+2. Click **+ New Profile**.
+3. In the window that opens:
+   - **Provider**: select **MEGA**
+   - **Profile name**: type "MEGA Test"
+   - **Folder in MEGA**: type `Nexora/Output`
+   - **Email**: type your MEGA email (or `test@example.com` to test the form)
+   - **Password**: type your MEGA password (or `password123`)
+4. Verify the **Test Connection** button is visible.
+5. If you have a real account: click **Test Connection** — should show a success toast or a clear error ("Folder not found" if the folder doesn't exist in MEGA yet).
+6. Click **Create**.
+
+**What should happen:**
+
+- The form accepts email, password, and folder path without validation errors.
+- The "MEGA Test" profile appears in the Cloud tab list with the "MEGA" badge.
+- If you used real credentials and the folder exists: the Browse button works and lists files.
+
+**Notes:**
+
+- The folder must exist in MEGA before testing — create `Nexora/Output` in mega.nz first.
+- Files in MEGA are always end-to-end encrypted (E2EE); Nexora never sends data in plaintext.
+- If "Folder not found" appears: create the folder in mega.nz and test again.
+
+**If the form fails to save:** Report with title "Cannot create MEGA Cloud profile".
+
+---
+
 ### T11 — Settings › Watch Folders
 
 > **Objective:** Verify the automatic folder monitoring feature.  

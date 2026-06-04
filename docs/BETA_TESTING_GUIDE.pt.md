@@ -1035,6 +1035,40 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 ---
 
+#### T10-03 — Criar perfil MEGA (validação de formulário)
+
+**Precisas de:** Conta MEGA em mega.nz (ou credenciais falsas apenas para testar o formulário).
+
+**Passos:**
+
+1. Em Definições, clica no separador **Cloud**.
+2. Clica em **+ Novo Perfil**.
+3. Na janela que abre:
+   - **Fornecedor**: selecciona **MEGA**
+   - **Nome do perfil**: escreve "MEGA Teste"
+   - **Pasta no MEGA**: escreve `Nexora/Output`
+   - **Email**: escreve o teu email MEGA (ou `teste@exemplo.com` para testar o formulário)
+   - **Password**: escreve a password MEGA (ou `password123`)
+4. Verifica que o botão **Testar Ligação** aparece.
+5. Se tiveres conta real: clica em **Testar Ligação** — deve mostrar toast de sucesso ou erro claro ("Pasta não encontrada" se a pasta não existir no MEGA).
+6. Clica em **Criar**.
+
+**O que deve acontecer:**
+
+- O formulário aceita email, password e pasta sem erros de validação.
+- O perfil "MEGA Teste" aparece na lista da tab Cloud com o badge "MEGA".
+- Se usaste credenciais reais e a pasta existe: o botão Browse funciona e lista os ficheiros.
+
+**Notas:**
+
+- A pasta tem de existir no MEGA antes de testar — cria `Nexora/Output` no mega.nz primeiro.
+- Os ficheiros no MEGA são sempre cifrados E2EE; o Nexora nunca envia dados em claro.
+- Se aparecer "Pasta não encontrada": cria a pasta no mega.nz e testa de novo.
+
+**Se o formulário falhar ao guardar:** Reporta com título "Não é possível criar perfil Cloud MEGA".
+
+---
+
 ### T11 — Definições › Pastas Monitorizadas
 
 > **Objetivo:** Verificar a funcionalidade de monitorização automática de pastas.  
