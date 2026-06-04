@@ -166,7 +166,7 @@
       },
       "cloud": {
         "title": "Cloud — Destinations & File Browser",
-        "desc": "Configure cloud storage destinations for automatic file delivery after transcoding. Supported providers: FTP, FTPS, SFTP, SMB, S3 (and compatible: MinIO, Wasabi), and Google Drive.",
+        "desc": "Configure cloud storage destinations for automatic file delivery after transcoding. Supported providers: FTP/FTPS, SFTP, SMB, S3 (and compatible: MinIO, Wasabi, Backblaze B2, R2), Google Drive, Google Drive Personal, Dropbox, MEGA.",
         "destinations": {
           "title": "Cloud Destinations",
           "desc": "Add cloud profiles in Settings → Cloud. Each profile stores the connection details for one provider. A job can have multiple cloud destinations — the file is uploaded to all of them automatically after the job completes.",
@@ -188,17 +188,52 @@
           "tip2": "Upload progress is not shown in the UI — check the Logs tab for upload status.",
           "tip3": "Google Drive upserts files: if a file with the same name exists in the destination folder, it is replaced rather than duplicated."
         },
+        "sftp": {
+          "title": "SFTP — SSH File Transfer",
+          "desc": "Connect to any SFTP server with username/password or SSH key authentication. Fill in Host, Port (default 22), Username, Password or key path, and the remote base folder.",
+          "tip1": "Port 22 is the standard SFTP port — change only if your server uses a custom port.",
+          "tip2": "Password auth and key-based auth are both supported.",
+          "tip3": "Use 'Test Connection' to verify the server is reachable and the credentials are valid before saving."
+        },
+        "smb": {
+          "title": "SMB / Windows Share",
+          "desc": "Connect to Windows shares and NAS devices using SMB/CIFS. Enter the share path (e.g. \\\\server\\share), username, and password. Leave username/password empty for guest access.",
+          "tip1": "Share path format: \\\\server\\sharename or //server/sharename.",
+          "tip2": "Domain accounts: enter username as DOMAIN\\user.",
+          "tip3": "SMB paths containing '..' are blocked for security (path traversal prevention)."
+        },
         "gdriveOAuth": {
           "title": "Google Drive — OAuth Device Flow",
-          "desc": "Authenticate Google Drive without storing passwords. Nexora uses OAuth 2.0 Device Flow.",
+          "desc": "Authenticate Google Drive without storing passwords. Nexora uses OAuth 2.0 Device Flow with built-in credentials — no setup required on your part.",
           "step1": "Click 'Authenticate' — Nexora requests a device code from Google",
           "step2": "Open the provided URL in your browser and enter the user code",
           "step3": "Nexora polls Google every 5 seconds until you authorize. The token is stored locally."
         },
+        "gdrivePersonal": {
+          "title": "Google Drive Personal — PKCE OAuth",
+          "desc": "Use your own Google Cloud Console credentials (Client ID + Client Secret). This gives you full control over the OAuth app that accesses your Drive. Nexora uses PKCE flow — no client secret is stored on disk.",
+          "step1": "Create an OAuth 2.0 Client ID in Google Cloud Console (type: Desktop App)",
+          "step2": "Enter the Client ID and Client Secret in the profile form, then click 'Authenticate'",
+          "step3": "A browser window opens — log in and authorize. The token is saved in the OS keychain."
+        },
+        "dropbox": {
+          "title": "Dropbox — PKCE OAuth",
+          "desc": "Use your own Dropbox App Key to connect. Create a Dropbox app at developers.dropbox.com, then enter the App Key in the profile. Nexora uses PKCE flow — your App Secret is never stored.",
+          "step1": "Go to developers.dropbox.com → Create App → Scoped Access → Full Dropbox",
+          "step2": "Copy the App Key and enter it in the Dropbox profile form",
+          "step3": "Click 'Authenticate' — a browser window opens to authorize. The token is stored in the OS keychain."
+        },
+        "mega": {
+          "title": "MEGA — End-to-End Encrypted Cloud",
+          "desc": "Connect with your MEGA email and password. Files are always end-to-end encrypted by MEGA — Nexora never sends data in plaintext to MEGA servers. The destination folder must exist in your MEGA account before testing.",
+          "tip1": "Create the destination folder in mega.nz first (e.g. Nexora/Output inside Cloud Drive).",
+          "tip2": "Enter the folder path without a leading slash: Nexora/Output",
+          "tip3": "Login is performed fresh per operation — no session is cached locally."
+        },
         "s3": {
           "title": "S3 & Compatible Providers",
-          "desc": "Connect to AWS S3 or S3-compatible services like MinIO, Wasabi, and Backblaze B2.",
-          "providers": "Supported: AWS S3, MinIO, Wasabi, Backblaze B2 (path-style endpoints)"
+          "desc": "Connect to AWS S3 or S3-compatible services. Fill in Endpoint (leave blank for AWS), Bucket, Region, Access Key ID, and Secret Access Key.",
+          "providers": "Supported: AWS S3, MinIO, Wasabi, Backblaze B2, Cloudflare R2 (path-style endpoints)"
         },
         "icloud": {
           "title": "iCloud Drive",

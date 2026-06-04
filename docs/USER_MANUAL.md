@@ -302,13 +302,68 @@ Configure cloud storage destinations for automatic file delivery after transcodi
 | **MEGA**                  | HTTPS (E2EE) |   ✅   |   ✅   |    ✅    | Email + password; end-to-end encrypted        |
 | **iCloud**                | —            |   ❌   |   ❌   |    ❌    | Via local folder sync only (macOS only)       |
 
+### FTP / FTPS Configuration
+
+1. Select **FTP** as the provider
+2. Enter **Host**, **Port** (default 21), **Username**, and **Password**
+3. Enable **FTPS (Explicit TLS)** if your server requires encrypted connections
+4. Set the **Remote Base Path** (e.g. `/upload/nexora`)
+5. Click **Test Connection** to verify before saving
+
+### SFTP Configuration
+
+1. Select **SFTP** as the provider
+2. Enter **Host**, **Port** (default 22), **Username**, and **Password**
+   - For key-based auth, leave Password empty and enter the path to your private key file
+3. Set the **Remote Base Path** (e.g. `/home/user/nexora`)
+4. Click **Test Connection** to verify — Nexora opens an SSH session and confirms the path exists
+
+### SMB / Windows Share Configuration
+
+1. Select **SMB** as the provider
+2. Enter the **Share Path** (e.g. `\\server\sharename` or `//server/sharename`)
+3. Enter **Username** and **Password** (leave empty for guest access)
+   - Domain accounts: use `DOMAIN\username` format
+4. Set the **Sub-path** within the share (e.g. `Nexora\Output`)
+5. Click **Test Connection** to verify connectivity
+
+### S3 & Compatible Providers Configuration
+
+1. Select **S3** as the provider
+2. For **AWS S3**: leave Endpoint blank; enter **Region**, **Bucket**, **Access Key ID**, and **Secret Access Key**
+3. For **MinIO / Wasabi / Backblaze B2 / Cloudflare R2**: enter the provider's **Endpoint URL** (path-style), then the remaining fields
+4. Set the **Key Prefix** (folder path within the bucket, e.g. `nexora/output/`)
+5. Click **Test Connection** — Nexora performs a list operation on the bucket to verify access
+
 ### Google Drive Authentication
 
-Nexora uses OAuth 2.0 Device Flow (no password storage):
+Nexora uses OAuth 2.0 Device Flow (no password storage, built-in credentials):
 
 1. Click **Authenticate** in the Google Drive profile — Nexora requests a device code
 2. Open the provided URL in your browser and enter the user code
 3. Nexora polls Google every 5 seconds until authorized. The token is stored locally.
+
+### Google Drive Personal Authentication
+
+Use your own Google Cloud Console credentials for full control over the OAuth app:
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → Credentials
+2. Create an **OAuth 2.0 Client ID** (Application Type: Desktop App)
+3. Download or copy the **Client ID** and **Client Secret**
+4. Enter both in the Google Drive Personal profile form
+5. Click **Authenticate** — a browser window opens; log in and grant access
+6. The token is stored in the OS keychain (never in the database)
+
+### Dropbox Authentication
+
+Use your own Dropbox app key (PKCE OAuth — no app secret stored):
+
+1. Go to [developers.dropbox.com](https://developers.dropbox.com) → **Create App**
+   - Access type: **Scoped Access** → **Full Dropbox**
+2. Copy the **App Key** from the app settings page
+3. Enter the App Key in the Dropbox profile form
+4. Click **Authenticate** — a browser window opens; log in and authorize
+5. The access token is stored in the OS keychain
 
 ### MEGA Authentication
 

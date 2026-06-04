@@ -1035,7 +1035,169 @@ These issues are **already known** by the team and don't need to be reported:
 
 ---
 
-#### T10-03 — Create a MEGA profile (form validation)
+#### T10-03 — Create an SFTP profile (form validation)
+
+**You need:** Access to an SFTP server (host, username, password), or fake credentials to test the form only.
+
+**Steps:**
+
+1. In Settings, click the **Cloud** tab.
+2. Click **+ New Profile**.
+3. In the window that opens:
+   - **Provider**: select **SFTP**
+   - **Profile name**: type "SFTP Test"
+   - **Host**: type any value (e.g. `sftp.example.com`)
+   - **Port**: keep 22
+   - **Username**: type `user`
+   - **Password**: type `password`
+   - **Remote folder**: type `/upload/nexora`
+4. Click **Test Connection** (may fail if the server doesn't exist — this is valid).
+5. Click **Create**.
+
+**What should happen:**
+
+- The form accepts the data without validation errors.
+- The "SFTP Test" profile appears in the Cloud tab list with the "SFTP" badge.
+- The "Test Connection" button shows some result (success or connection error — both are valid).
+
+**If the form fails to save:** Report with title "Cannot create SFTP Cloud profile".
+
+---
+
+#### T10-04 — Create an SMB / Windows Share profile (form validation)
+
+**You need:** Access to a Windows share or NAS, or fake values to test the form only.
+
+**Steps:**
+
+1. In Settings, click the **Cloud** tab.
+2. Click **+ New Profile**.
+3. In the window that opens:
+   - **Provider**: select **SMB**
+   - **Profile name**: type "SMB Test"
+   - **Share path**: type `\\server\share` (or `//server/share`)
+   - **Username**: type `user`
+   - **Password**: type `password`
+4. Click **Test Connection**.
+5. Click **Create**.
+
+**What should happen:**
+
+- The form accepts the data without validation errors.
+- The "SMB Test" profile appears in the Cloud tab list with the "SMB" badge.
+
+**If the form fails to save:** Report with title "Cannot create SMB Cloud profile".
+
+---
+
+#### T10-05 — Create an S3 profile (form validation)
+
+**You need:** S3 credentials (AWS, MinIO, Wasabi, Backblaze B2, etc.), or fake values to test the form.
+
+**Steps:**
+
+1. In Settings, click the **Cloud** tab.
+2. Click **+ New Profile**.
+3. In the window that opens:
+   - **Provider**: select **S3**
+   - **Profile name**: type "S3 Test"
+   - **Endpoint**: leave blank (for AWS) or enter your provider's endpoint
+   - **Bucket**: type `nexora-test`
+   - **Region**: type `eu-west-1` (or your bucket's region)
+   - **Access Key ID**: type any value
+   - **Secret Access Key**: type any value
+4. Click **Test Connection**.
+5. Click **Create**.
+
+**What should happen:**
+
+- The form accepts the data without validation errors.
+- The "S3 Test" profile appears in the Cloud tab list with the "S3" badge.
+
+**If the form fails to save:** Report with title "Cannot create S3 Cloud profile".
+
+---
+
+#### T10-06 — Authenticate Google Drive (Device Flow)
+
+**You need:** A Google account.
+
+**Steps:**
+
+1. In Settings, click the **Cloud** tab.
+2. Click **+ New Profile**.
+3. In the window that opens:
+   - **Provider**: select **Google Drive**
+   - **Profile name**: type "GDrive Test"
+   - **Base folder**: type `Nexora/Output`
+4. Click **Authenticate**.
+5. Read the instructions that appear: it should show a URL and a user code.
+6. Open the URL in your browser, enter the code, and authorize Nexora.
+
+**What should happen:**
+
+- The URL and code appear in the interface after clicking Authenticate.
+- After authorizing in the browser, the interface shows a confirmation of successful authentication.
+- The profile appears in the list with the "Google Drive" badge.
+
+**If it doesn't work:** Report with title "Google Drive — Device Flow authentication failed" and describe which step it stopped at.
+
+---
+
+#### T10-07 — Authenticate Google Drive Personal (PKCE OAuth)
+
+**You need:** Client ID and Client Secret from Google Cloud Console (see USER_MANUAL.md for instructions).
+
+**Steps:**
+
+1. In Settings, click the **Cloud** tab.
+2. Click **+ New Profile**.
+3. In the window that opens:
+   - **Provider**: select **Google Drive Personal**
+   - **Profile name**: type "GDrive Personal Test"
+   - **Client ID**: enter your Google Cloud Console Client ID
+   - **Client Secret**: enter your Client Secret
+   - **Base folder**: type `Nexora/Output`
+4. Click **Authenticate**.
+5. A browser window opens — log in and authorize.
+
+**What should happen:**
+
+- A browser window opens automatically to the Google authorization page.
+- After authorizing, the browser closes (or shows a confirmation page).
+- The profile appears in the list with the "Google Drive Personal" badge and "Authenticated" status.
+
+**If it doesn't work:** Report with title "Google Drive Personal — PKCE authentication failed".
+
+---
+
+#### T10-08 — Authenticate Dropbox (PKCE OAuth)
+
+**You need:** A Dropbox App Key (see USER_MANUAL.md for how to create an app at developers.dropbox.com).
+
+**Steps:**
+
+1. In Settings, click the **Cloud** tab.
+2. Click **+ New Profile**.
+3. In the window that opens:
+   - **Provider**: select **Dropbox**
+   - **Profile name**: type "Dropbox Test"
+   - **App Key**: enter your Dropbox App Key
+   - **Base folder**: type `/Nexora/Output`
+4. Click **Authenticate**.
+5. A browser window opens — log in and authorize the app.
+
+**What should happen:**
+
+- A browser window opens to the Dropbox authorization page.
+- After authorizing, the profile appears in the list with the "Dropbox" badge and "Authenticated" status.
+- The Browse button works and lists files in the base folder.
+
+**If it doesn't work:** Report with title "Dropbox — PKCE authentication failed".
+
+---
+
+#### T10-09 — Create a MEGA profile (form validation)
 
 **You need:** A MEGA account at mega.nz (or fake credentials to test the form only).
 

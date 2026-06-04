@@ -1035,7 +1035,169 @@ Estes pontos **já são conhecidos** pela equipa e não precisam de ser reportad
 
 ---
 
-#### T10-03 — Criar perfil MEGA (validação de formulário)
+#### T10-03 — Criar perfil SFTP (validação de formulário)
+
+**Precisas de:** Acesso a um servidor SFTP (host, utilizador, password), ou credenciais falsas apenas para verificar o formulário.
+
+**Passos:**
+
+1. Em Definições, clica no separador **Cloud**.
+2. Clica em **+ Novo Perfil**.
+3. Na janela que abre:
+   - **Fornecedor**: selecciona **SFTP**
+   - **Nome do perfil**: escreve "SFTP Teste"
+   - **Host**: escreve qualquer valor (ex: `sftp.exemplo.com`)
+   - **Porto**: mantém 22
+   - **Utilizador**: escreve `utilizador`
+   - **Password**: escreve `password`
+   - **Pasta remota**: escreve `/upload/nexora`
+4. Clica em **Testar Ligação** (pode falhar se o servidor não existir — é válido).
+5. Clica em **Criar**.
+
+**O que deve acontecer:**
+
+- O formulário aceita os dados sem erros de validação.
+- O perfil "SFTP Teste" aparece na lista da tab Cloud com o badge "SFTP".
+- O botão "Testar Ligação" mostra algum resultado (sucesso ou erro de ligação — ambos são válidos).
+
+**Se o formulário falhar ao guardar:** Reporta com título "Não é possível criar perfil Cloud SFTP".
+
+---
+
+#### T10-04 — Criar perfil SMB / Partilha Windows (validação de formulário)
+
+**Precisas de:** Acesso a uma partilha Windows ou NAS, ou valores falsos apenas para verificar o formulário.
+
+**Passos:**
+
+1. Em Definições, clica no separador **Cloud**.
+2. Clica em **+ Novo Perfil**.
+3. Na janela que abre:
+   - **Fornecedor**: selecciona **SMB**
+   - **Nome do perfil**: escreve "SMB Teste"
+   - **Caminho da partilha**: escreve `\\servidor\partilha` (ou `//servidor/partilha`)
+   - **Utilizador**: escreve `utilizador`
+   - **Password**: escreve `password`
+4. Clica em **Testar Ligação**.
+5. Clica em **Criar**.
+
+**O que deve acontecer:**
+
+- O formulário aceita os dados sem erros de validação.
+- O perfil "SMB Teste" aparece na lista da tab Cloud com o badge "SMB".
+
+**Se o formulário falhar ao guardar:** Reporta com título "Não é possível criar perfil Cloud SMB".
+
+---
+
+#### T10-05 — Criar perfil S3 (validação de formulário)
+
+**Precisas de:** Credenciais S3 (AWS, MinIO, Wasabi, Backblaze B2, etc.), ou valores falsos para verificar o formulário.
+
+**Passos:**
+
+1. Em Definições, clica no separador **Cloud**.
+2. Clica em **+ Novo Perfil**.
+3. Na janela que abre:
+   - **Fornecedor**: selecciona **S3**
+   - **Nome do perfil**: escreve "S3 Teste"
+   - **Endpoint**: deixa em branco (para AWS) ou introduz o endpoint do teu fornecedor
+   - **Bucket**: escreve `nexora-test`
+   - **Região**: escreve `eu-west-1` (ou a região do teu bucket)
+   - **Access Key ID**: escreve qualquer valor
+   - **Secret Access Key**: escreve qualquer valor
+4. Clica em **Testar Ligação**.
+5. Clica em **Criar**.
+
+**O que deve acontecer:**
+
+- O formulário aceita os dados sem erros de validação.
+- O perfil "S3 Teste" aparece na lista da tab Cloud com o badge "S3".
+
+**Se o formulário falhar ao guardar:** Reporta com título "Não é possível criar perfil Cloud S3".
+
+---
+
+#### T10-06 — Autenticar Google Drive (Device Flow)
+
+**Precisas de:** Conta Google.
+
+**Passos:**
+
+1. Em Definições, clica no separador **Cloud**.
+2. Clica em **+ Novo Perfil**.
+3. Na janela que abre:
+   - **Fornecedor**: selecciona **Google Drive**
+   - **Nome do perfil**: escreve "GDrive Teste"
+   - **Pasta de base**: escreve `Nexora/Output`
+4. Clica em **Autenticar**.
+5. Lê as instruções que aparecem: deve mostrar um URL e um código de utilizador.
+6. Abre o URL no browser, introduz o código e autoriza o Nexora.
+
+**O que deve acontecer:**
+
+- O URL e o código aparecem na interface após clicar em Autenticar.
+- Após autorizar no browser, a interface mostra confirmação de autenticação bem-sucedida.
+- O perfil aparece na lista com o badge "Google Drive".
+
+**Se não funcionar:** Reporta com título "Google Drive — autenticação Device Flow falhou" e descreve o passo onde parou.
+
+---
+
+#### T10-07 — Autenticar Google Drive Personal (PKCE OAuth)
+
+**Precisas de:** Client ID e Client Secret do Google Cloud Console (ver USER_MANUAL.md para instruções).
+
+**Passos:**
+
+1. Em Definições, clica no separador **Cloud**.
+2. Clica em **+ Novo Perfil**.
+3. Na janela que abre:
+   - **Fornecedor**: selecciona **Google Drive Personal**
+   - **Nome do perfil**: escreve "GDrive Personal Teste"
+   - **Client ID**: escreve o teu Client ID do Google Cloud Console
+   - **Client Secret**: escreve o teu Client Secret
+   - **Pasta de base**: escreve `Nexora/Output`
+4. Clica em **Autenticar**.
+5. Uma janela do browser abre — inicia sessão e autoriza.
+
+**O que deve acontecer:**
+
+- Uma janela do browser abre automaticamente para a página de autorização do Google.
+- Após autorizar, o browser fecha (ou mostra página de confirmação).
+- O perfil aparece na lista com o badge "Google Drive Personal" e estado "Autenticado".
+
+**Se não funcionar:** Reporta com título "Google Drive Personal — autenticação PKCE falhou".
+
+---
+
+#### T10-08 — Autenticar Dropbox (PKCE OAuth)
+
+**Precisas de:** App Key do Dropbox (ver USER_MANUAL.md para como criar uma app em developers.dropbox.com).
+
+**Passos:**
+
+1. Em Definições, clica no separador **Cloud**.
+2. Clica em **+ Novo Perfil**.
+3. Na janela que abre:
+   - **Fornecedor**: selecciona **Dropbox**
+   - **Nome do perfil**: escreve "Dropbox Teste"
+   - **App Key**: escreve a tua App Key do Dropbox
+   - **Pasta de base**: escreve `/Nexora/Output`
+4. Clica em **Autenticar**.
+5. Uma janela do browser abre — inicia sessão e autoriza a app.
+
+**O que deve acontecer:**
+
+- Uma janela do browser abre para a página de autorização do Dropbox.
+- Após autorizar, o perfil aparece na lista com o badge "Dropbox" e estado "Autenticado".
+- O botão Browse funciona e lista os ficheiros da pasta de base.
+
+**Se não funcionar:** Reporta com título "Dropbox — autenticação PKCE falhou".
+
+---
+
+#### T10-09 — Criar perfil MEGA (validação de formulário)
 
 **Precisas de:** Conta MEGA em mega.nz (ou credenciais falsas apenas para testar o formulário).
 

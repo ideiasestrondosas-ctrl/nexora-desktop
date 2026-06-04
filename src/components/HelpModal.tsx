@@ -82,7 +82,7 @@ const TAB_COUNTS: Record<ScreenTab, number> = {
   queue: 3,
   profiles: 1,
   settings: 5,
-  cloud: 7,
+  cloud: 11,
   comparator: 5,
   logs: 1,
   betaGuide: 0,
@@ -874,6 +874,28 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       <p>{t('help.screens.cloud.upload.desc')}</p>
                     </ScreenCard>
                     <ScreenCard
+                      title={t('help.screens.cloud.sftp.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[
+                        t('help.screens.cloud.sftp.tip1'),
+                        t('help.screens.cloud.sftp.tip2'),
+                        t('help.screens.cloud.sftp.tip3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.cloud.sftp.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.cloud.smb.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[
+                        t('help.screens.cloud.smb.tip1'),
+                        t('help.screens.cloud.smb.tip2'),
+                        t('help.screens.cloud.smb.tip3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.cloud.smb.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
                       title={t('help.screens.cloud.gdriveOAuth.title')}
                       icon={<Cloud className="w-4 h-4" />}
                       screenshot={SCREENSHOTS['cloud-gdrive-oauth']}
@@ -885,6 +907,39 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onOpenChange }) 
                       ]}
                     >
                       <p>{t('help.screens.cloud.gdriveOAuth.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.cloud.gdrivePersonal.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[
+                        t('help.screens.cloud.gdrivePersonal.step1'),
+                        t('help.screens.cloud.gdrivePersonal.step2'),
+                        t('help.screens.cloud.gdrivePersonal.step3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.cloud.gdrivePersonal.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.cloud.dropbox.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[
+                        t('help.screens.cloud.dropbox.step1'),
+                        t('help.screens.cloud.dropbox.step2'),
+                        t('help.screens.cloud.dropbox.step3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.cloud.dropbox.desc')}</p>
+                    </ScreenCard>
+                    <ScreenCard
+                      title={t('help.screens.cloud.mega.title')}
+                      icon={<Cloud className="w-4 h-4" />}
+                      tips={[
+                        t('help.screens.cloud.mega.tip1'),
+                        t('help.screens.cloud.mega.tip2'),
+                        t('help.screens.cloud.mega.tip3'),
+                      ]}
+                    >
+                      <p>{t('help.screens.cloud.mega.desc')}</p>
                     </ScreenCard>
                     <ScreenCard
                       title={t('help.screens.cloud.s3.title')}
