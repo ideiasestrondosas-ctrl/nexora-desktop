@@ -9,6 +9,7 @@ pub fn run(conn: &Connection) -> Result<()> {
     migrate_assets_v2(conn)?;
     migrate_cloud_v1(conn)?;
     migrate_cloud_v2(conn)?;
+    migrate_cloud_v3(conn)?;
     migrate_watch_folders_v1(conn)?;
     migrate_telemetry_v1(conn)?;
     migrate_phase_durations_v1(conn)?;
@@ -100,6 +101,47 @@ fn migrate_cloud_v2(conn: &Connection) -> Result<()> {
             name        TEXT NOT NULL,
             provider    TEXT NOT NULL
                             CHECK(provider IN ('ftp','sftp','smb','s3','gdrive','gdrive_personal','dropbox','icloud')),
+            config      TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        );
+
+        INSERT INTO cloud_profiles_new SELECT * FROM cloud_profiles;
+        DROP TABLE cloud_profiles;
+        ALTER TABLE cloud_profiles_new RENAME TO cloud_profiles;
+
+        PRAGMA foreign_keys = ON;
+        "#,
+    )?;
+    Ok(())
+}
+
+/// Migração cloud v3: adiciona 'mega' ao CHECK constraint.
+/// Mesmo padrão da v2 — detecta se já migrado, recria tabela se necessário.
+fn migrate_cloud_v3(conn: &Connection) -> Result<()> {
+    let already_updated: bool = conn
+        .query_row(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='cloud_profiles'",
+            [],
+            |row| {
+                let sql: String = row.get(0)?;
+                Ok(sql.contains("'mega'"))
+            },
+        )
+        .unwrap_or(false);
+
+    if already_updated {
+        return Ok(());
+    }
+
+    conn.execute_batch(
+        r#"
+        PRAGMA foreign_keys = OFF;
+
+        CREATE TABLE cloud_profiles_new (
+            id          TEXT PRIMARY KEY,
+            name        TEXT NOT NULL,
+            provider    TEXT NOT NULL
+                            CHECK(provider IN ('ftp','ftps','sftp','smb','s3','gdrive','gdrive_personal','dropbox','icloud','mega')),
             config      TEXT NOT NULL,
             created_at  TEXT NOT NULL
         );

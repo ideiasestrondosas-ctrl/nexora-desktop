@@ -3,6 +3,7 @@ pub mod dropbox;
 pub mod ftp;
 pub mod gdrive;
 pub mod icloud;
+pub mod mega;
 pub mod oauth;
 pub mod provider;
 pub mod retry;
@@ -39,6 +40,9 @@ pub fn get_provider(
         "icloud" => icloud::ICloudProvider::new(config)
             .map(|p| Box::new(p) as Box<dyn CloudProvider>)
             .map_err(|e| format!("Perfil iCloud inválido: {e}")),
+        "mega" => mega::MegaProvider::new(config, creds)
+            .map(|p| Box::new(p) as Box<dyn CloudProvider>)
+            .map_err(|e| format!("Perfil MEGA inválido: {e}")),
         other => Err(format!("Fornecedor desconhecido: {other}")),
     }
 }
