@@ -1,5 +1,6 @@
-# Sessao de trabalho local (nao commitar)
+# Ficheiros de controlo de sessao local (nao commitar)
 .wip-session.md
+.agent-board.json
 
 # Dependencias
 node_modules/
