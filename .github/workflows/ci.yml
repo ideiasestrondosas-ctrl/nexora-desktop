@@ -41,6 +41,9 @@ jobs:
       - name: Unit + component tests
         run: npm test
 
+      - name: i18n completeness gate
+        run: node scripts/validate-i18n.mjs
+
   rust-check:
     strategy:
       fail-fast: false

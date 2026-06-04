@@ -6,6 +6,21 @@ Versionamento em [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **i18n (BREAKING)**: `en/base.json` (704 chaves, código morto) substituído por `en/common.json` (agora com 1048 chaves — merge das duas). O runtime agora usa o ficheiro que os outros 14 locales já usavam como source-of-truth. Resolve o desfasamento estrutural entre EN e o resto.
+- i18n: 223 chaves em falta em cada uma das 13 locales (es, fr, de, ar, it, ja, ko, nl, pl, ru, sv, tr, zh) traduzidas via Ollama (modelo cloud). Total: 2899 strings.
+- i18n: 4 chaves adicionadas ao PT (help.tabs.assetDetail, help.tabs.cloud, help.tabs.import, topbar.help).
+- docs: USER_MANUAL.md §9 duplicada removida; secções 9-15 renumeradas.
+- docs: USER_MANUAL/INSTALL/FUNCTIONS/SCREEN_GUIDE/BETA_TESTING_GUIDE/screenshots/README — headers de versão actualizados para v0.33.0-beta.1.
+
+### Added
+
+- scripts/merge-en-locales.mjs — faz merge de base+common para en/common.json.
+- scripts/extract-translation-gap.mjs — extrai chaves em falta para translation-gap.json.
+- scripts/translate-missing-keys.mjs — tradução batch via Ollama para as 13 locales.
+- scripts/validate-i18n.mjs — validação completa (JSON, keys, placeholders, mojibake, fallbacks).
+
 ## [0.33.0-beta.1] - 2026-06-04
 
 ### Added

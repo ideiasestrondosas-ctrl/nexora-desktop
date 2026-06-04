@@ -27,6 +27,10 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "i18n:check": "node scripts/check-translations.mjs",
+    "i18n:validate": "node scripts/validate-i18n.mjs",
+    "i18n:gap": "node scripts/extract-translation-gap.mjs",
+    "i18n:translate": "node scripts/translate-missing-keys.mjs",
     "build:analyze": "cross-env ANALYZE=true vite build",
     "prepare": "husky"
   },
@@ -73,6 +77,9 @@
     ],
     "**/*.{js,mjs,cjs,json,md}": [
       "prettier --write"
+    ],
+    "src/i18n/locales/*/common.json": [
+      "node scripts/validate-i18n.mjs"
     ]
   },
   "devDependencies": {

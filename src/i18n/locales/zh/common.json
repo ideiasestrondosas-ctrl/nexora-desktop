@@ -25,7 +25,10 @@
     "gpu": "GPU",
     "disk": "Disk",
     "exit": "Exit",
-    "help": "Help"
+    "help": "Help",
+    "bugReport": "报告问题",
+    "queueActive": "{{count}} 个正在处理",
+    "queueIdle": "就绪"
   },
   "help": {
     "title": "User Manual",
@@ -43,7 +46,12 @@
       "assetDetail": "资源详情",
       "import": "导入",
       "comparator": "Comparator",
-      "betaGuide": "Beta 测试指南 (DEV)"
+      "betaGuide": "Beta 测试指南 (DEV)",
+      "about": "关于",
+      "metrics": "指标",
+      "support": "支持",
+      "system": "系统",
+      "usage": "使用指南"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -58,8 +66,13 @@
         "profiles": "Profiles",
         "profilesDesc": "6 built-in presets (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus a full custom profile editor.",
         "gpuAuto": "Auto-Detection",
-        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup."
-      }
+        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup.",
+        "broadcast": "符合广播标准的预设 (BBC, Netflix, DPP)",
+        "gpu": "GPU 加速 (NVENC, AMF, QSV)",
+        "offline": "完全离线处理 — 无需联网",
+        "vmaf": "实时 VMAF 质量评分，支持各预设阈值"
+      },
+      "architecture": "使用 Tauri 2.x (Rust) 构建原生外壳，React 19 构建 UI，并使用 Node.js sidecar 进行媒体编排。SQLite 用于本地存储所有元数据。"
     },
     "screens": {
       "dashboard": {
@@ -187,6 +200,41 @@
           "title": "iCloud Drive",
           "desc": "iCloud 通过本地文件夹同步获得支持。Nexora 在本地磁盘上读取/写入 iCloud Drive 文件夹。",
           "localPath": "Windows：%USERPROFILE%\\iCloudDrive — macOS：~/Library/Mobile Documents/com~apple~CloudDocs"
+        },
+        "dropbox": {
+          "desc": "使用您自己的 Dropbox App Key 进行连接。在 developers.dropbox.com 创建 Dropbox 应用，然后在配置文件中输入 App Key。Nexora 使用 PKCE 流程 — 绝不存储您的 App Secret。",
+          "step1": "访问 developers.dropbox.com → 创建应用 → 范围访问 (Scoped Access) → 全量 Dropbox (Full Dropbox)",
+          "step2": "复制 App Key 并将其输入到 Dropbox 配置文件表单中",
+          "step3": "点击“验证” — 将打开浏览器窗口进行授权。令牌将存储在操作系统钥匙串中。",
+          "title": "Dropbox — PKCE OAuth"
+        },
+        "gdrivePersonal": {
+          "desc": "使用您自己的 Google Cloud Console 凭据 (Client ID + Client Secret)。这让您能完全控制访问 Drive 的 OAuth 应用。Nexora 使用 PKCE 流程 — 磁盘上不存储客户端密钥。",
+          "step1": "在 Google Cloud Console 中创建 OAuth 2.0 客户端 ID（类型：桌面应用）",
+          "step2": "在配置文件中输入客户端 ID 和客户端密钥，然后点击“认证”",
+          "step3": "浏览器窗口将打开 — 请登录并授权。令牌将保存在操作系统钥匙串中。",
+          "title": "Google Drive 个人版 — PKCE OAuth"
+        },
+        "mega": {
+          "desc": "使用您的 MEGA 邮箱和密码连接。文件始终由 MEGA 进行端到端加密 — Nexora 绝不会向 MEGA 服务器发送明文数据。在测试前，目标文件夹必须已存在于您的 MEGA 账户中。",
+          "tip1": "请先在 mega.nz 中创建目标文件夹（例如：云端硬盘内的 Nexora/Output）。",
+          "tip2": "输入文件夹路径，不要以斜杠开头：Nexora/Output",
+          "tip3": "每次操作均重新登录 — 本地不缓存会话。",
+          "title": "MEGA — 端到端加密云存储"
+        },
+        "sftp": {
+          "desc": "通过用户名/密码或 SSH 密钥认证连接至任何 SFTP 服务器。请填写主机、端口（默认 22）、用户名、密码或密钥路径，以及远程根文件夹。",
+          "tip1": "端口 22 是标准 SFTP 端口 — 仅在服务器使用自定义端口时修改。",
+          "tip2": "支持密码认证和基于密钥的认证。",
+          "tip3": "保存前请使用“测试连接”验证服务器是否可达且凭据有效。",
+          "title": "SFTP — SSH 文件传输"
+        },
+        "smb": {
+          "desc": "使用 SMB/CIFS 连接到 Windows 共享和 NAS 设备。输入共享路径（如 \\\\server\\share）、用户名和密码。访客访问请留空用户名/密码。",
+          "tip1": "共享路径格式：\\\\server\\sharename 或 //server/sharename。",
+          "tip2": "域账户：用户名请输入 DOMAIN\\user。",
+          "tip3": "出于安全考虑（防止路径遍历），包含“..”的 SMB 路径将被拦截。",
+          "title": "SMB / Windows Share"
         }
       },
       "logs": {
@@ -275,7 +323,128 @@
       "endpointValidation": "日志上传端点必须使用 http:// 或 https:// 协议"
     },
     "guideOpened": "Guia aberto no browser",
-    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet.",
+    "about": {
+      "appName": "Nexora Desktop",
+      "footer": "Nexora Media Processing — 面向广播和网络的专业媒体流水线。",
+      "license": "许可证",
+      "platforms": "平台",
+      "reportIssues": "如需报告问题或建议，请检查系统日志并在报告中附上相关输出。",
+      "version": "版本",
+      "year": "年份"
+    },
+    "metrics": {
+      "cpuDesc": "CPU % — 全局处理器占用率 (每 2s 更新)",
+      "lufs": "LUFS (Loudness Units Full Scale) 衡量音频响度。目标值：广播 -23 LUFS，网络/社交媒体 -14 LUFS。",
+      "lufsDescription": "根据 EBU R128 标准的整体响度测量。欧洲广播的标准目标值为 −23 LUFS ±1 LU。流媒体（Spotify, YouTube）的目标值通常为 −14 LUFS。",
+      "lufsTitle": "LUFS — 全量程响度单位",
+      "networkDesc": "网络 ↓↑ — 所有接口的聚合下载和上传吞吐量",
+      "ramDesc": "RAM — 已用 / 总内存 (GB)",
+      "realtime": "任务运行期间，实时指标每 2 秒更新一次。",
+      "realtimeTitle": "实时指标 (顶部栏)",
+      "title": "质量指标",
+      "truePeak": "True Peak (dBTP) 防止数字削波。所有配置限制：-1 dBTP。",
+      "vmaf": "VMAF (Video Multi-Method Assessment Fusion) 感知质量评分 0-100。阈值：85 (web), 90 (广播 SD), 93 (广播 HD/4K)。",
+      "vmafAcceptable": "可接受",
+      "vmafBroadcast": "广播级",
+      "vmafDescription": "由 Netflix 开发的感知视频质量指标。通过将处理后的视频与原片对比来模拟人类感知。",
+      "vmafGood": "良好",
+      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
+      "vmafUnacceptable": "不可接受"
+    },
+    "profiles": {
+      "broadcastHd": {
+        "desc": "完全符合广播标准 — H.264 High 4.1, 50 Mbps, -23 LUFS",
+        "name": "广播 HD"
+      },
+      "broadcastNote": "所有广播预设均使用：",
+      "broadcastSd": {
+        "desc": "标准清晰度 — H.264 Main 3.0, 15 Mbps",
+        "name": "广播 SD"
+      },
+      "note": "系统预设不可编辑。请复制以创建自定义版本。",
+      "proxy": {
+        "desc": "快速离线编辑 — 720p, 2 Mbps, 低延迟",
+        "name": "代理"
+      },
+      "social": {
+        "desc": "社交媒体 — 竖屏与正方形格式",
+        "name": "社交媒体"
+      },
+      "title": "可用编码预设",
+      "web4k": {
+        "desc": "流媒体 4K UHD — H.265, 25 Mbps, VMAF ≥ 93",
+        "name": "Web 4K"
+      },
+      "webHd": {
+        "desc": "针对网页和流媒体优化 — H.264, 8 Mbps",
+        "name": "Web HD"
+      }
+    },
+    "support": {
+      "commonProblems": "常见问题",
+      "factoryResetAssets": "删除所有资源和历史记录",
+      "factoryResetDescription": "如果应用出现行为异常、数据无法清除或数据库错误，您可以在 设置 → 高级 中执行全面重置。",
+      "factoryResetProfiles": "移除自定义配置文件和设置",
+      "factoryResetRestart": "从头开始重启应用程序",
+      "factoryResetTemp": "清除 sidecar 临时文件",
+      "factoryResetTitle": "恢复出厂设置 (全盘擦除)",
+      "factoryResetWarning": "这将删除所有数据、设置和历史记录。应用将重启。此操作无法撤销。",
+      "problem1Desc": "请在 System 选项卡中检查 FFmpeg 是否被正确检测到。",
+      "problem1Title": "处理无法启动？",
+      "problem2Desc": "请确保 Nexora 对配置的文件夹具有写入权限。",
+      "problem2Title": "输出文件夹权限错误？",
+      "problems": {
+        "1": "未检测到 GPU — 请安装最新的显卡驱动",
+        "2": "转码任务失败 — 请确认已内置 FFmpeg 二进制文件"
+      },
+      "troubleshooting": "故障排除"
+    },
+    "system": {
+      "components": "已安装组件",
+      "database": "数据库",
+      "loading": "正在加载系统信息...",
+      "stack": "技术栈",
+      "stackCodec": "编解码器: FFmpeg (自动检测 GPU)",
+      "stackDb": "数据库: SQLite (内置 rusqlite)",
+      "stackFrontend": "前端: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
+      "stackShell": "原生壳层: Tauri 2.x (Rust stable)",
+      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
+      "techStack": "技术栈"
+    },
+    "usage": {
+      "step1Desc": "点击导航栏中的火箭图标进入处理页面。",
+      "step1Title": "打开“处理”标签页",
+      "step2Desc": "将 MP4, MXF, MOV 或任何 FFmpeg 支持的格式拖入投放区。也可以点击打开文件选择器。",
+      "step2Title": "拖入视频文件",
+      "step3Desc": "根据最终用途（广播、网络、社交媒体）选择合适的预设。每个预设都包含用于合规性和最佳质量的预配置参数。",
+      "step3Title": "选择编码预设",
+      "step4Desc": "点击“处理”。任务将添加到队列并在后台处理。处理期间应用仍可响应。",
+      "step4Title": "开始处理",
+      "step5Desc": "Dashboard 显示活动任务、平均 VMAF 分数和磁盘空间。进度条实时更新。",
+      "step5Title": "在 \"Dashboard\" 中监控",
+      "step6Desc": "完成后，资源将出现在历史记录中，包含编码器、时长、大小和 VMAF 分数。点击详情按钮查看所有元数据。",
+      "step6Title": "在“历史记录”中检查结果",
+      "steps": {
+        "1": "通过拖放或文件对话框添加媒体",
+        "2": "选择转码预设 (broadcast-hd, web-4k 等)",
+        "3": "提交至队列 — 任务将自动处理",
+        "4": "查看 QC 报告并批准/拒绝隔离项目",
+        "5": "在输出文件夹中访问处理后的文件"
+      },
+      "tip1": "在设置中启用 GPU，可提升 5-10 倍转码速度",
+      "tip2": "Proxy 预设适用于创建编辑版本 — 绝不可用于最终交付",
+      "tip3": "在 设置 → Logs 中保存日志以进行故障排除",
+      "tip4": "输出目录可在设置中全局设置或按预设单独设置",
+      "tips": "提示",
+      "tipsList": {
+        "1": "使用 GPU 加速，转码速度提升 5-10 倍",
+        "2": "开启通知以在任务完成时接收提醒",
+        "3": "在日志页面查看详细的 FFmpeg 输出",
+        "4": "恢复出厂设置将清除所有内容 — 请谨慎操作"
+      },
+      "workflow": "工作流"
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Assets",
@@ -329,7 +498,10 @@
     "duration": "Duration",
     "actions": "Actions",
     "gridView": "网格视图",
-    "listView": "列表视图"
+    "listView": "列表视图",
+    "adding": "正在添加...",
+    "processSelected": "处理选中的 {{count}} 项",
+    "qcOk": "QC 通过"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -376,7 +548,10 @@
     "pipeline": {
       "expandTooltip": "点击查看文件",
       "noFilesForStatus": "此状态下无文件"
-    }
+    },
+    "etaActive": "剩余 ~{{time}}",
+    "etaCalc": "计算中...",
+    "etaTotal": "总计 ~{{time}}"
   },
   "profiles": {
     "create": "Create",
@@ -566,7 +741,10 @@
       "version": "Version",
       "license": "License",
       "platforms": "Platforms",
-      "year": "Year"
+      "year": "Year",
+      "createAlias": "创建桌面快捷方式",
+      "createShortcut": "创建桌面快捷方式",
+      "shortcutCreated": "快捷方式创建成功"
     },
     "sections": {
       "importation": "Importation",
@@ -586,6 +764,29 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "privacy": {
+      "clearData": "删除所有数据",
+      "cleared": "所有遥测数据已删除。",
+      "noData": "尚未收集遥测数据。",
+      "tab": "隐私",
+      "title": "隐私与遥测",
+      "toggle": "分享匿名错误数据",
+      "toggleHint": "错误计数和应用事件 — 仅存储在本设备上。",
+      "viewData": "查看收集的数据"
+    },
+    "watchFolders": {
+      "addError": "无法添加文件夹：{{error}}",
+      "addFolder": "添加文件夹",
+      "description": "Nexora 将监控这些文件夹并自动将新视频文件添加到队列中。",
+      "disabled": "已暂停",
+      "enabled": "激活",
+      "noFolders": "未配置文件夹。",
+      "noFoldersHint": "点击“添加文件夹”开始监控目录。",
+      "remove": "移除",
+      "removeConfirm": "从监视文件夹中移除此文件夹？",
+      "tab": "监视文件夹",
+      "title": "监视文件夹"
     }
   },
   "logs": {
@@ -689,7 +890,11 @@
     "qcPost": "Post-QC",
     "qcPostDesc": "Output SHA-256 verified + VMAF",
     "delivery": "Delivery",
-    "deliveryDesc": "Files moved to output folder"
+    "deliveryDesc": "Files moved to output folder",
+    "qc-post": "后置 QC",
+    "qc-postDesc": "输出 SHA-256 验证 + VMAF",
+    "qc-pre": "预检 QC",
+    "qc-preDesc": "文件已验证（大小、时长、编码）"
   },
   "common": {
     "save": "Save",
@@ -891,7 +1096,22 @@
     "cancel": "Cancel Job",
     "processing": "Processing...",
     "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "errorSuggestion": "查看日志获取详情",
+    "errors": {
+      "codec": "编码器不可用",
+      "codecHint": "请选择其他预设",
+      "corrupt": "文件损坏或不支持",
+      "corruptHint": "请检查源文件是否完整",
+      "diskFull": "磁盘空间不足",
+      "diskFullHint": "请清理磁盘空间后重试",
+      "generic": "转码错误",
+      "genericHint": "详情请参阅日志",
+      "killed": "进程已中断",
+      "killedHint": "任务已取消或系统内存不足",
+      "permission": "权限被拒绝",
+      "permissionHint": "请检查目标文件夹权限"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -959,5 +1179,64 @@
     "modified": "Modificado",
     "notSupported": "Navegação não suportada para iCloud",
     "browseTooltipDisabled": "Navegação não suportada para iCloud"
+  },
+  "bugReport": {
+    "copied": "已复制到剪贴板",
+    "copyClipboard": "复制到剪贴板",
+    "descLabel": "描述",
+    "descPlaceholder": "重现步骤，预期结果与实际结果...",
+    "includeLogs": "包含最后 50 行日志",
+    "openGitHub": "打开 GitHub Issue",
+    "saveFile": "保存为文件",
+    "saved": "已保存至 {{path}}",
+    "title": "报告问题",
+    "titleLabel": "标题",
+    "titlePlaceholder": "简要描述问题",
+    "titleRequired": "标题不能为空"
+  },
+  "comparator": {
+    "dragHint": "拖拽以对比",
+    "noOutput": "处理后的文件不可用",
+    "original": "原始文件",
+    "processed": "处理后文件",
+    "tab": "对比器"
+  },
+  "diagnostics": {
+    "bundled": "已内置 ✓",
+    "desc": "视频处理所需组件的状态。",
+    "notFound": "未找到",
+    "reinstall": "下载最新版本",
+    "title": "系统诊断"
+  },
+  "onboarding": {
+    "back": "返回",
+    "next": "下一步",
+    "start": "开始使用 Nexora",
+    "step1Desc": "专业媒体处理，原生运行在您的工作站。让我们在不到一分钟内完成设置。",
+    "step1Title": "欢迎使用 Nexora Desktop",
+    "step2Choose": "选择文件夹",
+    "step2Desc": "处理后的文件应保存到哪里？",
+    "step2Title": "输出文件夹",
+    "step3Desc": "通过分享匿名错误数据来帮助改进 Nexora — 仅存储在本设备上，绝不发送至任何地方。",
+    "step3Title": "隐私",
+    "step3Toggle": "分享匿名错误数据",
+    "step4Desc": "将视频文件拖入应用，或使用 Library 将文件添加到队列。",
+    "step4Title": "准备就绪！",
+    "stepOf": "第 {{current}} / {{total}} 步"
+  },
+  "update": {
+    "currentVersion": "当前版本",
+    "devModeRestart": "已安装。请手动重启 (dev mode)。",
+    "downloadError": "下载错误",
+    "downloading": "正在下载...",
+    "installing": "正在安装...",
+    "later": "稍后",
+    "newVersion": "新版本",
+    "restarting": "正在重启...",
+    "retry": "重试",
+    "title": "有可用更新",
+    "updateNow": "立即更新",
+    "viewFullRelease": "查看完整发行说明",
+    "whatsNew": "更新内容"
   }
 }

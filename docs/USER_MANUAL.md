@@ -1,6 +1,6 @@
 # Nexora Desktop — User Manual
 
-**Version:** 0.23.0 | **Platform:** Windows · macOS · Linux
+**Version:** 0.33.0-beta.1 | **Platform:** Windows · macOS · Linux
 
 ---
 
@@ -14,6 +14,13 @@
 6. [Profiles](#6-profiles)
 7. [Settings](#7-settings)
 8. [Logs & Diagnostics](#8-logs--diagnostics)
+9. [Cloud Storage](#9-cloud-storage)
+10. [Security & Privacy](#10-security--privacy)
+11. [Visual Comparator](#11-visual-comparator-v0300-beta1)
+12. [Onboarding Wizard](#12-onboarding-wizard-v0300-beta1)
+13. [Watch Folders](#13-watch-folders-v0300-beta1)
+14. [Bug Reporting](#14-bug-reporting-v0300-beta1)
+15. [Pipeline Error Messages](#15-pipeline-error-messages-v0300-beta1)
 
 ---
 
@@ -244,47 +251,7 @@ The Logs page shows structured application logs with full-text search.
 
 ---
 
-## 9. Asset Detail
-
-Asset Detail is the main workspace for a single video file.
-
-### Hero Section
-
-- **Toggle Original / Processed** — switch the preview between source and output
-- **Play button** — plays the video inline; the path shown updates with the active view
-- **Open in player** — opens in the system default media player
-
-### MediaInfo Tabs
-
-Sub-tabs within Technical Metadata:
-
-- **General** — format, duration, bitrate, file size
-- **Video** — codec, resolution, frame rate, colour space, HDR data
-- **Audio** — codec, sample rate, channels, bitrate
-- **Subtitles** — embedded subtitle tracks
-- **Tags** — container metadata tags
-- **SHA-256** — file integrity hash
-
-### Technical Analysis
-
-Side-by-side comparison of original vs. processed:
-
-- File name, full path, and file size
-- Codec, resolution, fps, bit depth, HDR, colour space, container, scan type
-
-### Action Bar
-
-| Button         | Action                                                                  |
-| -------------- | ----------------------------------------------------------------------- |
-| Reprocess      | Opens profile picker to queue a new job                                 |
-| View Original  | Opens the source file location in Explorer/Finder                       |
-| View Processed | Tries to open the processed asset in-app; falls back to Explorer/Finder |
-| Download       | Saves the processed file to a chosen destination                        |
-| Delete         | Removes the asset and all jobs; asks whether to delete processed files  |
-
----
-
-## 10. Cloud Storage
+## 9. Cloud Storage
 
 Configure cloud storage destinations for automatic file delivery after transcoding.
 
@@ -394,7 +361,7 @@ When a job completes, the output file is uploaded to all configured cloud destin
 
 ---
 
-## 11. Security & Privacy
+## 10. Security & Privacy
 
 ### Credential Storage
 
@@ -424,7 +391,7 @@ A two-step confirmation process ensures intentional data loss:
 
 ---
 
-## 12. Visual Comparator (v0.30.0-beta.1)
+## 11. Visual Comparator (v0.30.0-beta.1)
 
 The Visual Comparator lets you compare original and processed videos side-by-side with synchronized playback.
 
@@ -445,7 +412,7 @@ The Visual Comparator lets you compare original and processed videos side-by-sid
 
 ---
 
-## 13. Onboarding Wizard (v0.30.0-beta.1)
+## 12. Onboarding Wizard (v0.30.0-beta.1)
 
 At first launch, a 4-step wizard guides new users through initial setup.
 
@@ -458,7 +425,7 @@ At first launch, a 4-step wizard guides new users through initial setup.
 
 ---
 
-## 14. Watch Folders (v0.30.0-beta.1)
+## 13. Watch Folders (v0.30.0-beta.1)
 
 Automatically monitor local directories for new video files. When a new file is detected and stabilised (debounced for 3 seconds), it is automatically ingested into the Library.
 
@@ -471,7 +438,7 @@ Automatically monitor local directories for new video files. When a new file is 
 
 ---
 
-## 15. Bug Reporting (v0.30.0-beta.1)
+## 14. Bug Reporting (v0.30.0-beta.1)
 
 Report issues directly from the app via the orange bug icon in the TopBar.
 
@@ -490,7 +457,7 @@ Report issues directly from the app via the orange bug icon in the TopBar.
 
 ---
 
-## 16. Pipeline Error Messages (v0.30.0-beta.1)
+## 15. Pipeline Error Messages (v0.30.0-beta.1)
 
 When a job fails, Nexora now categorizes the error and provides actionable hints.
 

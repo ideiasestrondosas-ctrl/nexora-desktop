@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 // English é sempre carregado — serve de fallback e de default
-import en from './locales/en/base.json';
+import en from './locales/en/common.json';
 
 const SUPPORTED_LANGS = new Set([
   'pt',

@@ -25,7 +25,10 @@
     "gpu": "GPU",
     "disk": "Disk",
     "exit": "Exit",
-    "help": "Help"
+    "help": "Help",
+    "bugReport": "الإبلاغ عن مشكلة",
+    "queueActive": "جاري معالجة {{count}}",
+    "queueIdle": "جاهز"
   },
   "help": {
     "title": "User Manual",
@@ -43,7 +46,12 @@
       "assetDetail": "تفاصيل الأصل",
       "import": "استيراد",
       "comparator": "Comparator",
-      "betaGuide": "دليل اختبار النسخة التجريبية (DEV)"
+      "betaGuide": "دليل اختبار النسخة التجريبية (DEV)",
+      "about": "حول",
+      "metrics": "المقاييس",
+      "support": "الدعم",
+      "system": "النظام",
+      "usage": "كيفية الاستخدام"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -58,8 +66,13 @@
         "profiles": "Profiles",
         "profilesDesc": "6 built-in presets (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus a full custom profile editor.",
         "gpuAuto": "Auto-Detection",
-        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup."
-      }
+        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup.",
+        "broadcast": "ملفات تعريف متوافقة مع البث (BBC, Netflix, DPP)",
+        "gpu": "تسريع GPU (NVENC, AMF, QSV)",
+        "offline": "معالجة دون اتصال بالكامل — لا يتطلب إنترنت",
+        "vmaf": "تقييم جودة VMAF نشط مع عتبات لكل ملف تعريف"
+      },
+      "architecture": "تم البناء باستخدام Tauri 2.x (Rust) للغلاف الأصلي، و React 19 للـ UI، و Node.js sidecar لتنسيق الوسائط. يقوم SQLite بتخزين جميع البيانات الوصفية محلياً."
     },
     "screens": {
       "dashboard": {
@@ -187,6 +200,41 @@
           "title": "iCloud Drive",
           "desc": "iCloud مدعوم عبر مزامنة المجلد المحلي. يقرأ Nexora ويكتب في مجلد iCloud Drive على القرص المحلي.",
           "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
+        },
+        "dropbox": {
+          "desc": "استخدم مفتاح تطبيق Dropbox الخاص بك للاتصال. أنشئ تطبيق Dropbox عبر developers.dropbox.com، ثم أدخل مفتاح التطبيق في الملف الشخصي. يستخدم Nexora تدفق PKCE — لا يتم تخزين سر التطبيق مطلقاً.",
+          "step1": "انتقل إلى developers.dropbox.com ← Create App ← Scoped Access ← Full Dropbox",
+          "step2": "انسخ مفتاح التطبيق وأدخله في نموذج ملف Dropbox الشخصي",
+          "step3": "انقر على 'Authenticate' — ستفتح نافذة متصفح للتفويض. يتم تخزين الرمز في سلسلة مفاتيح نظام التشغيل.",
+          "title": "Dropbox — PKCE OAuth"
+        },
+        "gdrivePersonal": {
+          "desc": "استخدم بيانات اعتماد Google Cloud Console الخاصة بك (Client ID + Client Secret). يمنحك هذا تحكماً كاملاً في تطبيق OAuth الذي يصل إلى Drive الخاص بك. يستخدم Nexora تدفق PKCE — لا يتم تخزين أي سر للعميل على القرص.",
+          "step1": "أنشئ OAuth 2.0 Client ID في Google Cloud Console (النوع: Desktop App)",
+          "step2": "أدخل Client ID و Client Secret في نموذج الملف الشخصي، ثم انقر على 'Authenticate'",
+          "step3": "ستفتح نافذة متصفح — قم بتسجيل الدخول والترخيص. سيتم حفظ الرمز في keychain الخاص بنظام التشغيل.",
+          "title": "Google Drive Personal — PKCE OAuth"
+        },
+        "mega": {
+          "desc": "اتصل باستخدام بريدك الإلكتروني وكلمة مرور MEGA. الملفات مشفرة دائماً من الطرفين بواسطة MEGA — Nexora لا ترسل البيانات بنص صريح إلى خوادم MEGA. يجب أن يكون مجلد الوجهة موجوداً في حساب MEGA الخاص بك قبل الاختبار.",
+          "tip1": "أنشئ مجلد الوجهة في mega.nz أولاً (مثلاً Nexora/Output داخل Cloud Drive).",
+          "tip2": "أدخل مسار المجلد بدون شرطة مائلة في البداية: Nexora/Output",
+          "tip3": "يتم تسجيل الدخول من جديد لكل عملية — لا يتم تخزين الجلسة محلياً.",
+          "title": "MEGA — سحابة مشفرة من الطرفين"
+        },
+        "sftp": {
+          "desc": "اتصل بأي خادم SFTP باستخدام اسم المستخدم/كلمة المرور أو مصادقة مفتاح SSH. املأ المضيف، والمنفذ (الافتراضي 22)، واسم المستخدم، وكلمة المرور أو مسار المفتاح، والمجلد الأساسي البعيد.",
+          "tip1": "المنفذ 22 هو منفذ SFTP القياسي — قم بتغييره فقط إذا كان خادمك يستخدم منفذاً مخصصاً.",
+          "tip2": "كل من مصادقة كلمة المرور والمصادقة القائمة على المفتاح مدعومان.",
+          "tip3": "استخدم 'اختبار الاتصال' للتحقق من إمكانية الوصول إلى الخادم وصحة بيانات الاعتماد قبل الحفظ.",
+          "title": "SFTP — نقل الملفات عبر SSH"
+        },
+        "smb": {
+          "desc": "الاتصال بمشاركات Windows وأجهزة NAS باستخدام SMB/CIFS. أدخل مسار المشاركة (مثلاً \\\\server\\share)، واسم المستخدم، وكلمة المرور. اترك اسم المستخدم/كلمة المرور فارغة للوصول كضيف.",
+          "tip1": "صيغة مسار المشاركة: \\\\server\\sharename أو //server/sharename.",
+          "tip2": "حسابات النطاق: أدخل اسم المستخدم بصيغة DOMAIN\\user.",
+          "tip3": "مسارات SMB التي تحتوي على '..' محظورة لأسباب أمنية (منع تجاوز المسار).",
+          "title": "SMB / Windows Share"
         }
       },
       "logs": {
@@ -275,6 +323,127 @@
       "keychain": "يتم تخزين بيانات اعتماد السحابة في سلسلة مفاتيح نظام التشغيل (Windows Credential Manager، macOS Keychain، Linux Secret Service)",
       "pathTraversal": "يتم التحقق من صحة المسارات البعيدة لمنع هجمات الانتقال عبر الدليل",
       "endpointValidation": "يجب أن تستخدم نقاط نهاية رفع السجلات بروتوكولات http:// أو https://"
+    },
+    "about": {
+      "appName": "Nexora Desktop",
+      "footer": "Nexora Media Processing — خط معالجة وسائط احترافي للبث والويب.",
+      "license": "الترخيص",
+      "platforms": "المنصات",
+      "reportIssues": "للإبلاغ عن المشكلات أو الاقتراحات، يرجى مراجعة سجلات النظام وإرفاق المخرجات ذات الصلة في تقريرك.",
+      "version": "الإصدار",
+      "year": "السنة"
+    },
+    "metrics": {
+      "cpuDesc": "نسبة CPU % — استهلاك المعالج العام (يحدث كل ثانيتين)",
+      "lufs": "LUFS (Loudness Units Full Scale) يقيس جهارة الصوت. الهدف: -23 LUFS للبث، -14 LUFS للويب/التواصل الاجتماعي.",
+      "lufsDescription": "قياس جهارة الصوت المتكامل وفقًا لمعيار EBU R128. الهدف القياسي للبث الأوروبي هو −23 LUFS ±1 LU. أما بالنسبة للبث المباشر (Spotify, YouTube) فالهدف عادةً هو −14 LUFS.",
+      "lufsTitle": "LUFS — Loudness Units Full Scale",
+      "networkDesc": "Network ↓↑ — إجمالي إنتاجية التنزيل والرفع لجميع الواجهات",
+      "ramDesc": "RAM — الذاكرة المستخدمة / الإجمالية بـ GB",
+      "realtime": "تحديث المقاييس في الوقت الفعلي كل ثانيتين أثناء المهام النشطة.",
+      "realtimeTitle": "مقاييس الوقت الفعلي (الشريط العلوي)",
+      "title": "مقاييس الجودة",
+      "truePeak": "True Peak (dBTP) يمنع القص الرقمي. الحد: -1 dBTP لجميع الملفات الشخصية.",
+      "vmaf": "VMAF (Video Multi-Method Assessment Fusion) يقيم الجودة الإدراكية من 0-100. العتبات: 85 (ويب)، 90 (بث SD)، 93 (بث HD/4K).",
+      "vmafAcceptable": "مقبول",
+      "vmafBroadcast": "بث",
+      "vmafDescription": "مقياس جودة الفيديو الإدراكي طورته Netflix. يحاكي الإدراك البشري عبر مقارنة الفيديو المعالج بالأصلي.",
+      "vmafGood": "جيد",
+      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
+      "vmafUnacceptable": "غير مقبول"
+    },
+    "profiles": {
+      "broadcastHd": {
+        "desc": "توافق كامل مع البث — H.264 High 4.1, 50 Mbps, -23 LUFS",
+        "name": "Broadcast HD"
+      },
+      "broadcastNote": "جميع ملفات تعريف البث تستخدم:",
+      "broadcastSd": {
+        "desc": "دقة قياسية — H.264 Main 3.0, 15 Mbps",
+        "name": "Broadcast SD"
+      },
+      "note": "لا يمكن تعديل ملفات تعريف النظام. قم بمضاعفتها لإنشاء نسخ مخصصة.",
+      "proxy": {
+        "desc": "تحرير سريع دون اتصال — 720p, 2 Mbps, زمن وصول منخفض",
+        "name": "Proxy"
+      },
+      "social": {
+        "desc": "وسائل التواصل الاجتماعي — تنسيقات عمودية ومربعة",
+        "name": "وسائل التواصل"
+      },
+      "title": "ملفات الترميز المتاحة",
+      "web4k": {
+        "desc": "بث 4K UHD — H.265, 25 Mbps, VMAF ≥ 93",
+        "name": "Web 4K"
+      },
+      "webHd": {
+        "desc": "محسن للويب والبث — H.264, 8 Mbps",
+        "name": "Web HD"
+      }
+    },
+    "support": {
+      "commonProblems": "المشاكل الشائعة",
+      "factoryResetAssets": "يحذف جميع الأصول والسجلات",
+      "factoryResetDescription": "إذا أظهر التطبيق سلوكاً غير متسق، أو بيانات لا يمكن مسحها، أو أخطاء في قاعدة البيانات، يمكنك إجراء إعادة ضبط كلية من الإعدادات ← Advanced.",
+      "factoryResetProfiles": "يزيل الملفات التعريفية والإعدادات المخصصة",
+      "factoryResetRestart": "يعيد تشغيل التطبيق من الصفر",
+      "factoryResetTemp": "مسح الملفات المؤقتة لـ sidecar",
+      "factoryResetTitle": "إعادة ضبط المصنع (مسح شامل)",
+      "factoryResetWarning": "سيؤدي هذا إلى حذف جميع البيانات والإعدادات والسجل. سيتم إعادة تشغيل التطبيق. لا يمكن التراجع عن هذا الإجراء.",
+      "problem1Desc": "تحقق مما إذا كان FFmpeg مكتشفاً بشكل صحيح في تبويب System.",
+      "problem1Title": "المعالجة لا تبدأ؟",
+      "problem2Desc": "تأكد من أن Nexora يمتلك صلاحيات الكتابة للمجلد المكون.",
+      "problem2Title": "خطأ في صلاحيات مجلد المخرجات؟",
+      "problems": {
+        "1": "لم يتم اكتشاف GPU — ثبّت أحدث تعريفات الرسوميات",
+        "2": "فشل المهام عند التحويل — تحقق من تضمين ملف FFmpeg الثنائي"
+      },
+      "troubleshooting": "استكشاف الأخطاء وإصلاحها"
+    },
+    "system": {
+      "components": "المكونات المثبتة",
+      "database": "Database",
+      "loading": "جاري تحميل معلومات النظام...",
+      "stack": "الحزمة التقنية",
+      "stackCodec": "Codec: FFmpeg مع GPU مكتشف تلقائياً",
+      "stackDb": "DB: SQLite (rusqlite bundled)",
+      "stackFrontend": "Frontend: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
+      "stackShell": "Native shell: Tauri 2.x (Rust stable)",
+      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
+      "techStack": "الحزمة التقنية"
+    },
+    "usage": {
+      "step1Desc": "انقر على أيقونة الصاروخ في شريط التنقل للوصول إلى صفحة المعالجة.",
+      "step1Title": "افتح تبويب \"Process\"",
+      "step2Desc": "اسحب ملف MP4 أو MXF أو MOV أو أي تنسيق يدعمه FFmpeg إلى منطقة الإفلات. يمكنك أيضاً النقر لفتح مستعرض الملفات.",
+      "step2Title": "اسحب ملف الفيديو",
+      "step3Desc": "اختر الملف الشخصي المناسب للوجهة النهائية (البث، الويب، التواصل الاجتماعي). يحتوي كل ملف شخصي على معلمات معدة مسبقاً للامتثال والجودة المثالية.",
+      "step3Title": "اختر ملف تعريف الترميز",
+      "step4Desc": "انقر على Process. ستتم إضافة المهمة إلى قائمة الانتظار ومعالجتها في الخلفية. يظل التطبيق مستجيباً أثناء المعالجة.",
+      "step4Title": "بدء المعالجة",
+      "step5Desc": "تعرض Dashboard المهام النشطة، ومتوسط درجة VMAF ومساحة القرص. يتم تحديث شريط التقدم في الوقت الفعلي.",
+      "step5Title": "المراقبة في \"Dashboard\"",
+      "step6Desc": "بعد الاكتمال، يظهر الملف في History مع الكوديك، والمدة، والحجم، ودرجة VMAF. استخدم زر التفاصيل لرؤية جميع البيانات الوصفية.",
+      "step6Title": "تحقق من النتائج في \"History\"",
+      "steps": {
+        "1": "أضف الوسائط عبر السحب والإفلات أو مربع حوار الملفات",
+        "2": "اختر ملف تحويل (broadcast-hd, web-4k, إلخ)",
+        "3": "أرسل إلى قائمة الانتظار — ستتم معالجة المهام تلقائياً",
+        "4": "راجع تقارير QC ووافق على العناصر المعزولة أو ارفضها",
+        "5": "الوصول إلى الملفات المعالجة في مجلد المخرجات"
+      },
+      "tip1": "قم بتفعيل GPU في الإعدادات لترجمة أسرع بـ 5-10 مرات",
+      "tip2": "ملف Proxy مثالي لإنشاء نسخ المونتاج — وليس للتسليم النهائي أبداً",
+      "tip3": "احفظ السجلات في الإعدادات ← Logs لاستكشاف الأخطاء وإصلاحها",
+      "tip4": "يمكن ضبط دليل المخرجات بشكل عام أو لكل ملف تعريف في الإعدادات",
+      "tips": "نصائح",
+      "tipsList": {
+        "1": "استخدم تسريع GPU لترجمة أسرع بـ 5-10 مرات",
+        "2": "قم بتفعيل الإشعارات لتلقي تنبيهات عند انتهاء المهام",
+        "3": "تحقق من صفحة Logs لمخرجات FFmpeg التفصيلية",
+        "4": "إعادة ضبط المصنع تمسح كل شيء — استخدمها بحذر"
+      },
+      "workflow": "سير العمل"
     }
   },
   "dashboard": {
@@ -329,7 +498,10 @@
     "duration": "Duration",
     "actions": "Actions",
     "gridView": "عرض شبكة",
-    "listView": "عرض قائمة"
+    "listView": "عرض قائمة",
+    "adding": "جاري الإضافة...",
+    "processSelected": "معالجة {{count}} مختارة",
+    "qcOk": "QC OK"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -376,7 +548,10 @@
     "pipeline": {
       "expandTooltip": "انقر لرؤية الملفات",
       "noFilesForStatus": "لا توجد ملفات لهذه الحالة"
-    }
+    },
+    "etaActive": "متبقي ~{{time}}",
+    "etaCalc": "جاري الحساب...",
+    "etaTotal": "الإجمالي ~{{time}}"
   },
   "profiles": {
     "create": "Create",
@@ -566,7 +741,10 @@
       "version": "Version",
       "license": "License",
       "platforms": "Platforms",
-      "year": "Year"
+      "year": "Year",
+      "createAlias": "إنشاء اختصار على سطح المكتب",
+      "createShortcut": "إنشاء اختصار على سطح المكتب",
+      "shortcutCreated": "تم إنشاء الاختصار بنجاح"
     },
     "sections": {
       "importation": "Importation",
@@ -586,6 +764,29 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "privacy": {
+      "clearData": "حذف جميع البيانات",
+      "cleared": "تم حذف جميع بيانات القياس عن بُعد.",
+      "noData": "لم يتم جمع أي بيانات قياس عن بُعد بعد.",
+      "tab": "الخصوصية",
+      "title": "الخصوصية والقياس عن بُعد",
+      "toggle": "مشاركة بيانات الخطأ المجهولة",
+      "toggleHint": "أعداد الأخطاء وأحداث التطبيق — تُخزن على هذا الجهاز فقط.",
+      "viewData": "عرض البيانات التي تم جمعها"
+    },
+    "watchFolders": {
+      "addError": "تعذر إضافة المجلد: {{error}}",
+      "addFolder": "إضافة مجلد",
+      "description": "يقوم Nexora بمراقبة هذه المجلدات وإضافة ملفات الفيديو الجديدة تلقائياً إلى قائمة الانتظار.",
+      "disabled": "متوقف مؤقتاً",
+      "enabled": "نشط",
+      "noFolders": "لا توجد مجلدات مهيأة.",
+      "noFoldersHint": "انقر على \"إضافة مجلد\" لبدء مراقبة دليل.",
+      "remove": "إزالة",
+      "removeConfirm": "هل تريد إزالة هذا المجلد من المجلدات المراقبة؟",
+      "tab": "المجلدات المراقبة",
+      "title": "المجلدات المراقبة"
     }
   },
   "logs": {
@@ -689,7 +890,11 @@
     "qcPost": "Post-QC",
     "qcPostDesc": "Output SHA-256 verified + VMAF",
     "delivery": "Delivery",
-    "deliveryDesc": "Files moved to output folder"
+    "deliveryDesc": "Files moved to output folder",
+    "qc-post": "Post-QC",
+    "qc-postDesc": "التحقق من SHA-256 للمخرجات + VMAF",
+    "qc-pre": "Pre-QC",
+    "qc-preDesc": "تم التحقق من الملف (الحجم، المدة، الترميز)"
   },
   "common": {
     "save": "Save",
@@ -891,7 +1096,22 @@
     "cancel": "Cancel Job",
     "processing": "Processing...",
     "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "errorSuggestion": "راجع Logs للتفاصيل",
+    "errors": {
+      "codec": "الـ Codec غير متوفر",
+      "codecHint": "اختر إعداداً مسبقاً مختلفاً",
+      "corrupt": "ملف تالف أو غير مدعوم",
+      "corruptHint": "تحقق من سلامة الملف المصدر",
+      "diskFull": "القرص ممتلئ",
+      "diskFullHint": "قم بتفريغ مساحة في القرص وحاول مجدداً",
+      "generic": "خطأ في تحويل الترميز",
+      "genericHint": "راجع السجلات للتفاصيل",
+      "killed": "تم مقاطعة العملية",
+      "killedHint": "تم إلغاء المهمة أو نفدت ذاكرة النظام",
+      "permission": "تم رفض الإذن",
+      "permissionHint": "تحقق من أذونات مجلد الوجهة"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -959,5 +1179,64 @@
     "modified": "Modificado",
     "notSupported": "Navegação não suportada para iCloud",
     "browseTooltipDisabled": "Navegação não suportada para iCloud"
+  },
+  "bugReport": {
+    "copied": "تم النسخ إلى الحافظة",
+    "copyClipboard": "نسخ إلى الحافظة",
+    "descLabel": "الوصف",
+    "descPlaceholder": "خطوات إعادة الإنتاج، السلوك المتوقع مقابل الفعلي...",
+    "includeLogs": "تضمين آخر 50 سطرًا من السجلات",
+    "openGitHub": "فتح مشكلة على GitHub",
+    "saveFile": "حفظ كملف",
+    "saved": "تم الحفظ في {{path}}",
+    "title": "الإبلاغ عن مشكلة",
+    "titleLabel": "العنوان",
+    "titlePlaceholder": "وصف موجز للمشكلة",
+    "titleRequired": "العنوان مطلوب"
+  },
+  "comparator": {
+    "dragHint": "اسحب للمقارنة",
+    "noOutput": "الملف المعالج غير متوفر",
+    "original": "الأصلي",
+    "processed": "المعالج",
+    "tab": "المقارن"
+  },
+  "diagnostics": {
+    "bundled": "مدمج ✓",
+    "desc": "حالة المكونات المطلوبة لمعالجة الفيديو.",
+    "notFound": "غير موجود",
+    "reinstall": "تحميل أحدث إصدار",
+    "title": "تشخيص النظام"
+  },
+  "onboarding": {
+    "back": "عودة",
+    "next": "التالي",
+    "start": "ابدأ استخدام Nexora",
+    "step1Desc": "معالجة وسائط احترافية، تعمل بشكل أصلي على محطة عملك. لنقم بإعدادك في أقل من دقيقة.",
+    "step1Title": "مرحباً بك في Nexora Desktop",
+    "step2Choose": "اختر المجلد",
+    "step2Desc": "أين يجب حفظ الملفات المعالجة؟",
+    "step2Title": "مجلد المخرجات",
+    "step3Desc": "ساعد في تحسين Nexora عبر مشاركة بيانات الأخطاء المجهولة — تُخزن فقط على هذا الجهاز، ولا تُرسل إلى أي مكان.",
+    "step3Title": "الخصوصية",
+    "step3Toggle": "مشاركة بيانات الأخطاء المجهولة",
+    "step4Desc": "اسحب ملفات الفيديو إلى التطبيق، أو استخدم المكتبة لإضافة ملفات إلى قائمة الانتظار.",
+    "step4Title": "لقد انتهيت!",
+    "stepOf": "خطوة {{current}} من {{total}}"
+  },
+  "update": {
+    "currentVersion": "الإصدار الحالي",
+    "devModeRestart": "تم التثبيت. أعد التشغيل يدويًا (وضع المطور).",
+    "downloadError": "خطأ في التنزيل",
+    "downloading": "جاري التنزيل...",
+    "installing": "جاري التثبيت...",
+    "later": "لاحقًا",
+    "newVersion": "إصدار جديد",
+    "restarting": "جاري إعادة التشغيل...",
+    "retry": "إعادة المحاولة",
+    "title": "تحديث متاح",
+    "updateNow": "حدّث الآن",
+    "viewFullRelease": "عرض ملاحظات الإصدار الكاملة",
+    "whatsNew": "ما الجديد"
   }
 }

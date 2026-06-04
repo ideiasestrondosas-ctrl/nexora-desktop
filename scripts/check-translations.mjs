@@ -15,7 +15,7 @@ function flatten(obj, prefix = '') {
   }, {});
 }
 
-const enPath = resolve(localesDir, 'en/base.json');
+const enPath = resolve(localesDir, 'en/common.json');
 let enContent = readFileSync(enPath, 'utf8');
 // Strip BOM if present
 if (enContent.charCodeAt(0) === 0xfeff) {

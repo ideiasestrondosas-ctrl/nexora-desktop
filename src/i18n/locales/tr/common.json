@@ -25,7 +25,10 @@
     "gpu": "GPU",
     "disk": "Disk",
     "exit": "Exit",
-    "help": "Help"
+    "help": "Help",
+    "bugReport": "Bir Sorun Bildir",
+    "queueActive": "{{count}} işleniyor",
+    "queueIdle": "Hazır"
   },
   "help": {
     "title": "User Manual",
@@ -43,7 +46,12 @@
       "assetDetail": "Varlık Detayı",
       "import": "İçe Aktar",
       "comparator": "Comparator",
-      "betaGuide": "Beta Test Kılavuzu (DEV)"
+      "betaGuide": "Beta Test Kılavuzu (DEV)",
+      "about": "Hakkında",
+      "metrics": "Metrikler",
+      "support": "Destek",
+      "system": "Sistem",
+      "usage": "Nasıl kullanılır"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -58,8 +66,13 @@
         "profiles": "Profiles",
         "profilesDesc": "6 built-in presets (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus a full custom profile editor.",
         "gpuAuto": "Auto-Detection",
-        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup."
-      }
+        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup.",
+        "broadcast": "Yayın uyumlu profiller (BBC, Netflix, DPP)",
+        "gpu": "GPU hızlandırma (NVENC, AMF, QSV)",
+        "offline": "Tamamen çevrimdışı işlem — internet gerekmez",
+        "vmaf": "Profil bazlı eşiklerle aktif VMAF kalite puanlaması"
+      },
+      "architecture": "Yerel kabuk için Tauri 2.x (Rust), UI için React 19 ve medya orkestrasyonu için bir Node.js sidecar ile oluşturuldu. SQLite tüm meta verileri yerel olarak saklar."
     },
     "screens": {
       "dashboard": {
@@ -187,6 +200,41 @@
           "title": "iCloud Drive",
           "desc": "iCloud, yerel klasör senkronizasyonu aracılığıyla desteklenir. Nexora, yerel diskinizdeki iCloud Drive klasörünü okur/yazar.",
           "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
+        },
+        "dropbox": {
+          "desc": "Bağlanmak için kendi Dropbox Uygulama Anahtarınızı kullanın. developers.dropbox.com adresinden bir Dropbox uygulaması oluşturun ve ardından Uygulama Anahtarını profile girin. Nexora PKCE akışını kullanır — Uygulama Gizli Anahtarınız asla saklanmaz.",
+          "step1": "developers.dropbox.com → Uygulama Oluştur → Kapsamlı Erişim → Tam Dropbox adresine gidin",
+          "step2": "Uygulama Anahtarını kopyalayın ve Dropbox profil formuna girin",
+          "step3": "'Kim Doğrula'ya tıklayın — yetkilendirme için bir tarayıcı penceresi açılır. Token, işletim sistemi anahtar zincirinde saklanır.",
+          "title": "Dropbox — PKCE OAuth"
+        },
+        "gdrivePersonal": {
+          "desc": "Kendi Google Cloud Console kimlik bilgilerinizi (İstemci Kimliği + İstemci Gizli Anahtarı) kullanın. Bu, Drive'ınıza erişen OAuth uygulaması üzerinde tam kontrol sağlar. Nexora PKCE akışını kullanır — diskte hiçbir istemci gizli anahtarı saklanmaz.",
+          "step1": "Google Cloud Console'da bir OAuth 2.0 Client ID oluşturun (tür: Desktop App)",
+          "step2": "Profil formuna Client ID ve Client Secret bilgilerini girin, ardından 'Authenticate' butonuna tıklayın",
+          "step3": "Bir tarayıcı penceresi açılacak — giriş yapın ve yetkilendirin. Token, OS anahtarlığında saklanır.",
+          "title": "Google Drive Personal — PKCE OAuth"
+        },
+        "mega": {
+          "desc": "MEGA e-posta ve şifrenizle bağlanın. Dosyalar her zaman MEGA tarafından uçtan uca şifrelenir — Nexora, MEGA sunucularına asla düz metin veri göndermez. Test etmeden önce hedef klasörün MEGA hesabınızda mevcut olması gerekir.",
+          "tip1": "Önce mega.nz üzerinde hedef klasörü oluşturun (örneğin Cloud Drive içinde Nexora/Output).",
+          "tip2": "Klasör yolunu başında eğik çizgi olmadan girin: Nexora/Output",
+          "tip3": "Giriş işlemi her işlem için yeniden yapılır — yerelde oturum önbelleğe alınmaz.",
+          "title": "MEGA — Uçtan Uca Şifreli Bulut"
+        },
+        "sftp": {
+          "desc": "Kullanıcı adı/şifre veya SSH anahtarı kimlik doğrulaması ile herhangi bir SFTP sunucusuna bağlanın. Host, Port (varsayılan 22), Kullanıcı Adı, Şifre veya anahtar yolunu ve uzak temel klasörü doldurun.",
+          "tip1": "Port 22 standart SFTP portudur — yalnızca sunucunuz özel bir port kullanıyorsa değiştirin.",
+          "tip2": "Hem şifre hem de anahtar tabanlı kimlik doğrulama desteklenmektedir.",
+          "tip3": "Kaydetmeden önce sunucuya erişilebildiğini ve kimlik bilgilerinin geçerli olduğunu doğrulamak için 'Bağlantıyı Test Et' seçeneğini kullanın.",
+          "title": "SFTP — SSH Dosya Transferi"
+        },
+        "smb": {
+          "desc": "SMB/CIFS kullanarak Windows paylaşımlarına ve NAS cihazlarına bağlanın. Paylaşım yolunu (örn. \\\\server\\share), kullanıcı adını ve şifreyi girin. Misafir erişimi için kullanıcı adı/şifreyi boş bırakın.",
+          "tip1": "Paylaşım yolu formatı: \\\\server\\sharename veya //server/sharename.",
+          "tip2": "Domain hesapları: kullanıcı adını DOMAIN\\user şeklinde girin.",
+          "tip3": "Güvenlik nedeniyle '..' içeren SMB yolları engellenmiştir (dizin atlama önleme).",
+          "title": "SMB / Windows Paylaşımı"
         }
       },
       "logs": {
@@ -275,7 +323,128 @@
       "endpointValidation": "Günlük yükleme uç noktaları http:// veya https:// protokollerini kullanmalıdır"
     },
     "guideOpened": "Guia aberto no browser",
-    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet.",
+    "about": {
+      "appName": "Nexora Desktop",
+      "footer": "Nexora Media Processing — Yayın ve web için profesyonel medya hattı.",
+      "license": "Lisans",
+      "platforms": "Platformlar",
+      "reportIssues": "Sorunları veya önerileri bildirmek için sistem günlüklerini kontrol edin ve ilgili çıktıyı raporunuza ekleyin.",
+      "version": "Versiyon",
+      "year": "Yıl"
+    },
+    "metrics": {
+      "cpuDesc": "CPU % — genel işlemci kullanımı (her 2sn'de bir güncellenir)",
+      "lufs": "LUFS (Loudness Units Full Scale) ses yüksekliğini ölçer. Hedef: yayın için -23 LUFS, web/sosyal medya için -14 LUFS.",
+      "lufsDescription": "EBU R128 standardına göre entegre yüksek ses ölçümü. Avrupa yayıncılığı için standart hedef −23 LUFS ±1 LU'dur. Streaming (Spotify, YouTube) için hedef genellikle −14 LUFS'dir.",
+      "lufsTitle": "LUFS — Loudness Units Full Scale",
+      "networkDesc": "Ağ ↓↑ — tüm arayüzlerin toplam indirme ve yükleme veri hızı",
+      "ramDesc": "RAM — kullanılan / toplam bellek GB cinsinden",
+      "realtime": "Aktif işler sırasında gerçek zamanlı metrikler her 2 saniyede bir güncellenir.",
+      "realtimeTitle": "Gerçek zamanlı metrikler (üst bar)",
+      "title": "Kalite metrikleri",
+      "truePeak": "True Peak (dBTP) dijital kırpılmayı önler. Sınır: Tüm profiller için -1 dBTP.",
+      "vmaf": "VMAF (Video Multi-Method Assessment Fusion) algısal kaliteyi 0-100 arası puanlar. Eşikler: 85 (web), 90 (broadcast SD), 93 (broadcast HD/4K).",
+      "vmafAcceptable": "Kabul edilebilir",
+      "vmafBroadcast": "Broadcast",
+      "vmafDescription": "Netflix tarafından geliştirilen algısal video kalite metriği. İşlenen videoyu orijinaliyle karşılaştırarak insan algısını simüle eder.",
+      "vmafGood": "İyi",
+      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
+      "vmafUnacceptable": "Kabul edilemez"
+    },
+    "profiles": {
+      "broadcastHd": {
+        "desc": "Tam yayın uyumluluğu — H.264 High 4.1, 50 Mbps, -23 LUFS",
+        "name": "Broadcast HD"
+      },
+      "broadcastNote": "Tüm yayın profilleri şunları kullanır:",
+      "broadcastSd": {
+        "desc": "Standart çözünürlük — H.264 Main 3.0, 15 Mbps",
+        "name": "Broadcast SD"
+      },
+      "note": "Sistem profilleri düzenlenemez. Özel varyantlar oluşturmak için bunları kopyalayın.",
+      "proxy": {
+        "desc": "Hızlı çevrimdışı düzenleme — 720p, 2 Mbps, düşük gecikme",
+        "name": "Proxy"
+      },
+      "social": {
+        "desc": "Sosyal medya — dikey ve kare formatlar",
+        "name": "Sosyal"
+      },
+      "title": "Mevcut kodlama profilleri",
+      "web4k": {
+        "desc": "Streaming 4K UHD — H.265, 25 Mbps, VMAF ≥ 93",
+        "name": "Web 4K"
+      },
+      "webHd": {
+        "desc": "Web ve streaming için optimize edildi — H.264, 8 Mbps",
+        "name": "Web HD"
+      }
+    },
+    "support": {
+      "commonProblems": "Yaygın Sorunlar",
+      "factoryResetAssets": "Tüm varlıkları ve geçmişi siler",
+      "factoryResetDescription": "Uygulama tutarsız davranışlar, silinmeyen veriler veya veritabanı hataları gösteriyorsa, Ayarlar → Gelişmiş kısmından Tam Sıfırlama yapabilirsiniz.",
+      "factoryResetProfiles": "Özel profilleri ve ayarları kaldırır",
+      "factoryResetRestart": "Uygulamayı sıfırdan yeniden başlatır",
+      "factoryResetTemp": "Yan dosya geçici dosyalarını temizler",
+      "factoryResetTitle": "Fabrika Ayarlarına Dön (Tam Sıfırlama)",
+      "factoryResetWarning": "Bu işlem TÜM verileri, ayarları ve geçmişi silecektir. Uygulama yeniden başlatılacaktır. Bu işlem geri alınamaz.",
+      "problem1Desc": "System sekmesinden FFmpeg'in doğru algılanıp algılanmadığını kontrol edin.",
+      "problem1Title": "İşlem başlamıyor mu?",
+      "problem2Desc": "Nexora'nın yapılandırılan klasöre yazma izinleri olduğundan emin olun.",
+      "problem2Title": "Çıktı klasörü izin hatası mı?",
+      "problems": {
+        "1": "GPU algılanamadı — Güncel grafik sürücülerini yükleyin",
+        "2": "İşlemler transcode aşamasında başarısız oluyor — FFmpeg binary dosyasının dahil olduğunu doğrulayın"
+      },
+      "troubleshooting": "Sorun Giderme"
+    },
+    "system": {
+      "components": "Yüklü bileşenler",
+      "database": "Veritabanı",
+      "loading": "Sistem bilgileri yükleniyor...",
+      "stack": "Teknoloji yığını",
+      "stackCodec": "Codec: Otomatik algılanan GPU ile FFmpeg",
+      "stackDb": "DB: SQLite (rusqlite paketli)",
+      "stackFrontend": "Frontend: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
+      "stackShell": "Yerel kabuk: Tauri 2.x (Rust stable)",
+      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
+      "techStack": "Teknoloji yığını"
+    },
+    "usage": {
+      "step1Desc": "İşleme sayfasına erişmek için navigasyon çubuğundaki roket simgesine tıklayın.",
+      "step1Title": "\"Process\" sekmesini açın",
+      "step2Desc": "Bir MP4, MXF, MOV veya herhangi bir FFmpeg destekli formatı sürükleme alanına bırakın. Dosya seçiciyi açmak için tıklayabilirsiniz.",
+      "step2Title": "Video dosyasını sürükleyin",
+      "step3Desc": "Nihai hedef (yayın, web, sosyal) için uygun profili seçin. Her profil, uyumluluk ve optimal kalite için önceden yapılandırılmış parametrelere sahiptir.",
+      "step3Title": "Kodlama profilini seçin",
+      "step4Desc": "İşle seçin. İş kuyruğa eklenir ve arka planda işlenir. İşlem sırasında uygulama yanıt vermeye devam eder.",
+      "step4Title": "İşlemeyi başlatın",
+      "step5Desc": "Dashboard aktif işleri, ortalama VMAF puanını ve disk alanını gösterir. İlerleme çubuğu gerçek zamanlı olarak güncellenir.",
+      "step5Title": "\"Dashboard\" üzerinden izleyin",
+      "step6Desc": "Tamamlandıktan sonra varlık; codec, süre, boyut ve VMAF puanı ile Geçmiş'te görünür. Tüm meta verileri görmek için detaylar butonunu kullanın.",
+      "step6Title": "Sonuçları \"History\" kısmından kontrol edin",
+      "steps": {
+        "1": "Sürükle-bırak veya dosya penceresiyle medya ekleyin",
+        "2": "Bir transcode profili seçin (broadcast-hd, web-4k, vb.)",
+        "3": "Kuyruğa gönderin — işler otomatik olarak işlenir",
+        "4": "QC raporlarını inceleyin ve karantinadaki öğeleri onaylayın/reddedin",
+        "5": "İşlenen dosyalara çıktı klasöründen erişin"
+      },
+      "tip1": "5-10 kat daha hızlı transcoding için Ayarlar'dan GPU'yu etkinleştirin",
+      "tip2": "Proxy profili düzenleme versiyonları oluşturmak için idealdir — asla final teslimatı için değil",
+      "tip3": "Sorun giderme için Ayarlar → Logs kısmından günlükleri kaydedin",
+      "tip4": "Çıktı dizini Ayarlar'dan genel olarak veya profil başına ayarlanabilir",
+      "tips": "İpuçları",
+      "tipsList": {
+        "1": "5-10 kat daha hızlı transcode işlemleri için GPU hızlandırmayı kullanın",
+        "2": "İşler bittiğinde bildirim almak için bildirimleri etkinleştirin",
+        "3": "Detaylı FFmpeg çıktısı için Günlükler sayfasını kontrol edin",
+        "4": "Fabrika Ayarları her şeyi siler — dikkatli kullanın"
+      },
+      "workflow": "İş Akışı"
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Assets",
@@ -329,7 +498,10 @@
     "duration": "Duration",
     "actions": "Actions",
     "gridView": "Izgara görünümü",
-    "listView": "Liste görünümü"
+    "listView": "Liste görünümü",
+    "adding": "Ekleniyor...",
+    "processSelected": "Seçilen {{count}} öğeyi işle",
+    "qcOk": "QC Tamam"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -376,7 +548,10 @@
     "pipeline": {
       "expandTooltip": "Dosyaları görmek için tıklayın",
       "noFilesForStatus": "Bu durum için dosya yok"
-    }
+    },
+    "etaActive": "~{{time}} kaldı",
+    "etaCalc": "Hesaplanıyor...",
+    "etaTotal": "Toplam ~{{time}}"
   },
   "profiles": {
     "create": "Create",
@@ -566,7 +741,10 @@
       "version": "Version",
       "license": "License",
       "platforms": "Platforms",
-      "year": "Year"
+      "year": "Year",
+      "createAlias": "Masaüstü Kısayolu Oluştur",
+      "createShortcut": "Masaüstü kısayolu oluştur",
+      "shortcutCreated": "Kısayol başarıyla oluşturuldu"
     },
     "sections": {
       "importation": "Importation",
@@ -586,6 +764,29 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "privacy": {
+      "clearData": "Tüm verileri sil",
+      "cleared": "Tüm telemetri verileri silindi.",
+      "noData": "Henüz telemetri verisi toplanmadı.",
+      "tab": "Gizlilik",
+      "title": "Gizlilik ve Telemetri",
+      "toggle": "Anonim hata verilerini paylaş",
+      "toggleHint": "Hata sayıları ve uygulama olayları — yalnızca bu cihazda saklanır.",
+      "viewData": "Toplanan verileri görüntüle"
+    },
+    "watchFolders": {
+      "addError": "Klasör eklenemedi: {{error}}",
+      "addFolder": "Klasör Ekle",
+      "description": "Nexora bu klasörleri izler ve yeni video dosyalarını otomatik olarak kuyruğa ekler.",
+      "disabled": "Duraklatıldı",
+      "enabled": "Aktif",
+      "noFolders": "Yapılandırılmış klasör yok.",
+      "noFoldersHint": "Bir dizini izlemeye başlamak için \"Klasör Ekle\"ye tıklayın.",
+      "remove": "Kaldır",
+      "removeConfirm": "Bu klasör İzleme Klasörlerinden kaldırılsın mı?",
+      "tab": "İzleme Klasörleri",
+      "title": "İzleme Klasörleri"
     }
   },
   "logs": {
@@ -689,7 +890,11 @@
     "qcPost": "Post-QC",
     "qcPostDesc": "Output SHA-256 verified + VMAF",
     "delivery": "Delivery",
-    "deliveryDesc": "Files moved to output folder"
+    "deliveryDesc": "Files moved to output folder",
+    "qc-post": "Post-QC",
+    "qc-postDesc": "SHA-256 doğrulanmış çıktı + VMAF",
+    "qc-pre": "Ön-QC",
+    "qc-preDesc": "Dosya doğrulandı (boyut, süre, codec)"
   },
   "common": {
     "save": "Save",
@@ -891,7 +1096,22 @@
     "cancel": "Cancel Job",
     "processing": "Processing...",
     "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "errorSuggestion": "Detaylar için Günlükleri görün",
+    "errors": {
+      "codec": "Codec mevcut değil",
+      "codecHint": "Farklı bir ön ayar seçin",
+      "corrupt": "Bozuk veya desteklenmeyen dosya",
+      "corruptHint": "Kaynak dosyanın sağlam olduğunu kontrol edin",
+      "diskFull": "Disk dolu",
+      "diskFullHint": "Disk alanını boşaltın ve tekrar deneyin",
+      "generic": "Transcoding hatası",
+      "genericHint": "Detaylar için Günlüklere bakın",
+      "killed": "İşlem kesintiye uğradı",
+      "killedHint": "İş iptal edildi veya sistem belleği tükendi",
+      "permission": "Erişim engellendi",
+      "permissionHint": "Hedef klasör izinlerini kontrol edin"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -959,5 +1179,64 @@
     "modified": "Modificado",
     "notSupported": "Navegação não suportada para iCloud",
     "browseTooltipDisabled": "Navegação não suportada para iCloud"
+  },
+  "bugReport": {
+    "copied": "Panoya kopyalandı",
+    "copyClipboard": "Panoya kopyala",
+    "descLabel": "Açıklama",
+    "descPlaceholder": "Yeniden oluşturma adımları, beklenen ve gerçekleşen davranış...",
+    "includeLogs": "Son 50 günlük satırını ekle",
+    "openGitHub": "GitHub Issue'yu aç",
+    "saveFile": "Dosya olarak kaydet",
+    "saved": "{{path}} konumuna kaydedildi",
+    "title": "Bir Sorun Bildir",
+    "titleLabel": "Başlık",
+    "titlePlaceholder": "Sorunun kısa açıklaması",
+    "titleRequired": "Başlık gereklidir"
+  },
+  "comparator": {
+    "dragHint": "Karşılaştırmak için sürükleyin",
+    "noOutput": "İşlenmiş dosya mevcut değil",
+    "original": "Orijinal",
+    "processed": "İşlenmiş",
+    "tab": "Karşılaştırıcı"
+  },
+  "diagnostics": {
+    "bundled": "paketlendi ✓",
+    "desc": "Video işleme için gerekli bileşenlerin durumu.",
+    "notFound": "bulunamadı",
+    "reinstall": "En son sürümü indir",
+    "title": "Sistem Tanılamaları"
+  },
+  "onboarding": {
+    "back": "Geri",
+    "next": "İleri",
+    "start": "Nexora'yı kullanmaya başla",
+    "step1Desc": "İş istasyonunuzda yerel, profesyonel medya işleme. Bir dakikadan kısa sürede kurulumu tamamlayalım.",
+    "step1Title": "Nexora Desktop'a Hoş Geldiniz",
+    "step2Choose": "Klasör seçin",
+    "step2Desc": "İşlenen dosyalar nereye kaydedilsin?",
+    "step2Title": "Çıktı Klasörü",
+    "step3Desc": "Anonim hata verilerini paylaşarak Nexora'nın geliştirilmesine yardımcı olun — veriler yalnızca bu cihazda saklanır, asla bir yere gönderilmez.",
+    "step3Title": "Gizlilik",
+    "step3Toggle": "Anonim hata verilerini paylaş",
+    "step4Desc": "Video dosyalarını uygulamanın üzerine sürükleyin veya kuyruğa dosya eklemek için Kütüphane'yi kullanın.",
+    "step4Title": "Her şey hazır!",
+    "stepOf": "{{total}} adımın {{current}}. adımı"
+  },
+  "update": {
+    "currentVersion": "Güncel sürüm",
+    "devModeRestart": "Yüklendi. Manuel olarak yeniden başlatın (dev mode).",
+    "downloadError": "İndirme hatası",
+    "downloading": "İndiriliyor...",
+    "installing": "Yükleniyor...",
+    "later": "Daha sonra",
+    "newVersion": "Yeni sürüm",
+    "restarting": "Yeniden başlatılıyor...",
+    "retry": "Tekrar dene",
+    "title": "Güncelleme Mevcut",
+    "updateNow": "Şimdi Güncelle",
+    "viewFullRelease": "Tüm sürüm notlarını görüntüle",
+    "whatsNew": "Yenilikler"
   }
 }

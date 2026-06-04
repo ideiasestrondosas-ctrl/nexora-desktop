@@ -1091,4 +1091,4 @@ When a job fails, the error is categorized automatically:
 
 ---
 
-_Last updated: 2026-05-27 for Nexora Desktop v0.30.0-beta.1_
+_Last updated: 2026-06-04 for Nexora Desktop v0.33.0-beta.1_

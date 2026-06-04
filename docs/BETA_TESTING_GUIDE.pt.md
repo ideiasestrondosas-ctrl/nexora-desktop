@@ -1,6 +1,6 @@
 # Nexora Desktop — Guia de Testes Beta
 
-**Versão:** v0.31.5-beta.1  
+**Versão:** v0.33.0-beta.1  
 **Data:** Junho 2026  
 **Aplicação:** Nexora Desktop — Processamento de Média Nativo
 
@@ -1950,7 +1950,7 @@ Termos técnicos explicados de forma simples:
 - Manual do utilizador: `docs/USER_MANUAL.md` (na pasta da app)
 - Guia visual: `docs/SCREEN_GUIDE.md`
 
-**Versão testada:** v0.31.5-beta.1  
+**Versão testada:** v0.33.0-beta.1  
 **Última actualização deste guia:** Junho 2026
 
 ---

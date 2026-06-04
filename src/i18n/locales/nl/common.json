@@ -25,7 +25,10 @@
     "gpu": "GPU",
     "disk": "Disk",
     "exit": "Exit",
-    "help": "Help"
+    "help": "Help",
+    "bugReport": "Probleem melden",
+    "queueActive": "{{count}} in bewerking",
+    "queueIdle": "Gereed"
   },
   "help": {
     "title": "User Manual",
@@ -43,7 +46,12 @@
       "assetDetail": "Asset-detail",
       "import": "Importeren",
       "comparator": "Comparator",
-      "betaGuide": "Beta Testgids (DEV)"
+      "betaGuide": "Beta Testgids (DEV)",
+      "about": "Over",
+      "metrics": "Statistieken",
+      "support": "Ondersteuning",
+      "system": "Systeem",
+      "usage": "Hoe te gebruiken"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -58,8 +66,13 @@
         "profiles": "Profiles",
         "profilesDesc": "6 built-in presets (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus a full custom profile editor.",
         "gpuAuto": "Auto-Detection",
-        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup."
-      }
+        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup.",
+        "broadcast": "Broadcast-compatibele profielen (BBC, Netflix, DPP)",
+        "gpu": "GPU-acceleratie (NVENC, AMF, QSV)",
+        "offline": "Volledig offline verwerking — geen internet vereist",
+        "vmaf": "Actieve VMAF-kwaliteitsscore met drempelwaarden per profiel"
+      },
+      "architecture": "Gebouwd met Tauri 2.x (Rust) voor de native shell, React 19 voor de UI, en een Node.js sidecar voor media-orchestratie. SQLite slaat alle metadata lokaal op."
     },
     "screens": {
       "dashboard": {
@@ -187,6 +200,41 @@
           "title": "iCloud Drive",
           "desc": "iCloud wordt ondersteund via lokale mapsynchronisatie. Nexora leest/schrijft de iCloud Drive-map op uw lokale schijf.",
           "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
+        },
+        "dropbox": {
+          "desc": "Gebruik je eigen Dropbox App Key om verbinding te maken. Maak een Dropbox-app aan op developers.dropbox.com en voer vervolgens de App Key in het profiel in. Nexora gebruikt de PKCE-flow — je App Secret wordt nooit opgeslagen.",
+          "step1": "Ga naar developers.dropbox.com → Create App → Scoped Access → Full Dropbox",
+          "step2": "Kopieer de App Key en voer deze in het Dropbox-profielformulier in",
+          "step3": "Klik op 'Authenticeer' — er opent een browservenster voor autorisatie. Het token wordt opgeslagen in de OS-sleutelhanger.",
+          "title": "Dropbox — PKCE OAuth"
+        },
+        "gdrivePersonal": {
+          "desc": "Gebruik je eigen Google Cloud Console-gegevens (Client ID + Client Secret). Hiermee heb je volledige controle over de OAuth-app die toegang heeft tot je Drive. Nexora gebruikt de PKCE-flow — er wordt geen client secret op schijf opgeslagen.",
+          "step1": "Maak een OAuth 2.0 Client ID aan in Google Cloud Console (type: Desktop App)",
+          "step2": "Voer het Client ID en Client Secret in het profielformulier in en klik op 'Authenticeer'",
+          "step3": "Er opent een browservenster — log in en autoriseer. Het token wordt opgeslagen in de OS-sleutelkist.",
+          "title": "Google Drive Personal — PKCE OAuth"
+        },
+        "mega": {
+          "desc": "Verbind met je MEGA-e-mail en wachtwoord. Bestanden zijn altijd end-to-end versleuteld door MEGA — Nexora verzendt nooit gegevens in platte tekst naar MEGA-servers. De bestemmingsmap moet bestaan in je MEGA-account voordat je test.",
+          "tip1": "Maak eerst de bestemmingsmap aan in mega.nz (bijv. Nexora/Output in Cloud Drive).",
+          "tip2": "Voer het mappad in zonder een voorloopslash: Nexora/Output",
+          "tip3": "Inloggen gebeurt opnieuw per bewerking — er wordt geen sessie lokaal gecached.",
+          "title": "MEGA — End-to-End Versleutelde Cloud"
+        },
+        "sftp": {
+          "desc": "Verbind met elke SFTP-server via gebruikersnaam/wachtwoord of SSH-sleutel authenticatie. Vul Host, Poort (standaard 22), Gebruikersnaam, Wachtwoord of sleutelpad, en de externe basismap in.",
+          "tip1": "Poort 22 is de standaard SFTP-poort — wijzig deze alleen als uw server een aangepaste poort gebruikt.",
+          "tip2": "Zowel wachtwoord- als sleutelgebaseerde authenticatie worden ondersteund.",
+          "tip3": "Gebruik 'Verbinding testen' om te controleren of de server bereikbaar is en de inloggegevens geldig zijn voordat u opslaat.",
+          "title": "SFTP — SSH File Transfer"
+        },
+        "smb": {
+          "desc": "Maak verbinding met Windows-shares en NAS-apparaten via SMB/CIFS. Voer het share-pad in (bijv. \\\\server\\share), gebruikersnaam en wachtwoord. Laat gebruikersnaam/wachtwoord leeg voor gasttoegang.",
+          "tip1": "Formaat share-pad: \\\\server\\sharename of //server/sharename.",
+          "tip2": "Domeinaccounts: voer gebruikersnaam in als DOMAIN\\user.",
+          "tip3": "SMB-paden die '..' bevatten zijn geblokkeerd voor de veiligheid (voorkomen van path traversal).",
+          "title": "SMB / Windows Share"
         }
       },
       "logs": {
@@ -275,7 +323,128 @@
       "endpointValidation": "Log upload-eindpunten moeten http:// of https://-protocollen gebruiken"
     },
     "guideOpened": "Guia aberto no browser",
-    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet.",
+    "about": {
+      "appName": "Nexora Desktop",
+      "footer": "Nexora Media Processing — Professionele mediapijplijn voor broadcast en web.",
+      "license": "Licentie",
+      "platforms": "Platforms",
+      "reportIssues": "Controleer de systeemlogs en voeg de relevante output toe aan je rapport om problemen of suggesties te melden.",
+      "version": "Versie",
+      "year": "Jaar"
+    },
+    "metrics": {
+      "cpuDesc": "CPU % — globale processorbenutting (update elke 2s)",
+      "lufs": "LUFS (Loudness Units Full Scale) meet audioluidheid. Doel: -23 LUFS voor broadcast, -14 LUFS voor web/social.",
+      "lufsDescription": "Geïntegreerde luidheidsmeting volgens de EBU R128-standaard. De standaarddoelwaarde voor Europese uitzendingen is −23 LUFS ±1 LU. Voor streaming (Spotify, YouTube) is de doelwaarde doorgaans −14 LUFS.",
+      "lufsTitle": "LUFS — Loudness Units Full Scale",
+      "networkDesc": "Netwerk ↓↑ — geaggregeerde download- en uploaddoorvoer van alle interfaces",
+      "ramDesc": "RAM — gebruikt / totaal geheugen in GB",
+      "realtime": "Real-time statistieken worden elke 2 seconden bijgewerkt tijdens actieve taken.",
+      "realtimeTitle": "Real-time statistieken (bovenbalk)",
+      "title": "Kwaliteitsmetrieken",
+      "truePeak": "True Peak (dBTP) voorkomt digitaal clippen. Limiet: -1 dBTP voor alle profielen.",
+      "vmaf": "VMAF (Video Multi-Method Assessment Fusion) scoort perceptuele kwaliteit van 0-100. Drempelwaarden: 85 (web), 90 (broadcast SD), 93 (broadcast HD/4K).",
+      "vmafAcceptable": "Acceptabel",
+      "vmafBroadcast": "Broadcast",
+      "vmafDescription": "Perceptuele videokwaliteitsmetriek ontwikkeld door Netflix. Simuleert menselijke perceptie door de bewerkte video met het origineel te vergelijken.",
+      "vmafGood": "Goed",
+      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
+      "vmafUnacceptable": "Onacceptabel"
+    },
+    "profiles": {
+      "broadcastHd": {
+        "desc": "Volledige broadcast-compliance — H.264 High 4.1, 50 Mbps, -23 LUFS",
+        "name": "Broadcast HD"
+      },
+      "broadcastNote": "Alle broadcast-profielen gebruiken:",
+      "broadcastSd": {
+        "desc": "Standaarddefinitie — H.264 Main 3.0, 15 Mbps",
+        "name": "Broadcast SD"
+      },
+      "note": "Systeemprofielen kunnen niet worden bewerkt. Dupliceer ze om aangepaste varianten te maken.",
+      "proxy": {
+        "desc": "Snel offline bewerken — 720p, 2 Mbps, lage latentie",
+        "name": "Proxy"
+      },
+      "social": {
+        "desc": "Social media — verticale en vierkante formaten",
+        "name": "Social"
+      },
+      "title": "Beschikbare coderingsprofielen",
+      "web4k": {
+        "desc": "Streaming 4K UHD — H.265, 25 Mbps, VMAF ≥ 93",
+        "name": "Web 4K"
+      },
+      "webHd": {
+        "desc": "Geoptimaliseerd voor web en streaming — H.264, 8 Mbps",
+        "name": "Web HD"
+      }
+    },
+    "support": {
+      "commonProblems": "Veelvoorkomende problemen",
+      "factoryResetAssets": "Verwijdert alle assets en geschiedenis",
+      "factoryResetDescription": "Als de app inconsistent gedrag vertoont, gegevens niet wist of databasefouten geeft, kun je een Volledige Reset uitvoeren via Instellingen → Geavanceerd.",
+      "factoryResetProfiles": "Verwijdert aangepaste profielen en instellingen",
+      "factoryResetRestart": "Start de applicatie volledig opnieuw op",
+      "factoryResetTemp": "Verwijdert tijdelijke sidecar-bestanden",
+      "factoryResetTitle": "Fabrieksinstellingen herstellen (Volledige wissen)",
+      "factoryResetWarning": "Hiermee worden ALLE gegevens, instellingen en geschiedenis verwijderd. De app zal herstarten. Deze actie kan niet ongedaan worden gemaakt.",
+      "problem1Desc": "Controleer of FFmpeg correct wordt gedetecteerd in het Systeem-tabblad.",
+      "problem1Title": "Verwerking start niet?",
+      "problem2Desc": "Zorg dat Nexora schrijfrechten heeft voor de geconfigureerde map.",
+      "problem2Title": "Fout met machtigingen van uitvoermap?",
+      "problems": {
+        "1": "Geen GPU gedetecteerd — Installeer nieuwste grafische drivers",
+        "2": "Jobs mislukken bij transcode — Controleer of FFmpeg binary is gebundeld"
+      },
+      "troubleshooting": "Probleemoplossing"
+    },
+    "system": {
+      "components": "Geïnstalleerde componenten",
+      "database": "Database",
+      "loading": "Systeeminformatie laden...",
+      "stack": "Technologie-stack",
+      "stackCodec": "Codec: FFmpeg met automatisch gedetecteerde GPU",
+      "stackDb": "DB: SQLite (rusqlite gebundeld)",
+      "stackFrontend": "Frontend: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
+      "stackShell": "Native shell: Tauri 2.x (Rust stable)",
+      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
+      "techStack": "Technologie-stack"
+    },
+    "usage": {
+      "step1Desc": "Klik op het raket-icoon in de navigatiebalk om naar de verwerkingspagina te gaan.",
+      "step1Title": "Open het tabblad \"Process\"",
+      "step2Desc": "Sleep een MP4, MXF, MOV of elk FFmpeg-ondersteund formaat naar de dropzone. Je kunt ook klikken om de bestandsselectie te openen.",
+      "step2Title": "Sleep het videobestand",
+      "step3Desc": "Kies het profiel dat geschikt is voor de uiteindelijke bestemming (broadcast, web, social). Elk profiel heeft vooraf geconfigureerde parameters voor compliance en optimale kwaliteit.",
+      "step3Title": "Selecteer het coderingsprofiel",
+      "step4Desc": "Klik op Process. De taak wordt aan de wachtrij toegevoegd en op de achtergrond verwerkt. De app blijft reageren tijdens het verwerken.",
+      "step4Title": "Start verwerking",
+      "step5Desc": "Het Dashboard toont actieve taken, de gemiddelde VMAF-score en schijfruimte. De voortgangsbalk wordt in real-time bijgewerkt.",
+      "step5Title": "Monitor in het \"Dashboard\"",
+      "step6Desc": "Na voltooiing verschijnt het bestand in History met codec, duur, grootte en VMAF-score. Gebruik de details-knop om alle metadata te zien.",
+      "step6Title": "Controleer resultaten in \"History\"",
+      "steps": {
+        "1": "Voeg media toe via drag & drop of bestandsdialoog",
+        "2": "Selecteer een transcode-profiel (broadcast-hd, web-4k, etc.)",
+        "3": "Voeg toe aan de wachtrij — taken worden automatisch verwerkt",
+        "4": "Beoordeel QC-rapporten en keur items in quarantaine goed/af",
+        "5": "Open verwerkte bestanden in de outputmap"
+      },
+      "tip1": "Schakel GPU in via Instellingen voor 5-10x snellere transcoding",
+      "tip2": "Het Proxy-profiel is ideaal voor montageversies — nooit voor de definitieve oplevering",
+      "tip3": "Sla logs op via Instellingen → Logs voor probleemoplossing",
+      "tip4": "De outputmap kan globaal of per profiel worden ingesteld in Instellingen",
+      "tips": "Tips",
+      "tipsList": {
+        "1": "Gebruik GPU-acceleratie voor 5-10x snellere transcodes",
+        "2": "Schakel meldingen in voor alerts wanneer jobs klaar zijn",
+        "3": "Raadpleeg de Logs-pagina voor gedetailleerde FFmpeg-output",
+        "4": "Fabrieksinstellingen wist alles — gebruik met voorzichtigheid"
+      },
+      "workflow": "Workflow"
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Assets",
@@ -329,7 +498,10 @@
     "duration": "Duration",
     "actions": "Actions",
     "gridView": "Rasterweergave",
-    "listView": "Lijstweergave"
+    "listView": "Lijstweergave",
+    "adding": "Toevoegen...",
+    "processSelected": "Verwerk {{count}} geselecteerde",
+    "qcOk": "QC OK"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -376,7 +548,10 @@
     "pipeline": {
       "expandTooltip": "Klik om bestanden te zien",
       "noFilesForStatus": "Geen bestanden voor deze status"
-    }
+    },
+    "etaActive": "~{{time}} over",
+    "etaCalc": "Berekenen...",
+    "etaTotal": "~{{time}} totaal"
   },
   "profiles": {
     "create": "Create",
@@ -566,7 +741,10 @@
       "version": "Version",
       "license": "License",
       "platforms": "Platforms",
-      "year": "Year"
+      "year": "Year",
+      "createAlias": "Desktop-alias maken",
+      "createShortcut": "Maak bureausnelkoppeling",
+      "shortcutCreated": "Snelkoppeling succesvol aangemaakt"
     },
     "sections": {
       "importation": "Importation",
@@ -586,6 +764,29 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "privacy": {
+      "clearData": "Alle gegevens verwijderen",
+      "cleared": "Alle telemetriegegevens verwijderd.",
+      "noData": "Nog geen telemetriegegevens verzameld.",
+      "tab": "Privacy",
+      "title": "Privacy & Telemetrie",
+      "toggle": "Anonieme foutgegevens delen",
+      "toggleHint": "Aantal fouten en app-gebeurtenissen — alleen op dit apparaat opgeslagen.",
+      "viewData": "Verzamelde gegevens bekijken"
+    },
+    "watchFolders": {
+      "addError": "Map kon niet worden toegevoegd: {{error}}",
+      "addFolder": "Map toevoegen",
+      "description": "Nexora monitort deze mappen en voegt nieuwe videobestanden automatisch toe aan de wachtrij.",
+      "disabled": "Gepauzeerd",
+      "enabled": "Actief",
+      "noFolders": "Geen mappen geconfigureerd.",
+      "noFoldersHint": "Klik op \"Map toevoegen\" om een directory te monitoren.",
+      "remove": "Verwijderen",
+      "removeConfirm": "Deze map verwijderen uit Watch Folders?",
+      "tab": "Watch Folders",
+      "title": "Watch Folders"
     }
   },
   "logs": {
@@ -689,7 +890,11 @@
     "qcPost": "Post-QC",
     "qcPostDesc": "Output SHA-256 verified + VMAF",
     "delivery": "Delivery",
-    "deliveryDesc": "Files moved to output folder"
+    "deliveryDesc": "Files moved to output folder",
+    "qc-post": "Post-QC",
+    "qc-postDesc": "Output SHA-256 geverifieerd + VMAF",
+    "qc-pre": "Pre-QC",
+    "qc-preDesc": "Bestand gevalideerd (grootte, duur, codec)"
   },
   "common": {
     "save": "Save",
@@ -891,7 +1096,22 @@
     "cancel": "Cancel Job",
     "processing": "Processing...",
     "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "errorSuggestion": "Zie Logs voor details",
+    "errors": {
+      "codec": "Codec niet beschikbaar",
+      "codecHint": "Selecteer een andere preset",
+      "corrupt": "Beschadigd of niet-ondersteund bestand",
+      "corruptHint": "Controleer of het bronbestand intact is",
+      "diskFull": "Schijf vol",
+      "diskFullHint": "Maak schijfruimte vrij en probeer opnieuw",
+      "generic": "Transcoding-fout",
+      "genericHint": "Zie logs voor details",
+      "killed": "Proces onderbroken",
+      "killedHint": "Taak is geannuleerd of systeem heeft onvoldoende geheugen",
+      "permission": "Toegang geweigerd",
+      "permissionHint": "Controleer machtigingen van de doelmap"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -959,5 +1179,64 @@
     "modified": "Modificado",
     "notSupported": "Navegação não suportada para iCloud",
     "browseTooltipDisabled": "Navegação não suportada para iCloud"
+  },
+  "bugReport": {
+    "copied": "Gekopieerd naar klembord",
+    "copyClipboard": "Kopieer naar klembord",
+    "descLabel": "Beschrijving",
+    "descPlaceholder": "Stappen om te reproduceren, verwacht vs. actueel gedrag...",
+    "includeLogs": "Voeg laatste 50 logregels toe",
+    "openGitHub": "Open GitHub Issue",
+    "saveFile": "Opslaan als bestand",
+    "saved": "Opgeslagen naar {{path}}",
+    "title": "Probleem melden",
+    "titleLabel": "Titel",
+    "titlePlaceholder": "Korte beschrijving van het probleem",
+    "titleRequired": "Titel is verplicht"
+  },
+  "comparator": {
+    "dragHint": "Sleep om te vergelijken",
+    "noOutput": "Verwerkt bestand niet beschikbaar",
+    "original": "Origineel",
+    "processed": "Verwerkt",
+    "tab": "Comparator"
+  },
+  "diagnostics": {
+    "bundled": "gebundeld ✓",
+    "desc": "Status van de componenten die nodig zijn voor videoverwerking.",
+    "notFound": "niet gevonden",
+    "reinstall": "Download nieuwste release",
+    "title": "Systeemdiagnostiek"
+  },
+  "onboarding": {
+    "back": "Terug",
+    "next": "Volgende",
+    "start": "Start Nexora",
+    "step1Desc": "Professionele mediabewerking, native op je workstation. We stellen je in minder dan een minuut in.",
+    "step1Title": "Welkom bij Nexora Desktop",
+    "step2Choose": "Map kiezen",
+    "step2Desc": "Waar moeten de verwerkte bestanden worden opgeslagen?",
+    "step2Title": "Outputmap",
+    "step3Desc": "Help Nexora te verbeteren door anonieme foutgegevens te delen — alleen op dit apparaat opgeslagen, nooit verzonden.",
+    "step3Title": "Privacy",
+    "step3Toggle": "Anonieme foutgegevens delen",
+    "step4Desc": "Sleep videobestanden naar de app, of gebruik de Library om bestanden aan de wachtrij toe te voegen.",
+    "step4Title": "Je bent klaar!",
+    "stepOf": "Stap {{current}} van {{total}}"
+  },
+  "update": {
+    "currentVersion": "Huidige versie",
+    "devModeRestart": "Geïnstalleerd. Start handmatig opnieuw op (dev mode).",
+    "downloadError": "Downloadfout",
+    "downloading": "Downloaden...",
+    "installing": "Installeren...",
+    "later": "Later",
+    "newVersion": "Nieuwe versie",
+    "restarting": "Herstarten...",
+    "retry": "Opnieuw proberen",
+    "title": "Update beschikbaar",
+    "updateNow": "Nu updaten",
+    "viewFullRelease": "Bekijk volledige release notes",
+    "whatsNew": "Wat is nieuw"
   }
 }

@@ -25,7 +25,10 @@
     "gpu": "GPU",
     "disk": "Disk",
     "exit": "Exit",
-    "help": "Help"
+    "help": "Help",
+    "bugReport": "Rapportera ett problem",
+    "queueActive": "{{count}} bearbetas",
+    "queueIdle": "Klar"
   },
   "help": {
     "title": "User Manual",
@@ -43,7 +46,12 @@
       "assetDetail": "Tillgångsdetalj",
       "import": "Importera",
       "comparator": "Comparator",
-      "betaGuide": "Betatestguide (DEV)"
+      "betaGuide": "Betatestguide (DEV)",
+      "about": "Om",
+      "metrics": "Mätvärden",
+      "support": "Support",
+      "system": "System",
+      "usage": "Användning"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -58,8 +66,13 @@
         "profiles": "Profiles",
         "profilesDesc": "6 built-in presets (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus a full custom profile editor.",
         "gpuAuto": "Auto-Detection",
-        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup."
-      }
+        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup.",
+        "broadcast": "Sändningskompatibla profiler (BBC, Netflix, DPP)",
+        "gpu": "GPU-acceleration (NVENC, AMF, QSV)",
+        "offline": "Helt offline-bearbetning — inget internet krävs",
+        "vmaf": "Aktiv VMAF-kvalitetspoäng med tröskelvärden per profil"
+      },
+      "architecture": "Byggd med Tauri 2.x (Rust) för det nativa skalet, React 19 för UI, och en Node.js sidecar för medieorkestrering. SQLite lagrar all metadata lokalt."
     },
     "screens": {
       "dashboard": {
@@ -187,6 +200,41 @@
           "title": "iCloud Drive",
           "desc": "iCloud stöds via lokal mappsynkronisering. Nexora läser/skriver iCloud Drive-mappen på din lokala disk.",
           "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
+        },
+        "dropbox": {
+          "desc": "Använd din egen Dropbox App Key för att ansluta. Skapa en Dropbox-app på developers.dropbox.com, ange sedan App Key i profilen. Nexora använder PKCE-flöde — din App Secret sparas aldrig.",
+          "step1": "Gå till developers.dropbox.com → Create App → Scoped Access → Full Dropbox",
+          "step2": "Kopiera App Key och ange den i formuläret för Dropbox-profilen",
+          "step3": "Klicka på 'Authenticate' — ett webbläsarfönster öppnas för auktorisering. Token sparas i OS-nyckelringen.",
+          "title": "Dropbox — PKCE OAuth"
+        },
+        "gdrivePersonal": {
+          "desc": "Använd dina egna Google Cloud Console-uppgifter (Client ID + Client Secret). Detta ger dig full kontroll över OAuth-appen som kommer åt din Drive. Nexora använder PKCE-flöde — ingen client secret sparas på disken.",
+          "step1": "Skapa ett OAuth 2.0 Client ID i Google Cloud Console (typ: Desktop App)",
+          "step2": "Ange Client ID och Client Secret i profilformuläret, klicka sedan på 'Authenticate'",
+          "step3": "Ett webbläsarfönster öppnas — logga in och auktorisera. Token sparas i OS-nyckelbandet.",
+          "title": "Google Drive Personal — PKCE OAuth"
+        },
+        "mega": {
+          "desc": "Anslut med din MEGA-e-post och lösenord. Filer är alltid änd-till-änd-krypterade av MEGA — Nexora skickar aldrig data i klartext till MEGA-servrar. Målmappen måste finnas i ditt MEGA-konto innan testning.",
+          "tip1": "Skapa målmappen i mega.nz först (t.ex. Nexora/Output i Cloud Drive).",
+          "tip2": "Ange sökvägen till mappen utan inledande snedstreck: Nexora/Output",
+          "tip3": "Inloggning sker på nytt vid varje operation — ingen session cachas lokalt.",
+          "title": "MEGA — Änd-till-änd krypterat moln"
+        },
+        "sftp": {
+          "desc": "Anslut till valfri SFTP-server med användarnamn/lösenord eller SSH-nyckel. Ange Host, Port (standard 22), användarnamn, lösenord eller sökväg till nyckel, samt den fjärrstyrda basmappen.",
+          "tip1": "Port 22 är standardporten för SFTP — ändra endast om din server använder en anpassad port.",
+          "tip2": "Både lösenordsautentisering och nyckelbaserad autentisering stöds.",
+          "tip3": "Använd 'Test Connection' för att verifiera att servern är nåbar och att inloggningsuppgifterna är giltiga innan du sparar.",
+          "title": "SFTP — SSH File Transfer"
+        },
+        "smb": {
+          "desc": "Anslut till Windows-delningar och NAS-enheter med SMB/CIFS. Ange sökväg till delning (t.ex. \\\\server\\share), användarnamn och lösenord. Lämna användarnamn/lösenord tomt för gäståtkomst.",
+          "tip1": "Format för delningssökväg: \\\\server\\sharename eller //server/sharename.",
+          "tip2": "Domänkonton: ange användarnamn som DOMAIN\\user.",
+          "tip3": "SMB-sökvägar som innehåller '..' är blockerade av säkerhetsskäl (förhindrar path traversal).",
+          "title": "SMB / Windows Share"
         }
       },
       "logs": {
@@ -275,7 +323,128 @@
       "endpointValidation": "Uppladdningsslutpunkter för loggar måste använda http:// eller https://-protokoll"
     },
     "guideOpened": "Guia aberto no browser",
-    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet.",
+    "about": {
+      "appName": "Nexora Desktop",
+      "footer": "Nexora Media Processing — Professionell mediapipe för broadcast och webb.",
+      "license": "Licens",
+      "platforms": "Plattformar",
+      "reportIssues": "För att rapportera problem eller förslag, kontrollera systemloggarna och inkludera relevant utdata i din rapport.",
+      "version": "Version",
+      "year": "År"
+    },
+    "metrics": {
+      "cpuDesc": "CPU % — global processoranvändning (uppdateras var 2:e s)",
+      "lufs": "LUFS (Loudness Units Full Scale) mäter ljudstyrka. Mål: -23 LUFS för sändning, -14 LUFS för webb/sociala medier.",
+      "lufsDescription": "Integrerad ljudnivåmätning enligt EBU R128-standard. Standardmålet för europena sändningar är −23 LUFS ±1 LU. För streaming (Spotify, YouTube) är målet vanligtvis −14 LUFS.",
+      "lufsTitle": "LUFS — Loudness Units Full Scale",
+      "networkDesc": "Nätverk ↓↑ — aggregerad ned- och uppladdningshastighet för alla gränssnitt",
+      "ramDesc": "RAM — använt / totalt minne i GB",
+      "realtime": "Realtidsmätning uppdateras varannan sekund under aktiva jobb.",
+      "realtimeTitle": "Realtidsmätning (översta fältet)",
+      "title": "Kvalitetsmått",
+      "truePeak": "True Peak (dBTP) förhindrar digital klippning. Gräns: -1 dBTP för alla profiler.",
+      "vmaf": "VMAF (Video Multi-Method Assessment Fusion) mäter perceptuell kvalitet från 0-100. Tröskelvärden: 85 (webb), 90 (broadcast SD), 93 (broadcast HD/4K).",
+      "vmafAcceptable": "Acceptabel",
+      "vmafBroadcast": "Broadcast",
+      "vmafDescription": "Perceptuellt mått för videokvalitet utvecklat av Netflix. Simulerar mänsklig perception genom att jämföra den bearbetade videon med originalet.",
+      "vmafGood": "Bra",
+      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
+      "vmafUnacceptable": "Oacceptabelt"
+    },
+    "profiles": {
+      "broadcastHd": {
+        "desc": "Full broadcast-kompatibilitet — H.264 High 4.1, 50 Mbps, -23 LUFS",
+        "name": "Broadcast HD"
+      },
+      "broadcastNote": "Alla broadcast-profiler använder:",
+      "broadcastSd": {
+        "desc": "Standard definition — H.264 Main 3.0, 15 Mbps",
+        "name": "Broadcast SD"
+      },
+      "note": "Systemprofiler kan inte redigeras. Duplicera dem för att skapa egna varianter.",
+      "proxy": {
+        "desc": "Snabb offline-redigering — 720p, 2 Mbps, låg latens",
+        "name": "Proxy"
+      },
+      "social": {
+        "desc": "Sociala medier — vertikala och kvadratiska format",
+        "name": "Sociala medier"
+      },
+      "title": "Tillgängliga kodningsprofiler",
+      "web4k": {
+        "desc": "Streaming 4K UHD — H.265, 25 Mbps, VMAF ≥ 93",
+        "name": "Web 4K"
+      },
+      "webHd": {
+        "desc": "Optimerad för webb och streaming — H.264, 8 Mbps",
+        "name": "Web HD"
+      }
+    },
+    "support": {
+      "commonProblems": "Vanliga problem",
+      "factoryResetAssets": "Raderar alla tillgångar och historik",
+      "factoryResetDescription": "Om appen uppvisar inkonsekvent beteende, data som inte kan rensas eller databasfel, kan du utföra en Total återställning under Inställningar → Avancerat.",
+      "factoryResetProfiles": "Tar bort anpassade profiler och inställningar",
+      "factoryResetRestart": "Startar om applikationen från början",
+      "factoryResetTemp": "Rensar tillfälliga sidecar-filer",
+      "factoryResetTitle": "Fabriksåterställning (Total radering)",
+      "factoryResetWarning": "Detta kommer att radera ALL data, inställningar och historik. Appen kommer att startas om. Denna åtgärd kan inte ångras.",
+      "problem1Desc": "Kontrollera om FFmpeg detekteras korrekt i fliken System.",
+      "problem1Title": "Startar inte processningen?",
+      "problem2Desc": "Se till att Nexora har skrivbehörighet till den konfigurerade mappen.",
+      "problem2Title": "Fel med behörighet för utdatamapp?",
+      "problems": {
+        "1": "Ingen GPU hittades — Installera senaste grafikdrivrutinerna",
+        "2": "Jobb misslyckas vid transkodning — Kontrollera att FFmpeg-binären är inkluderad"
+      },
+      "troubleshooting": "Felsökning"
+    },
+    "system": {
+      "components": "Installerade komponenter",
+      "database": "Databas",
+      "loading": "Laddar systeminformation...",
+      "stack": "Teknikstack",
+      "stackCodec": "Codec: FFmpeg med auto-detekterad GPU",
+      "stackDb": "DB: SQLite (rusqlite bundled)",
+      "stackFrontend": "Frontend: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
+      "stackShell": "Native shell: Tauri 2.x (Rust stable)",
+      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
+      "techStack": "Teknikstack"
+    },
+    "usage": {
+      "step1Desc": "Klicka på raketikonen i navigeringsfältet för att komma till behandlingssidan.",
+      "step1Title": "Öppna fliken \"Process\"",
+      "step2Desc": "Dra en MP4, MXF, MOV eller något FFmpeg-stött format till avlämningsområdet. Du kan även klicka för att öppna filväljaren.",
+      "step2Title": "Dra videofilen",
+      "step3Desc": "Välj den profil som passar för slutdestinationen (broadcast, webb, sociala medier). Varje profil har förkonfigurerade parametrar för efterlevnad och optimal kvalitet.",
+      "step3Title": "Välj kodningsprofil",
+      "step4Desc": "Klicka på Process. Jobbet läggs till i kön och behandlas i bakgrunden. Appen förblir responsiv under processen.",
+      "step4Title": "Starta bearbetning",
+      "step5Desc": "Dashboard visar aktiva jobb, genomsnittlig VMAF-poäng och diskutrymme. Förloppsindikatorn uppdateras i realtid.",
+      "step5Title": "Övervaka i \"Dashboard\"",
+      "step6Desc": "Efter slutförande visas filen i Historik med codec, längd, storlek och VMAF-poäng. Använd detaljknappen för att se all metadata.",
+      "step6Title": "Kontrollera resultat i \"History\"",
+      "steps": {
+        "1": "Lägg till media via dra-och-släpp eller fildialog",
+        "2": "Välj en transkodningsprofil (broadcast-hd, web-4k, etc.)",
+        "3": "Skicka till kön — jobb behandlas automatiskt",
+        "4": "Granska QC-rapporter och godkänn/avvisa karantänsobjekt",
+        "5": "Hämta behandlade filer i utmappsmappen"
+      },
+      "tip1": "Aktivera GPU i Inställningar för 5-10x snabbare transkodning",
+      "tip2": "Proxy-profilen är idealisk för redigeringsversioner — aldrig för slutleverans",
+      "tip3": "Spara loggar i Inställningar → Logs för felsökning",
+      "tip4": "Utgångskatalogen kan ställas in globalt eller per profil i Inställningar",
+      "tips": "Tips",
+      "tipsList": {
+        "1": "Använd GPU-acceleration för 5-10x snabbare transkodningar",
+        "2": "Aktivera aviseringar för att få meddelanden när jobb är klara",
+        "3": "Kontrollera Loggsidan för detaljerad FFmpeg-utdata",
+        "4": "Fabriksåterställning raderar allt — använd med försiktighet"
+      },
+      "workflow": "Arbetsflöde"
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Assets",
@@ -329,7 +498,10 @@
     "duration": "Duration",
     "actions": "Actions",
     "gridView": "Rutnätsvy",
-    "listView": "Listvy"
+    "listView": "Listvy",
+    "adding": "Lägger till...",
+    "processSelected": "Bearbeta {{count}} valda",
+    "qcOk": "QC OK"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -376,7 +548,10 @@
     "pipeline": {
       "expandTooltip": "Klicka för att se filer",
       "noFilesForStatus": "Inga filer för denna status"
-    }
+    },
+    "etaActive": "~{{time}} kvar",
+    "etaCalc": "Beräknar...",
+    "etaTotal": "~{{time}} totalt"
   },
   "profiles": {
     "create": "Create",
@@ -566,7 +741,10 @@
       "version": "Version",
       "license": "License",
       "platforms": "Platforms",
-      "year": "Year"
+      "year": "Year",
+      "createAlias": "Skapa genväg på skrivbordet",
+      "createShortcut": "Skapa genväg på skrivbordet",
+      "shortcutCreated": "Genväg skapad"
     },
     "sections": {
       "importation": "Importation",
@@ -586,6 +764,29 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "privacy": {
+      "clearData": "Radera all data",
+      "cleared": "All telemetridata har raderats.",
+      "noData": "Ingen telemetridata insamlad ännu.",
+      "tab": "Integritet",
+      "title": "Integritet & Telemetri",
+      "toggle": "Dela anonym feldata",
+      "toggleHint": "Felantal och app-händelser — lagras endast på denna enhet.",
+      "viewData": "Visa insamlad data"
+    },
+    "watchFolders": {
+      "addError": "Kunde inte lägga till mapp: {{error}}",
+      "addFolder": "Lägg till mapp",
+      "description": "Nexora övervakar dessa mappar och lägger automatiskt till nya videofiler i kön.",
+      "disabled": "Pausad",
+      "enabled": "Aktiv",
+      "noFolders": "Inga mappar konfigurerade.",
+      "noFoldersHint": "Klicka på \"Lägg till mapp\" för att börja övervaka en katalog.",
+      "remove": "Ta bort",
+      "removeConfirm": "Ta bort denna mapp från övervakade mappar?",
+      "tab": "Övervakade mappar",
+      "title": "Övervakade mappar"
     }
   },
   "logs": {
@@ -689,7 +890,11 @@
     "qcPost": "Post-QC",
     "qcPostDesc": "Output SHA-256 verified + VMAF",
     "delivery": "Delivery",
-    "deliveryDesc": "Files moved to output folder"
+    "deliveryDesc": "Files moved to output folder",
+    "qc-post": "Post-QC",
+    "qc-postDesc": "Output SHA-256 verifierad + VMAF",
+    "qc-pre": "Pre-QC",
+    "qc-preDesc": "Fil validerad (storlek, längd, codec)"
   },
   "common": {
     "save": "Save",
@@ -891,7 +1096,22 @@
     "cancel": "Cancel Job",
     "processing": "Processing...",
     "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "errorSuggestion": "Se Loggar för detaljer",
+    "errors": {
+      "codec": "Codec inte tillgänglig",
+      "codecHint": "Välj en annan förinställning",
+      "corrupt": "Korrupt eller ej stödd fil",
+      "corruptHint": "Kontrollera att källfilen är intakt",
+      "diskFull": "Disken är full",
+      "diskFullHint": "Frigör diskutrymme och försök igen",
+      "generic": "Transkodningsfel",
+      "genericHint": "Se loggar för detaljer",
+      "killed": "Processen avbröts",
+      "killedHint": "Jobbet avbröts eller så tog systemminnet slut",
+      "permission": "Åtkomst nekad",
+      "permissionHint": "Kontrollera behörigheter för målmappen"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -959,5 +1179,64 @@
     "modified": "Modificado",
     "notSupported": "Navegação não suportada para iCloud",
     "browseTooltipDisabled": "Navegação não suportada para iCloud"
+  },
+  "bugReport": {
+    "copied": "Kopierad till urklipp",
+    "copyClipboard": "Kopiera till urklipp",
+    "descLabel": "Beskrivning",
+    "descPlaceholder": "Steg för att återskapa, förväntat kontra faktiskt beteende...",
+    "includeLogs": "Inkludera senaste 50 loggraderna",
+    "openGitHub": "Öppna GitHub Issue",
+    "saveFile": "Spara som fil",
+    "saved": "Sparad till {{path}}",
+    "title": "Rapportera ett problem",
+    "titleLabel": "Titel",
+    "titlePlaceholder": "Kort beskrivning av problemet",
+    "titleRequired": "Titel krävs"
+  },
+  "comparator": {
+    "dragHint": "Dragera för att jämföra",
+    "noOutput": "Bearbetad fil saknas",
+    "original": "Original",
+    "processed": "Bearbetad",
+    "tab": "Jämförelse"
+  },
+  "diagnostics": {
+    "bundled": "inbyggd ✓",
+    "desc": "Status för komponenter som krävs för videobehandling.",
+    "notFound": "hittades inte",
+    "reinstall": "Ladda ner senaste versionen",
+    "title": "Systemdiagnostik"
+  },
+  "onboarding": {
+    "back": "Bakåt",
+    "next": "Nästa",
+    "start": "Börja använda Nexora",
+    "step1Desc": "Professionell mediabehandling, nativ på din arbetsstation. Vi hjälper dig att komma igång på under en minut.",
+    "step1Title": "Välkommen till Nexora Desktop",
+    "step2Choose": "Välj mapp",
+    "step2Desc": "Var ska bearbetade filer sparas?",
+    "step2Title": "Utgångsmapp",
+    "step3Desc": "Hjälp oss att förbättra Nexora genom att dela anonym feldata — lagras endast på denna enhet, skickas aldrig någonstans.",
+    "step3Title": "Integritet",
+    "step3Toggle": "Dela anonym feldata",
+    "step4Desc": "Dra videofiler till appen, eller använd Library för att lägga till filer i kön.",
+    "step4Title": "Allt är klart!",
+    "stepOf": "Steg {{current}} av {{total}}"
+  },
+  "update": {
+    "currentVersion": "Aktuell version",
+    "devModeRestart": "Installerad. Starta om manuellt (dev mode).",
+    "downloadError": "Nedladdningsfel",
+    "downloading": "Laddar ner...",
+    "installing": "Installerar...",
+    "later": "Senare",
+    "newVersion": "Ny version",
+    "restarting": "Startar om...",
+    "retry": "Försök igen",
+    "title": "Uppdatering tillgänglig",
+    "updateNow": "Uppdatera nu",
+    "viewFullRelease": "Visa fullständiga släppanteckningar",
+    "whatsNew": "Vad är nytt"
   }
 }

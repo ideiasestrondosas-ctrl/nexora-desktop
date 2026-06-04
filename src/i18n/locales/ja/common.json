@@ -25,7 +25,10 @@
     "gpu": "GPU",
     "disk": "Disk",
     "exit": "Exit",
-    "help": "Help"
+    "help": "Help",
+    "bugReport": "問題を報告",
+    "queueActive": "{{count}} 件処理中",
+    "queueIdle": "待機中"
   },
   "help": {
     "title": "User Manual",
@@ -43,7 +46,12 @@
       "assetDetail": "アセット詳細",
       "import": "インポート",
       "comparator": "Comparator",
-      "betaGuide": "ベータテストガイド (DEV)"
+      "betaGuide": "ベータテストガイド (DEV)",
+      "about": "概要",
+      "metrics": "メトリクス",
+      "support": "サポート",
+      "system": "システム",
+      "usage": "使い方"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -58,8 +66,13 @@
         "profiles": "Profiles",
         "profilesDesc": "6 built-in presets (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus a full custom profile editor.",
         "gpuAuto": "Auto-Detection",
-        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup."
-      }
+        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup.",
+        "broadcast": "放送規格準拠プロファイル (BBC, Netflix, DPP)",
+        "gpu": "GPU 加速 (NVENC, AMF, QSV)",
+        "offline": "完全オフライン処理 — インターネット不要",
+        "vmaf": "VMAF 品質スコアリング (プロファイル別しきい値設定)"
+      },
+      "architecture": "ネイティブシェルにTauri 2.x (Rust)、UIにReact 19、メディアオーケストレーションにNode.jsサイドカーを使用。すべてのメタデータはSQLiteでローカルに保存されます。"
     },
     "screens": {
       "dashboard": {
@@ -187,6 +200,41 @@
           "title": "iCloud Drive",
           "desc": "iCloudはローカルフォルダー同期を介して対応しています。Nexoraはローカルディスク上のiCloud Driveフォルダーを読み書きします。",
           "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
+        },
+        "dropbox": {
+          "desc": "接続にはご自身のDropbox App Keyを使用してください。developers.dropbox.comでDropboxアプリを作成し、プロファイルにApp Keyを入力してください。NexoraはPKCEフローを使用するため、App Secretが保存されることはありません。",
+          "step1": "developers.dropbox.comへ移動 → アプリを作成 → スコープ付きアクセス → フルDropbox",
+          "step2": "App Keyをコピーし、Dropboxプロファイルフォームに入力してください",
+          "step3": "「認証」をクリックすると、承認用のブラウザウィンドウが開きます。トークンはOSのキーチェーンに保存されます。",
+          "title": "Dropbox — PKCE OAuth"
+        },
+        "gdrivePersonal": {
+          "desc": "ご自身のGoogle Cloud Console認証情報（Client ID + Client Secret）を使用してください。これにより、DriveにアクセスするOAuthアプリを完全に制御できます。NexoraはPKCEフローを使用するため、クライアントシークレットはディスクに保存されません。",
+          "step1": "Google Cloud ConsoleでOAuth 2.0クライアントIDを作成してください（タイプ：デスクトップアプリ）",
+          "step2": "プロファイルフォームにクライアントIDとクライアントシークレットを入力し、「認証」をクリックしてください",
+          "step3": "ブラウザが開きます。ログインして承認してください。トークンはOSのキーチェーンに保存されます。",
+          "title": "Google Drive 個人用 — PKCE OAuth"
+        },
+        "mega": {
+          "desc": "MEGAのメールアドレスとパスワードで接続します。ファイルは常にMEGAによってエンドツーエンドで暗号化されます。NexoraがMEGAサーバーに平文データを送信することはありません。テスト前に、MEGAアカウントに保存先フォルダが存在している必要があります。",
+          "tip1": "先にmega.nzで保存先フォルダを作成してください（例：クラウドドライブ内のNexora/Output）。",
+          "tip2": "先頭のスラッシュを除いたフォルダパスを入力してください: Nexora/Output",
+          "tip3": "ログインは操作ごとに毎回行われます。セッションはローカルにキャッシュされません。",
+          "title": "MEGA — エンドツーエンド暗号化クラウド"
+        },
+        "sftp": {
+          "desc": "ユーザー名/パスワードまたはSSHキー認証を使用して、任意のSFTPサーバーに接続します。ホスト、ポート（デフォルト22）、ユーザー名、パスワードまたはキーパス、およびリモートベースフォルダを入力してください。",
+          "tip1": "ポート22は標準のSFTPポートです。サーバーがカスタムポートを使用している場合のみ変更してください。",
+          "tip2": "パスワード認証とキーベース認証の両方をサポートしています。",
+          "tip3": "保存前に「接続テスト」を使用して、サーバーへの到達可能性と認証情報の有効性を確認してください。",
+          "title": "SFTP — SSHファイル転送"
+        },
+        "smb": {
+          "desc": "SMB/CIFSを使用してWindows共有やNASデバイスに接続します。共有パス（例: \\\\server\\share）、ユーザー名、パスワードを入力してください。ゲストアクセスの場合はユーザー名とパスワードを空にしてください。",
+          "tip1": "共有パス形式: \\\\server\\sharename または //server/sharename。",
+          "tip2": "ドメインアカウント: ユーザー名を DOMAIN\\user として入力してください。",
+          "tip3": "セキュリティのため、「..」を含むSMBパスはブロックされます（パストラバーサル防止）。",
+          "title": "SMB / Windows Share"
         }
       },
       "logs": {
@@ -275,6 +323,127 @@
       "keychain": "クラウド認証情報はOSのキーチェーンに保存されます（Windows資格情報マネージャー、macOSキーチェーン、Linux Secret Service）",
       "pathTraversal": "リモートパスはディレクトリ横断攻撃を防ぐために検証されます",
       "endpointValidation": "ログアップロードエンドポイントはhttp://またはhttps://プロトコルを使用する必要があります"
+    },
+    "about": {
+      "appName": "Nexora Desktop",
+      "footer": "Nexora Media Processing — 放送およびウェブ向けのプロフェッショナル・メディアパイプライン。",
+      "license": "ライセンス",
+      "platforms": "プラットフォーム",
+      "reportIssues": "問題の報告や提案を行う際は、システムログを確認し、関連する出力をレポートに含めてください。",
+      "version": "バージョン",
+      "year": "年"
+    },
+    "metrics": {
+      "cpuDesc": "CPU % — 全体プロセッサ使用率 (2秒ごとに更新)",
+      "lufs": "LUFS (Loudness Units Full Scale) はオーディオのラウドネスを測定します。目標値: 放送用 -23 LUFS、Web/SNS用 -14 LUFS。",
+      "lufsDescription": "EBU R128標準に基づく統合ラウドネス値。欧州放送の標準ターゲットは−23 LUFS ±1 LUです。ストリーミング（Spotify, YouTube）のターゲットは通常−14 LUFSです。",
+      "lufsTitle": "LUFS — Loudness Units Full Scale",
+      "networkDesc": "ネットワーク ↓↑ — 全インターフェースの合計ダウンロードおよびアップロードスループット",
+      "ramDesc": "RAM — 使用メモリ / 合計 (GB)",
+      "realtime": "ジョブ実行中は2秒ごとにリアルタイムメトリクスが更新されます。",
+      "realtimeTitle": "リアルタイムメトリクス (トップバー)",
+      "title": "品質メトリクス",
+      "truePeak": "True Peak (dBTP) はデジタルクリッピングを防止します。制限：全プロファイルで -1 dBTP。",
+      "vmaf": "VMAF (Video Multi-Method Assessment Fusion) は知覚品質を0-100でスコア化します。しきい値：85 (web)、90 (broadcast SD)、93 (broadcast HD/4K)。",
+      "vmafAcceptable": "許容範囲",
+      "vmafBroadcast": "放送品質",
+      "vmafDescription": "Netflixが開発した知覚ビデオ品質メトリクス。処理後のビデオをオリジナルと比較し、人間の知覚をシミュレートします。",
+      "vmafGood": "良好",
+      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
+      "vmafUnacceptable": "不可"
+    },
+    "profiles": {
+      "broadcastHd": {
+        "desc": "放送規格準拠 — H.264 High 4.1, 50 Mbps, -23 LUFS",
+        "name": "Broadcast HD"
+      },
+      "broadcastNote": "すべての放送用プロファイルで以下を使用:",
+      "broadcastSd": {
+        "desc": "標準画質 — H.264 Main 3.0, 15 Mbps",
+        "name": "Broadcast SD"
+      },
+      "note": "システムプロファイルは編集できません。複製してカスタム設定を作成してください。",
+      "proxy": {
+        "desc": "高速オフライン編集 — 720p, 2 Mbps, 低遅延",
+        "name": "Proxy"
+      },
+      "social": {
+        "desc": "ソーシャルメディア — 縦型および正方形フォーマット",
+        "name": "ソーシャル"
+      },
+      "title": "利用可能なエンコードプロファイル",
+      "web4k": {
+        "desc": "ストリーミング 4K UHD — H.265, 25 Mbps, VMAF ≥ 93",
+        "name": "Web 4K"
+      },
+      "webHd": {
+        "desc": "Webおよびストリーミング向けに最適化 — H.264, 8 Mbps",
+        "name": "Web HD"
+      }
+    },
+    "support": {
+      "commonProblems": "よくある問題",
+      "factoryResetAssets": "すべてのアセットと履歴を削除",
+      "factoryResetDescription": "アプリの動作が不安定な場合や、データが消えない、またはデータベースエラーが発生した場合は、「設定」→「詳細」から完全リセットを実行してください。",
+      "factoryResetProfiles": "カスタムプロファイルと設定を削除",
+      "factoryResetRestart": "アプリケーションを初期状態で再起動",
+      "factoryResetTemp": "サイドカーの一時ファイルを消去",
+      "factoryResetTitle": "工場出荷状態にリセット (全消去)",
+      "factoryResetWarning": "すべてのデータ、設定、履歴が削除されます。アプリが再起動します。この操作は取り消せません。",
+      "problem1Desc": "SystemタブでFFmpegが正しく検出されているか確認してください。",
+      "problem1Title": "処理が開始されない場合",
+      "problem2Desc": "Nexoraに設定済みフォルダへの書き込み権限があるか確認してください。",
+      "problem2Title": "出力フォルダの権限エラーですか？",
+      "problems": {
+        "1": "GPUが検出されません — 最新のグラフィックスドライバーをインストールしてください",
+        "2": "トランスコード中にジョブが失敗する — FFmpegバイナリが同梱されているか確認してください"
+      },
+      "troubleshooting": "トラブルシューティング"
+    },
+    "system": {
+      "components": "インストール済みコンポーネント",
+      "database": "データベース",
+      "loading": "システム情報を読み込み中...",
+      "stack": "テクノロジースタック",
+      "stackCodec": "Codec: FFmpeg (GPU自動検出)",
+      "stackDb": "DB: SQLite (rusqlite同梱)",
+      "stackFrontend": "Frontend: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
+      "stackShell": "Native shell: Tauri 2.x (Rust stable)",
+      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
+      "techStack": "技術スタック"
+    },
+    "usage": {
+      "step1Desc": "ナビゲーションバーのロケットアイコンをクリックして、処理ページにアクセスしてください。",
+      "step1Title": "「Process」タブを開く",
+      "step2Desc": "MP4, MXF, MOV または FFmpeg 対応フォーマットをドロップゾーンにドラッグしてください。クリックしてファイル選択画面を開くこともできます。",
+      "step2Title": "ビデオファイルをドラッグ",
+      "step3Desc": "最終的な配信先（放送、ウェブ、SNS）に適したプロファイルを選択してください。各プロファイルには、規格準拠と最適品質のためのパラメータが設定されています。",
+      "step3Title": "エンコードプロファイルを選択",
+      "step4Desc": "「Process」をクリックしてください。ジョブがキューに追加され、バックグラウンドで処理されます。処理中もアプリは操作可能です。",
+      "step4Title": "処理を開始",
+      "step5Desc": "Dashboardに実行中のジョブ、平均VMAFスコア、ディスク容量が表示されます。プログレスバーはリアルタイムで更新されます。",
+      "step5Title": "Dashboardで監視",
+      "step6Desc": "完了後、Historyにコーデック、再生時間、サイズ、VMAFスコアと共にアセットが表示されます。詳細ボタンで全てのメタデータを確認できます。",
+      "step6Title": "「History」で結果を確認",
+      "steps": {
+        "1": "ドラッグ＆ドロップまたはファイルダイアログでメディアを追加",
+        "2": "トランスコードプロファイル（broadcast-hd, web-4kなど）を選択",
+        "3": "キューに送信 — ジョブは自動的に処理されます",
+        "4": "QCレポートを確認し、隔離されたアイテムを承認または拒否",
+        "5": "出力フォルダで処理済みファイルにアクセス"
+      },
+      "tip1": "設定でGPUを有効にすると、変換速度が5〜10倍向上します",
+      "tip2": "Proxyプロファイルは編集用です。最終納品には使用しないでください",
+      "tip3": "トラブルシューティングのため、設定 → Logsでログを保存してください",
+      "tip4": "出力ディレクトリは、設定からグローバルまたはプロファイルごとに設定可能です",
+      "tips": "ヒント",
+      "tipsList": {
+        "1": "GPU加速を利用して、変換速度を5〜10倍に向上させましょう",
+        "2": "通知を有効にしてジョブ完了時のアラートを受信",
+        "3": "詳細な FFmpeg 出力は Logs ページを確認",
+        "4": "工場出荷時リセットは全データを消去します — 注意して使用してください"
+      },
+      "workflow": "ワークフロー"
     }
   },
   "dashboard": {
@@ -329,7 +498,10 @@
     "duration": "Duration",
     "actions": "Actions",
     "gridView": "グリッド表示",
-    "listView": "リスト表示"
+    "listView": "リスト表示",
+    "adding": "追加中...",
+    "processSelected": "選択した{{count}}件を処理",
+    "qcOk": "QC合格"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -376,7 +548,10 @@
     "pipeline": {
       "expandTooltip": "クリックしてファイルを表示",
       "noFilesForStatus": "このステータスのファイルはありません"
-    }
+    },
+    "etaActive": "残り約{{time}}",
+    "etaCalc": "計算中...",
+    "etaTotal": "合計約{{time}}"
   },
   "profiles": {
     "create": "Create",
@@ -566,7 +741,10 @@
       "version": "Version",
       "license": "License",
       "platforms": "Platforms",
-      "year": "Year"
+      "year": "Year",
+      "createAlias": "デスクトップショートカットを作成",
+      "createShortcut": "デスクトップショートカットを作成",
+      "shortcutCreated": "ショートカットを作成しました"
     },
     "sections": {
       "importation": "Importation",
@@ -586,6 +764,29 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "privacy": {
+      "clearData": "すべてのデータを削除",
+      "cleared": "すべてのテレメトリデータを削除しました。",
+      "noData": "テレメトリデータはまだ収集されていません。",
+      "tab": "プライバシー",
+      "title": "プライバシーとテレメトリ",
+      "toggle": "匿名のエラーデータを共有",
+      "toggleHint": "エラー回数とアプリイベント — このデバイスにのみ保存されます。",
+      "viewData": "収集データの表示"
+    },
+    "watchFolders": {
+      "addError": "フォルダを追加できませんでした: {{error}}",
+      "addFolder": "フォルダを追加",
+      "description": "Nexoraがこれらのフォルダを監視し、新しいビデオファイルを自動的にキューに追加します。",
+      "disabled": "一時停止",
+      "enabled": "有効",
+      "noFolders": "フォルダが設定されていません。",
+      "noFoldersHint": "「フォルダを追加」をクリックしてディレクトリの監視を開始してください。",
+      "remove": "削除",
+      "removeConfirm": "このフォルダをWatch Foldersから削除しますか？",
+      "tab": "Watch Folders",
+      "title": "Watch Folders"
     }
   },
   "logs": {
@@ -689,7 +890,11 @@
     "qcPost": "Post-QC",
     "qcPostDesc": "Output SHA-256 verified + VMAF",
     "delivery": "Delivery",
-    "deliveryDesc": "Files moved to output folder"
+    "deliveryDesc": "Files moved to output folder",
+    "qc-post": "ポストQC",
+    "qc-postDesc": "出力 SHA-256 検証済み + VMAF",
+    "qc-pre": "プリQC",
+    "qc-preDesc": "ファイル検証済み (サイズ, 再生時間, コーデック)"
   },
   "common": {
     "save": "Save",
@@ -891,7 +1096,22 @@
     "cancel": "Cancel Job",
     "processing": "Processing...",
     "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "errorSuggestion": "詳細は Logs を参照",
+    "errors": {
+      "codec": "コーデックが利用不可",
+      "codecHint": "別のプリセットを選択してください",
+      "corrupt": "ファイルが破損しているか、サポートされていません",
+      "corruptHint": "ソースファイルに問題がないか確認してください",
+      "diskFull": "ディスク容量不足",
+      "diskFullHint": "ディスクの空き容量を確保して再試行してください",
+      "generic": "トランスコードエラー",
+      "genericHint": "詳細はログを確認",
+      "killed": "プロセスが中断されました",
+      "killedHint": "ジョブがキャンセルされたか、メモリ不足が発生しました",
+      "permission": "アクセス拒否",
+      "permissionHint": "出力フォルダの権限を確認してください"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -959,5 +1179,64 @@
     "modified": "Modificado",
     "notSupported": "Navegação não suportada para iCloud",
     "browseTooltipDisabled": "Navegação não suportada para iCloud"
+  },
+  "bugReport": {
+    "copied": "クリップボードにコピーしました",
+    "copyClipboard": "クリップボードにコピー",
+    "descLabel": "説明",
+    "descPlaceholder": "再現手順、期待される動作と実際の動作...",
+    "includeLogs": "直近50行のログを含める",
+    "openGitHub": "GitHub Issueを開く",
+    "saveFile": "ファイルとして保存",
+    "saved": "{{path}} に保存しました",
+    "title": "問題を報告",
+    "titleLabel": "タイトル",
+    "titlePlaceholder": "問題の簡潔な説明",
+    "titleRequired": "タイトルは必須です"
+  },
+  "comparator": {
+    "dragHint": "ドラッグして比較",
+    "noOutput": "処理済みファイルがありません",
+    "original": "オリジナル",
+    "processed": "処理済み",
+    "tab": "比較"
+  },
+  "diagnostics": {
+    "bundled": "同梱済み ✓",
+    "desc": "ビデオ処理に必要なコンポーネントの状態。",
+    "notFound": "見つかりません",
+    "reinstall": "最新リリースをダウンロード",
+    "title": "システム診断"
+  },
+  "onboarding": {
+    "back": "戻る",
+    "next": "次へ",
+    "start": "Nexoraを開始する",
+    "step1Desc": "プロ仕様のメディア処理をワークステーションで。1分以内にセットアップを完了しましょう。",
+    "step1Title": "Nexora Desktopへようこそ",
+    "step2Choose": "フォルダを選択",
+    "step2Desc": "処理済みファイルの保存先を指定してください。",
+    "step2Title": "出力フォルダ",
+    "step3Desc": "匿名のエラーデータを共有してNexoraの改善にご協力ください。データはこのデバイスにのみ保存され、外部に送信されることはありません。",
+    "step3Title": "プライバシー",
+    "step3Toggle": "匿名エラーデータの共有",
+    "step4Desc": "動画ファイルをアプリにドラッグするか、ライブラリからキューにファイルを追加してください。",
+    "step4Title": "準備完了です！",
+    "stepOf": "ステップ {{current}} / {{total}}"
+  },
+  "update": {
+    "currentVersion": "現在のバージョン",
+    "devModeRestart": "インストール完了。手動で再起動してください (dev mode)。",
+    "downloadError": "ダウンロードエラー",
+    "downloading": "ダウンロード中...",
+    "installing": "インストール中...",
+    "later": "後で",
+    "newVersion": "新しいバージョン",
+    "restarting": "再起動中...",
+    "retry": "再試行",
+    "title": "アップデートが利用可能",
+    "updateNow": "今すぐ更新",
+    "viewFullRelease": "リリースノートを表示",
+    "whatsNew": "新機能"
   }
 }

@@ -1351,4 +1351,4 @@ interface Profile {
 
 ---
 
-_Last updated: 2026-05-18 for Nexora Desktop v0.23.0_
+_Last updated: 2026-06-04 for Nexora Desktop v0.33.0-beta.1_

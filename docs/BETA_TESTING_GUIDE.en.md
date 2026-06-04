@@ -1,6 +1,6 @@
 # Nexora Desktop — Beta Testing Guide
 
-**Version:** v0.31.5-beta.1  
+**Version:** v0.33.0-beta.1  
 **Date:** June 2026  
 **Application:** Nexora Desktop — Native Media Processing
 
@@ -1950,7 +1950,7 @@ Technical terms explained in plain language:
 - User manual: `docs/USER_MANUAL.md` (in the app folder)
 - Visual guide: `docs/SCREEN_GUIDE.md`
 
-**Version tested:** v0.31.5-beta.1  
+**Version tested:** v0.33.0-beta.1  
 **Last updated:** June 2026
 
 ---

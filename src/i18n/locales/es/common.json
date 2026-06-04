@@ -25,7 +25,10 @@
     "gpu": "GPU",
     "disk": "Disk",
     "exit": "Exit",
-    "help": "Help"
+    "help": "Help",
+    "bugReport": "Reportar un problema",
+    "queueActive": "{{count}} procesando",
+    "queueIdle": "Listo"
   },
   "help": {
     "title": "User Manual",
@@ -43,7 +46,12 @@
       "assetDetail": "Detalle del Asset",
       "import": "Importar",
       "comparator": "Comparator",
-      "betaGuide": "Guía de Pruebas Beta (DEV)"
+      "betaGuide": "Guía de Pruebas Beta (DEV)",
+      "about": "Acerca de",
+      "metrics": "Métricas",
+      "support": "Soporte",
+      "system": "Sistema",
+      "usage": "Cómo usar"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -58,8 +66,13 @@
         "profiles": "Profiles",
         "profilesDesc": "6 built-in presets (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus a full custom profile editor.",
         "gpuAuto": "Auto-Detection",
-        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup."
-      }
+        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup.",
+        "broadcast": "Perfiles compatibles con broadcast (BBC, Netflix, DPP)",
+        "gpu": "Aceleración por GPU (NVENC, AMF, QSV)",
+        "offline": "Procesamiento totalmente offline — no requiere internet",
+        "vmaf": "Puntuación de calidad VMAF activa con umbrales por perfil"
+      },
+      "architecture": "Construido con Tauri 2.x (Rust) para el shell nativo, React 19 para la UI y un sidecar de Node.js para la orquestación de medios. SQLite almacena todos los metadatos localmente."
     },
     "screens": {
       "dashboard": {
@@ -187,6 +200,41 @@
           "title": "iCloud Drive",
           "desc": "iCloud es compatible mediante sincronización de carpeta local. Nexora lee/escribe la carpeta iCloud Drive en su disco local.",
           "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
+        },
+        "dropbox": {
+          "desc": "Usa tu propia App Key de Dropbox para conectar. Crea una app de Dropbox en developers.dropbox.com y luego ingresa la App Key en el perfil. Nexora usa el flujo PKCE — tu App Secret nunca se almacena.",
+          "step1": "Ve a developers.dropbox.com → Create App → Scoped Access → Full Dropbox",
+          "step2": "Copia la App Key e ingrésala en el formulario del perfil de Dropbox",
+          "step3": "Haz clic en 'Authenticate' — se abrirá una ventana del navegador para autorizar. El token se almacena en el llavero del OS.",
+          "title": "Dropbox — PKCE OAuth"
+        },
+        "gdrivePersonal": {
+          "desc": "Usa tus propias credenciales de Google Cloud Console (Client ID + Client Secret). Esto te da control total sobre la app OAuth que accede a tu Drive. Nexora usa el flujo PKCE — no se almacena ningún client secret en el disco.",
+          "step1": "Crea un ID de cliente OAuth 2.0 en Google Cloud Console (tipo: Desktop App)",
+          "step2": "Ingresa el ID de cliente y el Secreto del cliente en el formulario de perfil, luego haz clic en 'Authenticate'",
+          "step3": "Se abrirá una ventana del navegador — inicia sesión y autoriza. El token se guarda en el llavero del OS.",
+          "title": "Google Drive Personal — PKCE OAuth"
+        },
+        "mega": {
+          "desc": "Conéctate con tu email y contraseña de MEGA. Los archivos siempre están cifrados de extremo a extremo por MEGA — Nexora nunca envía datos en texto plano a los servidores de MEGA. La carpeta de destino debe existir en tu cuenta de MEGA antes de probar.",
+          "tip1": "Crea primero la carpeta de destino en mega.nz (ej. Nexora/Output dentro de Cloud Drive).",
+          "tip2": "Ingrese la ruta de la carpeta sin la barra inicial: Nexora/Output",
+          "tip3": "El inicio de sesión se realiza en cada operación; no se almacena ninguna sesión localmente.",
+          "title": "MEGA — Nube con cifrado de extremo a extremo"
+        },
+        "sftp": {
+          "desc": "Conéctese a cualquier servidor SFTP con usuario/contraseña o autenticación por clave SSH. Complete Host, Puerto (predeterminado 22), Usuario, Contraseña o ruta de la clave, y la carpeta base remota.",
+          "tip1": "El puerto 22 es el puerto SFTP estándar; cámbielo solo si su servidor usa un puerto personalizado.",
+          "tip2": "Se admiten tanto la autenticación por contraseña como la basada en claves.",
+          "tip3": "Use 'Test Connection' para verificar que el servidor sea accesible y que las credenciales sean válidas antes de guardar.",
+          "title": "SFTP — SSH File Transfer"
+        },
+        "smb": {
+          "desc": "Conéctese a carpetas compartidas de Windows y dispositivos NAS mediante SMB/CIFS. Introduzca la ruta de red (ej. \\\\server\\share), usuario y contraseña. Deje el usuario/contraseña vacíos para acceso de invitado.",
+          "tip1": "Formato de ruta compartida: \\\\server\\sharename o //server/sharename.",
+          "tip2": "Cuentas de dominio: introduzca el usuario como DOMAIN\\user.",
+          "tip3": "Las rutas SMB que contienen '..' están bloqueadas por seguridad (prevención de path traversal).",
+          "title": "SMB / Windows Share"
         }
       },
       "logs": {
@@ -275,7 +323,128 @@
       "endpointValidation": "Los endpoints de carga de registros deben usar protocolos http:// o https://"
     },
     "guideOpened": "Guia aberto no browser",
-    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet."
+    "guideOpenFailed": "Não foi possível abrir o guia. Verifique a sua ligação à internet.",
+    "about": {
+      "appName": "Nexora Desktop",
+      "footer": "Nexora Media Processing — Pipeline de medios profesional para broadcast y web.",
+      "license": "Licencia",
+      "platforms": "Plataformas",
+      "reportIssues": "Para reportar problemas o sugerencias, revise los registros del sistema e incluya la salida relevante en su reporte.",
+      "version": "Versión",
+      "year": "Año"
+    },
+    "metrics": {
+      "cpuDesc": "CPU % — utilización global del procesador (actualizado cada 2s)",
+      "lufs": "LUFS (Loudness Units Full Scale) mide la sonoridad del audio. Objetivo: -23 LUFS para broadcast, -14 LUFS para web/social.",
+      "lufsDescription": "Medida de sonoridad integrada según el estándar EBU R128. El objetivo estándar para emisiones europeas es −23 LUFS ±1 LU. Para streaming (Spotify, YouTube) el objetivo suele ser −14 LUFS.",
+      "lufsTitle": "LUFS — Loudness Units Full Scale",
+      "networkDesc": "Red ↓↑ — rendimiento agregado de descarga y carga de todas las interfaces",
+      "ramDesc": "RAM — memoria usada / total en GB",
+      "realtime": "Las métricas en tiempo real se actualizan cada 2 segundos durante los trabajos activos.",
+      "realtimeTitle": "Métricas en tiempo real (barra superior)",
+      "title": "Métricas de calidad",
+      "truePeak": "True Peak (dBTP) evita el clipping digital. Límite: -1 dBTP para todos los perfiles.",
+      "vmaf": "VMAF (Video Multi-Method Assessment Fusion) califica la calidad perceptual de 0-100. Umbrales: 85 (web), 90 (broadcast SD), 93 (broadcast HD/4K).",
+      "vmafAcceptable": "Aceptable",
+      "vmafBroadcast": "Broadcast",
+      "vmafDescription": "Métrica de calidad de video perceptual desarrollada por Netflix. Simula la percepción humana comparando el video procesado con el original.",
+      "vmafGood": "Bueno",
+      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
+      "vmafUnacceptable": "Inaceptable"
+    },
+    "profiles": {
+      "broadcastHd": {
+        "desc": "Cumplimiento total de emisión — H.264 High 4.1, 50 Mbps, -23 LUFS",
+        "name": "Broadcast HD"
+      },
+      "broadcastNote": "Todos los perfiles de emisión usan:",
+      "broadcastSd": {
+        "desc": "Definición estándar — H.264 Main 3.0, 15 Mbps",
+        "name": "Broadcast SD"
+      },
+      "note": "Los perfiles del sistema no se pueden editar. Duplíquelos para crear variantes personalizadas.",
+      "proxy": {
+        "desc": "Edición offline rápida — 720p, 2 Mbps, baja latencia",
+        "name": "Proxy"
+      },
+      "social": {
+        "desc": "Redes sociales — formatos verticales y cuadrados",
+        "name": "Social"
+      },
+      "title": "Perfiles de codificación disponibles",
+      "web4k": {
+        "desc": "Streaming 4K UHD — H.265, 25 Mbps, VMAF ≥ 93",
+        "name": "Web 4K"
+      },
+      "webHd": {
+        "desc": "Optimizado para web y streaming — H.264, 8 Mbps",
+        "name": "Web HD"
+      }
+    },
+    "support": {
+      "commonProblems": "Problemas comunes",
+      "factoryResetAssets": "Elimina todos los assets y el historial",
+      "factoryResetDescription": "Si la aplicación muestra un comportamiento inconsistente, datos que no se borran o errores de base de datos, puede realizar un Restablecimiento Total en Settings → Advanced.",
+      "factoryResetProfiles": "Elimina perfiles y ajustes personalizados",
+      "factoryResetRestart": "Reinicia la aplicación desde cero",
+      "factoryResetTemp": "Borra archivos temporales de sidecar",
+      "factoryResetTitle": "Restablecimiento de fábrica (Borrado total)",
+      "factoryResetWarning": "Esto eliminará TODOS los datos, ajustes e historial. La aplicación se reiniciará. Esta acción no se puede deshacer.",
+      "problem1Desc": "Compruebe si FFmpeg se detecta correctamente en la pestaña System.",
+      "problem1Title": "¿El procesamiento no comienza?",
+      "problem2Desc": "Asegúrese de que Nexora tenga permisos de escritura en la carpeta configurada.",
+      "problem2Title": "¿Error de permisos en la carpeta de salida?",
+      "problems": {
+        "1": "No se detectó GPU — Instale los controladores de gráficos más recientes",
+        "2": "Los trabajos fallan al transcodificar — Verifique que el binario de FFmpeg esté incluido"
+      },
+      "troubleshooting": "Solución de problemas"
+    },
+    "system": {
+      "components": "Componentes instalados",
+      "database": "Base de datos",
+      "loading": "Cargando información del sistema...",
+      "stack": "Stack tecnológico",
+      "stackCodec": "Codec: FFmpeg con GPU auto-detectada",
+      "stackDb": "DB: SQLite (rusqlite integrado)",
+      "stackFrontend": "Frontend: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
+      "stackShell": "Shell nativo: Tauri 2.x (Rust stable)",
+      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
+      "techStack": "Stack tecnológico"
+    },
+    "usage": {
+      "step1Desc": "Haz clic en el icono del cohete en la barra de navegación para acceder a la página de procesamiento.",
+      "step1Title": "Abre la pestaña \"Process\"",
+      "step2Desc": "Arrastra un archivo MP4, MXF, MOV o cualquier formato compatible con FFmpeg a la zona de soltado. También puedes hacer clic para abrir el selector de archivos.",
+      "step2Title": "Arrastra el archivo de video",
+      "step3Desc": "Elige el perfil adecuado para el destino final (broadcast, web, social). Cada perfil tiene parámetros preconfigurados para el cumplimiento y la calidad óptima.",
+      "step3Title": "Seleccione el perfil de codificación",
+      "step4Desc": "Haga clic en Procesar. El trabajo se añade a la cola y se procesa en segundo plano. La aplicación permanece receptiva durante el proceso.",
+      "step4Title": "Iniciar procesamiento",
+      "step5Desc": "El Dashboard muestra los trabajos activos, la puntuación promedio de VMAF y el espacio en disco. La barra de progreso se actualiza en tiempo real.",
+      "step5Title": "Monitorear en el \"Dashboard\"",
+      "step6Desc": "Al finalizar, el archivo aparece en el Historial con el códec, duración, tamaño y puntuación de VMAF. Use el botón de detalles para ver todos los metadatos.",
+      "step6Title": "Ver resultados en \"History\"",
+      "steps": {
+        "1": "Añadir archivos mediante arrastrar y soltar o diálogo de archivos",
+        "2": "Seleccionar un perfil de transcodificación (broadcast-hd, web-4k, etc.)",
+        "3": "Enviar a la cola — los trabajos se procesan automáticamente",
+        "4": "Revisar informes de QC y aprobar/rechazar elementos en cuarentena",
+        "5": "Acceder a los archivos procesados en la carpeta de salida"
+      },
+      "tip1": "Activa la GPU en Ajustes para una transcodificación 5-10x más rápida",
+      "tip2": "El perfil Proxy es ideal para versiones de edición — nunca para la entrega final",
+      "tip3": "Guarda los logs en Ajustes → Logs para solucionar problemas",
+      "tip4": "El directorio de salida se puede configurar globalmente o por perfil en Ajustes",
+      "tips": "Consejos",
+      "tipsList": {
+        "1": "Usa la aceleración por GPU para transcodificaciones 5-10x más rápidas",
+        "2": "Activa las notificaciones para recibir alertas al finalizar los trabajos",
+        "3": "Consulta la página de Logs para ver la salida detallada de FFmpeg",
+        "4": "El restablecimiento de fábrica borra todo — usar con precaución"
+      },
+      "workflow": "Flujo de trabajo"
+    }
   },
   "dashboard": {
     "assetsTotal": "Total Assets",
@@ -329,7 +498,10 @@
     "duration": "Duration",
     "actions": "Actions",
     "gridView": "Vista cuadrícula",
-    "listView": "Vista lista"
+    "listView": "Vista lista",
+    "adding": "Añadiendo...",
+    "processSelected": "Procesar {{count}} seleccionados",
+    "qcOk": "QC OK"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -376,7 +548,10 @@
     "pipeline": {
       "expandTooltip": "Haga clic para ver archivos",
       "noFilesForStatus": "Sin archivos para este estado"
-    }
+    },
+    "etaActive": "~{{time}} restante",
+    "etaCalc": "Calculando...",
+    "etaTotal": "~{{time}} total"
   },
   "profiles": {
     "create": "Create",
@@ -566,7 +741,10 @@
       "version": "Version",
       "license": "License",
       "platforms": "Platforms",
-      "year": "Year"
+      "year": "Year",
+      "createAlias": "Crear acceso directo en el escritorio",
+      "createShortcut": "Crear acceso directo en el escritorio",
+      "shortcutCreated": "Acceso directo creado con éxito"
     },
     "sections": {
       "importation": "Importation",
@@ -586,6 +764,29 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "privacy": {
+      "clearData": "Eliminar todos los datos",
+      "cleared": "Todos los datos de telemetría eliminados.",
+      "noData": "Aún no se han recopilado datos de telemetría.",
+      "tab": "Privacidad",
+      "title": "Privacidad y Telemetría",
+      "toggle": "Compartir datos de error anónimos",
+      "toggleHint": "Recuentos de errores y eventos de la app — almacenados solo en este dispositivo.",
+      "viewData": "Ver datos recopilados"
+    },
+    "watchFolders": {
+      "addError": "No se pudo añadir la carpeta: {{error}}",
+      "addFolder": "Añadir carpeta",
+      "description": "Nexora monitorea estas carpetas y añade automáticamente nuevos archivos de video a la cola.",
+      "disabled": "Pausado",
+      "enabled": "Activo",
+      "noFolders": "No hay carpetas configuradas.",
+      "noFoldersHint": "Haz clic en \"Añadir carpeta\" para empezar a monitorear un directorio.",
+      "remove": "Eliminar",
+      "removeConfirm": "¿Eliminar esta carpeta de las Carpetas Vigiladas?",
+      "tab": "Carpetas Vigiladas",
+      "title": "Carpetas Vigiladas"
     }
   },
   "logs": {
@@ -689,7 +890,11 @@
     "qcPost": "Post-QC",
     "qcPostDesc": "Output SHA-256 verified + VMAF",
     "delivery": "Delivery",
-    "deliveryDesc": "Files moved to output folder"
+    "deliveryDesc": "Files moved to output folder",
+    "qc-post": "Post-QC",
+    "qc-postDesc": "Salida verificada por SHA-256 + VMAF",
+    "qc-pre": "Pre-QC",
+    "qc-preDesc": "Archivo validado (tamaño, duración, códec)"
   },
   "common": {
     "save": "Save",
@@ -891,7 +1096,22 @@
     "cancel": "Cancel Job",
     "processing": "Processing...",
     "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "errorSuggestion": "Ver Logs para más detalles",
+    "errors": {
+      "codec": "Codec no disponible",
+      "codecHint": "Seleccione un ajuste preestablecido diferente",
+      "corrupt": "Archivo corrupto o no compatible",
+      "corruptHint": "Verifique que el archivo de origen esté intacto",
+      "diskFull": "Disco lleno",
+      "diskFullHint": "Libere espacio en el disco e intente de nuevo",
+      "generic": "Error de transcodificación",
+      "genericHint": "Ver Logs para más detalles",
+      "killed": "Proceso interrumpido",
+      "killedHint": "El trabajo fue cancelado o el sistema se quedó sin memoria",
+      "permission": "Permiso denegado",
+      "permissionHint": "Verifique los permisos de la carpeta de destino"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -959,5 +1179,64 @@
     "modified": "Modificado",
     "notSupported": "Navegação não suportada para iCloud",
     "browseTooltipDisabled": "Navegação não suportada para iCloud"
+  },
+  "bugReport": {
+    "copied": "Copiado al portapapeles",
+    "copyClipboard": "Copiar al portapapeles",
+    "descLabel": "Descripción",
+    "descPlaceholder": "Pasos para reproducir, comportamiento esperado vs actual...",
+    "includeLogs": "Incluir las últimas 50 líneas del log",
+    "openGitHub": "Abrir Issue en GitHub",
+    "saveFile": "Guardar como archivo",
+    "saved": "Guardado en {{path}}",
+    "title": "Reportar un problema",
+    "titleLabel": "Título",
+    "titlePlaceholder": "Descripción breve del problema",
+    "titleRequired": "El título es obligatorio"
+  },
+  "comparator": {
+    "dragHint": "Arrastrar para comparar",
+    "noOutput": "Archivo procesado no disponible",
+    "original": "Original",
+    "processed": "Procesado",
+    "tab": "Comparador"
+  },
+  "diagnostics": {
+    "bundled": "incluido ✓",
+    "desc": "Estado de los componentes requeridos para el procesamiento de video.",
+    "notFound": "no encontrado",
+    "reinstall": "Descargar última versión",
+    "title": "Diagnóstico del Sistema"
+  },
+  "onboarding": {
+    "back": "Atrás",
+    "next": "Siguiente",
+    "start": "Empezar a usar Nexora",
+    "step1Desc": "Procesamiento de medios profesional, nativo en tu estación de trabajo. Configúralo en menos de un minuto.",
+    "step1Title": "Bienvenido a Nexora Desktop",
+    "step2Choose": "Elegir carpeta",
+    "step2Desc": "¿Dónde se deben guardar los archivos procesados?",
+    "step2Title": "Carpeta de salida",
+    "step3Desc": "Ayuda a mejorar Nexora compartiendo datos de errores anónimos — almacenados solo en este dispositivo, nunca se envían a ningún lugar.",
+    "step3Title": "Privacidad",
+    "step3Toggle": "Compartir datos de error anónimos",
+    "step4Desc": "Arrastra archivos de video a la app o usa la Library para añadir archivos a la cola.",
+    "step4Title": "¡Todo listo!",
+    "stepOf": "Paso {{current}} de {{total}}"
+  },
+  "update": {
+    "currentVersion": "Versión actual",
+    "devModeRestart": "Instalado. Reinicia manualmente (modo dev).",
+    "downloadError": "Error de descarga",
+    "downloading": "Descargando...",
+    "installing": "Instalando...",
+    "later": "Más tarde",
+    "newVersion": "Nueva versión",
+    "restarting": "Reiniciando...",
+    "retry": "Reintentar",
+    "title": "Actualización disponible",
+    "updateNow": "Actualizar ahora",
+    "viewFullRelease": "Ver notas de versión completas",
+    "whatsNew": "Novedades"
   }
 }

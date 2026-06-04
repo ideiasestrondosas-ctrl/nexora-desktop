@@ -1,6 +1,6 @@
 # Nexora Desktop Screenshots
 
-Visual reference for Nexora Desktop v0.26.0.
+Visual reference for Nexora Desktop v0.33.0-beta.1.
 
 | Screenshot                      | Description                                                 | Last Updated |
 | ------------------------------- | ----------------------------------------------------------- | ------------ |

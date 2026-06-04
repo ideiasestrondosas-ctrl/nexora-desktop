@@ -25,7 +25,10 @@
     "gpu": "GPU",
     "disk": "Disk",
     "exit": "Exit",
-    "help": "Help"
+    "help": "Help",
+    "bugReport": "Сообщить о проблеме",
+    "queueActive": "{{count}} в обработке",
+    "queueIdle": "Готов"
   },
   "help": {
     "title": "User Manual",
@@ -43,7 +46,12 @@
       "assetDetail": "Детали ресурса",
       "import": "Импорт",
       "comparator": "Comparator",
-      "betaGuide": "Руководство по бета-тестированию (DEV)"
+      "betaGuide": "Руководство по бета-тестированию (DEV)",
+      "about": "О программе",
+      "metrics": "Метрики",
+      "support": "Поддержка",
+      "system": "Система",
+      "usage": "Как использовать"
     },
     "intro": {
       "whatIs": "What is Nexora Desktop?",
@@ -58,8 +66,13 @@
         "profiles": "Profiles",
         "profilesDesc": "6 built-in presets (Broadcast HD/SD, Web 4K/HD, Proxy, Social) plus a full custom profile editor.",
         "gpuAuto": "Auto-Detection",
-        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup."
-      }
+        "gpuAutoDesc": "System metrics, GPU detection, and binary status are checked automatically on startup.",
+        "broadcast": "Профили для вещания (BBC, Netflix, DPP)",
+        "gpu": "GPU-ускорение (NVENC, AMF, QSV)",
+        "offline": "Полностью офлайн-обработка — интернет не требуется",
+        "vmaf": "Оценка качества VMAF с пороговыми значениями для каждого профиля"
+      },
+      "architecture": "Создано с использованием Tauri 2.x (Rust) для нативного шелла, React 19 для UI и Node.js sidecar для оркестрации медиа. SQLite хранит все метаданные локально."
     },
     "screens": {
       "dashboard": {
@@ -187,6 +200,41 @@
           "title": "iCloud Drive",
           "desc": "iCloud поддерживается через локальную синхронизацию папок. Nexora читает/пишет папку iCloud Drive на вашем локальном диске.",
           "localPath": "Windows: %USERPROFILE%\\iCloudDrive — macOS: ~/Library/Mobile Documents/com~apple~CloudDocs"
+        },
+        "dropbox": {
+          "desc": "Используйте собственный App Key Dropbox для подключения. Создайте приложение на developers.dropbox.com, затем введите App Key в профиле. Nexora использует поток PKCE — ваш App Secret никогда не сохраняется.",
+          "step1": "Перейдите на developers.dropbox.com → Create App → Scoped Access → Full Dropbox",
+          "step2": "Скопируйте App Key и введите его в форму профиля Dropbox",
+          "step3": "Нажмите «Authenticate» — откроется окно браузера для авторизации. Токен сохраняется в связке ключей ОС.",
+          "title": "Dropbox — PKCE OAuth"
+        },
+        "gdrivePersonal": {
+          "desc": "Используйте собственные учетные данные Google Cloud Console (Client ID + Client Secret). Это дает полный контроль над OAuth-приложением, имеющим доступ к вашему Drive. Nexora использует поток PKCE — client secret не хранится на диске.",
+          "step1": "Создайте OAuth 2.0 Client ID в Google Cloud Console (тип: Desktop App)",
+          "step2": "Введите Client ID и Client Secret в форме профиля, затем нажмите «Authenticate»",
+          "step3": "Откроется окно браузера — войдите в систему и авторизуйтесь. Токен будет сохранен в связке ключей ОС.",
+          "title": "Google Drive Personal — PKCE OAuth"
+        },
+        "mega": {
+          "desc": "Подключитесь, используя email и пароль MEGA. Файлы всегда зашифрованы MEGA сквозным методом — Nexora никогда не отправляет данные на серверы MEGA в открытом виде. Папка назначения должна существовать в вашем аккаунте MEGA перед тестированием.",
+          "tip1": "Сначала создайте папку назначения в mega.nz (например, Nexora/Output внутри Cloud Drive).",
+          "tip2": "Введите путь к папке без начального слэша: Nexora/Output",
+          "tip3": "Вход выполняется заново для каждой операции — сессия не кэшируется локально.",
+          "title": "MEGA — облако со сквозным шифрованием"
+        },
+        "sftp": {
+          "desc": "Подключитесь к любому SFTP-серверу с помощью имени пользователя/пароля или SSH-ключа. Укажите хост, порт (по умолчанию 22), имя пользователя, пароль или путь к ключу, а также удаленную базовую папку.",
+          "tip1": "Порт 22 является стандартным портом SFTP — меняйте его только если ваш сервер использует другой порт.",
+          "tip2": "Поддерживается как аутентификация по паролю, так и по ключу.",
+          "tip3": "Используйте «Проверить соединение», чтобы убедиться в доступности сервера и правильности данных перед сохранением.",
+          "title": "SFTP — передача файлов по SSH"
+        },
+        "smb": {
+          "desc": "Подключение к Windows-ресурсам и NAS через SMB/CIFS. Введите путь к ресурсу (напр. \\\\server\\share), имя пользователя и пароль. Оставьте поля пустыми для гостевого доступа.",
+          "tip1": "Формат пути: \\\\server\\sharename или //server/sharename.",
+          "tip2": "Доменные учетные записи: вводите имя пользователя как DOMAIN\\user.",
+          "tip3": "Пути SMB, содержащие «..», заблокированы в целях безопасности (защита от обхода путей).",
+          "title": "SMB / Windows Share"
         }
       },
       "logs": {
@@ -275,6 +323,127 @@
       "keychain": "Учётные данные облака хранятся в keychain ОС (Windows Credential Manager, macOS Keychain, Linux Secret Service)",
       "pathTraversal": "Удалённые пути валидируются для предотвращения path traversal атак",
       "endpointValidation": "Endpoint для загрузки журналов должен использовать протокол http:// или https://"
+    },
+    "about": {
+      "appName": "Nexora Desktop",
+      "footer": "Nexora Media Processing — профессиональный медиа-конвейер для вещания и веба.",
+      "license": "Лицензия",
+      "platforms": "Платформы",
+      "reportIssues": "Чтобы сообщить о проблемах или предложениях, проверьте системные логи и приложите соответствующий вывод к отчету.",
+      "version": "Версия",
+      "year": "Год"
+    },
+    "metrics": {
+      "cpuDesc": "CPU % — общая загрузка процессора (обновляется каждые 2с)",
+      "lufs": "LUFS (Loudness Units Full Scale) измеряет громкость аудио. Цель: -23 LUFS для вещания, -14 LUFS для веба/соцсетей.",
+      "lufsDescription": "Интегрированный уровень громкости согласно стандарту EBU R128. Целевой уровень для европейского вещания — −23 LUFS ±1 LU. Для стриминга (Spotify, YouTube) цель обычно составляет −14 LUFS.",
+      "lufsTitle": "LUFS — Loudness Units Full Scale",
+      "networkDesc": "Network ↓↑ — суммарная пропускная способность загрузки и отдачи всех интерфейсов",
+      "ramDesc": "RAM — использовано / всего памяти в GB",
+      "realtime": "Метрики в реальном времени обновляются каждые 2 секунды во время активных задач.",
+      "realtimeTitle": "Метрики в реальном времени (верхняя панель)",
+      "title": "Метрики качества",
+      "truePeak": "True Peak (dBTP) предотвращает цифровой клиппинг. Лимит: -1 dBTP для всех профилей.",
+      "vmaf": "VMAF (Video Multi-Method Assessment Fusion) оценивает перцептивное качество от 0 до 100. Пороги: 85 (web), 90 (broadcast SD), 93 (broadcast HD/4K).",
+      "vmafAcceptable": "Приемлемо",
+      "vmafBroadcast": "Broadcast",
+      "vmafDescription": "Метрика перцептивного качества видео, разработанная Netflix. Симулирует человеческое восприятие, сравнивая обработанное видео с оригиналом.",
+      "vmafGood": "Хорошо",
+      "vmafTitle": "VMAF — Video Multimethod Assessment Fusion",
+      "vmafUnacceptable": "Неприемлемо"
+    },
+    "profiles": {
+      "broadcastHd": {
+        "desc": "Полное соответствие вещательным стандартам — H.264 High 4.1, 50 Mbps, -23 LUFS",
+        "name": "Broadcast HD"
+      },
+      "broadcastNote": "Все профили вещания используют:",
+      "broadcastSd": {
+        "desc": "Стандартное разрешение — H.264 Main 3.0, 15 Mbps",
+        "name": "Broadcast SD"
+      },
+      "note": "Системные профили нельзя редактировать. Создайте дубликат для настройки.",
+      "proxy": {
+        "desc": "Быстрый офлайн-монтаж — 720p, 2 Mbps, низкая задержка",
+        "name": "Proxy"
+      },
+      "social": {
+        "desc": "Соцсети — вертикальные и квадратные форматы",
+        "name": "Соцсети"
+      },
+      "title": "Доступные профили кодирования",
+      "web4k": {
+        "desc": "Стриминг 4K UHD — H.265, 25 Mbps, VMAF ≥ 93",
+        "name": "Web 4K"
+      },
+      "webHd": {
+        "desc": "Оптимизировано для веба и стриминга — H.264, 8 Mbps",
+        "name": "Web HD"
+      }
+    },
+    "support": {
+      "commonProblems": "Распространенные проблемы",
+      "factoryResetAssets": "Удаляет все ресурсы и историю",
+      "factoryResetDescription": "Если приложение ведет себя некорректно, данные не очищаются или возникают ошибки базы данных, вы можете выполнить полный сброс в Настройки → Дополнительно.",
+      "factoryResetProfiles": "Удаляет пользовательские профили и настройки",
+      "factoryResetRestart": "Перезапускает приложение с нуля",
+      "factoryResetTemp": "Очищает временные файлы sidecar",
+      "factoryResetTitle": "Сброс к заводским настройкам (полная очистка)",
+      "factoryResetWarning": "Это удалит ВСЕ данные, настройки и историю. Приложение будет перезапущено. Это действие нельзя отменить.",
+      "problem1Desc": "Проверьте, правильно ли определен FFmpeg на вкладке System.",
+      "problem1Title": "Обработка не запускается?",
+      "problem2Desc": "Убедитесь, что у Nexora есть права на запись в указанную папку.",
+      "problem2Title": "Ошибка прав доступа к папке вывода?",
+      "problems": {
+        "1": "GPU не обнаружен — установите последние драйверы видеокарты",
+        "2": "Ошибки при транскодировании — проверьте наличие FFmpeg в сборке"
+      },
+      "troubleshooting": "Поиск и устранение неисправностей"
+    },
+    "system": {
+      "components": "Установленные компоненты",
+      "database": "База данных",
+      "loading": "Загрузка системной информации...",
+      "stack": "Технологический стек",
+      "stackCodec": "Кодек: FFmpeg с автоопределением GPU",
+      "stackDb": "DB: SQLite (rusqlite bundled)",
+      "stackFrontend": "Frontend: React 19 + TypeScript + Tailwind CSS 4 + Zustand",
+      "stackShell": "Native shell: Tauri 2.x (Rust stable)",
+      "stackSidecar": "Sidecar: Node.js 20 + TypeScript + esbuild",
+      "techStack": "Технологический стек"
+    },
+    "usage": {
+      "step1Desc": "Нажмите на иконку ракеты в панели навигации, чтобы перейти на страницу обработки.",
+      "step1Title": "Откройте вкладку «Process»",
+      "step2Desc": "Перетащите MP4, MXF, MOV или любой формат, поддерживаемый FFmpeg, в зону загрузки. Также можно нажать для выбора файла.",
+      "step2Title": "Перетащите видеофайл",
+      "step3Desc": "Выберите профиль, подходящий для конечного назначения (вещание, веб, соцсети). Каждый профиль имеет предустановленные параметры для соответствия стандартам и оптимального качества.",
+      "step3Title": "Выберите профиль кодирования",
+      "step4Desc": "Нажмите «Процесс». Задача будет добавлена в очередь и выполнена в фоновом режиме. Приложение останется отзывчивым во время обработки.",
+      "step4Title": "Запуск обработки",
+      "step5Desc": "Dashboard отображает активные задачи, средний балл VMAF и свободное место на диске. Индикатор прогресса обновляется в реальном времени.",
+      "step5Title": "Мониторинг в «Dashboard»",
+      "step6Desc": "После завершения файл появится в Истории с указанием кодека, длительности, размера и балла VMAF. Используйте кнопку деталей для просмотра всех метаданных.",
+      "step6Title": "Проверьте результаты в «History»",
+      "steps": {
+        "1": "Добавьте медиафайлы перетаскиванием или через диалоговое окно",
+        "2": "Выберите профиль транскодирования (broadcast-hd, web-4k и т. д.)",
+        "3": "Отправьте в очередь — задачи обработаются автоматически",
+        "4": "Просмотрите отчеты QC и подтвердите/отклоните карантинные элементы",
+        "5": "Найдите обработанные файлы в выходной папке"
+      },
+      "tip1": "Включите GPU в Настройках для ускорения транскодирования в 5-10 раз",
+      "tip2": "Профиль Proxy идеален для создания версий для монтажа, но не для финального рендеринга",
+      "tip3": "Сохраняйте логи в Настройки → Logs для поиска и устранения ошибок",
+      "tip4": "Выходной каталог можно задать глобально или для каждого профиля в Настройках",
+      "tips": "Советы",
+      "tipsList": {
+        "1": "Используйте ускорение GPU для транскодирования в 5-10 раз быстрее",
+        "2": "Включите уведомления, чтобы получать оповещения о завершении задач",
+        "3": "Подробный вывод FFmpeg доступен на странице Logs",
+        "4": "Сброс до заводских настроек удаляет все данные — используйте с осторожностью"
+      },
+      "workflow": "Рабочий процесс"
     }
   },
   "dashboard": {
@@ -329,7 +498,10 @@
     "duration": "Duration",
     "actions": "Actions",
     "gridView": "Вид сеткой",
-    "listView": "Вид списком"
+    "listView": "Вид списком",
+    "adding": "Добавление...",
+    "processSelected": "Обработать {{count}} выбранных",
+    "qcOk": "QC OK"
   },
   "queue": {
     "pipelineSummary": "Pipeline Summary",
@@ -376,7 +548,10 @@
     "pipeline": {
       "expandTooltip": "Нажмите для просмотра файлов",
       "noFilesForStatus": "Нет файлов для этого статуса"
-    }
+    },
+    "etaActive": "~{{time}} осталось",
+    "etaCalc": "Расчет...",
+    "etaTotal": "Всего ~{{time}}"
   },
   "profiles": {
     "create": "Create",
@@ -566,7 +741,10 @@
       "version": "Version",
       "license": "License",
       "platforms": "Platforms",
-      "year": "Year"
+      "year": "Year",
+      "createAlias": "Создать ярлык на рабочем столе",
+      "createShortcut": "Создать ярлык на рабочем столе",
+      "shortcutCreated": "Ярлык успешно создан"
     },
     "sections": {
       "importation": "Importation",
@@ -586,6 +764,29 @@
     },
     "errors": {
       "installedInfo": "Error loading installed info"
+    },
+    "privacy": {
+      "clearData": "Удалить все данные",
+      "cleared": "Все данные телеметрии удалены.",
+      "noData": "Данные телеметрии еще не собраны.",
+      "tab": "Конфиденциальность",
+      "title": "Конфиденциальность и телеметрия",
+      "toggle": "Передавать анонимные данные об ошибках",
+      "toggleHint": "Количество ошибок и события приложения — хранятся только на этом устройстве.",
+      "viewData": "Просмотреть собранные данные"
+    },
+    "watchFolders": {
+      "addError": "Не удалось добавить папку: {{error}}",
+      "addFolder": "Добавить папку",
+      "description": "Nexora отслеживает эти папки и автоматически добавляет новые видеофайлы в очередь.",
+      "disabled": "Приостановлено",
+      "enabled": "Активно",
+      "noFolders": "Папки не настроены.",
+      "noFoldersHint": "Нажмите «Добавить папку», чтобы начать отслеживание директории.",
+      "remove": "Удалить",
+      "removeConfirm": "Удалить эту папку из отслеживаемых?",
+      "tab": "Отслеживаемые папки",
+      "title": "Отслеживаемые папки"
     }
   },
   "logs": {
@@ -689,7 +890,11 @@
     "qcPost": "Post-QC",
     "qcPostDesc": "Output SHA-256 verified + VMAF",
     "delivery": "Delivery",
-    "deliveryDesc": "Files moved to output folder"
+    "deliveryDesc": "Files moved to output folder",
+    "qc-post": "Post-QC",
+    "qc-postDesc": "Проверка SHA-256 + VMAF на выходе",
+    "qc-pre": "Pre-QC",
+    "qc-preDesc": "Файл проверен (размер, длительность, кодек)"
   },
   "common": {
     "save": "Save",
@@ -891,7 +1096,22 @@
     "cancel": "Cancel Job",
     "processing": "Processing...",
     "completedAt": "Completed at {{date}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "errorSuggestion": "Подробности в Logs",
+    "errors": {
+      "codec": "Кодек недоступен",
+      "codecHint": "Выберите другой пресет",
+      "corrupt": "Файл поврежден или не поддерживается",
+      "corruptHint": "Проверьте целостность исходного файла",
+      "diskFull": "Диск заполнен",
+      "diskFullHint": "Освободите место на диске и повторите попытку",
+      "generic": "Ошибка транскодирования",
+      "genericHint": "Подробности в логах",
+      "killed": "Процесс прерван",
+      "killedHint": "Задача отменена или недостаточно памяти",
+      "permission": "Доступ запрещен",
+      "permissionHint": "Проверьте права доступа к папке назначения"
+    }
   },
   "systemMetrics": {
     "loading": "Loading metrics..."
@@ -959,5 +1179,64 @@
     "modified": "Modificado",
     "notSupported": "Navegação não suportada para iCloud",
     "browseTooltipDisabled": "Navegação não suportada para iCloud"
+  },
+  "bugReport": {
+    "copied": "Скопировано в буфер обмена",
+    "copyClipboard": "Копировать в буфер обмена",
+    "descLabel": "Описание",
+    "descPlaceholder": "Шаги для воспроизведения, ожидаемое и фактическое поведение...",
+    "includeLogs": "Включить последние 50 строк лога",
+    "openGitHub": "Открыть GitHub Issue",
+    "saveFile": "Сохранить в файл",
+    "saved": "Сохранено в {{path}}",
+    "title": "Сообщить о проблеме",
+    "titleLabel": "Заголовок",
+    "titlePlaceholder": "Краткое описание проблемы",
+    "titleRequired": "Заголовок обязателен"
+  },
+  "comparator": {
+    "dragHint": "Перетащите для сравнения",
+    "noOutput": "Обработанный файл недоступен",
+    "original": "Оригинал",
+    "processed": "Обработанный",
+    "tab": "Компаратор"
+  },
+  "diagnostics": {
+    "bundled": "встроен ✓",
+    "desc": "Статус компонентов, необходимых для обработки видео.",
+    "notFound": "не найден",
+    "reinstall": "Загрузить последнюю версию",
+    "title": "Диагностика системы"
+  },
+  "onboarding": {
+    "back": "Назад",
+    "next": "Далее",
+    "start": "Начать работу с Nexora",
+    "step1Desc": "Профессиональная обработка медиа прямо на вашей рабочей станции. Настроим всё меньше чем за минуту.",
+    "step1Title": "Добро пожаловать в Nexora Desktop",
+    "step2Choose": "Выбрать папку",
+    "step2Desc": "Куда сохранять обработанные файлы?",
+    "step2Title": "Папка вывода",
+    "step3Desc": "Помогите улучшить Nexora, предоставляя анонимные данные об ошибках — они хранятся только на этом устройстве и никуда не передаются.",
+    "step3Title": "Конфиденциальность",
+    "step3Toggle": "Отправлять анонимные данные об ошибках",
+    "step4Desc": "Перетащите видеофайлы в приложение или используйте Library, чтобы добавить файлы в очередь.",
+    "step4Title": "Готово!",
+    "stepOf": "Шаг {{current}} из {{total}}"
+  },
+  "update": {
+    "currentVersion": "Текущая версия",
+    "devModeRestart": "Установлено. Перезагрузите вручную (dev mode).",
+    "downloadError": "Ошибка загрузки",
+    "downloading": "Загрузка...",
+    "installing": "Установка...",
+    "later": "Позже",
+    "newVersion": "Новая версия",
+    "restarting": "Перезапуск...",
+    "retry": "Повторить",
+    "title": "Доступно обновление",
+    "updateNow": "Обновить сейчас",
+    "viewFullRelease": "Полный список изменений",
+    "whatsNew": "Что нового"
   }
 }
