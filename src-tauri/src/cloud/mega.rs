@@ -37,17 +37,6 @@ impl MegaProvider {
         Ok(Self { email, password, base_path })
     }
 
-    fn full_path(&self, subpath: &str) -> String {
-        let sub = subpath.trim_matches('/');
-        if sub.is_empty() {
-            format!("/Root/{}", self.base_path)
-        } else {
-            // subpath é um handle MEGA composto ("handle" ou "parent/handle")
-            // extrai apenas o último segmento (o handle folha)
-            let handle = sub.rsplit('/').next().unwrap_or(sub);
-            handle.to_string() // usado com get_node_by_handle
-        }
-    }
 }
 
 #[async_trait]
@@ -305,21 +294,4 @@ mod tests {
         assert!(err.contains("Password"));
     }
 
-    #[test]
-    fn full_path_empty_subpath_returns_root_path() {
-        let p = MegaProvider::new(&cfg("Nexora/Output"), &creds()).unwrap();
-        assert_eq!(p.full_path(""), "/Root/Nexora/Output");
-    }
-
-    #[test]
-    fn full_path_handle_returns_leaf_handle() {
-        let p = MegaProvider::new(&cfg("Nexora/Output"), &creds()).unwrap();
-        assert_eq!(p.full_path("AAAA1234"), "AAAA1234");
-    }
-
-    #[test]
-    fn full_path_compound_returns_leaf_handle() {
-        let p = MegaProvider::new(&cfg("Nexora/Output"), &creds()).unwrap();
-        assert_eq!(p.full_path("AAAA/BBBB"), "BBBB");
-    }
 }
