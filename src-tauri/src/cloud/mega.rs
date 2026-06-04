@@ -212,8 +212,38 @@ impl CloudProvider for MegaProvider {
         Ok(files)
     }
 
-    async fn delete_files(&self, _paths: &[String]) -> Result<Vec<String>, String> {
-        todo!()
+    async fn delete_files(&self, paths: &[String]) -> Result<Vec<String>, String> {
+        if paths.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let http_client = reqwest::Client::new();
+        let mut mega = mega::Client::builder()
+            .build(http_client)
+            .map_err(|e| format!("MEGA: falha ao criar cliente: {e}"))?;
+        mega.login(&self.email, &self.password, None)
+            .await
+            .map_err(|_| "MEGA: credenciais inválidas — verifique email e password".to_string())?;
+
+        let nodes = mega
+            .fetch_own_nodes()
+            .await
+            .map_err(|e| format!("MEGA inacessível: {e}"))?;
+
+        let mut failed = Vec::new();
+        for path in paths {
+            // Extrai handle folha de path possivelmente composto
+            let handle = path.rsplit('/').next().unwrap_or(path.as_str());
+            match nodes.get_node_by_handle(handle) {
+                None => failed.push(format!("{path}: handle não encontrado")),
+                Some(node) => {
+                    if let Err(e) = mega.delete_node(node).await {
+                        failed.push(format!("{path}: {e}"));
+                    }
+                }
+            }
+        }
+        Ok(failed)
     }
 }
 
