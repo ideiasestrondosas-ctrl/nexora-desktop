@@ -8,7 +8,7 @@
 Actualizado: 2026-06-04
 Agente: Claude Code (claude-sonnet-4-6)
 Versao: v0.33.0-beta.1
-Push: main @ 2d6e9c4 (cargo fmt + release bump incluidos)
+Push: main @ f02a788 (i18n gap fix — merge en/common.json + 2899 strings traduzidas)
 
 ## O que foi feito
 
@@ -53,16 +53,24 @@ Push: main @ 2d6e9c4 (cargo fmt + release bump incluidos)
 
 - `npx tsc --noEmit`: ✓
 - `npm run lint`: ✓
-- `node scripts/check-translations.mjs`: alpha gate PT OK, 13 locales 100% completas
-- `node scripts/validate-i18n.mjs`: pendente ate traducao em background concluir
+- `npm run format:check`: ✓
+- `npm test`: 52/52 vitest tests pass ✓
+- `node scripts/check-translations.mjs`: alpha gate PT OK, 15 locales 100% completas ✓
+- `node scripts/validate-i18n.mjs`: 0 erros, 0 avisos, 15/15 locales 100% ✓
+
+**Commit + Push:**
+
+- `f02a788` fix(i18n): merge en/common.json, translate 223 missing keys to 13 locales
+- 37 files changed, 8023 insertions(+), 1151 deletions(-)
+- Push: main @ f02a788
 
 **Notas para o proximo agente:**
 
-- Em background: traducao das 12 locales restantes (alem de ES ja completa). Ver `C:\Users\arnal\AppData\Local\Temp\translate-rest.log`.
-- Apos background concluir: correr `node scripts/validate-i18n.mjs` para confirmar 0 erros.
-- Apos background: `git add . && git commit` com mensagem conventional.
-- Pendente do agente 67/68: CI v0.33.0-beta.1 (run 26943243489), `sync.ps1 -PublishDraft` quando verde.
+- Todas as 13 locales estao 100% completas. O gate de i18n em CI falha o build se alguma locale tiver chaves em falta — previne drift futuro.
 - O modelo Ollama `gemma4:31b-cloud` produziu traducoes de alta qualidade para todas as 13 linguas. Para PT/EN (ja manuais) e ZH (sem prefixo `[key]` em alguns batches) o parser faz fallback por indice.
+- Pendente do agente 67/68: CI v0.33.0-beta.1 (run 26943243489), `sync.ps1 -PublishDraft` quando verde.
+- Pendentes da sessao 66/67: teste SFTP end-to-end (TOFU fingerprint), media-binaries.lock.json macOS.
+- Para adicionar uma nova lingua: (1) criar pasta src/i18n/locales/{code}, (2) copiar en/common.json, (3) adicionar code a SUPPORTED_LANGS em src/i18n/index.ts, (4) correr `npm run i18n:translate -- {code}`.
 
 **Documentacao:**
 
