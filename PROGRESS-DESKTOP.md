@@ -1,3 +1,27 @@
+## [Sessao 66] 2026-06-04 — MEGA.nz cloud provider (implementacao completa + testado)
+
+### Concluido
+
+- [x] Cargo.toml: mega = "0.8" (mega-rs) + tokio-util = "0.7" features = ["compat"]
+- [x] src-tauri/src/cloud/mega.rs (novo): MegaProvider struct + new() + 7 unit tests
+- [x] test_connection: login MEGA + verifica pasta base (`/Root/{base_path}`)
+- [x] upload: tokio::fs::File.compat() (TokioAsyncReadCompatExt) → upload_node
+- [x] list_files: handle-based navigation; RemoteFile.path = handle composto "pai/filho"
+- [x] download: rsplit('/').next() para handle folha + compat_write() → download_node
+- [x] delete_files: falhas acumuladas em Vec<String>, nunca aborta ao primeiro erro
+- [x] mod.rs: pub mod mega + arm "mega" em get_provider()
+- [x] migrations.rs: migrate_cloud_v3 — 'mega' no CHECK constraint, idempotente
+- [x] cloud.ts: 'mega' ao union type + PROVIDER_LABELS + PROVIDER_HELP + PROVIDER_FIELDS
+- [x] Build debug OK — MSI + NSIS gerados sem erros
+- [x] Teste manual pelo utilizador — PASSOU (test_connection + browse + upload confirmados)
+
+### Pendente
+
+- [ ] Teste manual SFTP end-to-end (1a ligacao / repeticao / mismatch MITM)
+- [ ] media-binaries.lock.json macOS — requer --write-lock em maquina macOS
+
+---
+
 ## [Sessao 65] 2026-06-03 — Help text todos os providers cloud
 
 ### Concluido

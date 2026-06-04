@@ -5,10 +5,60 @@
 
 ---
 
-Actualizado: 2026-06-03
+Actualizado: 2026-06-04
 Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
+
+### Sessao 66 — MEGA.nz cloud provider — CONCLUIDO E TESTADO
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-04
+
+**Resumo:** Implementado o provider MEGA.nz completo via subagent-driven development (11 tasks independentes, cada uma com spec review + code quality review). O utilizador testou manualmente e confirmou que funciona (test_connection, browse, upload).
+
+**Commits:**
+
+- `2a7cfcf` chore(deps): mega = "0.8" + tokio-util compat
+- `7a5b6cc` feat(cloud/mega): MegaProvider struct + new() + unit tests
+- `20d7ff8` test(cloud/mega): testes email/password vazios
+- `df448a1` feat(cloud/mega): test_connection
+- `84f5b4b` feat(cloud/mega): upload via tokio compat reader
+- `254c9d6` feat(cloud/mega): list_files — handle-based navigation
+- `8d86d3f` feat(cloud/mega): download via tokio compat writer
+- `15e3d86` feat(cloud/mega): delete_files — falhas acumuladas
+- `8608b13` feat(db): migrate_cloud_v3 + registar mega em mod.rs
+- `5374af6` feat(ui): provider MEGA — tipo, label, fields, help
+- `f9674e7` refactor(cloud/mega): remover full_path nao utilizado
+
+**Alteracoes principais:**
+
+- `src-tauri/Cargo.toml`: mega = "0.8", tokio-util = "0.7" features = ["compat"]
+- `src-tauri/src/cloud/mega.rs` (novo): MegaProvider completo
+- `src-tauri/src/cloud/mod.rs`: pub mod mega + arm "mega" em get_provider()
+- `src-tauri/src/db/migrations.rs`: migrate_cloud_v3 (CHECK constraint + 'mega')
+- `src/store/cloud.ts`: tipo + labels + fields + help para MEGA
+
+**Estado dos providers cloud:**
+
+| Provider        | Auth              | Estado                      |
+| --------------- | ----------------- | --------------------------- |
+| ftp/ftps        | user/pass         | OK                          |
+| sftp            | SSH               | Nao testado end-to-end      |
+| smb             | SO                | OK                          |
+| s3              | access/secret key | OK                          |
+| gdrive          | Device Flow       | OK                          |
+| gdrive_personal | PKCE browser      | OK                          |
+| dropbox         | PKCE browser      | OK                          |
+| icloud          | SO (macOS only)   | OK                          |
+| mega            | email+password    | OK — testado manualmente ✅ |
+
+**Pendente proximo agente:**
+
+1. Teste manual SFTP end-to-end (TOFU fingerprint, mismatch MITM)
+2. media-binaries.lock.json macOS (requer --write-lock em maquina macOS)
+
+---
 
 ### Sessao 65 — Help text todos os providers cloud — CONCLUIDO
 
