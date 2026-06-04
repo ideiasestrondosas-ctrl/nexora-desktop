@@ -10,6 +10,55 @@ Agente: Claude Code (claude-sonnet-4-6)
 
 ## O que foi feito
 
+### Sessao 67 — Documentacao cloud completa (todos os providers)
+
+**Agente:** Claude Code (claude-sonnet-4-6)
+**Data:** 2026-06-04
+
+**Resumo:** O utilizador verificou o manual in-app e o guia de testes e constatou que faltavam explicacoes de configuracao e testes para a maioria dos providers cloud. Foram adicionados 5 novos cards no HelpModal (SFTP, SMB, GDrive Personal, Dropbox, MEGA), instrucoes de configuracao no USER_MANUAL.md e 7 novos testes T10-03 a T10-09 em ambos os guias beta (PT e EN).
+
+**Commits:**
+
+- `1c8ae31` docs(cloud): adicionar documentacao e testes para todos os providers cloud
+
+**Alteracoes principais:**
+
+- `src/components/HelpModal.tsx`: tab Cloud 6→11 cards; TAB_COUNTS cloud 7→11
+- `src/i18n/locales/en/common.json`: chaves sftp, smb, gdrivePersonal, dropbox, mega
+- `src/i18n/locales/pt/common.json`: idem em portugues
+- `docs/USER_MANUAL.md`: seccoes FTP/FTPS, SFTP, SMB, S3, GDrive Personal, Dropbox
+- `docs/BETA_TESTING_GUIDE.pt.md`: T10-03 a T10-09 (7 novos testes)
+- `docs/BETA_TESTING_GUIDE.en.md`: idem em ingles
+
+**Estado dos providers cloud:**
+
+| Provider        | Auth              | Estado                      |
+| --------------- | ----------------- | --------------------------- |
+| ftp/ftps        | user/pass         | OK                          |
+| sftp            | SSH               | Nao testado end-to-end      |
+| smb             | SO                | OK                          |
+| s3              | access/secret key | OK                          |
+| gdrive          | Device Flow       | OK                          |
+| gdrive_personal | PKCE browser      | OK                          |
+| dropbox         | PKCE browser      | OK                          |
+| icloud          | SO (macOS only)   | OK                          |
+| mega            | email+password    | OK — testado manualmente ✅ |
+
+**Documentacao:**
+
+| Documento                  | Estado                                                   |
+| -------------------------- | -------------------------------------------------------- |
+| USER_MANUAL.md (secção 10) | Completo — todos os providers com passos de configuracao |
+| HelpModal.tsx tab Cloud    | Completo — 11 cards (todos os providers)                 |
+| BETA_TESTING_GUIDE PT + EN | Completo — T10 com 9 testes (T10-01 a T10-09)            |
+
+**Pendente proximo agente:**
+
+1. Teste manual SFTP end-to-end (TOFU fingerprint, mismatch MITM)
+2. media-binaries.lock.json macOS (requer --write-lock em maquina macOS)
+
+---
+
 ### Sessao 66 — MEGA.nz cloud provider — CONCLUIDO E TESTADO
 
 **Agente:** Claude Code (claude-sonnet-4-6)

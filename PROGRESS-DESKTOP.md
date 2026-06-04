@@ -1,3 +1,22 @@
+## [Sessao 67] 2026-06-04 — Documentacao cloud completa (todos os providers)
+
+### Concluido
+
+- [x] HelpModal.tsx: tab Cloud expandido de 6 para 11 cards (SFTP, SMB, GDrive Personal, Dropbox, MEGA adicionados)
+- [x] HelpModal.tsx: TAB_COUNTS.cloud corrigido 7 → 11
+- [x] i18n/locales/en/common.json: chaves sftp, smb, gdrivePersonal, dropbox, mega; desc actualizado com todos os providers
+- [x] i18n/locales/pt/common.json: idem em portugues
+- [x] docs/USER_MANUAL.md: seccoes de configuracao passo a passo para FTP/FTPS, SFTP, SMB, S3, GDrive Personal, Dropbox
+- [x] docs/BETA_TESTING_GUIDE.pt.md: T10 expandido — T10-03 a T10-09 (SFTP, SMB, S3, GDrive, GDrive Personal, Dropbox, MEGA)
+- [x] docs/BETA_TESTING_GUIDE.en.md: idem em ingles
+
+### Pendente
+
+- [ ] Teste manual SFTP end-to-end (1a ligacao / repeticao / mismatch MITM)
+- [ ] media-binaries.lock.json macOS — requer --write-lock em maquina macOS
+
+---
+
 ## [Sessao 66] 2026-06-04 — MEGA.nz cloud provider (implementacao completa + testado)
 
 ### Concluido
