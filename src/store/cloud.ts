@@ -3,7 +3,16 @@ import { create } from 'zustand';
 export interface CloudProfile {
   id: string;
   name: string;
-  provider: 'ftp' | 'sftp' | 'smb' | 's3' | 'gdrive' | 'gdrive_personal' | 'dropbox' | 'icloud';
+  provider:
+    | 'ftp'
+    | 'sftp'
+    | 'smb'
+    | 's3'
+    | 'gdrive'
+    | 'gdrive_personal'
+    | 'dropbox'
+    | 'icloud'
+    | 'mega';
   config: Record<string, unknown>;
   createdAt: string;
 }
@@ -55,6 +64,7 @@ export const PROVIDER_LABELS: Record<CloudProviderType, string> = {
   gdrive_personal: 'Google Drive Pessoal',
   dropbox: 'Dropbox',
   icloud: 'iCloud Drive',
+  mega: 'MEGA',
 };
 
 export const PROVIDER_HELP: Record<CloudProviderType, string | null> = {
@@ -140,6 +150,17 @@ export const PROVIDER_HELP: Record<CloudProviderType, string | null> = {
     '4. A pasta de destino é criada automaticamente na primeira transferência',
     '   NOTA: funciona como partilha SMB local ao iCloud — não usa a API oficial do iCloud',
   ].join('\n'),
+  mega: [
+    '1. Aceda a mega.nz e crie uma conta gratuita (ou use conta existente)',
+    '2. Crie a pasta de destino no MEGA antes de guardar o perfil',
+    '   Exemplo: na raiz do Cloud Drive, crie "Nexora" → dentro, crie "Output"',
+    '3. Em "Pasta no MEGA" escreva o caminho sem barra inicial',
+    '   Exemplos: Nexora/Output   uploads   Media/nexora',
+    '4. Introduza o email e password da conta MEGA nos campos acima',
+    '5. Clique "Testar ligação" para verificar acesso à pasta',
+    '   NOTA: os ficheiros são cifrados automaticamente (E2EE) pelo MEGA —',
+    '   o Nexora nunca envia dados em claro para os servidores',
+  ].join('\n'),
 };
 
 export const PROVIDER_FIELDS: Record<
@@ -201,5 +222,15 @@ export const PROVIDER_FIELDS: Record<
       type: 'text',
       defaultValue: 'Nexora/',
     },
+  ],
+  mega: [
+    {
+      key: 'base_path',
+      label: 'Pasta no MEGA',
+      type: 'text' as const,
+      defaultValue: 'Nexora/Output',
+    },
+    { key: 'email', label: 'Email', type: 'text' as const },
+    { key: 'password', label: 'Password', type: 'password' as const },
   ],
 };
