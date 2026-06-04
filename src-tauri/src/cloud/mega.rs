@@ -2,6 +2,7 @@ use super::provider::{CloudProvider, RemoteFile};
 use async_trait::async_trait;
 use std::path::Path;
 use tokio_util::compat::TokioAsyncReadCompatExt;
+use tokio_util::compat::TokioAsyncWriteCompatExt;
 
 #[derive(Debug)]
 pub struct MegaProvider {
@@ -115,8 +116,41 @@ impl CloudProvider for MegaProvider {
         Ok(format!("{}/{}", self.base_path, filename))
     }
 
-    async fn download(&self, _remote_path: &str, _local_path: &Path) -> Result<(), String> {
-        todo!()
+    async fn download(&self, remote_path: &str, local_path: &Path) -> Result<(), String> {
+        // remote_path pode ser "pai/handle" — extrai o handle folha
+        let handle = remote_path.rsplit('/').next().unwrap_or(remote_path);
+
+        let http_client = reqwest::Client::new();
+        let mut mega = mega::Client::builder()
+            .build(http_client)
+            .map_err(|e| format!("MEGA: falha ao criar cliente: {e}"))?;
+        mega.login(&self.email, &self.password, None)
+            .await
+            .map_err(|_| "MEGA: credenciais inválidas — verifique email e password".to_string())?;
+
+        let nodes = mega
+            .fetch_own_nodes()
+            .await
+            .map_err(|e| format!("MEGA inacessível: {e}"))?;
+        let node = nodes
+            .get_node_by_handle(handle)
+            .ok_or_else(|| format!("Ficheiro com handle '{}' não encontrado no MEGA", handle))?;
+
+        if let Some(parent) = local_path.parent() {
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| e.to_string())?;
+        }
+        let file = tokio::fs::File::create(local_path)
+            .await
+            .map_err(|e| format!("MEGA: falha ao criar ficheiro local: {e}"))?;
+        let writer = file.compat_write();
+
+        mega.download_node(node, writer)
+            .await
+            .map_err(|e| format!("MEGA download falhou: {e}"))?;
+
+        Ok(())
     }
 
     async fn list_files(&self, path: &str) -> Result<Vec<RemoteFile>, String> {
