@@ -89,8 +89,7 @@ pub fn update_cloud_profile(
     credentials_json: String,
     state: State<AppState>,
 ) -> Result<(), String> {
-    let new_creds: serde_json::Value =
-        serde_json::from_str(&credentials_json).unwrap_or_default();
+    let new_creds: serde_json::Value = serde_json::from_str(&credentials_json).unwrap_or_default();
     if new_creds.as_object().is_some_and(|o| !o.is_empty()) {
         // Merge com keychain existente: novos valores substituem, mas campos ausentes
         // (como oauth_token) são preservados para não quebrar perfis OAuth ao editar.
@@ -504,8 +503,7 @@ async fn load_profile_provider(
         row
         // db (MutexGuard) drops here — antes de qualquer await
     };
-    let config: serde_json::Value =
-        serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
+    let config: serde_json::Value = serde_json::from_str(&config_str).map_err(|e| e.to_string())?;
     // Backward compat: perfis criados antes da migração keychain (b6b76d1) têm as creds
     // no blob config da DB. Se o keychain estiver vazio, usar config como fallback.
     let kc = cloud::credentials::load(profile_id);

@@ -34,9 +34,12 @@ impl MegaProvider {
         } else {
             base_path
         };
-        Ok(Self { email, password, base_path })
+        Ok(Self {
+            email,
+            password,
+            base_path,
+        })
     }
-
 }
 
 #[async_trait]
@@ -58,9 +61,12 @@ impl CloudProvider for MegaProvider {
             .await
             .map_err(|e| format!("MEGA inacessível: {e}"))?;
         let root_path = format!("/Root/{}", self.base_path);
-        nodes
-            .get_node_by_path(&root_path)
-            .ok_or_else(|| format!("Pasta '{}' não encontrada no MEGA. Crie-a primeiro em mega.nz", self.base_path))?;
+        nodes.get_node_by_path(&root_path).ok_or_else(|| {
+            format!(
+                "Pasta '{}' não encontrada no MEGA. Crie-a primeiro em mega.nz",
+                self.base_path
+            )
+        })?;
         Ok(())
     }
 
@@ -94,9 +100,12 @@ impl CloudProvider for MegaProvider {
             .await
             .map_err(|e| format!("MEGA inacessível: {e}"))?;
         let root_path = format!("/Root/{}", self.base_path);
-        let parent = nodes
-            .get_node_by_path(&root_path)
-            .ok_or_else(|| format!("Pasta '{}' não encontrada no MEGA. Crie-a primeiro em mega.nz", self.base_path))?;
+        let parent = nodes.get_node_by_path(&root_path).ok_or_else(|| {
+            format!(
+                "Pasta '{}' não encontrada no MEGA. Crie-a primeiro em mega.nz",
+                self.base_path
+            )
+        })?;
 
         mega.upload_node(parent, &filename, size, reader, mega::LastModified::Now)
             .await
@@ -267,8 +276,8 @@ mod tests {
 
     #[test]
     fn new_fails_without_email() {
-        let err = MegaProvider::new(&serde_json::json!({ "base_path": "A" }), &creds())
-            .unwrap_err();
+        let err =
+            MegaProvider::new(&serde_json::json!({ "base_path": "A" }), &creds()).unwrap_err();
         assert!(err.contains("Email"));
     }
 
@@ -293,5 +302,4 @@ mod tests {
         let err = MegaProvider::new(&cfg("A"), &serde_json::json!({ "password": "" })).unwrap_err();
         assert!(err.contains("Password"));
     }
-
 }

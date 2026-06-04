@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use std::path::Path;
 
 const SIMPLE_UPLOAD_LIMIT: usize = 150 * 1024 * 1024; // 150 MB
-const CHUNK_SIZE: usize = 128 * 1024 * 1024;           // 128 MB
+const CHUNK_SIZE: usize = 128 * 1024 * 1024; // 128 MB
 
 pub struct DropboxProvider {
     pub(crate) creds: serde_json::Value,
@@ -71,7 +71,9 @@ impl CloudProvider for DropboxProvider {
 
     async fn upload(&self, local_path: &Path, remote_path: &str) -> Result<String, String> {
         let token = self.token()?;
-        let data = tokio::fs::read(local_path).await.map_err(|e| e.to_string())?;
+        let data = tokio::fs::read(local_path)
+            .await
+            .map_err(|e| e.to_string())?;
         let size = data.len();
         let dest = self.dest_path(
             Path::new(remote_path)
@@ -126,8 +128,7 @@ impl CloudProvider for DropboxProvider {
                 start_resp.status()
             ));
         }
-        let start_body: serde_json::Value =
-            start_resp.json().await.map_err(|e| e.to_string())?;
+        let start_body: serde_json::Value = start_resp.json().await.map_err(|e| e.to_string())?;
         let session_id = start_body["session_id"]
             .as_str()
             .ok_or("Dropbox não devolveu session_id")?
@@ -179,7 +180,9 @@ impl CloudProvider for DropboxProvider {
         if !finish_resp.status().is_success() {
             let status = finish_resp.status();
             let detail = finish_resp.text().await.unwrap_or_default();
-            return Err(format!("Dropbox upload session finish erro {status}: {detail}"));
+            return Err(format!(
+                "Dropbox upload session finish erro {status}: {detail}"
+            ));
         }
         let body: serde_json::Value = finish_resp.json().await.map_err(|e| e.to_string())?;
         Ok(body["path_display"].as_str().unwrap_or(&dest).to_string())

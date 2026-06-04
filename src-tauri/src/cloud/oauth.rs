@@ -36,7 +36,10 @@ pub fn generate_pkce() -> PkceParams {
     let hash = hasher.finalize();
     let challenge = URL_SAFE_NO_PAD.encode(hash);
 
-    PkceParams { verifier, challenge }
+    PkceParams {
+        verifier,
+        challenge,
+    }
 }
 
 // ── Port ──────────────────────────────────────────────────────────────────────
@@ -76,9 +79,7 @@ pub async fn await_oauth_callback(port: u16) -> Result<String, String> {
                 let end = query.find(' ').unwrap_or(query.len());
                 extract_query_param(&query[..end], "code")
             })
-            .ok_or_else(|| {
-                "Parâmetro 'code' não encontrado na resposta OAuth".to_string()
-            })?;
+            .ok_or_else(|| "Parâmetro 'code' não encontrado na resposta OAuth".to_string())?;
 
         let html = "<html><head><meta charset='utf-8'></head>\
             <body style='font-family:sans-serif;padding:40px;text-align:center'>\
@@ -263,10 +264,7 @@ pub async fn refresh_if_needed(
     let body: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
 
     if let Some(err) = body["error"].as_str() {
-        return Err(format!(
-            "Sessão expirada — reautentique o perfil ({})",
-            err
-        ));
+        return Err(format!("Sessão expirada — reautentique o perfil ({})", err));
     }
 
     let access_token = body["access_token"]
@@ -293,7 +291,10 @@ mod tests {
     #[test]
     fn pkce_verifier_is_base64url() {
         let p = generate_pkce();
-        assert!(p.verifier.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-'));
+        assert!(p
+            .verifier
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '_' || c == '-'));
         assert!(!p.verifier.contains('='));
     }
 
@@ -301,7 +302,10 @@ mod tests {
     fn pkce_challenge_differs_from_verifier() {
         let p = generate_pkce();
         assert_ne!(p.verifier, p.challenge);
-        assert!(p.challenge.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-'));
+        assert!(p
+            .challenge
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '_' || c == '-'));
     }
 
     #[test]
