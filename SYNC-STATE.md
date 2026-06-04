@@ -7,10 +7,12 @@
 
 Actualizado: 2026-06-04
 Agente: Claude Code (claude-sonnet-4-6)
+Versao: v0.33.0-beta.1
+Push: main @ 2d6e9c4 (cargo fmt + release bump incluidos)
 
 ## O que foi feito
 
-### Sessao 67 — Documentacao cloud completa (todos os providers)
+### Sessao 67 — Documentacao cloud completa + release v0.33.0-beta.1
 
 **Agente:** Claude Code (claude-sonnet-4-6)
 **Data:** 2026-06-04
@@ -52,10 +54,16 @@ Agente: Claude Code (claude-sonnet-4-6)
 | HelpModal.tsx tab Cloud    | Completo — 11 cards (todos os providers)                 |
 | BETA_TESTING_GUIDE PT + EN | Completo — T10 com 9 testes (T10-01 a T10-09)            |
 
+**Commits adicionais (sync):**
+
+- `9f8ed94` chore(release): v0.33.0-beta.1
+- `2d6e9c4` style(rust): cargo fmt — reformatar cloud/\*.rs e commands/cloud.rs
+
 **Pendente proximo agente:**
 
-1. Teste manual SFTP end-to-end (TOFU fingerprint, mismatch MITM)
-2. media-binaries.lock.json macOS (requer --write-lock em maquina macOS)
+1. Aguardar CI/build GitHub Actions para v0.33.0-beta.1
+2. Teste manual SFTP end-to-end (TOFU fingerprint, mismatch MITM)
+3. media-binaries.lock.json macOS (requer --write-lock em maquina macOS)
 
 ---
 
