@@ -58,7 +58,7 @@
     "lucide-react": "^0.474.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-i18next": "^17.0.7",
+    "react-i18next": "^17.0.8",
     "react-markdown": "^10.1.0",
     "recharts": "^2.13.0",
     "remark-gfm": "^4.0.1",
