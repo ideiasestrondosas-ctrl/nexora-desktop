@@ -3530,7 +3530,7 @@ checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 
 [[package]]
 name = "nexora-desktop"
-version = "0.33.0-beta.1"
+version = "0.33.1-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3543,7 +3543,7 @@ dependencies = [
  "mega",
  "notify",
  "num_cpus",
- "rand 0.8.6",
+ "rand 0.10.1",
  "reqwest 0.12.28",
  "rusqlite",
  "russh",
